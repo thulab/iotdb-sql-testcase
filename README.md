@@ -1,5 +1,4 @@
 # IoTDB-SQL
-# IoTDB-SQL README
 
 ### 一、环境依赖
 
