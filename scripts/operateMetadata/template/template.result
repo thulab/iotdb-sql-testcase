@@ -1,0 +1,504 @@
+-- [1]12:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]13:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
+STRICT{
+PASS
+}
+
+-- [1]14:show schema templates
+STRICT{
+template name(TEXT)      |
+-------------------------
+t1                       |
+-------------------------
+t2                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]15:show nodes in schema template t1
+STRICT{
+child nodes(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |
+--------------------------------------------------------------------------------------
+temperature            |FLOAT               |RLE                 |SNAPPY                 |
+--------------------------------------------------------------------------------------
+status                 |BOOLEAN             |PLAIN               |SNAPPY                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]16:show paths using schema template t1
+STRICT{
+child paths(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]17:drop schema template t1
+STRICT{
+PASS
+}
+
+-- [1]18:show nodes in schema template t2
+STRICT{
+child nodes(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |
+--------------------------------------------------------------------------------------
+lon                    |FLOAT               |GORILLA             |SNAPPY                 |
+--------------------------------------------------------------------------------------
+lat                    |FLOAT               |GORILLA             |SNAPPY                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]19:show paths using schema template t2
+STRICT{
+child paths(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]20:drop schema template t2
+STRICT{
+PASS
+}
+-- [1]21:drop schema template t3
+STRICT{
+SQLSTATE : 321: Undefined template name: t3
+}
+-- [1]37:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]38:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]39:drop schema template t1
+STRICT{
+SQLSTATE : 303: Template [t1] has been set on MTree, cannot be dropped now.
+}
+-- [1]53:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]54:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]55:unset schema template t1 from root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]56:drop schema template t1
+STRICT{
+PASS
+}
+-- [1]69:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]70:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]83:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]84:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
+STRICT{
+PASS
+}
+-- [1]85:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]86:set schema template t2 to root.sg1.d1
+STRICT{
+SQLSTATE : 303: Template already exists on root.sg1.d1
+}
+-- [1]102:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]103:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
+STRICT{
+PASS
+}
+-- [1]104:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]105:set schema template t2 to root.sg1.d2
+STRICT{
+PASS
+}
+-- [1]106:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]107:create timeseries of schema template on root.sg1.d2
+STRICT{
+PASS
+}
+
+-- [1]108:show timeseries root.sg1.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1                 |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.lon       |null             |root.sg1                 |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.lat       |null             |root.sg1                 |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]109:show devices root.sg1.**
+STRICT{
+devices(TEXT)      |isAligned(TEXT)      |
+----------------------------------------
+root.sg1.d1        |false                |
+----------------------------------------
+root.sg1.d2        |true                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]110:show timeseries
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1                 |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.lon       |null             |root.sg1                 |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.lat       |null             |root.sg1                 |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]111:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.8
+-- [1]112:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]113:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+-----------------------------------------------------------------------------------
+1               |1.0                                 |true                           |
+-----------------------------------------------------------------------------------
+2               |2.0                                 |false                          |
+-----------------------------------------------------------------------------------
+3               |3.0                                 |true                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]114:insert into root.sg1.d2(time, lat, lon) aligned values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]115:insert into root.sg1.d2(time, lat, lon) aligned values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]116:select * from root.sg1.d2
+STRICT{
+Time(TIME)      |root.sg1.d2.lon(INT64)      |root.sg1.d2.lat(FLOAT)      |
+------------------------------------------------------------------------
+1               |1.0                         |1.0                         |
+------------------------------------------------------------------------
+2               |0.0                         |2.0                         |
+------------------------------------------------------------------------
+3               |1.0                         |3.0                         |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]117:create timeseries root.sg1.d1.ver WITH DATATYPE=TEXT,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED
+STRICT{
+PASS
+}
+-- [1]118:insert into root.sg1.d1(time, ver) values(1, 'v1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]119:insert into root.sg1.d1(time, ver) values(2, 'v2'), (3, 'v1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]120:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.ver(INT64)      |root.sg1.d1.temperature(TEXT)      |root.sg1.d1.status(FLOAT)      |
+--------------------------------------------------------------------------------------------------------------
+1               |v1                          |1.0                                |true                           |
+--------------------------------------------------------------------------------------------------------------
+2               |v2                          |2.0                                |false                          |
+--------------------------------------------------------------------------------------------------------------
+3               |v1                          |3.0                                |true                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]121:create timeseries root.sg1.d2.others.ver WITH DATATYPE=TEXT,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED
+STRICT{
+PASS
+}
+-- [1]122:insert into root.sg1.d2.others(time, ver) values(1, 'v1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]123:insert into root.sg1.d2.others(time, ver) values(2, 'v2'), (3, 'v1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]124:select ** from root.sg1.d2
+STRICT{
+Time(TIME)      |root.sg1.d2.others.ver(INT64)      |root.sg1.d2.lon(TEXT)      |root.sg1.d2.lat(FLOAT)      |
+----------------------------------------------------------------------------------------------------------
+1               |v1                                 |1.0                        |1.0                         |
+----------------------------------------------------------------------------------------------------------
+2               |v2                                 |0.0                        |2.0                         |
+----------------------------------------------------------------------------------------------------------
+3               |v1                                 |1.0                        |3.0                         |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]139:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]140:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]141:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.7
+-- [1]142:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]143:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+-----------------------------------------------------------------------------------
+1               |1.0                                 |true                           |
+-----------------------------------------------------------------------------------
+2               |2.0                                 |false                          |
+-----------------------------------------------------------------------------------
+3               |3.0                                 |true                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]156:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]157:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]158:insert into root.sg1.d1(time, temperature, status) values(1, 'v1', 'v1')
+STRICT{
+SQLSTATE : 313: failed to insert measurements [temperature, status] caused by For input string: "'v1'"
+}
+-- [1]160:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]161:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+-----------------------------------------------------------------------------------
+2               |2.0                                 |false                          |
+-----------------------------------------------------------------------------------
+3               |3.0                                 |true                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]174:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]175:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]176:unset schema template t1 from root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]190:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]191:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]192:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]193:unset schema template t1 from root.sg1.d1
+STRICT{
+SQLSTATE : 326: Template is in use on root.sg1.d1
+}
+-- [1]207:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]208:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]209:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]210:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]211:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]212:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+-----------------------------------------------------------------------------------
+1               |1.0                                 |true                           |
+-----------------------------------------------------------------------------------
+2               |2.0                                 |false                          |
+-----------------------------------------------------------------------------------
+3               |3.0                                 |true                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]213:unset schema template t1 from root.sg1.d1
+STRICT{
+SQLSTATE : 326: Template is in use on root.sg1.d1
+}
+-- [1]227:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 303: Duplicated template name: t1
+EXPECT:PASS
+}
+-- [1]228:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]229:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]230:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]231:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]232:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+-----------------------------------------------------------------------------------
+1               |1.0                                 |true                           |
+-----------------------------------------------------------------------------------
+2               |2.0                                 |false                          |
+-----------------------------------------------------------------------------------
+3               |3.0                                 |true                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]233:delete from root.sg1.d1.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]234:select ** from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.temperature(INT64)      |root.sg1.d1.status(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]235:unset schema template t1 from root.sg1.d1
+STRICT{
+SQLSTATE : 326: Template is in use on root.sg1.d1
+}

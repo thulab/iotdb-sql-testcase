@@ -1,0 +1,84 @@
+-- [1]12:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
+STRICT{
+PASS
+}
+-- [1]13:insert into root.sg1.d1(time, s1, s2) aligned values(1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]15:SET SYSTEM TO READONLY
+STRICT{
+PASS
+}
+-- [1]15:insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+STRICT{
+SQLSTATE : 502: Database is read-only, and does not accept non-query operation now
+}
+
+-- [1]17:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(INT64)      |root.sg1.d1.s2(INT32)      |
+----------------------------------------------------------------------
+1               |1                          |1.0                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]19:SET SYSTEM TO WRITABLE
+STRICT{
+PASS
+}
+-- [1]19:insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]20:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(INT64)      |root.sg1.d1.s2(INT32)      |
+----------------------------------------------------------------------
+1               |1                          |1.0                        |
+----------------------------------------------------------------------
+2               |2                          |2.0                        |
+----------------------------------------------------------------------
+3               |3                          |3.0                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]32:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
+STRICT{
+PASS
+}
+-- [1]33:create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE)
+STRICT{
+PASS
+}
+-- [1]35:MERGE
+STRICT{
+PASS
+}
+-- [1]36:FULL MERGE
+STRICT{
+PASS
+}
+-- [1]37:CLEAR CACHE
+STRICT{
+PASS
+}
+-- [1]38:FLUSH
+STRICT{
+PASS
+}
+-- [1]39:FLUSH root.sg1
+STRICT{
+PASS
+}
+-- [1]40:FLUSH root.sg1,root.sg2
+STRICT{
+PASS
+}

@@ -1,0 +1,338 @@
+//1.聚合查询和原始数据查询不能混合使用
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+insert into root.sg.d1(time,s1,s2) values(1,1.1,24);
+insert into root.sg.d1(time,s1,s2) values(10,14.33,15);
+insert into root.sg.d1(time,s1,s2) values(36,22.66,75);
+insert into root.sg.d1(time,s1,s2) values(50,18.18,21);
+insert into root.sg.d1(time,s1,s2) values(80,16.18,24);
+insert into root.sg.d1(time,s1,s2) values(110,11.22,34);
+insert into root.sg.d1(time,s1,s2) values(120,14.13,15);
+--聚合查询和原始数据查询混合使用校验
+select s1, count(s1) from root.sg.d1;
+<<SQLSTATE;
+select sin(s1), count(s2) from root.sg.d1;
+<<SQLSTATE;
+select s1, count(s2) from root.sg.d1 group by ([10,100),10ms);
+<<SQLSTATE;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+
+//2.内置聚合函数查询-数据类型不做限制
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d1.s5 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s3 with datatype=Boolean,encoding=RLE;
+create timeseries root.sg.d2.s4 with datatype=TEXT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,2.2,2,2);
+insert into root.sg.d1(time,s1,s2,s3,s4) values(2,2.2,3.3,3,3);
+insert into root.sg.d1(time,s1,s2,s3,s4) values(5,3.2,4.5,5,14);
+insert into root.sg.d1(time,s1,s2,s3,s4) values(10,7.8,43.1,12,22);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(1,1,2,TRUE,'10');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(2,1,6,FALSE,'11');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(5,13,32,TRUE,'13');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(10,22,26,FALSE,'18');
+--统计指定时间序列下的sensor的数据点个数
+select count(s1) from root.sg.d1;
+select count(s2) from root.sg.d1;
+select count(s3) from root.sg.d1;
+select count(s4) from root.sg.d1;
+select count(s3) from root.sg.d2;
+select count(s4) from root.sg.d2;
+--统计特定sensor下的全部数据点个数
+select count(s1) from root.sg.**;
+select count(s2) from root.sg.**;
+select count(s3) from root.sg.**;
+select count(s4) from root.sg.**;
+--统计全部sensor的数据点个数
+select count(*) from root.sg.**;
+--统计按level层级的时间序列
+select count(s1) from root.*.* group by level = 1;
+select count(s2) from root.*.* group by level = 1;
+select count(s3) from root.*.* group by level = 1;
+select count(s4) from root.*.* group by level = 1;
+--统计按level层级的全部时间序列，
+select count(s1) from root.** group by level = 1;
+select count(s2) from root.** group by level = 1;
+select count(s3) from root.** group by level = 1;
+select count(s4) from root.** group by level = 1;
+--first_value特定时间序列的第一个值
+select first_value(s1) from root.sg.d1;
+select first_value(s2) from root.sg.d1;
+select first_value(s3) from root.sg.d1;
+select first_value(s4) from root.sg.d1;
+select first_value(s3) from root.sg.d2;
+select first_value(s4) from root.sg.d2;
+--first_value特定存储组下的所有的sensor第一个值，level层级查询
+select first_value(s1) from root.sg.d1 group by level = 1;  
+select first_value(s2) from root.sg.d1 group by level = 1; 
+select first_value(s3) from root.sg.d1 group by level = 1; 
+select first_value(s4) from root.sg.d1 group by level = 1; 
+--last_value特定时间序列的最后的值
+select last_value(s1) from root.sg.d1;
+select last_value(s2) from root.sg.d1;
+select last_value(s3) from root.sg.d1;
+select last_value(s4) from root.sg.d1;
+select last_value(s3) from root.sg.d2;
+select last_value(s4) from root.sg.d2;
+--last_value特定存储组的所有指定的sensor最后的值，level层级查询
+select last_value(s1) from root.sg.d1 group by level = 1; 
+select last_value(s2) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d1 group by level = 1; 
+select last_value(s4) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d2 group by level = 1; 
+select last_value(s4) from root.sg.d2 group by level = 1; 
+--min_time特定时间序列的最小时间
+select min_time(s1) from root.sg.d1;
+select min_time(s2) from root.sg.d1;
+select min_time(s3) from root.sg.d1;
+select min_time(s4) from root.sg.d1;
+select min_time(s3) from root.sg.d2;
+select min_time(s4) from root.sg.d2;
+--min_time特定存储组下的所有指定的sensor的最小时间，level层级查询
+select min_time(s1) from root.sg.** group by level = 1;
+select min_time(s2) from root.sg.** group by level = 1;
+select min_time(s3) from root.sg.** group by level = 1;
+select min_time(s4) from root.sg.** group by level = 1;
+--max_time特定时间序列的最大时间
+select max_time(s1) from root.sg.d1;
+select max_time(s2) from root.sg.d1;
+select max_time(s3) from root.sg.d1;
+select max_time(s4) from root.sg.d1;
+select max_time(s3) from root.sg.d2;
+select max_time(s4) from root.sg.d2;
+--max_time特定存储组下的所有指定的sensor的最大时间，level层级查询
+select max_time(s1) from root.sg.** group by level = 1;   
+select max_time(s2) from root.sg.** group by level = 1;
+select max_time(s3) from root.sg.** group by level = 1;
+select max_time(s4) from root.sg.** group by level = 1;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+
+//3.聚合函数查询-数据类型相同
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=float,encoding=RLE;
+insert into root.sg.d1(time,s1) values(1,1.1);
+insert into root.sg.d1(time,s1) values(2,2.2);
+insert into root.sg.d1(time,s1) values(1,1.3);
+insert into root.sg.d1(time,s1) values(2,3.2);
+insert into root.sg.d2(time,s1) values(1,1);
+insert into root.sg.d2(time,s1) values(2,1);
+--sum特定时间序列查询
+select sum(s1) from root.sg.d1;
+
+--sum特定存储组下的所有指定的sensor求和，level层级查询
+select sum(s1) from root.sg.** group by level = 2; 
+
+--avg特定时间序列查询
+select avg(s1) from root.sg.d1;
+
+--avg特定存储组下的所有指定的sensor平均值，level层级查询
+select avg(s1) from root.sg.** group by level = 1;
+
+--max_value特定时间序列的最大值
+select max_value(s1) from root.sg.d1;
+
+--max_value特定存储组下的指定的sensor的最大值，level层级查询 
+select max_value(s1) from root.sg.** group by level = 1;
+
+--min_value求特定时间序列的最小值查询
+select min_value(s1) from root.sg.d1;
+
+--min_value求特定存储组下的所有指定的sensor最小值，level层级查询
+select min_value(s1) from root.sg.** group by level = 1;
+
+--extreme求特定时间序列的极值
+select extreme(s1) from root.sg.d1;
+
+--extreme求特定存储组下的所有指定的sensor极值，level层级查询
+select extreme(s1) from root.sg.** group by level = 1; 
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//4.分层聚合函数
+1.路径层级分组聚合
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.ln;
+create storage group root.sgcc;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sgcc.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf02.wt02.hardware with datatype=TEXT,encoding=PLAIN;
+insert into root.sgcc.wf01.wt01(time,status) values(2017-11-01T16:30:00.000+08:00,FALSE)
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-10-30T08:00:00.000+08:00,FALSE,18.32);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-10-31T08:00:00.000+08:00,TRUE,15.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T02:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T03:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T16:10:00.000+08:00,TRUE,24.13);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T16:35:00.000+08:00,FALSE,21.12);
+insert into root.ln.wf02.wt02(time,status,hardware) values(2017-11-01T16:30:00.000+08:00,FALSE,'V001');
+insert into root.ln.wf02.wt02(time,stauts,hardware) values(2017-11-01T16:35:00.000+08:00,TRUE,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T00:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T02:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-03T00:00:00.000+08:00,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-04T00:00:00.000+08:00,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-05T00:00:00.000+08:00,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T00:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T03:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T00:00:00.000+08:00,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:50:00.000+08:00,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:52:00.000+08:00,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:55:00.000+08:00,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:59:30.000+08:00,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-08T00:00:00.000+08:00,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-03T00:00:00.000+08:00,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-06T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-05T00:00:00.000+08:00,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-07T00:00:00.000+08:00,TRUE,24.19);
+--统计不同存储组下status序列的数据点个数
+select count(status) from root.** group by level = 1;
+
+--统计不同设备下status序列的数据点个数，规定level=3
+select count(status) from root.** group by level = 3;
+
+--统计不同存储组下的不同设备中的status序列的数据点个数
+select count(status) from root.** group by level = 1, 3;
+
+--查询所有序列下的temperature的最大值
+select max_value(temperature) from root.** group by level = 0;
+
+--某一层级查询：所有sensor的总数据点数
+select count(*) from root.ln.** group by level = 2;
+
+--多个层级查询:具体sensor数据点个数
+select count(status) from root.** group by level = 1, 3;
+select count(*) from root.** group by level = 1, 3;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+
+//5.时间区间分段聚合
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T02:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T03:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T00:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T02:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-03T00:00:00.000+08:00,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-04T00:00:00.000+08:00,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-05T00:00:00.000+08:00,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T00:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T03:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T00:00:00.000+08:00,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:50:00.000+08:00,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:52:00.000+08:00,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:55:00.000+08:00,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:59:30.000+08:00,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-08T00:00:00.000+08:00,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-03T00:00:00.000+08:00,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-06T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-05T00:00:00.000+08:00,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-07T00:00:00.000+08:00,TRUE,24.19);
+
+--未指定滑动步长，默认间隔参数
+select count(status), max_value(temperature) from root.ln.wf01.wt01 group by ([2017-11-01T00:00:00, 2017-11-07T23:00:00),1d);
+
+--指定滑动步长
+select count(status), max_value(temperature) from root.ln.wf01.wt01 group by ([2017-11-01 00:00:00, 2017-11-07 23:00:00), 3h, 1d); 
+
+--按自然月时间区间分组聚合：where条件
+select count(status) from root.ln.wf01.wt01 where time > 2017-11-01T01:00:00 group by([2017-11-01T00:00:00, 2019-11-07T23:00:00), 1mo, 2mo);
+
+--带值过滤：GROUP BY查询
+select count(status) from root.ln.wf01.wt01 group by([2017-10-31T00:00:00, 2019-11-07T23:00:00), 1mo, 2mo);
+
+--带值过滤：左开右闭区间查询
+select count(status) from root.ln.wf01.wt01 group by ((2017-11-01T00:00:00, 2017-11-07T23:00:00],1d);
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//6.时间区间和路径层级混合聚合查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T02:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-01T03:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T00:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-02T02:00:00.000+08:00,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-03T00:00:00.000+08:00,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-04T00:00:00.000+08:00,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-05T00:00:00.000+08:00,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T00:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-06T03:00:00.000+08:00,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T00:00:00.000+08:00,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:50:00.000+08:00,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:52:00.000+08:00,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:55:00.000+08:00,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-07T23:59:30.000+08:00,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2017-11-08T00:00:00.000+08:00,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-03T00:00:00.000+08:00,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2018-11-06T00:00:00.000+08:00,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-05T00:00:00.000+08:00,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2019-11-07T00:00:00.000+08:00,TRUE,24.19);
+--滑动Step进行统计降采样数据点
+select count(status) from root.ln.wf01.wt01 group by ([2017-11-01 00:00:00, 2017-11-07 23:00:00), 3h, 1d), level=1;
+
+--统计降采样后的数据点个数
+select count(status) from root.ln.wf01.wt01 group by ((2017-11-01T00:00:00, 2017-11-07T23:00:00],1d), level=1;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;

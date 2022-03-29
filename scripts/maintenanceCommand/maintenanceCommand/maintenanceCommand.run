@@ -1,0 +1,51 @@
+connect root/root;
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//SET SYSTEM TO 
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
+insert into root.sg1.d1(time, s1, s2) aligned values(1, 1, 1);
+SET SYSTEM TO READONLY;
+insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+<<SQLSTATE;
+select * from root.sg1.d1;
+SET SYSTEM TO WRITABLE;
+insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+select * from root.sg1.d1;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//MERGE
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
+create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE);
+MERGE;
+FULL MERGE;
+CLEAR CACHE;
+FLUSH;
+FLUSH root.sg1;
+FLUSH root.sg1,root.sg2;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+

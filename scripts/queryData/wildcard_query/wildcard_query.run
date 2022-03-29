@@ -1,0 +1,86 @@
+//1.DDL-Count查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1.t1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d3.s1 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d3.s2 with datatype=boolean,encoding=RLE;
+create timeseries root.sg.s1 with datatype=TEXT,encoding=PLAIN;
+create storage group root.ln;
+create timeseries root.ln.wf01.wt01.status with datatype=Boolean,encoding=PLAIN;
+--查看存储组和时间序列
+show storage group;
+show timeseries root.**;
+--统计时间序列总数
+COUNT TIMESERIES root.*;
+COUNT TIMESERIES root.**;
+count timeseries root.sg;
+count timeseries root.sg.d1;
+count timeseries root.sg.s1;
+count timeseries root.sg.*;
+count timeseries root.sg.*.*;
+count timeseries root.sg.*.*.*;
+count timeseries root.sg.**;
+count timeseries root.sg.*.**;
+count timeseries root.sg.**.*;
+count timeseries root.*.s1;
+count timeseries root.**.s1;
+count timeseries root.*.**.s1;
+COUNT TIMESERIES root.ln.*.*.status;
+COUNT TIMESERIES root.ln.wf01.wt01.status; 
+COUNT TIMESERIES root.* GROUP BY LEVEL=1; 
+COUNT TIMESERIES root.** GROUP BY LEVEL=1;
+--统计节点数
+COUNT NODES root.* LEVEL=2;
+COUNT NODES root.** LEVEL=2; 
+COUNT NODES root.ln.* LEVEL=2;
+COUNT NODES root.ln.wf01.* LEVEL=3;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//2.DML-select查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1.t1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d3.s1 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d3.s2 with datatype=boolean,encoding=RLE;
+create timeseries root.sg.s1 with datatype=INT32,encoding=PLAIN;
+insert into root.sg.d1.s1(time,t1) values(1,1.1);
+insert into root.sg.d1.s1(time,t1) values(3,1.1);
+insert into root.sg.d1.s1(time,t1) values(11,1.1);
+insert into root.sg.d1(time,s2) values(1,1.2);
+insert into root.sg.d2(time,s1) values(1,1);
+insert into root.sg.d2(time,s1) values(2,3);
+insert into root.sg.d3(time,s1) values(1,1);
+insert into root.sg.d3(time,s1) values(2,5);
+insert into root.sg.d3(time,s1) values(3,10);
+insert into root.sg.d3(time,s2) values(1,TRUE);
+insert into root.sg(time,s1) values(1,9);
+insert into root.sg(time,s1) values(2,11);
+--结果路径为：root.sg.*
+select * from root.sg; 
+--结果路径为：root.sg.**
+select ** from root.sg;
+--结果路径为：root.sg.*.**
+select ** from root.sg.*;
+--结果路径为：root.sg.**
+select ** from root.sg where s1 <= 10;
+--结果路径为：root.sg.**.s1
+select s1 from root.sg.** where t1<=10;
+--结果路径为：root.sg.d1.*
+select * from root.sg.d1 where s1.t1 >= 0 and root.sg.d1.s2 < 10;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;

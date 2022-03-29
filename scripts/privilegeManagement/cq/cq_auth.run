@@ -1,0 +1,180 @@
+connect root/root;
+--清理环境
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq1;
+<<NULL;
+DROP CONTINUOUS QUERY cq2;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+
+
+
+//无权限用户操作报错
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq1;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+
+--准备测试数据
+connect root/root;
+CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE USER user01 'pass1234';
+
+--测试操作
+connect user01/pass1234;
+CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+<<SQLSTATE;
+SHOW CONTINUOUS QUERIES;
+DROP CONTINUOUS QUERY cq1;
+<<SQLSTATE;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq1;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+
+
+//赋予CQ操作权限
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+
+--准备测试数据
+connect root/root;
+CREATE USER user01 'pass1234';
+GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.ln;
+GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.ln;
+
+--测试操作
+connect user01/pass1234;
+CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+SHOW CONTINUOUS QUERIES;
+DROP CONTINUOUS QUERY cq4;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+
+
+//尝试验证没有查询时间序列权限，而有CQ权限IoTDB会如何应对
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq2;
+<<NULL;
+
+--准备测试数据
+connect root/root;
+CREATE USER user01 'pass1234';
+GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.gcc;
+GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.gcc;
+GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.gcc;
+--测试操作
+connect user01/pass1234;
+CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO root.gcc.d1.temperature_avg FROM root.ln.* GROUP BY time(5s)  END;
+
+connect root/root;
+--清理环境
+delete storage group root.**;
+<<NULL;
+create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN;
+create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.1);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.2);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.3);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.4);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.5);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.6);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.7);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.8);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,22.9);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.0);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.2);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.3);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.4);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.5);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.6);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.7);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.8);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,23.9);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,24.0);
+sleep 1000;
+insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1);
+
+connect user01/pass1234;
+select count(temperature_avg) from root.gcc.d1;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq2;
+<<NULL;
+
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP CONTINUOUS QUERY cq1;
+<<NULL;
+DROP CONTINUOUS QUERY cq2;
+<<NULL;
+DROP CONTINUOUS QUERY cq4;
+<<NULL;
+

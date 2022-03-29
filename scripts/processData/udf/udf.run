@@ -1,0 +1,86 @@
+//1.UDF注册（需将udf-example-0.13.0.jar和udf-example-0.13.0-sources.jar上传至/iotdb/ext/udf目录下）
+--测试操作
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+
+--清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+
+
+//2.查看所有注册的UDF
+--测试操作
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+SHOW FUNCTIONS;
+
+--清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+
+
+//3.UDF查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP FUNCTION example;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+insert into root.sg.d1(time,s1,s2) values(1,23,32);
+insert into root.sg.d1(time,s1,s2) values(2,31,19);
+insert into root.sg.d1(time,s1,s2) values(3,18,21);
+insert into root.sg.d1(time,s1,s2) values(4,20,32);
+insert into root.sg.d1(time,s1,s2) values(5,33,17);
+insert into root.sg.d1(time,s1,s2) values(6,19,28);
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+--基本查询数据
+select * from root.sg.d1;
+
+--SLIMIT和SOFFSET查询
+SELECT example(*) from root.sg.d1 slimit 1 soffset 1;
+
+--LIMIT和OFFSET查询
+SELECT example(*) from root.sg.d1 limit 5 offset 1;
+
+--NON ALIGN 查询
+SELECT example(*) from root.sg.d1 disable align;
+
+--支持值过滤查询
+SELECT example(*) from root.sg.d1 where s1 < 20; 
+
+--支持时间过滤查询
+SELECT example(*) from root.sg.d1 where time < 5; 
+
+--带*查询
+SELECT example(*) from root.sg.d1;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+DROP FUNCTION example;
+<<NULL;
+
+
+//4.UDF卸载
+--测试操作
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+DROP FUNCTION example;
+
+--清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;

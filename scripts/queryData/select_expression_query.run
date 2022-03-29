@@ -1,0 +1,222 @@
+//1.算术运算查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,2.2,TRUE,'001');
+insert into root.sg.d1(time,s1,s2,s3,s4) values(2,2.2,3.3,FALSE,'002');
+
+--一元算术运算符，输出数据类型与输入类型不一致【输入类型为BOOLEAN或TEXT类型，给出提示】
+select s1,- s1,s3,+ s3,s1+s3,s1-s3 from root.sg.d1;
+<<SQLSTATE;
+select s1,- s1,s4,+ s4,s1+s4,s1-s4 from root.sg.d1;
+<<SQLSTATE;
+
+--一元算术运算符，输出数据类型与输入类型一致输入符合的类型：
+select s1, - s1, s2, + s2, s1 + s2, s1 - s2 from root.sg.d1;
+
+--二元算术运算符，输出数据类型与输入类型不一致【输入类型为BOOLEAN或TEXT类型，给出提示】
+select s1,- s1,s3,+ s3, s1 + s3, s1 - s3, s1 * s3, s1 /s3, s1 % s3 from root.sg.d1;  
+<<SQLSTATE;
+select s1,- s1,s4,+ s4, s1 + s4, s1 - s4, s1 * s4, s1 /s4, s1 % s4 from root.sg.d1; 
+<<SQLSTATE; 
+
+--二元算术运算符，输出数据类型与输入类型一致输入符合的类型：
+select s1,- s1, s2,+ s2, s1 + s2, s1 - s2, s1 * s2, s1 /s2, s1 % s2 from root.sg.d1;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+
+//2.内置时间序列生成函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE;
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14);
+insert into root.sg.d2(time,s1) values(1,12);
+insert into root.sg.d2(time,s1) values(2,32);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595);
+
+--数学函数
+select s1, sin(s1), cos(s1), tan(s1) from root.sg.d1 limit 5 offset 2;
+
+--字符串函数
+select s4, string_contains(s4, 's'='warn'), string_matches(s4, 'regex'='[^\\s]+37229') from root.sg.d1;
+
+--选择函数
+select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') from root.sg.d2 where time > 2020-12-10T20:36:15.530+08:00; 
+
+--趋势计算函数
+select s1, time_difference(s1), difference(s1), non_negative_difference(s1), derivative(s1), non_negative_derivative(s1) from root.sg.d1 limit 5 offset 1; 
+
+--常序列生成函数
+ select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) from root.sg.d1; 
+ 
+--数据类型转换函数
+select cast(s1, 'type'='DOUBLE'), cast(s1, 'type'='INT32'), cast(s1, 'type'='BOOLEAN'),  cast(s1, 'type'='FLOAT') from root.sg.d1; 
+
+--条件函数
+select s1, on_off(s1, 'threshold'='2') from root.sg.d1;
+select s1, in_range(s1, 'lower'='2', 'upper'='3.1') from root.sg.d1;
+
+--连续满足区间函数
+select s1, zero_count(s1), non_zero_count(s2), zero_duration(s3), non_zero_duration(s5) from root.sg.d1;
+select s4, zero_count(s4), non_zero_count(s4), zero_duration(s4), non_zero_duration(s4) from root.sg.d1;
+<<SQLSTATE;
+
+
+//3.嵌套表达式
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE;
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14);
+insert into root.sg.d2(time,s1) values(1,12);
+insert into root.sg.d2(time,s1) values(2,32);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595);
+--时间序列查询嵌套表达式
+select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 from root.sg.d1;
+select (s1 + s2) * 2 + sin(s1) from root.sg.d1;
+select (s1 + *) / 2  from root.sg.d2;
+select (s1 + s2) * 3 from root.sg.d1, root.sg.d2;
+
+//3.聚合查询嵌套表达式
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=float,encoding=RLE;
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(1,1.1,2.2,TRUE,'warn:1731',20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(20,2.2,3.3,FALSE,'warn:-8721',14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(35,2.5,2.2,TRUE,'error:-37229',22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(49,2.6,3.3,FALSE,'warn:1731',14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(55,1.1,2.2,TRUE,'warn:1731',20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(63,2.2,3.3,FALSE,'warn:-8721',14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(79,2.5,2.2,TRUE,'warn:1731',22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(80,2.6,3.3,FALSE,'error:-37229',14);
+insert into root.sg.d2(time,s1) values(1,12);
+insert into root.sg.d2(time,s1) values(2,32);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742);
+insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595);
+
+--同一路径下的时间序列，算术查询(+和-)
+select s1, s2 , s1 + s2 from root.sg.d1;
+
+--同一路径下，复杂算术查询
+select s1, s2, ((s1 + 1) * 2 - 1) % 2 + 1.5 + s2 from root.sg.d1;
+
+--同一路径下，内置函数查询
+select s1, s2, sin(s1 + sin(s1 + sin(s2))) from root.sg.d1;
+
+--不同路径的时间序列进行算术查询
+select s1 + s2 from root.sg.d1, root.sg.d2;
+
+--同一路径下，复杂计算查询
+select s1, s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) from root.sg.d1; 
+
+--同一路径下，嵌套聚合查询
+select count(s1), ((count(s2) + 1) * 2 - 1) % 2 + 1.5 from root.sg.d1;
+
+--BOOLEAN和TEXT类型算术查询校验
+select s1 + s3 from root.sg.d1;
+<<SQLSTATE;
+select s2 - s4 from root.sg.d1;
+<<SQLSTATE;
+select s1 + * from root.sg.d2;
+
+--多个* 算术查询
+select s1,s1 + * + *  from root.sg.d2;
+
+--多个** 相加查询
+select s1 + ** from root.sg.d2;
+
+--时间序列中只要有一方含有null，结果集肯定为null值 
+select s3 + s5 from root.sg.d1;
+
+--不指定GROUP BY的聚合查询
+select avg(s1),sin(avg(s2)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) from root.sg.d1;
+select avg(*), (avg(*) + 1) * 3 / 2 -1 from root.sg.d2;
+
+--指定GROUP BY 聚合查询
+select avg(s1),sin(avg(s1)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) as custom_sum from root.sg.d1 GROUP BY([10, 90), 10ms);
+
+--不支持聚合函数内部有表达式查询
+select avg(s1+1) from root.sg.d1;
+<<SQLSTATE;
+
+--不支持按层级聚合查询
+select avg(s1) + avg(s2) from root.sg.* group by level=1;
+<<SQLSTATE;
+
+--不支持空值填充查询
+select avg(s1) + avg(s2) from root.sg.d1 group by ([0,100),20s) fill(previous);
+<<SQLSTATE;
+
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//4.使用别名
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+insert into root.sg.d1(time,s1,s2) values(1,20.12,50.32);
+insert into root.sg.d1(time,s1,s2) values(20,21.44,65.33);
+select s1 as temperature, s2 as speed from root.sg.d1; 
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;

@@ -1,0 +1,157 @@
+connect root/root;
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//创建和查看存储组
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+set storage group to root.ln;
+create storage group root.sgcc;
+--结果验证
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//父路径已经创建为存储组，在使用子路径创建存储组会报错。 
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+set storage group to root.ln;
+create storage group root.sgcc;
+show storage group;
+set storage group to root.ln.wf01;
+<<SQLSTATE;
+create storage group root.ln.wf01;
+<<SQLSTATE;
+--结果验证
+show storage group;
+show storage group root.**;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//删除存储组
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+set storage group to root.ln;
+create storage group root.sgcc;
+show storage group;
+DELETE STORAGE GROUP root.ln;
+show storage group;
+DELETE STORAGE GROUP root.sgcc;
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//使用通配符删除所有存储组
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+set storage group to root.ln;
+create storage group root.sgcc;
+show storage group;
+DELETE STORAGE GROUP root.**;
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//删除不存在的存储组
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+create storage group root.sgcc.test;
+show storage group;
+DELETE STORAGE GROUP root.test;
+<<SQLSTATE;
+show storage group;
+DELETE STORAGE GROUP root.sgcc;
+<<SQLSTATE;
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//名字中包含合规的字符
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+create storage group root.sgcc.1W_测试_1;
+show storage group;
+DELETE STORAGE GROUP root.sgcc.1W_测试_1;
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//名字中包含不合规的字符
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+create storage group root.sgcc.w-s1;
+<<SQLSTATE;
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+//删除已经create时间序列和insert数据的存储组
+--清理环境
+delete storage group root.**;
+<<NULL;
+--测试操作
+set storage group to root.ln;
+create aligned timeseries root.ln.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.ln.d1(time, s1, s2) aligned values(1, 1, 1);
+insert into root.ln.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+select * from root.ln.d1;
+delete storage group root.**;
+show timeseries;
+show devices;
+select * from root.ln.d1;
+set storage group to root.ln;
+create aligned timeseries root.ln.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+select * from root.ln.d1;
+
+--结果验证
+show storage group;
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+
+--清理环境
+delete storage group root.**;
+<<NULL;

@@ -1,0 +1,237 @@
+-- [1]11:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]13:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]14:CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]24:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'timeseries_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+}
+-- [1]25:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]31:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]33:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]34:CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]44:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]44:insert into root.sg1.dev1(time,s_1,s_2) values(1,100,200)
+STRICT{
+PASS
+EXPECT:FAIL
+}
+
+-- [1]47:select s_1,s_2 from root.sg1.dev1
+STRICT{
+Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(INT32)      |
+----------------------------------------------------------------------------
+1               |100                           |200                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]48:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]49:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+-- [1]54:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]56:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]57:CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]67:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]67:insert into root.sg1.dev1(time,s_1,s_2) values(1,100.12,200)
+STRICT{
+PASS
+EXPECT:FAIL
+}
+
+-- [1]70:select s_1,s_2 from root.sg1.dev1
+STRICT{
+Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(DOUBLE)      |
+-----------------------------------------------------------------------------
+1               |100.12                        |200                            |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]71:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]72:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+-- [1]77:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]79:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]80:CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]90:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]99:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+}
+-- [1]100:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]105:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]107:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]108:CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]118:CREATE TRIGGER trig1 AFTER DELETE ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:27 mismatched input 'DELETE' expecting INSERT
+}
+-- [1]128:CREATE TRIGGER trig1 AFTER SELECT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:27 mismatched input 'SELECT' expecting INSERT
+}
+-- [1]129:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]133:set storage group to root.target
+STRICT{
+PASS
+}
+-- [1]135:CREATE TIMESERIES root.target.alerting.local_trig1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]136:CREATE TIMESERIES root.target.alerting.remotetrig1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]146:CREATE TRIGGER trig1 AFTER INSERT  ON root.target.alerting.local_trig1  AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]155:CREATE TRIGGER trig2 AFTER INSERT ON root.target.alerting.remotetrig1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]156:insert into root.target.alerting(time,local_trig1) values(1,100)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+-- [1]157:insert into root.target.alerting(time,local_trig1) values(2,200)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]160:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
+STRICT{
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1               |100.0                                        |null                                          |
+-----------------------------------------------------------------------------------------------------------
+2               |200.0                                        |null                                          |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]161:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+-- [1]165:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]167:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]176:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1  AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '192.168.130.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+}
+-- [1]177:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0

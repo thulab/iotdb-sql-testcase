@@ -1,0 +1,631 @@
+//1.以 root 开头的完整序列名
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+insert into root.sg.d1(time,s1) values(1,1.2);
+select s1, s1 into root.sg.d1.t1, root.sg.d1.t2 from root.sg.d1;
+--查看当前设备的所有数据
+select s1, t1, t2 from root.sg.**;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//2.不以 root 开头的部分序列名
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+insert into root.sg.d1(time,s1) values(1,1.2);
+select s1, s1 into t1, t2 from root.sg.d1;
+--查看当前设备的所有数据
+select s1, t1, t2 from root.sg.**;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//3.目标序列 ${i}风格的路径匹配
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=TEXT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2,s3) values(1,1.2,true,'V1');
+select s1, s2, s3 into ${1}_v1, ${2}, root.${2}.${1}.v2 from root.sg.d1;
+--查看当前设备的所有数据
+select * from root.**;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//4.源序列含有null值进行查询写回,不新增时间序列
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+select s1 into p1 from root.sg.d1;
+--查看数据
+select s1, p1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//5.源序列含有NaN值进行查询写回
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,NaN);
+select s1 into p1 from root.sg.d1;
+--查询数据
+select s1,p1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//6.原始序列查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s3,s4,s5) values(1,1.2,true,'V1',NaN);
+select s1, s2, s3, s4, s5 into p1, p2, p3, p4, p5 from root.sg.d1;
+--查询数据
+select * from root.sg.**;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//7.算术运算查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=float,encoding=RLE;
+insert into root.sg.d1(time,s1,s2) values(1,1.1,2.2);
+select s1, - s1, s2, + s2, s1 + s2, s1 - s2, s1 * s2, s1 / s2, s1 % s2  into q1, q2, q3, q4, q5, q6, q7, q8, q9 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//8.数学函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=double,encoding=RLE;
+insert into root.sg.d1(time,s1) values(1,1.1);
+select sin(s1), cos(s1), tan(s1), asin(s1), acos(s1), atan(s1),sinh(s1), cosh(s1),tanh(s1) into y1, y2, y3, y4, y5, y6, y7, y8, y9 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//9.字符串函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=TEXT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,'warn:-8721');
+insert into root.sg.d1(time,s1) values(2,'error:-37229');
+insert into root.sg.d1(time,s1) values(3,'warn:1731');
+select s1, string_contains(s1, 's'='warn'), string_matches(s1, 'regex'='[^\\s]+37229') into x1, x2, x3 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//10.选择函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT64,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,1531604122307244742);
+insert into root.sg.d1(time,s1) values(2,-8581625725655917595);
+select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') into x1,x2,x3 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//11.趋势计算函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT64,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,7360723084922759782);
+insert into root.sg.d1(time,s1) values(2,4377791063319964531);
+select s1,time_difference(s1), difference(s1), non_negative_difference(s1), derivative(s1), non_negative_derivative(s1) into v1,v2,v3,v4,v5,v6 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//12.常序列生成函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT64,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,7360723084922759782);
+select s1, s1, const(s1,'value'='1024','type'='INT32'), pi(s1),e(s1, s1) into f1,f2,f3,f4,f5 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//13.转换函数
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT64,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1, cast(s1, 'type'='DOUBLE'), cast(s1, 'type'='INT32'), cast(s1, 'type'='BOOLEAN'),  cast(s1, 'type'='FLOAT'), cast(s1, 'type'='INT64'), cast(s1, 'type'='TEXT') into p1,p2,p3,p4,p5,p6,p7 from root.sg.d1;
+--查询数据
+select * from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//14.嵌套查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT64,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=INT64,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+--查询写回
+select -s1, sin(cos(tan(s1 + s1 * s2))) + cos(s1), top_k(s1 + s1, 'k'='1') into k1, k2, k3 from root.sg.d1;
+--查询数据
+select s1, s2, k1, k2, k3 from root.sg.d1;
+--查询写回
+select s1, cos(s1), s1 * s2, s1 + s2 into f1, f2, f3, f4 from root.sg.d1;
+--查询数据
+select s1, s2, f1, f2, f3, f4 from root.sg.d1;
+--查询写回
+select s1, sin(s2) into g1, g2 from root.sg.d1;
+--查询数据
+select s1, s2, g1, g2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//15.Fil查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(3,3);
+insert into root.sg.d1(time,s1) values(10,10);
+insert into root.sg.d1(time,s1) values(11,11);
+--select into ...where time= 查询写回
+select s1 into fill_s1 from root.sg.d1 where time = 10 fill(float [linear, 1ms, 1ms]); 
+--查询数据
+select s1, fill_s1 from root.sg.d1;
+--查询写回不支持 where time <,<=,>=时间过滤查询
+select s1 into fill_s1 from root.sg.d1 where time >= 10 fill(float [linear, 1ms, 1ms]);
+<<SQLSTATE;
+select s1 into fill_s1 from root.sg.d1 where time > 10 fill(float [linear, 1ms, 1ms]);
+<<SQLSTATE;
+select s1 into fill_s1 from root.sg.d1 where time < 10 fill(float [linear, 1ms, 1ms]);
+<<SQLSTATE;
+select s1 into fill_s1 from root.sg.d1 where time <= 10 fill(float [linear, 1ms, 1ms]);
+<<SQLSTATE;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//16.Group By查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(3,3);
+insert into root.sg.d1(time,s1) values(4,4);
+insert into root.sg.d1(time,s1) values(6,6);
+select count(s1) into group_by_s1 from root.sg.d1 group by ([1, 5), 1ms);
+--查询数据
+select s1, group_by_s1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//17.Group By Fil 查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(3,3);
+insert into root.sg.d1(time,s1) values(10,10);
+insert into root.sg.d1(time,s1) values(11,11);
+select last_value(s1) into group_by_fill_s1 from root.sg.d1 group by ([1, 10),1ms) fill (float[PREVIOUS]);
+--查询数据
+select s1, group_by_fill_s1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//18.不支持聚合查询写回，如sum, avg, min_value, max_value, extreme 
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(2,1);
+select sum(s1) into sum_s1 from root.sg.d1;
+<<SQLSTATE;
+select avg(s1) into avg_s1 from root.sg.d1;
+<<SQLSTATE;
+select min_value(s1) into min_value_s1 from root.sg.d1;
+<<SQLSTATE;
+select max_value(s1) into max_value_s1 from root.sg.d1;
+<<SQLSTATE;
+select extreme(s1) into extreme_s1 from root.sg.d1;
+<<SQLSTATE;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//19.子句查询-值过滤查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(2,3,5);
+insert into root.sg.d1(time,s1,s2) values(3,1,7);
+select s1, s2 into p1, p2 from root.sg.d1 where s1 > 1 and s2 < 9;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//19.子句查询-时间过滤查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+insert into root.sg.d1(time,s1,s2) values(11,1,3);
+select s1, s2 into y1, y2 from root.sg.d1 where time > 0 and time < 10;
+--查询数据
+select s1, s2, y1, y2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//20.子句查询-LIMIT & OFFSET 控制查询
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+insert into root.sg.d1(time,s1,s2) values(11,1,3);
+insert into root.sg.d1(time,s1,s2) values(13,4,5);
+insert into root.sg.d1(time,s1,s2) values(14,2,4);
+insert into root.sg.d1(time,s1,s2) values(15,4,6);
+select s1, s2 into w1, w2 from root.sg.d1 limit 6 offset 2;
+--查询数据
+select s1, s2, w1, w2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//21.子句查询-SLIMIT和SOFFSET不支持查询写回
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+select s1, s2 into w1, w2 from root.sg.d1 slimit 1 soffset 1;
+<<SQLSTATE;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//22.子句查询-ASC查询写回
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+select s1, s2 into p1, p2 from root.sg.d1 order by time ASC;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//23.子句查询-DESC不支持查询写回
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+select s1, s2 into p1, p2 from root.sg.d1 order by time desc;
+<<SQLSTATE;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//24.select子句中源序列和into子句中的目标序列数量需一致校验
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+--源序列与目标序列数对应数据不一致
+select s1 into p1, p2 from root.sg.d1;
+<<SQLSTATE;
+--源序列与目标序列数对应数据一致
+select s1, s2 into p1, p2 from root.sg.d1;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//25.select子句带“*”查询校验
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+--带“*”查询，给出报错提示
+select * into p1,p2 from root.sg.d1;
+<<SQLSTATE;
+select s1, * into p1,p2 from root.sg.d1;
+<<SQLSTATE;
+--不带*查询，可查询写回成功
+select s1, s2 into p1,p2 from root.sg.d1;
+select s1, s2 into p1, p2 from root.sg.d1;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//26.into子句默认值自动创建schema功能校验
+connect root/root;
+delete storage group root.**;
+<<NULL;
+--预先创建目标序列，执行查询写回
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+create timeseries root.sg.d1.p1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.p2 with datatype=BOOLEAN,encoding=PLAIN;
+select s1, s2 into p1, p2 from root.sg.d1;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--未创建目标时间序列，执行查询写回
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+select s1, s2 into p3, p4 from root.sg.d1;
+--查询数据
+select s1, s2, p3, p4 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//27.select子句中的源序列和into子句中的目标序列的数据类型校验
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+--数据类型不一致，执行查询写回
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.p1 with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1 into p1 from root.sg.d1;
+<<SQLSTATE;
+--数据类型一致，执行查询写回
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.p1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1 into p1 from root.sg.d1;
+--查询数据
+select s1, p1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//28.into子句中的目标序列名称校验
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+--目标序列名称相同
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+select s1,s2 into p1, p1 from root.sg.d1;
+<<SQLSTATE;
+--目标序列名称不同
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+select s1,s2 into p1, p2 from root.sg.d1;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//29.from子句中只允许有一列序列前缀校验
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+--仅1个不存在的前缀序列，执行查询写回
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1 into p1 from root.sg.d2;
+<<SQLSTATE;
+--多个序列前缀，执行查询写回
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1 into p1 from root.sg.d1,root.sg.d2;
+<<SQLSTATE;
+--仅1列序列前缀，执行查询写回
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,2);
+select s1 into p1 from root.sg.d1;
+--查询数据
+select s1, p1 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+//30.select into对aligned查询写回
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+create storage group root.sg;
+create aligned timeseries root.sg.d1(s1 INT32, s2 DOUBLE);
+insert into root.sg.d1(time, s1, s2) aligned values(1, 1, 1);
+insert into root.sg.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+select s1, s2 into aligned p1, p2 from root.sg.d1;
+--查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;

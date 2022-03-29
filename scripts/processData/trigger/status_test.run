@@ -1,0 +1,101 @@
+connect root/root;
+// 1 start stop 不存在的trigger
+// 2 start 已经start
+// 3 start stop的
+// 4 stop stop的;stop start的
+
+//  1 start stop 不存在的trigger
+delete storage group root.**;<<NULL;
+stop trigger trig1;
+<<SQLSTATE;
+start trigger trig1;
+<<SQLSTATE;
+// 2 start 已经start
+set storage group to root.sg1;
+CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+CREATE TIMESERIES root.sg1.dev0.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.dev0.s_3 WITH DATATYPE=float, ENCODING=RLE;
+CREATE TIMESERIES root.sg1.dev0.s_4 WITH DATATYPE=double, ENCODING=TS_2DIFF;
+CREATE TIMESERIES root.sg1.dev0.s_5 WITH DATATYPE=text, ENCODING=DICTIONARY;
+CREATE TIMESERIES root.sg1.dev0.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN;
+
+CREATE TRIGGER trig1
+AFTER INSERT
+ON root.sg1.dev0.s_1
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'int32',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig1'
+);
+
+CREATE TRIGGER trig2
+AFTER INSERT
+ON root.sg1.dev0.s_2
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'int64',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig2'
+);
+CREATE TRIGGER trig3
+AFTER INSERT
+ON root.sg1.dev0.s_3
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'float',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig3'
+);
+
+CREATE TRIGGER trig4
+AFTER INSERT
+ON root.sg1.dev0.s_4
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'double',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig4'
+);
+
+CREATE TRIGGER trig5
+AFTER INSERT
+ON root.sg1.dev0.s_5
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'text',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig5'
+);
+CREATE TRIGGER trig6
+AFTER INSERT
+ON root.sg1.dev0.s_6
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'boolean',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='trig6'
+);
+
+start trigger trig1;<<SQLSTATE;
+insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(1,100,200,1.1,1.1,"row1",true),(2,300,400,2.1,2.1,"row2",false),(3,500,600,3.1,3.1,"row3",true),(4,700,800,4.1,4.1,"row4",false),(5,900,1000,5.1,5.1,"row5",true);
+select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0;
+sleep 100;
+select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting;
+select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting;
+show triggers;
+stop trigger trig1;
+insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(11,1100,1200,11.1,11.1,"row6",true),(12,1300,1400,12.1,12.1,"row7",false),(13,1500,1600,13.1,13.1,"row8",true),(14,1700,1800,14.1,14.1,"row9",false),(15,1900,2000,15.1,15.1,"row10",true);
+sleep 100;
+select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0;
+select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting;
+select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting;
+show triggers;
+stop trigger trig1;<<SQLSTATE;
+start trigger trig1;
+insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(111,11100,11200,111.1,111.1,"row11",true),(112,11300,11400,112.1,112.1,"row12",false),(113,11500,11600,113.1,113.1,"row13",true),(114,11700,11800,114.1,114.1,"row14",false),(115,11900,21000,115.1,115.1,"row15",true);
+sleep 100;
+select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0;
+select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting;
+select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting;
+delete storage group root.**;

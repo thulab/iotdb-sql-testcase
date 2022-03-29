@@ -1,0 +1,256 @@
+-- [1]9:stop trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+}
+-- [1]11:start trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+}
+-- [1]14:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]16:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]17:CREATE TIMESERIES root.sg1.dev0.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]18:CREATE TIMESERIES root.sg1.dev0.s_3 WITH DATATYPE=float, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]19:CREATE TIMESERIES root.sg1.dev0.s_4 WITH DATATYPE=double, ENCODING=TS_2DIFF
+STRICT{
+PASS
+}
+-- [1]20:CREATE TIMESERIES root.sg1.dev0.s_5 WITH DATATYPE=text, ENCODING=DICTIONARY
+STRICT{
+PASS
+}
+-- [1]21:CREATE TIMESERIES root.sg1.dev0.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]31:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]41:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev0.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]50:CREATE TRIGGER trig3 AFTER INSERT ON root.sg1.dev0.s_3 AS 'TriggerTest' WITH (   'ts_type' = 'float',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig3(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]60:CREATE TRIGGER trig4 AFTER INSERT ON root.sg1.dev0.s_4 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig4' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig4(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]70:CREATE TRIGGER trig5 AFTER INSERT ON root.sg1.dev0.s_5 AS 'TriggerTest' WITH (   'ts_type' = 'text',   'remote_ip' = '127.0.0.1',   'trig_name'='trig5' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig5(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]79:CREATE TRIGGER trig6 AFTER INSERT ON root.sg1.dev0.s_6 AS 'TriggerTest' WITH (   'ts_type' = 'boolean',   'remote_ip' = '127.0.0.1',   'trig_name'='trig6' )
+STRICT{
+SQLSTATE : 313: Failed to reflect Trigger trig6(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+EXPECT:PASS
+}
+-- [1]80:start trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+}
+-- [1]81:insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(1,100,200,1.1,1.1,"row1",true),(2,300,400,2.1,2.1,"row2",false),(3,500,600,3.1,3.1,"row3",true),(4,700,800,4.1,4.1,"row4",false),(5,900,1000,5.1,5.1,"row5",true)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.30
+
+-- [1]82:select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0
+STRICT{
+Time(TIME)      |root.sg1.dev0.s_1(INT64)      |root.sg1.dev0.s_2(INT32)      |root.sg1.dev0.s_3(INT64)      |root.sg1.dev0.s_4(FLOAT)      |root.sg1.dev0.s_5(DOUBLE)      |root.sg1.dev0.s_6(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                           |200                           |1.1                           |1.1                           |row1                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                           |400                           |2.1                           |2.1                           |row2                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |500                           |600                           |3.1                           |3.1                           |row3                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4               |700                           |800                           |4.1                           |4.1                           |row4                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5               |900                           |1000                          |5.1                           |5.1                           |row5                           |true                         |
+总数目：5
+}
+
+Elapsed Time: 0.0.14
+
+-- [1]84:select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]85:select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]86:show triggers
+STRICT{
+trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]87:stop trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+EXPECT:PASS
+}
+-- [1]88:insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(11,1100,1200,11.1,11.1,"row6",true),(12,1300,1400,12.1,12.1,"row7",false),(13,1500,1600,13.1,13.1,"row8",true),(14,1700,1800,14.1,14.1,"row9",false),(15,1900,2000,15.1,15.1,"row10",true)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]90:select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0
+STRICT{
+Time(TIME)      |root.sg1.dev0.s_1(INT64)      |root.sg1.dev0.s_2(INT32)      |root.sg1.dev0.s_3(INT64)      |root.sg1.dev0.s_4(FLOAT)      |root.sg1.dev0.s_5(DOUBLE)      |root.sg1.dev0.s_6(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                           |200                           |1.1                           |1.1                           |row1                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                           |400                           |2.1                           |2.1                           |row2                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |500                           |600                           |3.1                           |3.1                           |row3                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4               |700                           |800                           |4.1                           |4.1                           |row4                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5               |900                           |1000                          |5.1                           |5.1                           |row5                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11              |1100                          |1200                          |11.1                          |11.1                          |row6                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12              |1300                          |1400                          |12.1                          |12.1                          |row7                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+13              |1500                          |1600                          |13.1                          |13.1                          |row8                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+14              |1700                          |1800                          |14.1                          |14.1                          |row9                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+15              |1900                          |2000                          |15.1                          |15.1                          |row10                          |true                         |
+总数目：10
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]91:select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]92:select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]93:show triggers
+STRICT{
+trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]94:stop trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+}
+-- [1]95:start trigger trig1
+STRICT{
+SQLSTATE : 313: Trigger trig1 does not exist.
+EXPECT:PASS
+}
+-- [1]96:insert into root.sg1.dev0(time,s_1,s_2,s_3,s_4,s_5,s_6) values(111,11100,11200,111.1,111.1,"row11",true),(112,11300,11400,112.1,112.1,"row12",false),(113,11500,11600,113.1,113.1,"row13",true),(114,11700,11800,114.1,114.1,"row14",false),(115,11900,21000,115.1,115.1,"row15",true)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]98:select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0
+STRICT{
+Time(TIME)      |root.sg1.dev0.s_1(INT64)      |root.sg1.dev0.s_2(INT32)      |root.sg1.dev0.s_3(INT64)      |root.sg1.dev0.s_4(FLOAT)      |root.sg1.dev0.s_5(DOUBLE)      |root.sg1.dev0.s_6(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                           |200                           |1.1                           |1.1                           |row1                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                           |400                           |2.1                           |2.1                           |row2                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |500                           |600                           |3.1                           |3.1                           |row3                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4               |700                           |800                           |4.1                           |4.1                           |row4                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5               |900                           |1000                          |5.1                           |5.1                           |row5                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11              |1100                          |1200                          |11.1                          |11.1                          |row6                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12              |1300                          |1400                          |12.1                          |12.1                          |row7                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+13              |1500                          |1600                          |13.1                          |13.1                          |row8                           |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+14              |1700                          |1800                          |14.1                          |14.1                          |row9                           |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+15              |1900                          |2000                          |15.1                          |15.1                          |row10                          |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+111             |11100                         |11200                         |111.1                         |111.1                         |row11                          |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+112             |11300                         |11400                         |112.1                         |112.1                         |row12                          |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+113             |11500                         |11600                         |113.1                         |113.1                         |row13                          |true                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+114             |11700                         |11800                         |114.1                         |114.1                         |row14                          |false                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+115             |11900                         |21000                         |115.1                         |115.1                         |row15                          |true                         |
+总数目：15
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]99:select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]100:select remotetrig1,remotetrig2,remotetrig3,remotetrig4,remotetrig5,remotetrig6 from root.target.alerting
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]101:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.13
