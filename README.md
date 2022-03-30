@@ -105,11 +105,6 @@ waitTime           20
 可参照run文件规则编写测试用例，本地运行生成result文件，然后将`.run`文件和`.result`文件统一放到测试工具scripts文件目录下。
 
 #### 已知问题处理
-timeseries/timeseries_insert.run
-问题说明：
-向Float类型时序插入DOUBLE数据（大于可存放区间），再查询是结果显示为infinity
-86 insert into root.wt04(timestamp,PLAIN1) values(5,3.4028235E300);
-87 //<<SQLSTATE;
 
 trigger/privilege_trig.run
 问题说明：
