@@ -28,26 +28,24 @@ PASS
 }
 -- [1]21:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]31:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]32:insert into root.sg1.dev1(time,s_1,s_2) values(1,100,200)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.91
 -- [1]33:insert into root.sg1.dev1(time,s_1,s_2) values(2,300,400)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.3
 
 -- [1]35:select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1
 STRICT{
@@ -59,27 +57,31 @@ Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(INT32)      |r
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.83
 
 -- [1]36:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.local_trig2(INT32)      |root.target.alerting.remotetrig1(INT64)      |root.target.alerting.remotetrig2(FLOAT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                          |200                                          |100.0                                        |200.0                                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                                          |400                                          |300.0                                        |400.0                                        |
+总数目：2
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.8
 -- [1]38:delete timeseries root.sg1.dev1.s_1
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.9
 -- [1]40:insert into root.sg1.dev1(time,s_2) values(100,1600)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
 -- [1]42:select s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1
 STRICT{
@@ -93,18 +95,24 @@ Time(TIME)      |root.sg1.dev1.s_2(INT64)      |root.sg1.dev1.s_3(INT64)      |r
 总数目：3
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.5
 
 -- [1]43:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.local_trig2(INT32)      |root.target.alerting.remotetrig1(INT64)      |root.target.alerting.remotetrig2(FLOAT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                          |200                                          |100.0                                        |200.0                                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                                          |400                                          |300.0                                        |400.0                                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+100             |null                                         |1600                                         |null                                         |null                                         |
+总数目：3
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.4
 -- [1]44:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.84

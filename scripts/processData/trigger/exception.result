@@ -12,14 +12,15 @@ PASS
 }
 -- [1]24:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'timeseries_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+SQLSTATE : 313: Error occurred during executing Trigger#onConfig(TriggerAttributes): 
+java.lang.NullPointerException
 }
 -- [1]25:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 -- [1]31:set storage group to root.sg1
 STRICT{
 PASS
@@ -34,13 +35,12 @@ PASS
 }
 -- [1]44:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]44:insert into root.sg1.dev1(time,s_1,s_2) values(1,100,200)
 STRICT{
-PASS
-EXPECT:FAIL
+SQLSTATE : 313: Error occurred during executing Trigger#fire(long, Object): 
+java.lang.NullPointerException
 }
 
 -- [1]47:select s_1,s_2 from root.sg1.dev1
@@ -51,21 +51,21 @@ Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]48:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.3
 -- [1]49:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.24
 -- [1]54:set storage group to root.sg1
 STRICT{
 PASS
@@ -80,13 +80,12 @@ PASS
 }
 -- [1]67:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]67:insert into root.sg1.dev1(time,s_1,s_2) values(1,100.12,200)
 STRICT{
-PASS
-EXPECT:FAIL
+SQLSTATE : 313: Error occurred during executing Trigger#fire(long, Object): 
+java.lang.NullPointerException
 }
 
 -- [1]70:select s_1,s_2 from root.sg1.dev1
@@ -101,17 +100,17 @@ Elapsed Time: 0.0.2
 
 -- [1]71:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 -- [1]72:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.16
 -- [1]77:set storage group to root.sg1
 STRICT{
 PASS
@@ -126,19 +125,18 @@ PASS
 }
 -- [1]90:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]99:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+SQLSTATE : 313: Failed to register trigger trig1(TriggerTest), because a trigger with the same trigger name and the class name has already been registered.
 }
 -- [1]100:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 -- [1]105:set storage group to root.sg1
 STRICT{
 PASS
@@ -164,7 +162,7 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 -- [1]133:set storage group to root.target
 STRICT{
 PASS
@@ -179,13 +177,11 @@ PASS
 }
 -- [1]146:CREATE TRIGGER trig1 AFTER INSERT  ON root.target.alerting.local_trig1  AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]155:CREATE TRIGGER trig2 AFTER INSERT ON root.target.alerting.remotetrig1 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]156:insert into root.target.alerting(time,local_trig1) values(1,100)
 STRICT{
@@ -198,25 +194,25 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
 -- [1]160:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(DOUBLE)      |
------------------------------------------------------------------------------------------------------------
-1               |100.0                                        |null                                          |
------------------------------------------------------------------------------------------------------------
-2               |200.0                                        |null                                          |
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.local_trig2(DOUBLE)      |root.target.alerting.remotetrig1(DOUBLE)      |root.target.alerting.remotetrig2(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100.0                                        |100.0                                         |100.0                                         |100.0                                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |200.0                                        |200.0                                         |200.0                                         |200.0                                         |
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 -- [1]161:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.13
 -- [1]165:set storage group to root.sg1
 STRICT{
 PASS
@@ -227,11 +223,12 @@ PASS
 }
 -- [1]176:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1  AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '192.168.130.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
+SQLSTATE : 313: Error occurred during executing Trigger#onConfig(TriggerAttributes): 
+java.lang.Exception: Connection refused
 }
 -- [1]177:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1

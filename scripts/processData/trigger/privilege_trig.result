@@ -36,25 +36,27 @@ PASS
 }
 -- [1]54:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 
 -- [1]54:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig1                   |started           |after insert     |root.sg1.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig1, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 -- [1]55:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
 SQLSTATE : 602: No permissions for this operation INSERT
 }
 -- [1]66:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 -- [1]75:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
 STRICT{
@@ -62,18 +64,18 @@ SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
 }
 -- [1]76:drop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
+SQLSTATE : 602: No permissions for this operation DROP_TRIGGER
 }
 -- [1]77:drop trigger trig2
 STRICT{
-SQLSTATE : 313: Trigger trig2 does not exist.
+SQLSTATE : 602: No permissions for this operation DROP_TRIGGER
 }
 -- [1]79:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.8
 
 -- [1]80:select s_1 from root.sg1.dev0
 STRICT{
@@ -83,36 +85,40 @@ Time(TIME)      |root.sg1.dev0.s_1(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]82:select local_trig1,remotetrig1 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(INT32)      |
+----------------------------------------------------------------------------------------------------------
+1               |100                                          |100.0                                        |
+总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 -- [1]83:grant user lily_create_trig privileges DROP_TRIGGER on root.sg1
 STRICT{
 PASS
 }
 -- [1]85:drop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
-EXPECT:PASS
+PASS
 }
 
 -- [1]86:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig2                   |started           |after insert     |root.sg1.dev1.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig2, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：1
 }
 
 Elapsed Time: 0.0.1
 -- [1]87:drop trigger trig2
 STRICT{
-SQLSTATE : 313: Trigger trig2 does not exist.
-EXPECT:PASS
+PASS
 }
 
 -- [1]88:show triggers
@@ -121,17 +127,20 @@ trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |c
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 -- [1]98:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 
 -- [1]98:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig1                   |started           |after insert     |root.sg1.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig1, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：1
 }
 
 Elapsed Time: 0.0.1
@@ -156,7 +165,7 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.17
 -- [1]120:create user lily_create_trig '123456'
 STRICT{
 PASS
@@ -215,153 +224,159 @@ Elapsed Time: 0.0.0
 -- [1]142:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
 SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
-EXPECT:PASS
 }
 
--- [1]142:show triggers
-STRICT{
-trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
--- [1]153:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
-STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
-EXPECT:PASS
-}
--- [1]162:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
-STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
-EXPECT:PASS
-}
-
--- [1]162:show triggers
+-- [1]143:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]164:revoke user lily_create_trig  privileges create_trigger on root.**
+-- [1]154:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
+}
+-- [1]164:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+STRICT{
+SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
+}
+
+-- [1]165:show triggers
+STRICT{
+trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]167:revoke user lily_create_trig  privileges create_trigger on root.**
 STRICT{
 PASS
 }
--- [1]165:drop trigger trig1
+-- [1]168:drop trigger trig1
 STRICT{
 SQLSTATE : 313: Trigger trig1 does not exist.
-EXPECT:PASS
 }
--- [1]166:drop trigger trig2
+-- [1]169:drop trigger trig2
 STRICT{
 SQLSTATE : 313: Trigger trig2 does not exist.
-EXPECT:PASS
 }
--- [1]167:drop trigger trig3
+-- [1]170:drop trigger trig3
 STRICT{
 SQLSTATE : 313: Trigger trig3 does not exist.
-EXPECT:PASS
 }
--- [1]179:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+-- [1]182:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
 SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
 }
--- [1]189:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+-- [1]192:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
 STRICT{
 SQLSTATE : 602: No permissions for this operation CREATE_TRIGGER
 }
--- [1]191:drop user lily_create_trig
+-- [1]194:drop user lily_create_trig
 STRICT{
 PASS
 }
--- [1]192:delete storage group root.**
+-- [1]195:delete storage group root.**
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]198:create user lily_start_trig '123456'
+-- [1]201:create user lily_start_trig '123456'
 STRICT{
 PASS
 }
--- [1]199:create user lily_stop_trig '123456'
+-- [1]202:create user lily_stop_trig '123456'
 STRICT{
 PASS
 }
--- [1]201:set storage group to root.sg1
+-- [1]204:set storage group to root.sg1
 STRICT{
 PASS
 }
--- [1]203:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]206:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]203:set storage group to root.sg2
+-- [1]206:set storage group to root.sg2
 STRICT{
 PASS
 }
--- [1]205:CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]208:CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]206:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]209:CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]216:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+-- [1]219:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
 
--- [1]216:show triggers
+-- [1]219:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig1                   |started           |after insert     |root.sg1.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig1, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：1
 }
 
 Elapsed Time: 0.0.1
--- [1]227:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+-- [1]230:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig2(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
--- [1]236:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+-- [1]239:CREATE TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig3(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
--- [1]237:stop trigger trig3
+-- [1]240:stop trigger trig3
 STRICT{
-SQLSTATE : 313: Trigger trig3 does not exist.
-EXPECT:PASS
+PASS
 }
 
--- [1]238:show triggers
+-- [1]241:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig1                   |started           |after insert     |root.sg1.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig1, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+-----------------------------------------------------------------------------------------------------------------------
+trig2                   |started           |after insert     |root.sg1.dev1.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig2, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+-----------------------------------------------------------------------------------------------------------------------
+trig3                   |stopped           |after insert     |root.sg2.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig3, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：3
 }
 
-Elapsed Time: 0.0.0
--- [1]241:start trigger trig3
+Elapsed Time: 0.0.1
+-- [1]244:start trigger trig3
 STRICT{
-SQLSTATE : 313: Trigger trig3 does not exist.
+SQLSTATE : 602: No permissions for this operation START_TRIGGER
 }
--- [1]244:stop trigger trig1
+-- [1]247:stop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
+SQLSTATE : 602: No permissions for this operation STOP_TRIGGER
 }
--- [1]247:grant user lily_start_trig privileges START_TRIGGER on root.sg2
+-- [1]250:grant user lily_start_trig privileges START_TRIGGER on root.sg2
 STRICT{
 PASS
 }
--- [1]248:grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1
+-- [1]251:grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1
 STRICT{
 PASS
 }
 
--- [1]249:list privileges user lily_start_trig on root.sg2
+-- [1]252:list privileges user lily_start_trig on root.sg2
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -370,9 +385,9 @@ role(TEXT)      |privilege(TEXT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]250:list privileges user lily_stop_trig on root.sg1
+-- [1]253:list privileges user lily_stop_trig on root.sg1
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -382,52 +397,62 @@ role(TEXT)      |privilege(TEXT)      |
 }
 
 Elapsed Time: 0.0.1
--- [1]253:start trigger trig3
+-- [1]256:start trigger trig3
 STRICT{
-SQLSTATE : 313: Trigger trig3 does not exist.
-EXPECT:PASS
+PASS
 }
--- [1]254:start trigger trig1
+-- [1]257:start trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
+SQLSTATE : 602: No permissions for this operation START_TRIGGER
 }
--- [1]256:stop trigger trig1
+-- [1]259:stop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
-EXPECT:PASS
+PASS
 }
--- [1]257:stop trigger trig3
+-- [1]260:stop trigger trig3
 STRICT{
-SQLSTATE : 313: Trigger trig3 does not exist.
+SQLSTATE : 602: No permissions for this operation STOP_TRIGGER
 }
 
--- [1]260:show triggers
+-- [1]263:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
-总数目：0
+-----------------------------------------------------------------------------------------------------------------------
+trig1                   |stopped           |after insert     |root.sg1.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig1, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+-----------------------------------------------------------------------------------------------------------------------
+trig2                   |started           |after insert     |root.sg1.dev1.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig2, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+-----------------------------------------------------------------------------------------------------------------------
+trig3                   |started           |after insert     |root.sg2.dev0.s_|TriggerTest           |{remote_ip=127.0.0.1, |
+                        |                  |                 |1               |                      |trig_name=trig3, ts_t|
+                        |                  |                 |                |                      |ype=int32}            |
+总数目：3
 }
 
 Elapsed Time: 0.0.0
--- [1]261:insert into root.sg1.dev0(time,s_1) values(1,100)
+-- [1]264:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.6
--- [1]262:insert into root.sg1.dev1(time,s_1) values(2,200)
+Elapsed Time: 0.0.8
+-- [1]265:insert into root.sg1.dev1(time,s_1) values(2,200)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]263:insert into root.sg2.dev0(time,s_1) values(3,300)
+-- [1]266:insert into root.sg2.dev0(time,s_1) values(3,300)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.9
 
--- [1]264:select s_1 from root.sg1.dev0
+-- [1]267:select s_1 from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT64)      |
 ----------------------------------------------
@@ -435,9 +460,9 @@ Time(TIME)      |root.sg1.dev0.s_1(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.3
 
--- [1]265:select s_1 from root.sg1.dev1
+-- [1]268:select s_1 from root.sg1.dev1
 STRICT{
 Time(TIME)      |root.sg1.dev1.s_1(INT64)      |
 ----------------------------------------------
@@ -447,7 +472,7 @@ Time(TIME)      |root.sg1.dev1.s_1(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]266:select s_1 from root.sg2.dev0
+-- [1]269:select s_1 from root.sg2.dev0
 STRICT{
 Time(TIME)      |root.sg2.dev0.s_1(INT64)      |
 ----------------------------------------------
@@ -455,47 +480,51 @@ Time(TIME)      |root.sg2.dev0.s_1(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]268:select * from root.target.alerting
+-- [1]271:select * from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.local_trig3(INT32)      |root.target.alerting.local_trig2(INT32)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |null                                         |null                                         |200                                          |
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |null                                         |300                                          |null                                         |
+总数目：2
 }
 
-Elapsed Time: 0.0.1
--- [1]269:delete storage group root.**
+Elapsed Time: 0.0.3
+-- [1]272:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.20
--- [1]270:drop user lily_start_trig
+Elapsed Time: 0.0.38
+-- [1]273:drop user lily_start_trig
 STRICT{
 PASS
 }
--- [1]271:drop user lily_stop_trig
+-- [1]274:drop user lily_stop_trig
 STRICT{
 PASS
 }
--- [1]276:create role role_trigger
+-- [1]281:create role role_trigger
 STRICT{
 PASS
 }
--- [1]277:create role role_trigger_status
+-- [1]282:create role role_trigger_status
 STRICT{
 PASS
 }
--- [1]278:grant role role_trigger privileges create_trigger on root.sg1
+-- [1]283:grant role role_trigger privileges create_trigger on root.sg1
 STRICT{
 PASS
 }
--- [1]279:grant role role_trigger privileges drop_trigger on root.sg1
+-- [1]284:grant role role_trigger privileges drop_trigger on root.sg1
 STRICT{
 PASS
 }
 
--- [1]280:list privileges role role_trigger on root.sg1
+-- [1]285:list privileges role role_trigger on root.sg1
 STRICT{
 privilege(TEXT)      |
 ---------------------
@@ -504,41 +533,41 @@ GGER DROP_TRIGGER    |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]281:list privileges role role_trigger_status on root.sg1
+-- [1]286:list privileges role role_trigger_status on root.sg1
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]282:set storage group to root.sg1
+-- [1]287:set storage group to root.sg1
 STRICT{
 PASS
 }
--- [1]284:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]289:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]284:create user lily_create_trigger '123456'
+-- [1]289:create user lily_create_trigger '123456'
 STRICT{
 PASS
 }
 
--- [1]285:list privileges user lily_create_trigger on root.sg1
+-- [1]290:list privileges user lily_create_trigger on root.sg1
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]286:grant  role_trigger to lily_create_trigger
+Elapsed Time: 0.0.1
+-- [1]291:grant  role_trigger to lily_create_trigger
 STRICT{
 PASS
 }
 
--- [1]287:list privileges user lily_create_trigger on root.sg1
+-- [1]292:list privileges user lily_create_trigger on root.sg1
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -547,13 +576,13 @@ role_trigger    |root.sg1 : CREATE_TRI|
 总数目：1
 }
 
-Elapsed Time: 0.0.0
--- [1]288:grant user lily_create_trigger privileges create_trigger on root.sg1
+Elapsed Time: 0.0.2
+-- [1]293:grant user lily_create_trigger privileges create_trigger on root.sg1
 STRICT{
 PASS
 }
 
--- [1]289:list privileges user lily_create_trigger on root.sg1
+-- [1]294:list privileges user lily_create_trigger on root.sg1
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -565,20 +594,19 @@ role_trigger    |root.sg1 : CREATE_TRI|
 总数目：2
 }
 
-Elapsed Time: 0.0.0
--- [1]301:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+Elapsed Time: 0.0.1
+-- [1]306:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
--- [1]302:insert into root.sg1.dev0(time,s_1) values(1,100)
+-- [1]307:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.9
 
--- [1]303:select * from root.sg1.dev0
+-- [1]308:select * from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT64)      |
 ----------------------------------------------
@@ -588,32 +616,33 @@ Time(TIME)      |root.sg1.dev0.s_1(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]305:select local_trig1,remotetrig1 from root.target.alerting
+-- [1]310:select local_trig1,remotetrig1 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(INT32)      |
+----------------------------------------------------------------------------------------------------------
+1               |100                                          |100.0                                        |
+总数目：1
 }
 
-Elapsed Time: 0.0.0
--- [1]306:drop trigger trig1
+Elapsed Time: 0.0.2
+-- [1]311:drop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
-EXPECT:PASS
+PASS
 }
 
--- [1]307:show triggers
+-- [1]312:show triggers
 STRICT{
 trigger name(TEXT)      |status(TEXT)      |event(TEXT)      |path(TEXT)      |class name(TEXT)      |attributes(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]308:drop role role_trigger
+-- [1]313:drop role role_trigger
 STRICT{
 PASS
 }
 
--- [1]309:list privileges user lily_create_trigger on root.sg1
+-- [1]314:list privileges user lily_create_trigger on root.sg1
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -622,23 +651,26 @@ role(TEXT)      |privilege(TEXT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]320:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+Elapsed Time: 0.0.0
+-- [1]325:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerTest) instance, because java.lang.ClassNotFoundException: TriggerTest
-EXPECT:PASS
+PASS
 }
--- [1]320:drop trigger trig1
+-- [1]325:drop trigger trig1
 STRICT{
-SQLSTATE : 313: Trigger trig1 does not exist.
+SQLSTATE : 602: No permissions for this operation DROP_TRIGGER
 }
--- [1]322:delete storage group root.**
+-- [1]327:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.14
--- [1]323:drop user lily_create_trigger
+Elapsed Time: 0.0.27
+-- [1]328:drop user lily_create_trigger
+STRICT{
+PASS
+}
+-- [1]329:drop role role_trigger_status
 STRICT{
 PASS
 }

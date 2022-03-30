@@ -12,38 +12,37 @@ PASS
 }
 -- [1]17:CREATE TRIGGER trig1 BEFORE INSERT  ON root.sg1.dev1.s_1 AS 'TriggerBeforeTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerBeforeTest) instance, because java.lang.ClassNotFoundException: TriggerBeforeTest
-EXPECT:PASS
+PASS
 }
 -- [1]17:insert into root.sg1.dev1(time,s_1,s_2) values(1,100,200)
 STRICT{
-PASS
-EXPECT:FAIL
+SQLSTATE : 313: Error occurred during executing Trigger#fire(long, Object): 
+java.lang.Exception: hello,double.
 }
 
 -- [1]20:select s_1,s_2 from root.sg1.dev1
 STRICT{
 Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(DOUBLE)      |
------------------------------------------------------------------------------
-1               |100.0                         |200                            |
-总数目：1
+总数目：0
 }
 
 Elapsed Time: 0.0.2
 
 -- [1]21:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1               |100.0                                        |100.0                                         |
+总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 -- [1]22:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.11
 -- [1]25:set storage group to root.sg1
 STRICT{
 PASS
@@ -58,13 +57,12 @@ PASS
 }
 -- [1]38:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerBeforeTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
 STRICT{
-SQLSTATE : 313: Failed to reflect Trigger trig1(TriggerBeforeTest) instance, because java.lang.ClassNotFoundException: TriggerBeforeTest
-EXPECT:PASS
+PASS
 }
 -- [1]38:insert into root.sg1.dev1(time,s_1,s_2) values(1,100,200)
 STRICT{
-PASS
-EXPECT:FAIL
+SQLSTATE : 313: Error occurred during executing Trigger#fire(long, Object): 
+java.lang.Exception: hello,double.
 }
 
 -- [1]41:select s_1,s_2 from root.sg1.dev1
@@ -75,18 +73,20 @@ Time(TIME)      |root.sg1.dev1.s_1(INT64)      |root.sg1.dev1.s_2(DOUBLE)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]42:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
 STRICT{
-Time(TIME)      |
-总数目：0
+Time(TIME)      |root.target.alerting.local_trig1(INT64)      |root.target.alerting.remotetrig1(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1               |100.0                                        |100.0                                         |
+总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 -- [1]44:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.18
