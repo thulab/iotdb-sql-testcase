@@ -1,4 +1,4 @@
-# IoTDB-SQL
+# iotdb-sql-testcase
 
 ### 一、环境依赖
 
