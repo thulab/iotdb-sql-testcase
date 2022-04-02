@@ -9,10 +9,27 @@ delete storage group root.**;
 delete storage group root.**;
 <<NULL;
 --测试操作
+CREATE USER user01 'pass1234';
+create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
 create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
+set schema template t1 to root.sg1.d2;
 insert into root.sg1.d1(time, s1, s2) aligned values(1, 1, 1);
 SET SYSTEM TO READONLY;
+create storage group root.sg2;
+<<SQLSTATE;
+CREATE USER user02 'pass1234';
+<<SQLSTATE;
+GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.ln;
+<<SQLSTATE;
 insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+<<SQLSTATE;
+create aligned timeseries root.sg1.d3(s1 INT32, s2 DOUBLE);
+<<SQLSTATE;
+create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+set schema template t1 to root.sg1.d4;
+<<SQLSTATE;
+unset schema template t1 from root.sg1.d2;
 <<SQLSTATE;
 select * from root.sg1.d1;
 SET SYSTEM TO WRITABLE;
@@ -20,6 +37,12 @@ insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
 select * from root.sg1.d1;
 
 --清理环境
+unset schema template t1 from root.sg1.d2;
+<<NULL;
+DROP USER user01;
+<<NULL;
+drop schema template t1;
+<<NULL;
 delete storage group root.**;
 <<NULL;
 
