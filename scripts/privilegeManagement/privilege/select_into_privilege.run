@@ -1,4 +1,4 @@
-//仅有【READ_TIMESERIES】权限，无【INSERT_TIMESERIES】权限，执行查询写回
+//1.仅有【READ_TIMESERIES】权限，无【INSERT_TIMESERIES】权限，执行查询写回
 --测试操作
 connect root/root;
 delete storage group root.**;
@@ -9,8 +9,11 @@ create storage group root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 insert into root.sg.d1(time,s1) values(1,1.2);
 CREATE USER user01 'pass1234';
+--检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST USER PRIVILEGES user01;
+--进行赋权
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root;
---user01用户登录，执行创建用户
+--user01用户登录，执行查询写回
 connect user01/pass1234;
 --查询数据
 select * from root.**;
@@ -23,7 +26,7 @@ delete storage group root.**;
 DROP USER user01;
 <<NULL;
 
-//仅有【INSERT_TIMESERIES】权限，无【READ_TIMESERIES】权限，执行查询写回
+//2.仅有【INSERT_TIMESERIES】权限，无【READ_TIMESERIES】权限，执行查询写回
 --测试操作
 connect root/root;
 delete storage group root.**;
@@ -34,8 +37,11 @@ create storage group root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 insert into root.sg.d1(time,s1) values(1,1.2);
 CREATE USER user01 'pass1234';
+--检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST USER PRIVILEGES user01;
+--进行赋权
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root;
---user01用户登录，执行创建用户
+--user01用户登录，执行查询写回
 connect user01/pass1234;
 --查询数据
 select * from root.sg.**;
@@ -49,7 +55,7 @@ delete storage group root.**;
 DROP USER user01;
 <<NULL;
 
-//既有【READ_TIMESERIES】，又有【INSERT_TIMESERIES】，执行查询写回
+//3.既有【READ_TIMESERIES】，又有【INSERT_TIMESERIES】，执行查询写回
 connect root/root;
 delete storage group root.**;
 <<NULL;
@@ -59,6 +65,9 @@ create storage group root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 insert into root.sg.d1(time,s1) values(1,1.2);
 CREATE USER user01 'pass1234';
+--检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST USER PRIVILEGES user01;
+--进行赋权
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root;
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root;
 --user01用户登录，执行创建用户
