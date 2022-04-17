@@ -18,28 +18,54 @@ PASS
 STRICT{
 PASS
 }
--- [1]11:insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,2.2,TRUE,'001')
+
+-- [1]12:show storage group root.sg
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.sg                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]13:show timeseries root.sg.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg                  |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg                  |DOUBLE              |RLE                 |SNAPPY                 |null            |null                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.0
+-- [1]15:insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,2.2,TRUE,'001')
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.4
--- [1]12:insert into root.sg.d1(time,s1,s2,s3,s4) values(2,2.2,3.3,FALSE,'002')
+Elapsed Time: 0.0.5
+-- [1]16:insert into root.sg.d1(time,s1,s2,s3,s4) values(2,2.2,3.3,FALSE,'002')
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]15:select s1,- s1,s3,+ s3,s1+s3,s1-s3 from root.sg.d1
+-- [1]19:select s1,- s1,s3,+ s3,s1+s3,s1-s3 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: BOOLEAN
 }
--- [1]17:select s1,- s1,s4,+ s4,s1+s4,s1-s4 from root.sg.d1
+-- [1]21:select s1,- s1,s4,+ s4,s1+s4,s1-s4 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: TEXT
 }
 
--- [1]21:select s1, - s1, s2, + s2, s1 + s2, s1 - s2 from root.sg.d1
+-- [1]25:select s1, - s1, s2, + s2, s1 + s2, s1 - s2 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |-root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 + root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 - root.sg.d1.s2(DOUBLE)      |
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,16 +76,16 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |-root.sg.d1.s1(FLOAT)      |root.sg.
 }
 
 Elapsed Time: 0.0.1
--- [1]24:select s1,- s1,s3,+ s3, s1 + s3, s1 - s3, s1 * s3, s1 /s3, s1 % s3 from root.sg.d1
+-- [1]28:select s1,- s1,s3,+ s3, s1 + s3, s1 - s3, s1 * s3, s1 /s3, s1 % s3 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: BOOLEAN
 }
--- [1]26:select s1,- s1,s4,+ s4, s1 + s4, s1 - s4, s1 * s4, s1 /s4, s1 % s4 from root.sg.d1
+-- [1]30:select s1,- s1,s4,+ s4, s1 + s4, s1 - s4, s1 * s4, s1 /s4, s1 % s4 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: TEXT
 }
 
--- [1]30:select s1,- s1, s2,+ s2, s1 + s2, s1 - s2, s1 * s2, s1 /s2, s1 % s2 from root.sg.d1
+-- [1]34:select s1,- s1, s2,+ s2, s1 + s2, s1 - s2, s1 * s2, s1 /s2, s1 % s2 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |-root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 + root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 - root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 * root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 / root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 % root.sg.d1.s2(DOUBLE)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,112 +96,144 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |-root.sg.d1.s1(FLOAT)      |root.sg.
 }
 
 Elapsed Time: 0.0.1
--- [1]43:create storage group root.sg
+-- [1]47:create storage group root.sg
 STRICT{
 PASS
 }
--- [1]44:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+-- [1]48:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
 STRICT{
 PASS
 }
--- [1]45:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
+-- [1]49:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
 STRICT{
 PASS
 }
--- [1]46:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
+-- [1]50:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
 STRICT{
 PASS
 }
--- [1]47:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
+-- [1]51:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]48:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
+-- [1]52:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
--- [1]49:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
+-- [1]53:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]50:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
+-- [1]54:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]51:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20)
+
+-- [1]56:show storage group root.sg
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.sg                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]57:show timeseries root.sg.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg                  |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg                  |INT32               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg                  |DOUBLE              |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+总数目：7
+}
+
+Elapsed Time: 0.0.0
+-- [1]59:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.4
--- [1]52:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14)
+-- [1]60:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]53:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22)
+-- [1]61:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]54:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14)
+-- [1]62:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]63:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]64:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]55:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20)
+-- [1]65:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]56:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14)
+-- [1]66:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]57:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22)
+-- [1]67:insert into root.sg.d2(time,s1) values(1,12)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]58:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14)
+-- [1]68:insert into root.sg.d2(time,s1) values(2,32)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]59:insert into root.sg.d2(time,s1) values(1,12)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]60:insert into root.sg.d2(time,s1) values(2,32)
+-- [1]69:insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]61:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]62:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595)
+-- [1]70:insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
 
--- [1]65:select s1, sin(s1), cos(s1), tan(s1) from root.sg.d1 limit 5 offset 2
+-- [1]73:select s1, sin(s1), cos(s1), tan(s1) from root.sg.d1 limit 5 offset 2
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |sin(root.sg.d1.s1)(DOUBLE)      |cos(root.sg.d1.s1)(DOUBLE)      |tan(root.sg.d1.s1)(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -193,7 +251,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |sin(root.sg.d1.s1)(DOUBLE)      |cos
 
 Elapsed Time: 0.0.2
 
--- [1]68:select s4, string_contains(s4, 's'='warn'), string_matches(s4, 'regex'='[^\\s]+37229') from root.sg.d1
+-- [1]76:select s4, string_contains(s4, 's'='warn'), string_matches(s4, 'regex'='[^\\s]+37229') from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s4(TEXT)      |string_contains(root.sg.d1.s4, "s"="warn")(BOOLEAN)      |string_matches(root.sg.d1.s4, "regex"="[^\s]+37229")(BOOLEAN)      |
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -217,19 +275,17 @@ Time(TIME)      |root.sg.d1.s4(TEXT)      |string_contains(root.sg.d1.s4, "s"="w
 
 Elapsed Time: 0.0.1
 
--- [1]71:select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') from root.sg.d2 where time > 2020-12-10T20:36:15.530+08:00
+-- [1]79:select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') from root.sg.d2 where time > 1607603775000
 STRICT{
 Time(TIME)      |root.sg.d2.s1(INT64)      |top_k(root.sg.d2.s1, "k"="2")(INT64)      |bottom_k(root.sg.d2.s1, "k"="2")(INT64)      |
 ---------------------------------------------------------------------------------------------------------------------------------
-1607603775531   |1531604122307244742       |1531604122307244742                       |1531604122307244742                          |
----------------------------------------------------------------------------------------------------------------------------------
-1607603775534   |-8581625725655917595      |-8581625725655917595                      |-8581625725655917595                         |
-总数目：2
+1607603776000   |-8581625725655917595      |-8581625725655917595                      |-8581625725655917595                         |
+总数目：1
 }
 
-Elapsed Time: 0.0.38
+Elapsed Time: 0.0.1
 
--- [1]74:select s1, time_difference(s1), difference(s1), non_negative_difference(s1), derivative(s1), non_negative_derivative(s1) from root.sg.d1 limit 5 offset 1
+-- [1]82:select s1, time_difference(s1), difference(s1), non_negative_difference(s1), derivative(s1), non_negative_derivative(s1) from root.sg.d1 limit 5 offset 1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |time_difference(root.sg.d1.s1)(INT64)      |difference(root.sg.d1.s1)(FLOAT)      |non_negative_difference(root.sg.d1.s1)(FLOAT)      |derivative(root.sg.d1.s1)(DOUBLE)      |non_negative_derivative(root.sg.d1.s1)(DOUBLE)      |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,9 +301,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |time_difference(root.sg.d1.s1)(INT64
 总数目：5
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.1
 
--- [1]77:select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) from root.sg.d1
+-- [1]85:select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |const(root.sg.d1.s1, "value"="1024", "type"="INT64")(INT64)      |pi(root.sg.d1.s2)(DOUBLE)      |e(root.sg.d1.s1, root.sg.d1.s2)(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -271,7 +327,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |const(ro
 
 Elapsed Time: 0.0.1
 
--- [1]80:select cast(s1, 'type'='DOUBLE'), cast(s1, 'type'='INT32'), cast(s1, 'type'='BOOLEAN'),  cast(s1, 'type'='FLOAT') from root.sg.d1
+-- [1]88:select cast(s1, 'type'='DOUBLE'), cast(s1, 'type'='INT32'), cast(s1, 'type'='BOOLEAN'),  cast(s1, 'type'='FLOAT') from root.sg.d1
 STRICT{
 Time(TIME)      |cast(root.sg.d1.s1, "type"="DOUBLE")(DOUBLE)      |cast(root.sg.d1.s1, "type"="INT32")(INT32)      |cast(root.sg.d1.s1, "type"="BOOLEAN")(BOOLEAN)      |cast(root.sg.d1.s1, "type"="FLOAT")(FLOAT)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -293,9 +349,9 @@ Time(TIME)      |cast(root.sg.d1.s1, "type"="DOUBLE")(DOUBLE)      |cast(root.sg
 总数目：8
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]83:select s1, on_off(s1, 'threshold'='2') from root.sg.d1
+-- [1]91:select s1, on_off(s1, 'threshold'='2') from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |on_off(root.sg.d1.s1, "threshold"="2")(BOOLEAN)      |
 -----------------------------------------------------------------------------------------------
@@ -317,9 +373,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |on_off(root.sg.d1.s1, "threshold"="2
 总数目：8
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
--- [1]84:select s1, in_range(s1, 'lower'='2', 'upper'='3.1') from root.sg.d1
+-- [1]92:select s1, in_range(s1, 'lower'='2', 'upper'='3.1') from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |in_range(root.sg.d1.s1, "lower"="2", "upper"="3.1")(BOOLEAN)      |
 ------------------------------------------------------------------------------------------------------------
@@ -341,9 +397,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |in_range(root.sg.d1.s1, "lower"="2",
 总数目：8
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]87:select s1, zero_count(s1), non_zero_count(s2), zero_duration(s3), non_zero_duration(s5) from root.sg.d1
+-- [1]95:select s1, zero_count(s1), non_zero_count(s2), zero_duration(s3), non_zero_duration(s5) from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |zero_count(root.sg.d1.s1)(INT64)      |non_zero_count(root.sg.d1.s2)(INT64)      |zero_duration(root.sg.d1.s3)(INT64)      |non_zero_duration(root.sg.d1.s5)(INT64)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -365,118 +421,150 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |zero_count(root.sg.d1.s1)(INT64)    
 总数目：8
 }
 
-Elapsed Time: 0.0.2
--- [1]88:select s4, zero_count(s4), non_zero_count(s4), zero_duration(s4), non_zero_duration(s4) from root.sg.d1
+Elapsed Time: 0.0.1
+-- [1]96:select s4, zero_count(s4), non_zero_count(s4), zero_duration(s4), non_zero_duration(s4) from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Error occurred during executing UDTF#validate(UDFParameterValidator): 
 org.apache.iotdb.db.query.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: [INT32, INT64, FLOAT, DOUBLE, BOOLEAN]. actual: TEXT.
 }
--- [1]97:create storage group root.sg
+-- [1]105:create storage group root.sg
 STRICT{
 PASS
 }
--- [1]98:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+-- [1]106:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
 STRICT{
 PASS
 }
--- [1]99:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
+-- [1]107:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
 STRICT{
 PASS
 }
--- [1]100:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
+-- [1]108:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
 STRICT{
 PASS
 }
--- [1]101:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
+-- [1]109:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]102:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
+-- [1]110:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
--- [1]103:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
+-- [1]111:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]104:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
+-- [1]112:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]105:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20)
+
+-- [1]114:show storage group root.sg
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.sg                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]115:show timeseries root.sg.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg                  |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg                  |INT32               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg                  |DOUBLE              |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+总数目：7
+}
+
+Elapsed Time: 0.0.0
+-- [1]117:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.4
--- [1]106:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14)
+-- [1]118:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]107:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22)
+-- [1]119:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]108:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14)
+-- [1]120:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]109:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20)
+-- [1]121:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]110:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14)
+-- [1]122:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]111:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22)
+-- [1]123:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]124:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]125:insert into root.sg.d2(time,s1) values(1,12)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]126:insert into root.sg.d2(time,s1) values(2,32)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]112:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'error:-37229',23,14)
+-- [1]127:insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]113:insert into root.sg.d2(time,s1) values(1,12)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]114:insert into root.sg.d2(time,s1) values(2,32)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]115:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]116:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595)
+-- [1]128:insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
 
--- [1]118:select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 from root.sg.d1
+-- [1]130:select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |((((root.sg.d1.s1 + 1) * 2) - 1) % 2) + 1.5(DOUBLE)      |sin(root.sg.d1.s1 + sin(root.sg.d1.s1 + sin(root.sg.d1.s2)))(DOUBLE)      |(-(root.sg.d1.s1 + root.sg.d1.s2) * ((sin(root.sg.d1.s1 + root.sg.d1.s2) * sin(root.sg.d1.s1 + root.sg.d1.s2)) + (cos(root.sg.d1.s1 + root.sg.d1.s2) * cos(root.sg.d1.s1 + root.sg.d1.s2)))) + 1(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -498,9 +586,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |((((root
 总数目：8
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
--- [1]119:select (s1 + s2) * 2 + sin(s1) from root.sg.d1
+-- [1]131:select (s1 + s2) * 2 + sin(s1) from root.sg.d1
 STRICT{
 Time(TIME)      |((root.sg.d1.s1 + root.sg.d1.s2) * 2) + sin(root.sg.d1.s1)(DOUBLE)      |
 ----------------------------------------------------------------------------------------
@@ -524,7 +612,7 @@ Time(TIME)      |((root.sg.d1.s1 + root.sg.d1.s2) * 2) + sin(root.sg.d1.s1)(DOUB
 
 Elapsed Time: 0.0.1
 
--- [1]120:select (s1 + *) / 2  from root.sg.d2
+-- [1]132:select (s1 + *) / 2  from root.sg.d2
 STRICT{
 Time(TIME)      |(root.sg.d2.s1 + root.sg.d2.s1) / 2(DOUBLE)      |
 -----------------------------------------------------------------
@@ -532,15 +620,15 @@ Time(TIME)      |(root.sg.d2.s1 + root.sg.d2.s1) / 2(DOUBLE)      |
 -----------------------------------------------------------------
 2               |32.0                                             |
 -----------------------------------------------------------------
-1607603775531   |1.5316041223072448E18                            |
+1607603775000   |1.5316041223072448E18                            |
 -----------------------------------------------------------------
-1607603775534   |-8.5816257256559176E18                           |
+1607603776000   |-8.5816257256559176E18                           |
 总数目：4
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]121:select (s1 + s2) * 3 from root.sg.d1, root.sg.d2
+-- [1]133:select (s1 + s2) * 3 from root.sg.d1, root.sg.d2
 STRICT{
 Time(TIME)      |(root.sg.d1.s1 + root.sg.d1.s2) * 3(DOUBLE)      |(root.sg.d2.s1 + root.sg.d1.s2) * 3(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------------------
@@ -563,116 +651,150 @@ Time(TIME)      |(root.sg.d1.s1 + root.sg.d1.s2) * 3(DOUBLE)      |(root.sg.d2.s
 }
 
 Elapsed Time: 0.0.1
--- [1]128:create storage group root.sg
+-- [1]141:create storage group root.sg
 STRICT{
 PASS
 }
--- [1]129:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+-- [1]142:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
 STRICT{
 PASS
 }
--- [1]130:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
+-- [1]143:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
 STRICT{
 PASS
 }
--- [1]131:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
+-- [1]144:create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE
 STRICT{
 PASS
 }
--- [1]132:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
+-- [1]145:create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]133:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
+-- [1]146:create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
--- [1]134:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
+-- [1]147:create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]135:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
+-- [1]148:create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE
 STRICT{
 PASS
 }
--- [1]136:create timeseries root.sg.d2.s2 with datatype=float,encoding=RLE
+-- [1]149:create timeseries root.sg.d2.s2 with datatype=float,encoding=RLE
 STRICT{
 PASS
-}
--- [1]137:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(1,1.1,2.2,TRUE,'warn:1731',20)
-STRICT{
-0
 }
 
-Elapsed Time: 0.0.5
--- [1]138:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(20,2.2,3.3,FALSE,'warn:-8721',14)
+-- [1]151:show storage group root.sg
 STRICT{
-0
+storage group(TEXT)      |
+-------------------------
+root.sg                  |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]139:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(35,2.5,2.2,TRUE,'error:-37229',22)
+
+-- [1]152:show timeseries root.sg.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg                  |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg                  |INT32               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg                  |DOUBLE              |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg                  |INT64               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+总数目：8
+}
+
+Elapsed Time: 0.0.0
+-- [1]154:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(1,1.1,2.2,TRUE,'warn:1731',20)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
--- [1]140:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(49,2.6,3.3,FALSE,'warn:1731',14)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]141:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(55,1.1,2.2,TRUE,'warn:1731',20)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]142:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(63,2.2,3.3,FALSE,'warn:-8721',14)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]143:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(79,2.5,2.2,TRUE,'warn:1731',22)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]144:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(80,2.6,3.3,FALSE,'error:-37229',14)
+Elapsed Time: 0.0.4
+-- [1]155:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(20,2.2,3.3,FALSE,'warn:-8721',14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]145:insert into root.sg.d2(time,s1) values(1,12)
+-- [1]156:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(35,2.5,2.2,TRUE,'error:-37229',22)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]146:insert into root.sg.d2(time,s1) values(2,32)
+-- [1]157:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(49,2.6,3.3,FALSE,'warn:1731',14)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]147:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.531+08:00,1531604122307244742)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]148:insert into root.sg.d2(time,s1) values(2020-12-10T20:36:15.534+08:00,-8581625725655917595)
+-- [1]158:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(55,1.1,2.2,TRUE,'warn:1731',20)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
+-- [1]159:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(63,2.2,3.3,FALSE,'warn:-8721',14)
+STRICT{
+0
+}
 
--- [1]151:select s1, s2 , s1 + s2 from root.sg.d1
+Elapsed Time: 0.0.0
+-- [1]160:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(79,2.5,2.2,TRUE,'warn:1731',22)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]161:insert into root.sg.d1(time,s1,s2,s3,s4,s6) values(80,2.6,3.3,FALSE,'error:-37229',14)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]162:insert into root.sg.d2(time,s1) values(1,12)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]163:insert into root.sg.d2(time,s1) values(2,32)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]164:insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]165:insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]168:select s1, s2 , s1 + s2 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 + root.sg.d1.s2(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------
@@ -696,7 +818,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |root.sg.
 
 Elapsed Time: 0.0.0
 
--- [1]154:select s1, s2, ((s1 + 1) * 2 - 1) % 2 + 1.5 + s2 from root.sg.d1
+-- [1]171:select s1, s2, ((s1 + 1) * 2 - 1) % 2 + 1.5 + s2 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |(((((root.sg.d1.s1 + 1) * 2) - 1) % 2) + 1.5) + root.sg.d1.s2(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -720,7 +842,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |(((((roo
 
 Elapsed Time: 0.0.1
 
--- [1]157:select s1, s2, sin(s1 + sin(s1 + sin(s2))) from root.sg.d1
+-- [1]174:select s1, s2, sin(s1 + sin(s1 + sin(s2))) from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |sin(root.sg.d1.s1 + sin(root.sg.d1.s1 + sin(root.sg.d1.s2)))(DOUBLE)      |
 -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -744,7 +866,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |sin(root
 
 Elapsed Time: 0.0.1
 
--- [1]160:select s1 + s2 from root.sg.d1, root.sg.d2
+-- [1]177:select s1 + s2 from root.sg.d1, root.sg.d2
 STRICT{
 Time(TIME)      |root.sg.d1.s1 + root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 + root.sg.d2.s2(DOUBLE)      |root.sg.d2.s1 + root.sg.d1.s2(DOUBLE)      |root.sg.d2.s1 + root.sg.d2.s2(DOUBLE)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -766,9 +888,9 @@ Time(TIME)      |root.sg.d1.s1 + root.sg.d1.s2(DOUBLE)      |root.sg.d1.s1 + roo
 总数目：8
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]163:select s1, s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) from root.sg.d1
+-- [1]180:select s1, s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |((((root.sg.d1.s1 + 1) * 2) - 1) % 2) + 1.5(DOUBLE)      |sin(root.sg.d1.s1 + sin(root.sg.d1.s1 + sin(root.sg.d1.s2)))(DOUBLE)      |-(root.sg.d1.s1 + root.sg.d1.s2) * ((sin(root.sg.d1.s1 + root.sg.d1.s2) * sin(root.sg.d1.s1 + root.sg.d1.s2)) + (cos(root.sg.d1.s1 + root.sg.d1.s2) * cos(root.sg.d1.s1 + root.sg.d1.s2)))(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -792,7 +914,7 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |((((root
 
 Elapsed Time: 0.0.1
 
--- [1]166:select count(s1), ((count(s2) + 1) * 2 - 1) % 2 + 1.5 from root.sg.d1
+-- [1]183:select count(s1), ((count(s2) + 1) * 2 - 1) % 2 + 1.5 from root.sg.d1
 STRICT{
 count(root.sg.d1.s1)(INT64)      |((((count(root.sg.d1.s2) + 1) * 2) - 1) % 2) + 1.5(DOUBLE)      |
 -------------------------------------------------------------------------------------------------
@@ -800,17 +922,17 @@ count(root.sg.d1.s1)(INT64)      |((((count(root.sg.d1.s2) + 1) * 2) - 1) % 2) +
 总数目：1
 }
 
-Elapsed Time: 0.0.3
--- [1]169:select s1 + s3 from root.sg.d1
+Elapsed Time: 0.0.1
+-- [1]186:select s1 + s3 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: BOOLEAN
 }
--- [1]171:select s2 - s4 from root.sg.d1
+-- [1]188:select s2 - s4 from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: Unsupported data type: TEXT
 }
 
--- [1]173:select s1 + * from root.sg.d2
+-- [1]190:select s1 + * from root.sg.d2
 STRICT{
 Time(TIME)      |root.sg.d2.s1 + root.sg.d2.s1(DOUBLE)      |root.sg.d2.s1 + root.sg.d2.s2(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------
@@ -818,15 +940,15 @@ Time(TIME)      |root.sg.d2.s1 + root.sg.d2.s1(DOUBLE)      |root.sg.d2.s1 + roo
 ------------------------------------------------------------------------------------------------------
 2               |64.0                                       |null                                       |
 ------------------------------------------------------------------------------------------------------
-1607603775531   |3.0632082446144896E18                      |null                                       |
+1607603775000   |3.0632082446144896E18                      |null                                       |
 ------------------------------------------------------------------------------------------------------
-1607603775534   |-1.7163251451311835E19                     |null                                       |
+1607603776000   |-1.7163251451311835E19                     |null                                       |
 总数目：4
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]176:select s1,s1 + * + *  from root.sg.d2
+-- [1]193:select s1,s1 + * + *  from root.sg.d2
 STRICT{
 Time(TIME)      |root.sg.d2.s1(INT64)      |(root.sg.d2.s1 + root.sg.d2.s1) + root.sg.d2.s1(DOUBLE)      |(root.sg.d2.s1 + root.sg.d2.s1) + root.sg.d2.s2(DOUBLE)      |(root.sg.d2.s1 + root.sg.d2.s2) + root.sg.d2.s1(DOUBLE)      |(root.sg.d2.s1 + root.sg.d2.s2) + root.sg.d2.s2(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -834,15 +956,15 @@ Time(TIME)      |root.sg.d2.s1(INT64)      |(root.sg.d2.s1 + root.sg.d2.s1) + ro
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 2               |32                        |96.0                                                         |null                                                         |null                                                         |null                                                         |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1607603775531   |1531604122307244742       |4.5948123669217341E18                                        |null                                                         |null                                                         |null                                                         |
+1607603775000   |1531604122307244742       |4.5948123669217341E18                                        |null                                                         |null                                                         |null                                                         |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1607603775534   |-8581625725655917595      |-2.5744877176967754E19                                       |null                                                         |null                                                         |null                                                         |
+1607603776000   |-8581625725655917595      |-2.5744877176967754E19                                       |null                                                         |null                                                         |null                                                         |
 总数目：4
 }
 
 Elapsed Time: 0.0.1
 
--- [1]179:select s1 + ** from root.sg.d2
+-- [1]196:select s1 + ** from root.sg.d2
 STRICT{
 Time(TIME)      |root.sg.d2.s1 + root.sg.d2.s1(DOUBLE)      |root.sg.d2.s1 + root.sg.d2.s2(DOUBLE)      |
 ------------------------------------------------------------------------------------------------------
@@ -850,15 +972,15 @@ Time(TIME)      |root.sg.d2.s1 + root.sg.d2.s1(DOUBLE)      |root.sg.d2.s1 + roo
 ------------------------------------------------------------------------------------------------------
 2               |64.0                                       |null                                       |
 ------------------------------------------------------------------------------------------------------
-1607603775531   |3.0632082446144896E18                      |null                                       |
+1607603775000   |3.0632082446144896E18                      |null                                       |
 ------------------------------------------------------------------------------------------------------
-1607603775534   |-1.7163251451311835E19                     |null                                       |
+1607603776000   |-1.7163251451311835E19                     |null                                       |
 总数目：4
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]182:select s3 + s5 from root.sg.d1
+-- [1]199:select s3 + s5 from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s3 + root.sg.d1.s5(DOUBLE)      |
 总数目：0
@@ -866,7 +988,7 @@ Time(TIME)      |root.sg.d1.s3 + root.sg.d1.s5(DOUBLE)      |
 
 Elapsed Time: 0.0.0
 
--- [1]185:select avg(s1),sin(avg(s2)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) from root.sg.d1
+-- [1]202:select avg(s1),sin(avg(s2)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) from root.sg.d1
 STRICT{
 avg(root.sg.d1.s1)(DOUBLE)      |sin(avg(root.sg.d1.s2))(DOUBLE)      |avg(root.sg.d1.s1) + 1(DOUBLE)      |-sum(root.sg.d1.s2)(DOUBLE)      |avg(root.sg.d1.s1) + sum(root.sg.d1.s2)(DOUBLE)      |
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -876,7 +998,7 @@ avg(root.sg.d1.s1)(DOUBLE)      |sin(avg(root.sg.d1.s2))(DOUBLE)      |avg(root.
 
 Elapsed Time: 0.0.1
 
--- [1]186:select avg(*), (avg(*) + 1) * 3 / 2 -1 from root.sg.d2
+-- [1]203:select avg(*), (avg(*) + 1) * 3 / 2 -1 from root.sg.d2
 STRICT{
 avg(root.sg.d2.s1)(DOUBLE)      |avg(root.sg.d2.s2)(DOUBLE)      |(((avg(root.sg.d2.s1) + 1) * 3) / 2) - 1(DOUBLE)      |(((avg(root.sg.d2.s2) + 1) * 3) / 2) - 1(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -886,7 +1008,7 @@ avg(root.sg.d2.s1)(DOUBLE)      |avg(root.sg.d2.s2)(DOUBLE)      |(((avg(root.sg
 
 Elapsed Time: 0.0.1
 
--- [1]189:select avg(s1),sin(avg(s1)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) as custom_sum from root.sg.d1 GROUP BY([10, 90), 10ms)
+-- [1]206:select avg(s1),sin(avg(s1)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) as custom_sum from root.sg.d1 GROUP BY([10, 90), 10ms)
 STRICT{
 Time(TIME)      |avg(root.sg.d1.s1)(DOUBLE)      |sin(avg(root.sg.d1.s1))(DOUBLE)      |avg(root.sg.d1.s1) + 1(DOUBLE)      |-sum(root.sg.d1.s2)(DOUBLE)      |custom_sum(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -909,44 +1031,48 @@ Time(TIME)      |avg(root.sg.d1.s1)(DOUBLE)      |sin(avg(root.sg.d1.s1))(DOUBLE
 }
 
 Elapsed Time: 0.0.1
--- [1]192:select avg(s1+1) from root.sg.d1
+-- [1]209:select avg(s1+1) from root.sg.d1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: The argument of the aggregation function must be a time series.
 }
--- [1]196:select avg(s1) + avg(s2) from root.sg.* group by level=1
+-- [1]211:select avg(s1*s2) from root.sg.d1
+STRICT{
+SQLSTATE : 411: Error occurred in query process: The argument of the aggregation function must be a time series.
+}
+-- [1]215:select avg(s1) + avg(s2) from root.sg.* group by level=1
 STRICT{
 SQLSTATE : 411: Error occurred in query process: UDF nesting aggregations in GROUP BY query does not support grouping by level now.
 }
--- [1]200:select avg(s1) + avg(s2) from root.sg.d1 group by ([0,100),20s) fill(previous)
+-- [1]219:select avg(s1) + avg(s2) from root.sg.d1 group by ([0,100),20s) fill(previous)
 STRICT{
 SQLSTATE : 411: Error occurred in query process: UDF nesting aggregations in GROUP BY query does not support FILL now.
 }
--- [1]213:create storage group root.sg
+-- [1]233:create storage group root.sg
 STRICT{
 PASS
 }
--- [1]214:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+-- [1]234:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
 STRICT{
 PASS
 }
--- [1]215:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
+-- [1]235:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
 STRICT{
 PASS
 }
--- [1]216:insert into root.sg.d1(time,s1,s2) values(1,20.12,50.32)
+-- [1]236:insert into root.sg.d1(time,s1,s2) values(1,20.12,50.32)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.4
--- [1]217:insert into root.sg.d1(time,s1,s2) values(20,21.44,65.33)
+-- [1]237:insert into root.sg.d1(time,s1,s2) values(20,21.44,65.33)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
 
--- [1]218:select s1 as temperature, s2 as speed from root.sg.d1
+-- [1]238:select s1 as temperature, s2 as speed from root.sg.d1
 STRICT{
 Time(TIME)      |temperature(FLOAT)      |speed(DOUBLE)      |
 -----------------------------------------------------------
@@ -956,4 +1082,4 @@ Time(TIME)      |temperature(FLOAT)      |speed(DOUBLE)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
