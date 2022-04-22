@@ -1,0 +1,45 @@
+connect root/root;
+--清理环境
+delete storage group root.**;
+<<NULL;
+
+//挂载后模板添加对齐时间序列,操作删除时间序列
+--清理环境
+delete storage group root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+
+--测试操作
+create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+set schema template t1 to root.sg1.d1;
+create timeseries of schema template on root.sg1.d1;
+show timeseries root.sg1.**;
+show devices root.sg1.**;
+show timeseries;
+insert into root.sg1.d1(time, temperature, status) values(1, 1, 1);
+insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1);
+select * from root.sg1.d1;
+delete timeseries root.sg1.d1.temperatur;
+<<SQLSTATE;
+CREATE ALIGNED TIMESERIES root.sg1.d1.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
+insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(1, 1, 1);
+insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(2, 2, 2), (3, 3, 3);
+
+select ** from root.sg1.d1;
+
+delete timeseries root.sg1.d1.GPS.latitude;
+show timeseries;
+
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+
+
+--清理环境
+delete storage group root.**;
+<<NULL;
+
