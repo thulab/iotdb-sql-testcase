@@ -629,3 +629,66 @@ select s1, s2, p1, p2 from root.sg.d1;
 connect root/root;
 delete storage group root.**;
 <<NULL;
+
+
+//31.select into设置TTL
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+set storage group to root.sg_ttl;
+create timeseries root.sg_ttl.dev.status with datatype=double,encoding=PLAIN ;
+insert into root.sg_ttl.dev(time,status) values(now(),2.3);
+select status into s1 from root.sg_ttl.dev;
+select count(*) from root.sg_ttl.dev;
+--创建TTL
+set ttl to root.sg_ttl 5000;
+flush;
+--验证TTL
+select count(*) from root.sg_ttl.dev;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+--查看TTL
+SHOW TTL ON root.sg_ttl;
+show all ttl;
+--取消TTL
+unset ttl to root.sg_ttl;
+insert into root.sg_ttl.dev(time,status,s1) values(1000,2.3,7.5);
+flush;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+
+
+//32.select into和template连用
+--测试操作
+connect root/root;
+delete storage group root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+--创建元数据模板
+create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+<<SQLSTATE;
+--挂载模板
+set schema template t1 to root.sg1.d1;
+create timeseries of schema template on root.sg1.d1;
+show timeseries root.sg1.**;
+show devices root.sg1.**;
+insert into root.sg1.d1(time, temperature, status) values(1, 1, TRUE);
+insert into root.sg1.d1(time, temperature, status) values(2, 2, FALSE), (3, 3, TRUE);
+select temperature into h1 from root.sg1.**;
+select temperature,h1 from root.sg1.**;
+show schema templates;
+--使用模板插入数据后，当前不支持卸载和删除模板
+unset schema template t1 from root.sg1.d1;
+<<SQLSTATE;
+--清理环境
+connect root/root;
+delete storage group root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
