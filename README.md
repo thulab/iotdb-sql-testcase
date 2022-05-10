@@ -122,4 +122,8 @@ root.sg1,root.sg2路径看不到CREATE_TRIGGER权限，此bug已记录到IOTDB-2
 1. 赋予用户角色操作权限（GRANT_USER_ROLE）和撤销用户角色操作权限（REVOKE_USER_ROLE）功能异常，关于这块的测试用例采取注释处理，后续bug修复再启动测试。
 2. 删除存储组权限（DELETE_STORAGE_GROUP）功能丢失，相关用例采取注释处理，后续bug修复再启动测试。
 
+数据处理模块：
+Select into 创建出非法时间序列：select temperature into h1 from root.sg1.**;
+创建出时间序列 root.sg1.**.h1
+
 对应bug修复后，test会失败，到时分析结果，修改.run脚本，重新生成.result即可。
