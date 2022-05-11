@@ -37,7 +37,7 @@ WITH (
 <<SQLSTATE;
 
 connect root/root;
-grant user lily_create_trig privileges CREATE_TRIGGER on root.sg1;
+grant user lily_create_trig privileges CREATE_TRIGGER on root.sg1.**;
 set storage group to root.sg2;
 CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
@@ -80,7 +80,7 @@ insert into root.sg1.dev0(time,s_1) values(1,100);
 select s_1 from root.sg1.dev0;
 sleep 100;
 select local_trig1,remotetrig1 from root.target.alerting;
-grant user lily_create_trig privileges DROP_TRIGGER on root.sg1;
+grant user lily_create_trig privileges DROP_TRIGGER on root.sg1.**;
 connect lily_create_trig/123456;
 drop trigger trig1;
 show triggers;
@@ -247,8 +247,8 @@ connect lily_stop_trig/123456;
 stop trigger trig1;<<SQLSTATE;
 
 connect root/root;
-grant user lily_start_trig privileges START_TRIGGER on root.sg2;
-grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1;
+grant user lily_start_trig privileges START_TRIGGER on root.sg2.**;
+grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1.**;
 list privileges user lily_start_trig on root.sg2;
 list privileges user lily_stop_trig on root.sg1;
 
@@ -280,17 +280,17 @@ drop role role_trigger;<<NULL;
 drop role role_trigger_status;<<NULL;
 create role role_trigger;
 create role role_trigger_status;
-grant role role_trigger privileges create_trigger on root.sg1;
-grant role role_trigger privileges drop_trigger on root.sg1;
+grant role role_trigger privileges create_trigger on root.sg1.**;
+grant role role_trigger privileges drop_trigger on root.sg1.**;
 list privileges role role_trigger on root.sg1;
 list privileges role role_trigger_status on root.sg1;
 set storage group to root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 create user lily_create_trigger '123456';
 list privileges user lily_create_trigger on root.sg1;
-grant  role_trigger to lily_create_trigger;
+grant  role_trigger to lily_create_trigger.**;
 list privileges user lily_create_trigger on root.sg1;
-grant user lily_create_trigger privileges create_trigger on root.sg1;
+grant user lily_create_trigger privileges create_trigger on root.sg1.**;
 list privileges user lily_create_trigger on root.sg1;
 
 connect lily_create_trigger/123456;
