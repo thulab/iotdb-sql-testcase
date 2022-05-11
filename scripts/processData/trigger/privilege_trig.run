@@ -97,8 +97,8 @@ WITH (
 );
 show triggers;
 connect root/root;
-revoke user lily_create_trig  privileges create_trigger on root.sg1;
-revoke user lily_create_trig  privileges create_trigger on root.sg2;<<SQLSTATE;
+revoke user lily_create_trig  privileges create_trigger on root.sg1.**;
+revoke user lily_create_trig  privileges create_trigger on root.sg2.**;<<SQLSTATE;
 connect lily_create_trig/123456;
 CREATE TRIGGER trig2
 AFTER INSERT
@@ -125,8 +125,8 @@ CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 grant user lily_create_trig privileges CREATE_TRIGGER on root.**;
 list privileges user lily_create_trig on root.**;
-list privileges user lily_create_trig on root.sg1;
-list privileges user lily_create_trig on root.sg2;
+list privileges user lily_create_trig on root.sg1.**;
+list privileges user lily_create_trig on root.sg2.**;
 
 connect lily_create_trig/123456;
 
@@ -139,7 +139,6 @@ WITH (
   'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
-<<SQLSTATE;
 show triggers;
 
 CREATE TRIGGER trig2
@@ -151,7 +150,6 @@ WITH (
   'remote_ip' = '127.0.0.1',
   'trig_name'='trig2'
 );
-<<SQLSTATE;
 CREATE TRIGGER trig3
 AFTER INSERT
 ON root.sg2.dev0.s_1
@@ -161,13 +159,12 @@ WITH (
   'remote_ip' = '127.0.0.1',
   'trig_name'='trig3'
 );
-<<SQLSTATE;
 show triggers;
 connect root/root;
 revoke user lily_create_trig  privileges create_trigger on root.**;
-drop trigger trig1;<<SQLSTATE;
-drop trigger trig2;<<SQLSTATE; 
-drop trigger trig3;<<SQLSTATE;
+drop trigger trig1; 
+drop trigger trig2; 
+drop trigger trig3;
 connect lily_create_trig/123456;
 
 CREATE TRIGGER trig1
@@ -249,8 +246,8 @@ stop trigger trig1;<<SQLSTATE;
 connect root/root;
 grant user lily_start_trig privileges START_TRIGGER on root.sg2.**;
 grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1.**;
-list privileges user lily_start_trig on root.sg2;
-list privileges user lily_stop_trig on root.sg1;
+list privileges user lily_start_trig on root.sg2.**;
+list privileges user lily_stop_trig on root.sg1.**;
 
 connect lily_start_trig/123456;
 start trigger trig3;
@@ -280,18 +277,18 @@ drop role role_trigger;<<NULL;
 drop role role_trigger_status;<<NULL;
 create role role_trigger;
 create role role_trigger_status;
-grant role role_trigger privileges create_trigger on root.sg1.**;
-grant role role_trigger privileges drop_trigger on root.sg1.**;
-list privileges role role_trigger on root.sg1;
-list privileges role role_trigger_status on root.sg1;
+grant role role_trigger privileges create_trigger on root.sg1;
+grant role role_trigger privileges drop_trigger on root.sg1;
+list privileges role role_trigger on root.sg1.**;
+list privileges role role_trigger_status on root.sg1.**;
 set storage group to root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 create user lily_create_trigger '123456';
-list privileges user lily_create_trigger on root.sg1;
-grant  role_trigger to lily_create_trigger.**;
-list privileges user lily_create_trigger on root.sg1;
+list privileges user lily_create_trigger on root.sg1.**;
+grant  role_trigger to lily_create_trigger;
+list privileges user lily_create_trigger on root.sg1.**;
 grant user lily_create_trigger privileges create_trigger on root.sg1.**;
-list privileges user lily_create_trigger on root.sg1;
+list privileges user lily_create_trigger on root.sg1.**;
 
 connect lily_create_trigger/123456;
 CREATE TRIGGER trig1
@@ -311,7 +308,8 @@ select local_trig1,remotetrig1 from root.target.alerting;
 drop trigger trig1;
 show triggers;
 drop role role_trigger;
-list privileges user lily_create_trigger on root.sg1;
+drop role role_trigger_status;
+list privileges user lily_create_trigger on root.sg1.**;
 connect lily_create_trigger/123456;
 CREATE TRIGGER trig1
 AFTER INSERT
@@ -325,5 +323,4 @@ WITH (
 drop trigger trig1;<<SQLSTATE;
 connect root/root;
 delete storage group root.**;
-drop user lily_create_trigger;
-drop role role_trigger_status; 
+drop user lily_create_trigger; 
