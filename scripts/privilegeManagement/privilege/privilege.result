@@ -89,7 +89,7 @@ user02          |
 总数目：3
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
 -- [1]50:LIST USER PRIVILEGES user02
 STRICT{
@@ -102,7 +102,18 @@ role(TEXT)      |privilege(TEXT)      |
 
 Elapsed Time: 0.0.0
 
--- [1]51:LIST ALL ROLE OF USER user02
+-- [1]51:LIST PRIVILEGES USER user02 on root
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root : CREATE_TIMESER|
+                |IES                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]52:LIST ALL ROLE OF USER user02
 STRICT{
 role(TEXT)      |
 ----------------
@@ -112,7 +123,7 @@ manager         |
 
 Elapsed Time: 0.0.1
 
--- [1]52:LIST ALL USER OF ROLE manager
+-- [1]53:LIST ALL USER OF ROLE manager
 STRICT{
 user(TEXT)      |
 ----------------
@@ -123,56 +134,56 @@ user02          |
 }
 
 Elapsed Time: 0.0.0
--- [1]70:CREATE USER user01 'pass1234'
+-- [1]71:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]71:CREATE USER user02 'pass1234'
+-- [1]72:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]73:LIST USER PRIVILEGES user01
+-- [1]74:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]76:GRANT USER user01 PRIVILEGES MODIFY_PASSWORD on root
+STRICT{
+PASS
+}
+-- [1]79:ALTER USER user02 SET PASSWORD 'passwd'
+STRICT{
+PASS
+}
+-- [1]97:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]98:CREATE USER user02 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]100:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]75:GRANT USER user01 PRIVILEGES MODIFY_PASSWORD on root
+-- [1]102:GRANT USER user01 PRIVILEGES DELETE_USER on root
 STRICT{
 PASS
 }
--- [1]78:ALTER USER user02 SET PASSWORD 'passwd'
-STRICT{
-PASS
-}
--- [1]96:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]97:CREATE USER user02 'pass1234'
+-- [1]105:DROP USER user02
 STRICT{
 PASS
 }
 
--- [1]99:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]101:GRANT USER user01 PRIVILEGES DELETE_USER on root
-STRICT{
-PASS
-}
--- [1]104:DROP USER user02
-STRICT{
-PASS
-}
-
--- [1]106:list user
+-- [1]107:list user
 STRICT{
 user(TEXT)      |
 ----------------
@@ -182,180 +193,174 @@ user01          |
 总数目：2
 }
 
-Elapsed Time: 0.0.1
--- [1]122:CREATE USER user01 'pass1234'
+Elapsed Time: 0.0.0
+-- [1]123:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]124:LIST USER PRIVILEGES user01
+-- [1]125:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]126:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]127:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
 PASS
 }
--- [1]128:set storage group to root.ln
+-- [1]129:set storage group to root.ln
 STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
+PASS
 }
 
--- [1]131:show storage group root.ln
+-- [1]132:show storage group root.ln
 STRICT{
 storage group(TEXT)      |
-总数目：0
+-------------------------
+root.ln                  |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]147:CREATE USER user01 'pass1234'
+-- [1]148:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]149:CREATE STORAGE GROUP root.ln
+STRICT{
+PASS
+}
+-- [1]150:CREATE STORAGE GROUP root.sg
 STRICT{
 PASS
 }
 
--- [1]149:LIST USER PRIVILEGES user01
+-- [1]152:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]151:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root
+-- [1]154:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.ln.**
 STRICT{
 PASS
 }
--- [1]153:create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE
+-- [1]155:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.sg.*
 STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
-EXPECT:PASS
+PASS
 }
--- [1]154:create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY)
+-- [1]157:create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE
 STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_ALIGNED_TIMESERIES
-EXPECT:PASS
+PASS
+}
+-- [1]158:create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]159:create timeseries root.sg.d1 with datatype=INT32,encoding=RLE
+STRICT{
+PASS
 }
 
--- [1]157:show timeseries root.ln.**
+-- [1]162:show timeseries root.**
 STRICT{
 timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
-总数目：0
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf02.wt02.temp|null             |root.ln                  |FLOAT               |PLAIN               |SNAPPY                 |null            |null                  |
+erature               |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf02.wt02.stat|null             |root.ln                  |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+us                    |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.wt01.temp|null             |root.ln                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+erature               |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1            |null             |root.sg                  |INT32               |RLE                 |SNAPPY                 |null            |null                  |
+总数目：4
 }
 
-Elapsed Time: 0.0.0
--- [1]173:CREATE USER user01 'pass1234'
+Elapsed Time: 0.0.1
+-- [1]178:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]175:LIST USER PRIVILEGES user01
+-- [1]180:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]181:create storage group root.ln
+STRICT{
+PASS
+}
+-- [1]182:create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE
+STRICT{
+PASS
+}
+-- [1]183:create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY)
+STRICT{
+PASS
+}
+-- [1]186:GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**
+STRICT{
+PASS
+}
+-- [1]188:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.18
+-- [1]189:insert into root.ln.wf02.wt02(time,status,temperature) aligned values(1,true,2.1),(2,false,3.1),(3,true,4.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]192:select * from root.**
+STRICT{
+Time(TIME)      |root.ln.wf02.wt02.temperature(FLOAT)      |root.ln.wf02.wt02.status(BOOLEAN)      |root.ln.wf01.wt01.temperature(FLOAT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------
+1               |2.1                                       |true                                   |1.0                                       |
+-------------------------------------------------------------------------------------------------------------------------------------------
+2               |3.1                                       |false                                  |null                                      |
+-------------------------------------------------------------------------------------------------------------------------------------------
+3               |4.1                                       |true                                   |null                                      |
+总数目：3
+}
+
+Elapsed Time: 0.0.9
+-- [1]208:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]210:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]176:create storage group root.ln
+-- [1]212:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**
 STRICT{
 PASS
 }
--- [1]177:create timeseries root.ln.wf01.wt01.temperatures with datatype=float,encoding=RLE
-STRICT{
-PASS
-}
--- [1]178:create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY)
-STRICT{
-PASS
-}
--- [1]181:GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.ln
-STRICT{
-PASS
-}
--- [1]183:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
-STRICT{
-SQLSTATE : 602: No permissions for this operation INSERT
-EXPECT:PASS
-}
--- [1]184:insert into root.ln.wf02.wt02(time,status,temperature) aligned values(2,true,2.1),(3,false,3.1),(4,true,4.1)
-STRICT{
-SQLSTATE : 602: No permissions for this operation BATCH_INSERT_ROWS
-EXPECT:PASS
-}
-
--- [1]188:select * from root.ln.wf01.wt01
-STRICT{
-Time(TIME)      |root.ln.wf01.wt01.temperatures(FLOAT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.2
--- [1]204:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
-
--- [1]206:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]208:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.ln
-STRICT{
-PASS
-}
--- [1]208:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
+-- [1]212:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.6
--- [1]211:select temperature from root.ln.wf01.wt01
-STRICT{
-SQLSTATE : 602: No permissions for this operation QUERY
-EXPECT:PASS
-}
--- [1]227:set storage group to root.ln
-STRICT{
-PASS
-}
--- [1]229:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
-STRICT{
-PASS
-}
--- [1]229:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
-STRICT{
-0
-}
 
-Elapsed Time: 0.0.5
--- [1]231:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
-
--- [1]233:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]235:GRANT USER user01 PRIVILEGES DELETE_TIMESERIES on root.ln
-STRICT{
-PASS
-}
--- [1]237:delete from root.ln.wf01.wt01.temperature
-STRICT{
-SQLSTATE : 602: No permissions for this operation DELETE
-EXPECT:PASS
-}
-
--- [1]240:select temperature from root.ln.wf01.wt01
+-- [1]215:select temperature from root.ln.wf01.wt01
 STRICT{
 Time(TIME)      |root.ln.wf01.wt01.temperature(FLOAT)      |
 ----------------------------------------------------------
@@ -364,78 +369,120 @@ Time(TIME)      |root.ln.wf01.wt01.temperature(FLOAT)      |
 }
 
 Elapsed Time: 0.0.1
--- [1]243:delete timeseries root.ln.wf01.wt01.temperature
-STRICT{
-SQLSTATE : 602: No permissions for this operation DELETE_TIMESERIES
-EXPECT:PASS
-}
-
--- [1]246:show timeseries root.ln.wf01.wt01.temperature
-STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.ln.wf01.wt01.temp|null             |root.ln                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-erature               |                 |                         |                    |                    |                       |                |                      |
-总数目：1
-}
-
-Elapsed Time: 0.0.1
--- [1]262:set storage group to root.ln
+-- [1]231:set storage group to root.ln
 STRICT{
 PASS
 }
--- [1]264:CREATE USER user01 'pass1234'
+-- [1]233:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]233:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]235:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]266:LIST USER PRIVILEGES user01
+-- [1]237:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
--- [1]268:GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.ln
+Elapsed Time: 0.0.0
+-- [1]239:GRANT USER user01 PRIVILEGES DELETE_TIMESERIES on root.**
 STRICT{
 PASS
 }
--- [1]270:delete storage group root.ln
+-- [1]241:delete from root.ln.wf01.wt01.temperature
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.3
 
--- [1]273:show storage group root.**
+-- [1]244:select temperature from root.ln.wf01.wt01
 STRICT{
-storage group(TEXT)      |
+Time(TIME)      |root.ln.wf01.wt01.temperature(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]247:delete timeseries root.ln.wf01.wt01.temperature
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]250:show timeseries root.ln.wf01.wt01.temperature
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]288:CREATE USER user01 'pass1234'
+-- [1]266:set storage group to root.ln
+STRICT{
+PASS
+}
+-- [1]268:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]290:LIST USER PRIVILEGES user01
+-- [1]270:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]292:GRANT USER user01 PRIVILEGES CREATE_ROLE on root
+-- [1]272:GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**
 STRICT{
 PASS
 }
--- [1]294:create role staff
+-- [1]274:delete storage group root.ln
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]277:show storage group root.**
+STRICT{
+storage group(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]292:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]297:list role
+-- [1]294:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]296:GRANT USER user01 PRIVILEGES CREATE_ROLE on root
+STRICT{
+PASS
+}
+-- [1]298:create role staff
+STRICT{
+PASS
+}
+
+-- [1]301:list role
 STRICT{
 role(TEXT)      |
 ----------------
@@ -444,44 +491,44 @@ staff           |
 }
 
 Elapsed Time: 0.0.1
--- [1]318:CREATE USER user01 'pass1234'
+-- [1]322:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]319:CREATE USER user02 'pass1234'
+-- [1]323:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
--- [1]320:CREATE ROLE manager
+-- [1]324:CREATE ROLE manager
 STRICT{
 PASS
 }
--- [1]321:CREATE ROLE staff
+-- [1]325:CREATE ROLE staff
 STRICT{
 PASS
 }
--- [1]322:GRANT manager TO user02
+-- [1]326:GRANT manager TO user02
 STRICT{
 PASS
 }
--- [1]323:GRANT staff TO user02
+-- [1]327:GRANT staff TO user02
 STRICT{
 PASS
 }
 
--- [1]325:LIST USER PRIVILEGES user01
+-- [1]329:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]327:GRANT USER user01 PRIVILEGES LIST_ROLE on root
+-- [1]331:GRANT USER user01 PRIVILEGES LIST_ROLE on root
 STRICT{
 PASS
 }
 
--- [1]329:list role
+-- [1]333:list role
 STRICT{
 role(TEXT)      |
 ----------------
@@ -493,7 +540,7 @@ staff           |
 
 Elapsed Time: 0.0.0
 
--- [1]331:LIST ALL ROLE OF USER user02
+-- [1]335:LIST ALL ROLE OF USER user02
 STRICT{
 role(TEXT)      |
 ----------------
@@ -503,9 +550,9 @@ staff           |
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]332:LIST ALL USER OF ROLE manager
+-- [1]336:LIST ALL USER OF ROLE manager
 STRICT{
 user(TEXT)      |
 ----------------
@@ -514,108 +561,108 @@ user02          |
 }
 
 Elapsed Time: 0.0.0
--- [1]352:CREATE USER user01 'pass1234'
+-- [1]356:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]353:CREATE ROLE manager
+-- [1]357:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]355:LIST USER PRIVILEGES user01
+-- [1]359:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]357:GRANT USER user01 PRIVILEGES DELETE_ROLE on root
+-- [1]361:GRANT USER user01 PRIVILEGES DELETE_ROLE on root
 STRICT{
 PASS
 }
--- [1]360:DROP ROLE manager
+-- [1]364:DROP ROLE manager
 STRICT{
 PASS
 }
 
--- [1]362:list role
+-- [1]366:list role
 STRICT{
 role(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]378:create storage group root.sg
+-- [1]384:create storage group root.sg
 STRICT{
 PASS
 }
--- [1]379:create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE
+-- [1]385:create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
--- [1]380:create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE
+-- [1]386:create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
--- [1]381:insert into root.sg.d1(time,s1,s2) values(1,23,32)
+-- [1]387:insert into root.sg.d1(time,s1,s2) values(1,23,32)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.4
--- [1]382:insert into root.sg.d1(time,s1,s2) values(2,31,19)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]383:insert into root.sg.d1(time,s1,s2) values(3,18,21)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]384:insert into root.sg.d1(time,s1,s2) values(4,20,32)
+Elapsed Time: 0.0.12
+-- [1]388:insert into root.sg.d1(time,s1,s2) values(2,31,19)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]385:insert into root.sg.d1(time,s1,s2) values(5,33,17)
+-- [1]389:insert into root.sg.d1(time,s1,s2) values(3,18,21)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]386:insert into root.sg.d1(time,s1,s2) values(6,19,28)
+-- [1]390:insert into root.sg.d1(time,s1,s2) values(4,20,32)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]388:CREATE USER user01 'pass1234'
+-- [1]391:insert into root.sg.d1(time,s1,s2) values(5,33,17)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]392:insert into root.sg.d1(time,s1,s2) values(6,19,28)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]394:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]390:LIST USER PRIVILEGES user01
+-- [1]396:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]392:GRANT USER user01 PRIVILEGES CREATE_FUNCTION on root
+Elapsed Time: 0.0.1
+-- [1]398:GRANT USER user01 PRIVILEGES CREATE_FUNCTION on root
 STRICT{
 PASS
 }
--- [1]393:GRANT USER user01 PRIVILEGES DROP_FUNCTION on root
+-- [1]399:GRANT USER user01 PRIVILEGES DROP_FUNCTION on root
 STRICT{
 PASS
 }
 
--- [1]394:select * from root.sg.d1
+-- [1]400:select * from root.sg.d1
 STRICT{
 Time(TIME)      |root.sg.d1.s1(INT32)      |root.sg.d1.s2(INT32)      |
 --------------------------------------------------------------------
@@ -634,12 +681,12 @@ Time(TIME)      |root.sg.d1.s1(INT32)      |root.sg.d1.s2(INT32)      |
 }
 
 Elapsed Time: 0.0.1
--- [1]398:CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample'
+-- [1]404:CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample'
 STRICT{
 PASS
 }
 
--- [1]401:SELECT example(*) from root.sg.d1
+-- [1]407:SELECT example(*) from root.sg.d1
 STRICT{
 Time(TIME)      |example(root.sg.d1.s1)(INT32)      |example(root.sg.d1.s2)(INT32)      |
 --------------------------------------------------------------------------------------
@@ -658,92 +705,92 @@ Time(TIME)      |example(root.sg.d1.s1)(INT32)      |example(root.sg.d1.s2)(INT3
 }
 
 Elapsed Time: 0.0.2
--- [1]404:DROP FUNCTION example
+-- [1]410:DROP FUNCTION example
 STRICT{
 PASS
 }
--- [1]406:SELECT example(*) from root.sg.d1
+-- [1]412:SELECT example(*) from root.sg.d1
 STRICT{
 SQLSTATE : 602: No permissions for this operation UDTF
 }
--- [1]425:CREATE USER user01 'pass1234'
+-- [1]433:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]426:CREATE USER user02 'pass1234'
+-- [1]434:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]428:LIST USER PRIVILEGES user01
+-- [1]436:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]430:GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE on root
+-- [1]438:GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE on root
 STRICT{
 PASS
 }
--- [1]433:GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]441:GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation GRANT_USER_PRIVILEGE
-EXPECT:PASS
+PASS
 }
--- [1]435:create storage group root.sg
+-- [1]443:create storage group root.sg
 STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
+PASS
 }
 
--- [1]438:show storage group root.sg
+-- [1]446:show storage group root.sg
 STRICT{
 storage group(TEXT)      |
-总数目：0
+-------------------------
+root.sg                  |
+总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]457:CREATE USER user01 'pass1234'
+Elapsed Time: 0.0.0
+-- [1]465:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]458:CREATE USER user02 'pass1234'
+-- [1]466:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]460:LIST USER PRIVILEGES user01
+-- [1]468:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]462:GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE on root
+-- [1]470:GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE on root
 STRICT{
 PASS
 }
--- [1]465:GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]473:GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation GRANT_USER_PRIVILEGE
-EXPECT:PASS
+PASS
 }
--- [1]467:create storage group root.sg
+-- [1]475:create storage group root.sg
 STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
+PASS
 }
 
--- [1]470:show storage group root.sg
+-- [1]478:show storage group root.sg
 STRICT{
 storage group(TEXT)      |
-总数目：0
+-------------------------
+root.sg                  |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
 
--- [1]473:LIST USER PRIVILEGES user01
+-- [1]481:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -752,88 +799,91 @@ role(TEXT)      |privilege(TEXT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
--- [1]475:GRANT USER user01 PRIVILEGES REVOKE_USER_PRIVILEGE on root
+Elapsed Time: 0.0.1
+-- [1]483:GRANT USER user01 PRIVILEGES REVOKE_USER_PRIVILEGE on root
 STRICT{
 PASS
 }
--- [1]478:REVOKE USER user02 PRIVILEGES SET_STORAGE_GROUP on root
+-- [1]486:REVOKE USER user02 PRIVILEGES SET_STORAGE_GROUP on root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation REVOKE_USER_PRIVILEGE
-EXPECT:PASS
+PASS
 }
--- [1]480:set storage group to root.sg1
+-- [1]488:set storage group to root.sg1
 STRICT{
 SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
 }
--- [1]500:CREATE USER user01 'pass1234'
+-- [1]508:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]501:CREATE ROLE manager
+-- [1]509:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]503:LIST USER PRIVILEGES user01
+-- [1]511:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]513:GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE on root
+STRICT{
+PASS
+}
+-- [1]516:GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root.**
+STRICT{
+PASS
+}
+
+-- [1]519:LIST ROLE PRIVILEGES manager
+STRICT{
+privilege(TEXT)      |
+---------------------
+root.** : READ_TIMESE|
+RIES                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]535:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]536:CREATE ROLE manager
+STRICT{
+PASS
+}
+
+-- [1]538:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]505:GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE on root
+-- [1]540:GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE on root
 STRICT{
 PASS
 }
--- [1]508:GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root
+-- [1]543:GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation GRANT_ROLE_PRIVILEGE
-EXPECT:PASS
+PASS
 }
 
--- [1]511:LIST ROLE PRIVILEGES manager
+-- [1]546:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
-总数目：0
+---------------------
+root.** : READ_TIMESE|
+RIES                 |
+总数目：1
 }
 
-Elapsed Time: 0.0.0
--- [1]527:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]528:CREATE ROLE manager
-STRICT{
-PASS
-}
+Elapsed Time: 0.0.1
 
--- [1]530:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]532:GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE on root
-STRICT{
-PASS
-}
--- [1]535:GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root
-STRICT{
-SQLSTATE : 602: No permissions for this operation GRANT_ROLE_PRIVILEGE
-EXPECT:PASS
-}
-
--- [1]538:LIST ROLE PRIVILEGES manager
-STRICT{
-privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]540:LIST USER PRIVILEGES user01
+-- [1]548:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
@@ -843,424 +893,508 @@ role(TEXT)      |privilege(TEXT)      |
 }
 
 Elapsed Time: 0.0.1
--- [1]542:GRANT USER user01 PRIVILEGES REVOKE_ROLE_PRIVILEGE on root
+-- [1]550:GRANT USER user01 PRIVILEGES REVOKE_ROLE_PRIVILEGE on root
 STRICT{
 PASS
 }
--- [1]545:REVOKE ROLE manager PRIVILEGES READ_TIMESERIES ON root
+-- [1]553:REVOKE ROLE manager PRIVILEGES READ_TIMESERIES ON root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation REVOKE_ROLE_PRIVILEGE
-EXPECT:PASS
+PASS
 }
 
--- [1]548:LIST ROLE PRIVILEGES manager
+-- [1]556:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]568:CREATE USER user01 'pass1234'
+-- [1]576:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]569:CREATE USER user02 'pass1234'
+-- [1]577:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
--- [1]570:CREATE ROLE manager
+-- [1]578:CREATE ROLE manager
 STRICT{
 PASS
 }
--- [1]571:CREATE ROLE staff
+-- [1]579:CREATE ROLE staff
 STRICT{
 PASS
 }
 
--- [1]573:LIST USER PRIVILEGES user01
+-- [1]581:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]583:GRANT USER user01 PRIVILEGES GRANT_USER_ROLE on root
+STRICT{
+PASS
+}
+-- [1]614:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]615:CREATE USER user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]616:CREATE ROLE manager
+STRICT{
+PASS
+}
+-- [1]617:CREATE ROLE staff
+STRICT{
+PASS
+}
+
+-- [1]619:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]575:GRANT USER user01 PRIVILEGES GRANT_USER_ROLE on root
+-- [1]621:GRANT USER user01 PRIVILEGES GRANT_USER_ROLE on root
 STRICT{
 PASS
 }
--- [1]606:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]607:CREATE USER user02 'pass1234'
-STRICT{
-PASS
-}
--- [1]608:CREATE ROLE manager
-STRICT{
-PASS
-}
--- [1]609:CREATE ROLE staff
+-- [1]655:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]611:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]613:GRANT USER user01 PRIVILEGES GRANT_USER_ROLE on root
-STRICT{
-PASS
-}
--- [1]647:CREATE ROLE manager
-STRICT{
-PASS
-}
-
--- [1]649:LIST ROLE PRIVILEGES manager
+-- [1]657:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]651:GRANT ROLE manager PRIVILEGES CREATE_USER ON root
+Elapsed Time: 0.0.1
+-- [1]659:GRANT ROLE manager PRIVILEGES CREATE_USER ON root
 STRICT{
 PASS
 }
--- [1]652:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]660:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
 PASS
 }
--- [1]653:GRANT ROLE manager PRIVILEGES CREATE_ROLE ON root
+-- [1]661:GRANT ROLE manager PRIVILEGES CREATE_ROLE ON root
 STRICT{
 PASS
 }
 
--- [1]656:LIST PRIVILEGES ROLE manager ON root
+-- [1]664:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 ---------------------
-root : SET_STORAGE_GR|
-OUP                  |
+root.** : SET_STORAGE|
+_GROUP CREATE_USER C|
+REATE_ROLE           |
 总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]670:CREATE USER user01 'pass1234'
+-- [1]680:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]671:CREATE ROLE manager
+-- [1]681:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]673:LIST ROLE PRIVILEGES manager
+-- [1]683:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]675:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
+Elapsed Time: 0.0.1
+-- [1]685:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
 PASS
 }
 
--- [1]677:LIST ALL ROLE OF USER user01
+-- [1]687:LIST ALL ROLE OF USER user01
 STRICT{
 role(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]679:GRANT manager TO user01
+-- [1]689:GRANT manager TO user01
 STRICT{
 PASS
 }
--- [1]681:create storage group root.db
+
+-- [1]691:LIST USER PRIVILEGES user01
 STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+manager         |root.** : SET_STORAGE|
+                |_GROUP               |
+总数目：1
 }
 
--- [1]684:show storage group root.db
+Elapsed Time: 0.0.0
+-- [1]693:create storage group root.db
+STRICT{
+PASS
+}
+
+-- [1]696:show storage group root.db
 STRICT{
 storage group(TEXT)      |
-总数目：0
+-------------------------
+root.db                  |
+总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]703:CREATE USER user01 'pass1234'
+Elapsed Time: 0.0.0
+-- [1]717:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]704:CREATE ROLE manager
+-- [1]718:CREATE ROLE manager
 STRICT{
 PASS
 }
--- [1]705:SET STORAGE GROUP TO root.ln
+-- [1]719:SET STORAGE GROUP TO root.ln
 STRICT{
 PASS
 }
 
--- [1]707:LIST USER PRIVILEGES user01
+-- [1]721:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]708:LIST ROLE PRIVILEGES manager
+-- [1]722:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]710:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root
+Elapsed Time: 0.0.1
+-- [1]724:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.**
 STRICT{
 PASS
 }
--- [1]711:GRANT manager TO user01
+-- [1]725:GRANT manager TO user01
 STRICT{
 PASS
 }
 
--- [1]713:LIST USER PRIVILEGES user01
+-- [1]727:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 -------------------------------------
-                |root : CREATE_TIMESER|
-                |IES                  |
+                |root.** : CREATE_TIME|
+                |SERIES               |
 总数目：1
 }
 
 Elapsed Time: 0.0.0
 
--- [1]715:LIST ROLE PRIVILEGES manager
+-- [1]729:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]718:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+-- [1]732:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
 STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
-EXPECT:PASS
+PASS
 }
 
--- [1]720:show timeseries root.ln.wf01.wt01.temperature
+-- [1]734:show timeseries root.ln.wf01.wt01.temperature
 STRICT{
 timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
-总数目：0
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.wt01.temp|null             |root.ln                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+erature               |                 |                         |                    |                    |                       |                |                      |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]723:REVOKE USER user01 PRIVILEGES CREATE_TIMESERIES on root
+-- [1]737:REVOKE USER user01 PRIVILEGES CREATE_TIMESERIES on root.**
 STRICT{
 PASS
 }
 
--- [1]725:LIST USER PRIVILEGES user01
+-- [1]739:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]728:CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
+-- [1]742:CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
 STRICT{
 SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
 }
--- [1]749:CREATE USER user01 'pass1234'
+-- [1]763:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]750:CREATE ROLE manager
+-- [1]764:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]752:LIST USER PRIVILEGES user01
+-- [1]766:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]753:LIST ROLE PRIVILEGES manager
+-- [1]767:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]755:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
-STRICT{
-PASS
-}
--- [1]756:GRANT manager TO user01
-STRICT{
-PASS
-}
--- [1]758:set storage group to root.ln
-STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
-}
-
--- [1]761:show storage group root.ln
-STRICT{
-storage group(TEXT)      |
-总数目：0
-}
-
 Elapsed Time: 0.0.1
--- [1]764:REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]769:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
+STRICT{
+PASS
+}
+-- [1]770:GRANT manager TO user01
 STRICT{
 PASS
 }
 
--- [1]766:LIST ROLE PRIVILEGES manager
+-- [1]772:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]768:set storage group to root.sg
-STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-}
--- [1]790:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]791:CREATE ROLE manager
-STRICT{
-PASS
-}
-
--- [1]793:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
-
--- [1]794:LIST ROLE PRIVILEGES manager
-STRICT{
-privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]796:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root
-STRICT{
-PASS
-}
--- [1]797:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
-STRICT{
-PASS
-}
--- [1]798:GRANT manager TO user01
-STRICT{
-PASS
-}
--- [1]800:set storage group to root.ln
-STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
-}
-
--- [1]803:show storage group root.ln
-STRICT{
-storage group(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
--- [1]806:REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
-STRICT{
-PASS
-}
-
--- [1]808:LIST ROLE PRIVILEGES manager
-STRICT{
-privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]810:LIST USER PRIVILEGES user01
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
--------------------------------------
-                |root : SET_STORAGE_GR|
-                |OUP                  |
+---------------------
+root.** : SET_STORAGE|
+_GROUP               |
 总数目：1
 }
 
 Elapsed Time: 0.0.1
--- [1]812:set storage group to root.sg
-STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
-}
 
--- [1]815:show storage group root.sg
+-- [1]774:LIST USER PRIVILEGES user01
 STRICT{
-storage group(TEXT)      |
-总数目：0
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+manager         |root.** : SET_STORAGE|
+                |_GROUP               |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]834:CREATE USER user01 'pass1234'
+-- [1]776:set storage group to root.ln
 STRICT{
 PASS
 }
 
--- [1]836:LIST USER PRIVILEGES user01
+-- [1]779:show storage group root.ln
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.ln                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]782:REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
+STRICT{
+PASS
+}
+
+-- [1]784:LIST ROLE PRIVILEGES manager
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]786:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]788:set storage group to root.sg
+STRICT{
+SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
+}
+-- [1]810:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]811:CREATE ROLE manager
+STRICT{
+PASS
+}
+
+-- [1]813:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]814:LIST ROLE PRIVILEGES manager
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]816:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root.**
+STRICT{
+PASS
+}
+-- [1]817:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
+STRICT{
+PASS
+}
+-- [1]818:GRANT manager TO user01
+STRICT{
+PASS
+}
+
+-- [1]820:LIST ROLE PRIVILEGES manager
+STRICT{
+privilege(TEXT)      |
+---------------------
+root.** : SET_STORAGE|
+_GROUP               |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]822:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.** : SET_STORAGE|
+                |_GROUP               |
+-------------------------------------
+manager         |root.** : SET_STORAGE|
+                |_GROUP               |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]824:set storage group to root.ln
+STRICT{
+PASS
+}
+
+-- [1]827:show storage group root.ln
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.ln                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]830:REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
+STRICT{
+PASS
+}
+
+-- [1]832:LIST ROLE PRIVILEGES manager
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]834:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.** : SET_STORAGE|
+                |_GROUP               |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]836:set storage group to root.sg
+STRICT{
+PASS
+}
+
+-- [1]839:show storage group root.sg
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.sg                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]858:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]860:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]838:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root
+-- [1]862:GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root.**
 STRICT{
 PASS
 }
--- [1]840:set storage group to root.ln
-STRICT{
-SQLSTATE : 602: No permissions for this operation SET_STORAGE_GROUP
-EXPECT:PASS
-}
 
--- [1]843:show storage group root.ln
+-- [1]864:LIST USER PRIVILEGES user01
 STRICT{
-storage group(TEXT)      |
-总数目：0
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.** : SET_STORAGE|
+                |_GROUP               |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]846:DROP USER user01
+-- [1]866:set storage group to root.ln
 STRICT{
 PASS
 }
 
--- [1]846:list user
+-- [1]869:show storage group root.ln
+STRICT{
+storage group(TEXT)      |
+-------------------------
+root.ln                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]872:DROP USER user01
+STRICT{
+PASS
+}
+
+-- [1]873:LIST user
 STRICT{
 user(TEXT)      |
 ----------------
@@ -1269,207 +1403,228 @@ root            |
 }
 
 Elapsed Time: 0.0.0
--- [1]848:CREATE USER user01 'pass1234'
+-- [1]874:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
 
--- [1]850:LIST USER PRIVILEGES user01
+-- [1]876:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.0
--- [1]864:CREATE ROLE manager
+Elapsed Time: 0.0.1
+-- [1]892:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]866:LIST ROLE PRIVILEGES manager
+-- [1]894:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]868:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root
+-- [1]896:GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**
 STRICT{
 PASS
 }
 
--- [1]870:LIST ROLE PRIVILEGES manager
+-- [1]898:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 ---------------------
-root : SET_STORAGE_GR|
-OUP                  |
+root.** : SET_STORAGE|
+_GROUP               |
 总数目：1
 }
 
 Elapsed Time: 0.0.1
--- [1]872:DROP ROLE manager
+-- [1]900:DROP ROLE manager
 STRICT{
 PASS
 }
 
--- [1]872:list role
+-- [1]900:list role
 STRICT{
 role(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
--- [1]874:CREATE ROLE manager
+Elapsed Time: 0.0.0
+-- [1]902:CREATE ROLE manager
 STRICT{
 PASS
 }
 
--- [1]876:LIST ROLE PRIVILEGES manager
+-- [1]904:LIST ROLE PRIVILEGES manager
 STRICT{
 privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]890:CREATE USER user01 'pass1234'
+-- [1]920:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]890:set storage group to root.ln
+-- [1]920:set storage group to root.ln
 STRICT{
 PASS
 }
--- [1]891:set storage group to root.sg
+-- [1]921:set storage group to root.sg
 STRICT{
 PASS
 }
 
--- [1]894:LIST USER PRIVILEGES user01
+-- [1]924:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]896:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.ln
-STRICT{
-PASS
-}
--- [1]899:CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
-STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
-EXPECT:PASS
-}
-
--- [1]901:show timeseries root.ln.wf01.wt01.status
-STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]904:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
-STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
-}
--- [1]922:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]922:set storage group to root.ln
-STRICT{
-PASS
-}
--- [1]923:set storage group to root.sg
+-- [1]926:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.ln.*.**
 STRICT{
 PASS
 }
 
--- [1]926:LIST USER PRIVILEGES user01
+-- [1]928:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
-总数目：0
+-------------------------------------
+                |root.ln.*.** : CREATE|
+                |_TIMESERIES          |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]928:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.**
-STRICT{
-PASS
-}
 -- [1]931:CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]931:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
-STRICT{
-PASS
-}
 
--- [1]934:show timeseries root.**
+-- [1]933:show timeseries root.ln.wf01.wt01.status
 STRICT{
 timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.wt01.stat|null             |root.ln                  |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
 us                    |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg.d1.s1         |null             |root.sg                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-总数目：2
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]951:CREATE USER user01 'pass1234'
+-- [1]936:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+STRICT{
+SQLSTATE : 602: No permissions for this operation CREATE_TIMESERIES
+}
+-- [1]954:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]951:set storage group to root.ln
+-- [1]954:set storage group to root.ln
 STRICT{
 PASS
 }
--- [1]953:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+-- [1]955:set storage group to root.sg
 STRICT{
 PASS
 }
--- [1]954:CREATE TIMESERIES root.ln.wf02.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
-STRICT{
-PASS
-}
--- [1]955:CREATE TIMESERIES root.ln.wf03.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+-- [1]956:create timeseries root.sg.d1.s1.m1 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
 
--- [1]957:LIST USER PRIVILEGES user01
+-- [1]959:LIST USER PRIVILEGES user01
 STRICT{
 role(TEXT)      |privilege(TEXT)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]959:GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**.wt01.**
+-- [1]961:GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.**
 STRICT{
 PASS
 }
--- [1]961:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
+-- [1]962:GRANT USER user01 PRIVILEGES DELETE_TIMESERIES on root.sg.*.**
 STRICT{
-0
+PASS
 }
-
-Elapsed Time: 0.0.5
--- [1]962:insert into root.ln.wf02.wt01(time,temperature) values(1,2.1)
+-- [1]965:CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
 STRICT{
-0
+PASS
 }
-
-Elapsed Time: 0.0.0
--- [1]963:insert into root.ln.wf03.wt01(time,temperature) values(1,3.1)
+-- [1]966:DELETE TIMESERIES root.sg.d1.s1.m1
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
 
--- [1]966:select * from root.**
+-- [1]968:show timeseries root.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.wt01.stat|null             |root.ln                  |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+us                    |                 |                         |                    |                    |                       |                |                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]985:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]985:set storage group to root.ln
+STRICT{
+PASS
+}
+-- [1]987:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]988:CREATE TIMESERIES root.ln.wf02.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]989:CREATE TIMESERIES root.ln.wf03.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+STRICT{
+PASS
+}
+
+-- [1]991:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]993:GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**.wt01.**
+STRICT{
+PASS
+}
+-- [1]995:insert into root.ln.wf01.wt01(time,temperature) values(1,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]996:insert into root.ln.wf02.wt01(time,temperature) values(1,2.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]997:insert into root.ln.wf03.wt01(time,temperature) values(1,3.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]1000:select * from root.**
 STRICT{
 Time(TIME)      |root.ln.wf03.wt01.temperature(FLOAT)      |root.ln.wf02.wt01.temperature(FLOAT)      |root.ln.wf01.wt01.temperature(FLOAT)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -1477,4 +1632,44 @@ Time(TIME)      |root.ln.wf03.wt01.temperature(FLOAT)      |root.ln.wf02.wt01.te
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
+-- [1]1017:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]1017:set storage group to root.ln
+STRICT{
+PASS
+}
+-- [1]1019:CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE
+STRICT{
+PASS
+}
+
+-- [1]1021:LIST USER PRIVILEGES user01
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]1023:GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.ln.wf01.wt01.temperature
+STRICT{
+PASS
+}
+-- [1]1025:insert into root.ln.wf01.wt01(time,temperature) values(1,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]1028:select * from root.**
+STRICT{
+Time(TIME)      |root.ln.wf01.wt01.temperature(FLOAT)      |
+----------------------------------------------------------
+1               |1.1                                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
