@@ -158,39 +158,39 @@ public class TriggerTest implements Trigger {
   }
 
   @Override
-  public Double fire(long timestamp, Double value) {
+  public Double fire(long timestamp, Double value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
   
   @Override
-  public Integer fire(long timestamp, Integer  value) {
+  public Integer fire(long timestamp, Integer  value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
 
   @Override
-  public Long fire(long timestamp, Long  value) {
+  public Long fire(long timestamp, Long  value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
   @Override
-  public Float fire(long timestamp, Float  value) {
+  public Float fire(long timestamp, Float  value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
   @Override
-  public Boolean fire(long timestamp, Boolean  value) {
+  public Boolean fire(long timestamp, Boolean  value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
   @Override
-  public Binary fire(long timestamp, Binary  value) {
+  public Binary fire(long timestamp, Binary  value,PartialPath partialPath) {
     windowEvaluationHandler.collect(timestamp, value);
     return value;
   }
   @Override
-  public double[] fire(long[] timestamps, double[] values) {
+  public double[] fire(long[] timestamps, double[] values,PartialPath partialPath) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -198,16 +198,7 @@ public class TriggerTest implements Trigger {
   }
 
   @Override
-  public int[] fire(long[] timestamps, int[] values) {
-    for (int i = 0; i < timestamps.length; ++i) {
-      windowEvaluationHandler.collect(timestamps[i], values[i]);
-    }
-    return values;
-  }
-
-
-  @Override
-  public long[] fire(long[] timestamps, long[] values) {
+  public int[] fire(long[] timestamps, int[] values,PartialPath partialPath) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -216,7 +207,7 @@ public class TriggerTest implements Trigger {
 
 
   @Override
-  public float[] fire(long[] timestamps, float[] values) {
+  public long[] fire(long[] timestamps, long[] values,PartialPath partialPath) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -225,7 +216,16 @@ public class TriggerTest implements Trigger {
 
 
   @Override
-  public boolean[] fire(long[] timestamps, boolean[] values) {
+  public float[] fire(long[] timestamps, float[] values,PartialPath partialPath) {
+    for (int i = 0; i < timestamps.length; ++i) {
+      windowEvaluationHandler.collect(timestamps[i], values[i]);
+    }
+    return values;
+  }
+
+
+  @Override
+  public boolean[] fire(long[] timestamps, boolean[] values,PartialPath partialPath) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -233,7 +233,7 @@ public class TriggerTest implements Trigger {
   }
 
   @Override
-  public Binary[] fire(long[] timestamps, Binary[] values) {
+  public Binary[] fire(long[] timestamps, Binary[] values,PartialPath partialPath) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
