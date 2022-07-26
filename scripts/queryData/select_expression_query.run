@@ -163,7 +163,8 @@ insert into root.sg.d2(time,s1) values(1,12);
 insert into root.sg.d2(time,s1) values(2,32);
 insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742);
 insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595);
-
+--查询全部数据
+select ** from root;
 --同一路径下的时间序列，算术查询(+和-)
 select s1, s2 , s1 + s2 from root.sg.d1;
 
@@ -235,9 +236,16 @@ delete storage group root.**;
 create storage group root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
-insert into root.sg.d1(time,s1,s2) values(1,20.12,50.32);
-insert into root.sg.d1(time,s1,s2) values(20,21.44,65.33);
-select s1 as temperature, s2 as speed from root.sg.d1; 
+create timeseries root.sg.d1.s3(ID) with datatype=INT32,encoding=RLE tags(tag1=V1) attributes(attr1=001);
+--查询存储组和时间序列
+show storage group root.sg;
+show timeseries root.sg.**;
+--插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,20.12,50.32,1);
+insert into root.sg.d1(time,s1,s2,s3) values(20,21.44,65.33,2);
+--别名查询
+select ID, s1, s2 from root.sg.d1;
+select ID, s1 as temperature, s2 as speed from root.sg.d1; 
 --清理环境
 connect root/root;
 delete storage group root.**;

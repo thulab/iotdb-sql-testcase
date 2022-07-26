@@ -42,14 +42,14 @@ LIST USER PRIVILEGES user01;
 LIST USER PRIVILEGES user02;
 --进行赋权
 GRANT USER user01 PRIVILEGES LIST_USER on root;
-GRANT USER user02 PRIVILEGES CREATE_TIMESERIES on root;
+GRANT USER user02 PRIVILEGES CREATE_TIMESERIES on root.**;
 --user01登录，执行查看用户
 connect user01/pass1234;
 LIST USER;
+LIST USER PRIVILEGES user01;
 LIST USER PRIVILEGES user02;
-LIST PRIVILEGES USER user02 on root;
+LIST PRIVILEGES USER user02 on root.**;
 LIST ALL ROLE OF USER user02;
-LIST ALL USER OF ROLE manager;
 --清理环境
 connect root/root;
 DROP USER user01;
@@ -102,7 +102,7 @@ GRANT USER user01 PRIVILEGES DELETE_USER on root;
 --user01登录，执行删除user02
 connect user01/pass1234;
 DROP USER user02;
---查看用户列表中是否减少
+--查看用户列表中是否减少user02
 connect root/root;
 list user;
 --清理环境
@@ -137,7 +137,32 @@ DELETE STORAGE GROUP root.**;
 <<NULL;
 
 
-//6.赋予创建时间序列权限
+//6.赋予删除存储组权限
+--测试操作
+connect root/root;
+DROP USER user01;
+<<NULL;
+DELETE storage group root.**;
+<<NULL;
+set storage group to root.ln;
+CREATE USER user01 'pass1234';
+--检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST USER PRIVILEGES user01;
+--进行授权
+GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**;
+--user01登录，执行删除存储组
+connect user01/pass1234;
+delete storage group root.ln;
+--清理环境
+connect root/root;
+show storage group root.**;
+DROP USER user01;
+<<NULL;
+DELETE storage group root.**;
+<<NULL;
+
+
+//7.赋予创建时间序列权限
 --测试操作
 connect root/root;
 DROP USER user01;
@@ -167,7 +192,7 @@ DELETE STORAGE GROUP root.**;
 <<NULL;
 
 
-//7.赋予插入数据权限
+//8.赋予插入数据权限
 --测试操作
 connect root/root;
 DROP USER user01;
@@ -197,7 +222,7 @@ DELETE STORAGE GROUP root.**;
 <<NULL;
 
 
-//8.赋予查询数据权限
+//9.赋予查询数据权限
 --测试操作
 connect root/root;
 DROP USER user01;
@@ -221,7 +246,7 @@ DELETE storage group root.**;
 <<NULL;
 
 
-//9.赋予删除数据或时间序列权限
+//10.赋予删除数据或时间序列权限
 --测试操作
 connect root/root;
 DROP USER user01;
@@ -333,6 +358,7 @@ connect user01/pass1234;
 list role;
 LIST ALL ROLE OF USER user02;
 LIST ALL USER OF ROLE manager;
+LIST ALL USER OF ROLE staff;
 --清理环境
 connect root/root;
 DROP USER user01;
@@ -578,6 +604,7 @@ CREATE ROLE manager;
 CREATE ROLE staff;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST USER PRIVILEGES user01;
+LIST USER PRIVILEGES user02;
 --进行赋权
 GRANT USER user01 PRIVILEGES GRANT_USER_ROLE on root;
 --user01登录，执行赋予user02角色权限
