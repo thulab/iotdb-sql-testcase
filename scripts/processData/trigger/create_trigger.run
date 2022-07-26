@@ -78,6 +78,7 @@ delete storage group root.**;
 delete storage group root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
+--名称添加反引号
 CREATE TRIGGER `window-avg-alerter`
 AFTER INSERT
 ON root.sg1.d1.s1
@@ -113,8 +114,8 @@ delete storage group root.**;
 -- case 2.4 key-value不加引号
 delete storage group root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
-
-CREATE TRIGGER `window-avg-alerter`
+--TRIGGER名称加引号
+CREATE TRIGGER 'alerter01'
 AFTER INSERT
 ON root.sg1.d1.s1
 AS 'org.apache.iotdb.trigger.TriggerExample'
@@ -123,7 +124,9 @@ WITH (
   'hi' = "10.0"
 );
 <<SQLSTATE;
-CREATE TRIGGER `window-avg-alerter`
+
+--TRIGGER名称不加引号
+CREATE TRIGGER alerter02
 AFTER INSERT
 ON root.sg1.d1.s1
 AS 'org.apache.iotdb.trigger.TriggerExample'
@@ -131,8 +134,11 @@ WITH (
   "lo" = '0',
   'hi' = 10.0
 );
-<<SQLSTATE;
+show triggers;
+drop trigger alerter02;
 -- case 2.5 触发器名称不加反引号 连字符
+show triggers;
+delete storage group root.**;
 CREATE TRIGGER window-avg-alerter
 AFTER INSERT
 ON root.sg1.d1.s1
@@ -144,6 +150,8 @@ WITH (
 <<SQLSTATE;
 
 -- case 2.6 触发器名称不加反引号,包含下划线
+delete storage group root.**;<<NULL;
+CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 CREATE TRIGGER window_avg_alerter
 AFTER INSERT
 ON root.sg1.d1.s1
@@ -152,6 +160,7 @@ WITH (
   "lo" = '0',
   'hi' = "10.0"
 );
+
 show triggers;
 INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0);
 INSERT INTO root.sg1.d1(timestamp, s1) VALUES (2, 2);
