@@ -1,81 +1,103 @@
--- [1]11:CREATE USER user01 'pass1234'
+-- [1]9:
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:0 mismatched input '<EOF>' expecting {ALTER, CLEAR, COUNT, CREATE, DEBUG, DELETE, DROP, FLUSH, FULL, GRANT, INSERT, KILL, LIST, LOAD, MERGE, REMOVE, REVOKE, SELECT, SET, SETTLE, SHOW, START, STOP, DEACTIVATE, TRACING, UNLOAD, UNSET}
+EXPECT:PASS
+}
+-- [1]12:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]12:CREATE USER use 'pass1234'
+-- [1]14:CREATE USER use 'pass1234'
 STRICT{
 SQLSTATE : 411: Username's size must be greater than or equal to 4
 }
--- [1]14:CREATE USER user 02 'pass1234'
+-- [1]17:CREATE USER user 02 'pass1234'
 STRICT{
 SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input 'user' expecting ID
 }
--- [1]17:CREATE USER "%user#@!" 'pass1234'
+-- [1]20:CREATE USER {User0_:@#$} 'pass1234'
 STRICT{
 PASS
 }
--- [1]19:CREATE USER user& 'pass1234'
+-- [1]22:CREATE USER `User001` 'pass1234'
 STRICT{
-SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input 'user' expecting ID
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input '`User001`' expecting ID
 }
--- [1]21:CREATE USER user02 'pas'
+-- [1]25:CREATE USER 'User002' 'pass1234'
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:12 missing ID at ''User002''
+}
+-- [1]27:CREATE USER "User003" 'pass1234'
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:12 missing ID at '"User003"'
+}
+-- [1]30:CREATE USER u&s1 'pass1234'
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:13 mismatched input '&' expecting STRING_LITERAL
+}
+-- [1]33:CREATE USER user02 'pas'
 STRICT{
 SQLSTATE : 411: Password's size must be greater than or equal to 4
 }
--- [1]23:CREATE USER user02 'pass wd'
+-- [1]36:CREATE USER user02 'pass wd'
 STRICT{
 SQLSTATE : 411: Password cannot contain spaces
 }
--- [1]25:CREATE USER user02 'passwd%'
+-- [1]39:CREATE USER u1s1 'P1s@swd#%'
 STRICT{
 PASS
 }
 
--- [1]28:LIST USER
+-- [1]42:LIST USER
 STRICT{
 user(TEXT)      |
 ----------------
-%user#@!        |
-----------------
 root            |
+----------------
+u1s1            |
 ----------------
 user01          |
 ----------------
-user02          |
+{User0_:@#$}    |
 总数目：4
 }
 
 Elapsed Time: 0.0.1
--- [1]44:CREATE USER user01 'pass1234'
+-- [1]51:
+STRICT{
+SQLSTATE : 401: Error occurred while parsing SQL to physical plan: line 1:0 mismatched input '<EOF>' expecting {ALTER, CLEAR, COUNT, CREATE, DEBUG, DELETE, DROP, FLUSH, FULL, GRANT, INSERT, KILL, LIST, LOAD, MERGE, REMOVE, REVOKE, SELECT, SET, SETTLE, SHOW, START, STOP, DEACTIVATE, TRACING, UNLOAD, UNSET}
+EXPECT:PASS
+}
+-- [1]58:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]45:ALTER USER user01 SET PASSWORD 'passwd'
+-- [1]59:ALTER USER user01 SET PASSWORD 'passwd'
 STRICT{
 PASS
 }
--- [1]61:CREATE USER user01 'pass1234'
+-- [1]75:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]62:CREATE USER user02 'pass1234'
+-- [1]76:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
--- [1]64:DROP USER user01
+-- [1]78:DROP USER user01
 STRICT{
 PASS
 }
--- [1]65:DROP USER user02
+-- [1]79:DROP USER user02
 STRICT{
 PASS
 }
--- [1]67:DROP USER user03
+-- [1]81:DROP USER user03
 STRICT{
 SQLSTATE : 411: User user03 does not exist
 }
 
--- [1]70:LIST USER
+-- [1]84:LIST USER
 STRICT{
 user(TEXT)      |
 ----------------
