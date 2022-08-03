@@ -2,26 +2,40 @@
 connect root/root;
 DROP USER user01;
 <<NULL;
-DROP USER user02;
+DROP USER {User0_:@#$};
 <<NULL;
-DROP USER "%user#@!";
-<<NULL;
---创建用户
+DROP USER u1s1;
+<<NULL;;
+
+--1.1 正常创建用户
 CREATE USER user01 'pass1234';
+--1.2 用户名字符长度少于4位校验
 CREATE USER use 'pass1234';
 <<SQLSTATE;
+--1.3 用户名中含有空格
 CREATE USER user 02 'pass1234';
 <<SQLSTATE;
---特殊字符用[反引号``]引起来使用
-CREATE USER "%user#@!" 'pass1234';
---特殊字符不加[反引号``]，校验不通过
-CREATE USER user& 'pass1234';
+--1.4 支持特殊的字符有【'A'...'Z'；'a'...'z'；'0'...'9'；'_'；':'；'@'；'#'；'$'；'{'；'}'】
+CREATE USER {User0_:@#$} 'pass1234';
+--1.5 不支持反引号【``】
+CREATE USER `User001` 'pass1234';
 <<SQLSTATE;
+--1.6 不支持单双引号【''或""】
+CREATE USER 'User002' 'pass1234';
+<<SQLSTATE;
+CREATE USER "User003" 'pass1234';
+<<SQLSTATE;
+--1.7 不支持的特殊字符校验不通过（例如&）
+CREATE USER u&s1 'pass1234';
+<<SQLSTATE;
+--1.8 用户密码少于4位字符长度校验
 CREATE USER user02 'pas';
 <<SQLSTATE;
+--1.9 用户密码中含有空格校验
 CREATE USER user02 'pass wd';
 <<SQLSTATE;
-CREATE USER user02 'passwd%';
+--1.10 用户名密码特殊字符%正常创建，
+CREATE USER u1s1 'P1s@swd#%';
 
 --查看用户
 LIST USER;
@@ -30,10 +44,10 @@ LIST USER;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DROP USER user02;
+DROP USER {User0_:@#$};
 <<NULL;
-DROP USER "%user#@!";
-<<NULL;
+DROP USER u1s1;
+<<NULL;;
 
 //2.更新已创建的用户密码
 --测试操作
