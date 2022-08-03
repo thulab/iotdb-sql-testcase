@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import org.apache.iotdb.commons.path.PartialPath;
+
 import org.apache.iotdb.db.engine.trigger.api.Trigger;
 import org.apache.iotdb.db.engine.trigger.api.TriggerAttributes;
 import org.apache.iotdb.db.engine.trigger.sink.local.LocalIoTDBConfiguration;
@@ -26,6 +26,7 @@ import org.apache.iotdb.db.engine.trigger.sink.local.LocalIoTDBHandler;
 import org.apache.iotdb.db.engine.trigger.sink.mqtt.MQTTConfiguration;
 import org.apache.iotdb.db.engine.trigger.sink.mqtt.MQTTEvent;
 import org.apache.iotdb.db.engine.trigger.sink.mqtt.MQTTHandler;
+import org.apache.iotdb.db.metadata.path.PartialPath;
 import org.apache.iotdb.db.utils.windowing.configuration.SlidingSizeWindowConfiguration;
 import org.apache.iotdb.db.utils.windowing.handler.SlidingSizeWindowEvaluationHandler;
 import org.apache.iotdb.tsfile.file.metadata.enums.TSDataType;
@@ -158,45 +159,45 @@ public class TriggerBeforeTest implements Trigger {
   }
 
   @Override
-  public Double fire(long timestamp, Double value,PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Double fire(long timestamp, Double value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,double.");
 //    return value;
   }
   
   @Override
-  public Integer fire(long timestamp, Integer  value , PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Integer fire(long timestamp, Integer  value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,integer.");
 //    return value;
   }
 
   @Override
-  public Long fire(long timestamp, Long  value , PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Long fire(long timestamp, Long  value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,Long.");
 //    return value;
   }
   @Override
-  public Float fire(long timestamp, Float  value , PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Float fire(long timestamp, Float  value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,float.");
 //    return value;
   }
   @Override
-  public Boolean fire(long timestamp, Boolean  value , PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Boolean fire(long timestamp, Boolean  value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,boolean.");
 //    return value;
   }
   @Override
-  public Binary fire(long timestamp, Binary  value , PartialPath path) throws Exception {
-    windowEvaluationHandler.collect(timestamp, value );
+  public Binary fire(long timestamp, Binary  value) throws Exception {
+    windowEvaluationHandler.collect(timestamp, value);
     throw new Exception("hello,binary.");
 //    return value;
   }
   @Override
-  public double[] fire(long[] timestamps, double[] values , PartialPath path) {
+  public double[] fire(long[] timestamps, double[] values) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -204,16 +205,7 @@ public class TriggerBeforeTest implements Trigger {
   }
 
   @Override
-  public int[] fire(long[] timestamps, int[] values , PartialPath path) {
-    for (int i = 0; i < timestamps.length; ++i) {
-      windowEvaluationHandler.collect(timestamps[i], values[i]);
-    }
-    return values;
-  }
-
-
-  @Override
-  public long[] fire(long[] timestamps, long[] values , PartialPath path) {
+  public int[] fire(long[] timestamps, int[] values) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -222,7 +214,7 @@ public class TriggerBeforeTest implements Trigger {
 
 
   @Override
-  public float[] fire(long[] timestamps, float[] values , PartialPath path) {
+  public long[] fire(long[] timestamps, long[] values) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -231,7 +223,16 @@ public class TriggerBeforeTest implements Trigger {
 
 
   @Override
-  public boolean[] fire(long[] timestamps, boolean[] values , PartialPath path) {
+  public float[] fire(long[] timestamps, float[] values) {
+    for (int i = 0; i < timestamps.length; ++i) {
+      windowEvaluationHandler.collect(timestamps[i], values[i]);
+    }
+    return values;
+  }
+
+
+  @Override
+  public boolean[] fire(long[] timestamps, boolean[] values) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
@@ -239,7 +240,7 @@ public class TriggerBeforeTest implements Trigger {
   }
 
   @Override
-  public Binary[] fire(long[] timestamps, Binary[] values , PartialPath path) {
+  public Binary[] fire(long[] timestamps, Binary[] values) {
     for (int i = 0; i < timestamps.length; ++i) {
       windowEvaluationHandler.collect(timestamps[i], values[i]);
     }
