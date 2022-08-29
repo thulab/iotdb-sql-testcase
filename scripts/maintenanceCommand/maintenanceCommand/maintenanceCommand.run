@@ -14,6 +14,7 @@ create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encodi
 create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
 set schema template t1 to root.sg1.d2;
 insert into root.sg1.d1(time, s1, s2) aligned values(1, 1, 1);
+-- set system to readonly/running/error 修改系统状态
 SET SYSTEM TO READONLY;
 create storage group root.sg2;
 <<SQLSTATE;
@@ -32,9 +33,10 @@ set schema template t1 to root.sg1.d4;
 unset schema template t1 from root.sg1.d2;
 <<SQLSTATE;
 select * from root.sg1.d1;
-SET SYSTEM TO WRITABLE;
+SET SYSTEM TO RUNNING;
 insert into root.sg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
 select * from root.sg1.d1;
+
 
 --清理环境
 unset schema template t1 from root.sg1.d2;
