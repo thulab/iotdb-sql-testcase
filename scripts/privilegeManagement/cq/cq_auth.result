@@ -6,12 +6,16 @@ PASS
 STRICT{
 PASS
 }
--- [1]36:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+-- [1]33:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root
 STRICT{
-SQLSTATE : 602: No permissions for this operation CREATE_CONTINUOUS_QUERY
+PASS
+}
+-- [1]38:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+STRICT{
+SQLSTATE : 602: No permissions for this operation, please add privilege CREATE_CONTINUOUS_QUERY
 }
 
--- [1]38:SHOW CONTINUOUS QUERIES
+-- [1]40:SHOW CONTINUOUS QUERIES
 STRICT{
 cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -23,29 +27,33 @@ cq1                |20000                      |20000                    |164217
 总数目：1
 }
 
-Elapsed Time: 0.0.2
--- [1]39:DROP CONTINUOUS QUERY cq1
+Elapsed Time: 0.0.1
+-- [1]41:DROP CONTINUOUS QUERY cq1
 STRICT{
-SQLSTATE : 602: No permissions for this operation DROP_CONTINUOUS_QUERY
+SQLSTATE : 602: No permissions for this operation, please add privilege DROP_CONTINUOUS_QUERY
 }
--- [1]66:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]67:GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.**
+-- [1]68:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]68:GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.**
+-- [1]69:GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.ln.**
 STRICT{
 PASS
 }
--- [1]72:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+-- [1]70:GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.ln.**
+STRICT{
+PASS
+}
+-- [1]71:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root
+STRICT{
+PASS
+}
+-- [1]75:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
 STRICT{
 PASS
 }
 
--- [1]73:SHOW CONTINUOUS QUERIES
+-- [1]76:SHOW CONTINUOUS QUERIES
 STRICT{
 cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
 ----------------------------------------------------------------------------------------------------------------------------------------
@@ -58,172 +66,172 @@ cq4                |20000                      |20000                    |164217
 }
 
 Elapsed Time: 0.0.1
--- [1]74:DROP CONTINUOUS QUERY cq4
+-- [1]77:DROP CONTINUOUS QUERY cq4
 STRICT{
 PASS
 }
--- [1]98:CREATE USER user01 'pass1234'
+-- [1]101:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]99:GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.**
+-- [1]102:GRANT USER user01 PRIVILEGES CREATE_CONTINUOUS_QUERY on root.gcc.**
 STRICT{
 PASS
 }
--- [1]100:GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.**
+-- [1]103:GRANT USER user01 PRIVILEGES DROP_CONTINUOUS_QUERY on root.gcc.**
 STRICT{
 PASS
 }
--- [1]101:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.gcc.**
+-- [1]104:GRANT USER user01 PRIVILEGES READ_TIMESERIES on root
 STRICT{
 PASS
 }
--- [1]104:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO root.gcc.d1.temperature_avg FROM root.ln.* GROUP BY time(5s)  END
+-- [1]107:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO root.gcc.d1.temperature_avg FROM root.ln.* GROUP BY time(5s)  END
 STRICT{
 PASS
 }
--- [1]109:create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN
+-- [1]112:create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]110:create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE
+-- [1]113:create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE
 STRICT{
 PASS
 }
--- [1]111:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0)
+-- [1]114:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.7
--- [1]113:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.1)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]115:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.2)
+Elapsed Time: 0.0.8
+-- [1]116:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]117:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.3)
+-- [1]118:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.2)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]119:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.4)
+-- [1]120:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.3)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]121:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.5)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]123:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.6)
+-- [1]122:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.4)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]125:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.7)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]127:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.8)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]129:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.9)
+-- [1]124:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.5)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]131:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.0)
+-- [1]126:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.6)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]133:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1)
+-- [1]128:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.7)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]135:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.2)
+-- [1]130:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.8)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]137:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.3)
+-- [1]132:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]134:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.0)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]136:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]139:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.4)
+-- [1]138:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.2)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]141:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.5)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]143:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.6)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]145:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.7)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]147:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.8)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]149:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.9)
+-- [1]140:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.3)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]151:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.0)
+-- [1]142:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.4)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]153:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1)
+-- [1]144:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.5)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]146:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.6)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
+-- [1]148:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.7)
+STRICT{
+0
+}
 
--- [1]156:select count(temperature_avg) from root.gcc.d1
+Elapsed Time: 0.0.1
+-- [1]150:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.8)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]152:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]154:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.0)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]156:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]159:select count(temperature_avg) from root.gcc.d1
 STRICT{
 count(root.gcc.d1.temperature_avg)(INT64)      |
 -----------------------------------------------
@@ -231,4 +239,4 @@ count(root.gcc.d1.temperature_avg)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
