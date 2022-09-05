@@ -21,7 +21,7 @@ package org.apache.iotdb.trigger;
 
 import org.apache.iotdb.commons.path.PartialPath;
 import org.apache.iotdb.db.engine.trigger.api.Trigger;
-import org.apache.iotdb.db.engine.trigger.api.TriggerAttributes;
+import org.apache.iotdb.trigger.api.TriggerAttributes;
 import org.apache.iotdb.db.engine.trigger.sink.alertmanager.AlertManagerConfiguration;
 import org.apache.iotdb.db.engine.trigger.sink.alertmanager.AlertManagerEvent;
 import org.apache.iotdb.db.engine.trigger.sink.alertmanager.AlertManagerHandler;
