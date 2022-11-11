@@ -1,0 +1,869 @@
+-- [1]20:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]22:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]26:CREATE STATELESS TRIGGER `Opti-before-insert-exception` before INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireThrowExceptionOpti'
+STRICT{
+PASS
+}
+
+-- [1]28:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+Opti-before-insert-exce|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+ption                  |                 |                |                 |                       |ThrowExceptionOpti   |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]29:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]30:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]33:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+-- [1]35:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]36:insert into root.sg1.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]38:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+--------------------------------------------
+3               |32.0                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
+-- [1]40:drop trigger `Opti-before-insert-exception`
+STRICT{
+PASS
+}
+-- [1]41:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255
+-- [1]45:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]47:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]51:CREATE STATELESS TRIGGER `Opti-before-insert-false` before INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireReturnFalseOpti'
+STRICT{
+PASS
+}
+
+-- [1]53:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+Opti-before-insert-fals|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+e                      |                 |                |                 |                       |ReturnFalseOpti      |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]54:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]55:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]58:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+-- [1]60:insert into root.sg1.d1 (time, s1) values (2, 23)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]62:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |23.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]64:drop trigger `Opti-before-insert-false`
+STRICT{
+PASS
+}
+-- [1]65:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255
+-- [1]70:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]72:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]81:CREATE STATELESS TRIGGER `opi-beforeInsert-true` before INSERT ON root.sg1.d1.s1 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip' = "172.20.70.44",   'lo' = '10',   'hi' = '15.5' )
+STRICT{
+PASS
+}
+
+-- [1]83:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+opi-beforeInsert-true  |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |org.example.DoubleVal|ALL                |
+                       |                 |                |                 |                       |ueMonitor            |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]84:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.270
+-- [1]85:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.541
+
+-- [1]88:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]90:select * from root.ln.alerting
+STRICT{
+Time(TIME)      |root.ln.alerting.alert_content(TEXT)      |root.ln.alerting.table_name(TEXT)      |
+-------------------------------------------------------------------------------------------------
+1668160800471   |[2] CRITICAL [s1]: 22.0 greater then 15.5 |root.sg1.d1                            |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+-- [1]92:insert into root.sg1.d1 (time, s1) values (3, 25)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]94:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+--------------------------------------------
+3               |25.0                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]96:select * from root.ln.alerting
+STRICT{
+Time(TIME)      |root.ln.alerting.alert_content(TEXT)      |root.ln.alerting.table_name(TEXT)      |
+-------------------------------------------------------------------------------------------------
+1668160800471   |[2] CRITICAL [s1]: 22.0 greater then 15.5 |root.sg1.d1                            |
+-------------------------------------------------------------------------------------------------
+1668160801029   |[3] CRITICAL [s1]: 25.0 greater then 15.5 |root.sg1.d1                            |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+-- [1]98:drop trigger `opi-beforeInsert-true`
+STRICT{
+PASS
+}
+-- [1]99:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.256
+-- [1]104:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]106:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]110:CREATE STATELESS TRIGGER `opti-afterInsert-exception` after INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireThrowExceptionOpti'
+STRICT{
+PASS
+}
+
+-- [1]112:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+opti-afterInsert-except|AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+ion                    |                 |                |                 |                       |ThrowExceptionOpti   |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]113:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]114:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]117:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+-- [1]119:insert into root.sg1.d1 (time, s1) values (2, 22.24)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]120:insert into root.sg1.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]122:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.24                       |
+--------------------------------------------
+3               |32.0                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.10
+-- [1]124:drop trigger `opti-afterInsert-exception`
+STRICT{
+PASS
+}
+-- [1]125:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]132:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]136:CREATE STATELESS TRIGGER `opti-afterInsert-false` after INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireReturnFalseOpti'
+STRICT{
+PASS
+}
+
+-- [1]138:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+opti-afterInsert-false |AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+                       |                 |                |                 |                       |ReturnFalseOpti      |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]140:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]141:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]144:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]146:insert into root.sg1.d1 (time, s1) values (2, 8.8888)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]147:insert into root.sg1.d1 (time, s1) values (4, 18.8888)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]150:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |8.8888                      |
+--------------------------------------------
+4               |18.8888                     |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+-- [1]153:drop trigger `opti-afterInsert-false`
+STRICT{
+PASS
+}
+-- [1]154:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]158:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]160:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]164:CREATE STATELESS TRIGGER `pess-beforeInsert-exception` before INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireThrowExceptionPess'
+STRICT{
+PASS
+}
+
+-- [1]166:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-excep|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+tion                   |                 |                |                 |                       |ThrowExceptionPess   |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]167:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]168:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]171:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]173:insert into root.sg1.d1 (time, s1) values (2, 22.234)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]174:insert into root.sg1.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]176:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]178:drop trigger `pess-beforeInsert-exception`
+STRICT{
+PASS
+}
+-- [1]179:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]182:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]184:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]188:CREATE STATELESS TRIGGER `pess-beforeInsert-false` before INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireReturnFalsePess'
+STRICT{
+PASS
+}
+
+-- [1]190:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-false|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+                       |                 |                |                 |                       |ReturnFalsePess      |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]191:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]192:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]195:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.6
+-- [1]197:insert into root.sg1.d1 (time, s1) values (2, 23)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]198:insert into root.sg1.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 355: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]200:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]202:drop trigger `pess-beforeInsert-false`
+STRICT{
+PASS
+}
+-- [1]203:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]208:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]217:CREATE STATELESS TRIGGER `pess-beforeInsert-true` before INSERT ON root.sg1.d1.s1 AS 'TriggerTest' WITH (   'remote_ip' = "172.20.70.44",   'ts_type' = 'double',   'trig_name' = 'pess-beforeInsert-true' )
+STRICT{
+PASS
+}
+
+-- [1]219:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-true |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.sg1.d1.s1         |TriggerTest          |ALL                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]220:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.264
+-- [1]221:insert into root.sg1.d1 (time, s1) values (2, 422)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.538
+
+-- [1]224:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |422.0                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]226:select * from root.target.alerting
+STRICT{
+Time(TIME)      |root.target.alerting.trig_name(TEXT)      |root.target.alerting.ts_type(TEXT)      |root.target.alerting.value(TEXT)      |root.target.alerting.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160808361   |pess-beforeInsert-true                    |double                                  |[2]422.0                              |root.sg1.d1.s1                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+-- [1]228:insert into root.sg1.d1 (time, s1) values (2, 8.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]229:insert into root.sg1.d1 (time, s1) values (4, 618.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]232:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |8.8888                      |
+--------------------------------------------
+4               |618.8888                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]234:select * from root.target.alerting
+STRICT{
+Time(TIME)      |root.target.alerting.trig_name(TEXT)      |root.target.alerting.ts_type(TEXT)      |root.target.alerting.value(TEXT)      |root.target.alerting.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160808361   |pess-beforeInsert-true                    |double                                  |[2]422.0                              |root.sg1.d1.s1                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160808913   |pess-beforeInsert-true                    |double                                  |[4]618.8888                           |root.sg1.d1.s1                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]236:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255
+-- [1]237:drop trigger `pess-beforeInsert-true`
+STRICT{
+PASS
+}
+-- [1]242:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]244:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]248:CREATE STATELESS TRIGGER `pess-afterInsert-exception` after INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireThrowExceptionPess'
+STRICT{
+PASS
+}
+
+-- [1]250:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-except|AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+ion                    |                 |                |                 |                       |ThrowExceptionPess   |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]251:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]252:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]255:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]257:insert into root.sg1.d1 (time, s1) values (2, 22.33)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]258:insert into root.sg1.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]260:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.33                       |
+--------------------------------------------
+3               |220.0                       |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+-- [1]262:drop trigger `pess-afterInsert-exception`
+STRICT{
+PASS
+}
+-- [1]263:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]267:set storage group to root.sg1
+STRICT{
+PASS
+}
+-- [1]269:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]273:CREATE STATELESS TRIGGER `pess-afterInsert-false` after INSERT ON root.sg1.d1.s1 AS 'com.timecho.test.FireReturnFalsePess'
+STRICT{
+PASS
+}
+
+-- [1]275:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-false |AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg1.d1.s1         |com.timecho.test.Fire|ALL                |
+                       |                 |                |                 |                       |ReturnFalsePess      |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]276:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]277:insert into root.sg1.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]280:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.0                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]282:insert into root.sg1.d1 (time, s1) values (2, 22.33)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]283:insert into root.sg1.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 355: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]285:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |22.33                       |
+--------------------------------------------
+3               |220.0                       |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]287:drop trigger `pess-afterInsert-false`
+STRICT{
+PASS
+}
+-- [1]288:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]294:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]303:CREATE STATELESS TRIGGER `pess-afterInsert-true` after INSERT ON root.sg1.d1.s1 AS 'TriggerTest' WITH (   'remote_ip' = "172.20.70.44",   'ts_type' = 'double',   'trig_name' = 'pess-afterInsert-true' )
+STRICT{
+PASS
+}
+
+-- [1]305:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-true  |AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg1.d1.s1         |TriggerTest          |ALL                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]306:insert into root.sg1.d1 (time, s1) values (1, 5)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.269
+-- [1]307:insert into root.sg1.d1 (time, s1) values (2, 422)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.541
+
+-- [1]310:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |422.0                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]312:select * from root.target.alerting
+STRICT{
+Time(TIME)      |root.target.alerting.trig_name(TEXT)      |root.target.alerting.ts_type(TEXT)      |root.target.alerting.value(TEXT)      |root.target.alerting.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160813151   |pess-afterInsert-true                     |double                                  |[2]422.0                              |root.sg1.d1.s1                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+-- [1]314:insert into root.sg1.d1 (time, s1) values (2, 8.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]315:insert into root.sg1.d1 (time, s1) values (4, 618.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]318:select * from root.sg1.d1
+STRICT{
+Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
+--------------------------------------------
+1               |5.0                         |
+--------------------------------------------
+2               |8.8888                      |
+--------------------------------------------
+4               |618.8888                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]320:select * from root.target.alerting
+STRICT{
+Time(TIME)      |root.target.alerting.trig_name(TEXT)      |root.target.alerting.ts_type(TEXT)      |root.target.alerting.value(TEXT)      |root.target.alerting.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160813151   |pess-afterInsert-true                     |double                                  |[2]422.0                              |root.sg1.d1.s1                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668160813711   |pess-afterInsert-true                     |double                                  |[4]618.8888                           |root.sg1.d1.s1                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+-- [1]322:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.257
+-- [1]323:drop trigger `pess-afterInsert-true`
+STRICT{
+PASS
+}

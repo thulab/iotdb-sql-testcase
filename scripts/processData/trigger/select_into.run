@@ -3,7 +3,14 @@ connect root/root;
 -- 1.1 普通序列into 普通序列
 -- 1.2 普通序列into aligned序列
 delete storage group root.**;<<NULL;
+drop trigger trig1;<<NULL;
+drop trigger trig2;<<NULL;
+drop trigger trig3;<<NULL;
+drop trigger trig4;<<NULL;
+drop trigger trig5;<<NULL;
+drop trigger trig6;<<NULL;
 set storage group to root.sg1;
+
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.sg1.dev0.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN;
 CREATE TIMESERIES root.sg1.dev0.s_3 WITH DATATYPE=float, ENCODING=RLE;
@@ -19,61 +26,61 @@ CREATE TIMESERIES root.sg1.dev1.s_5 WITH DATATYPE=text, ENCODING=DICTIONARY;
 CREATE TIMESERIES root.sg1.dev1.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN;
 
 
-CREATE TRIGGER trig1
+CREATE STATELESS TRIGGER trig1
 AFTER INSERT
 ON root.sg1.dev1.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig1'
 );
 
-CREATE TRIGGER trig2
+CREATE STATELESS TRIGGER trig2
 AFTER INSERT
 ON root.sg1.dev1.s_2
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int64',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig2'
 );
-CREATE TRIGGER trig3
+CREATE STATELESS TRIGGER trig3
 AFTER INSERT
 ON root.sg1.dev1.s_3
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'float',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig3'
 );
 
-CREATE TRIGGER trig4
+CREATE STATELESS TRIGGER trig4
 AFTER INSERT
 ON root.sg1.dev1.s_4
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'double',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig4'
 );
 
-CREATE TRIGGER trig5
+CREATE STATELESS TRIGGER trig5
 AFTER INSERT
 ON root.sg1.dev1.s_5
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'text',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig5'
 );
-CREATE TRIGGER trig6
+CREATE STATELESS TRIGGER trig6
 AFTER INSERT
 ON root.sg1.dev1.s_6
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'boolean',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig6'
 );
 
@@ -82,14 +89,23 @@ insert into root.sg1.dev0(time,s_1,s_2) values(11,1100,1200),(12,1300,1400),(13,
 insert into root.sg1.dev0(time,s_1,s_2) values(111,11100,11200),(112,11300,11400),(113,11500,11600),(114,11700,11800),(115,11900,21000);
 flush;
 show devices;
-select s_1,s_2,s_3,s_4,s_5,s_6 into root.sg1.dev1.s_1,root.sg1.dev1.s_2,root.sg1.dev1.s_3,root.sg1.dev1.s_4,root.sg1.dev1.s_5,root.sg1.dev1.s_6 from root.sg1.dev0;
+
+//-- select into
+select s_1,s_2,s_3,s_4,s_5,s_6 into root.sg1.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.sg1.dev0;
+
 sleep 500;
 show devices;
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0;
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1;
-select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6, remotetrig1,remotetrig2 from root.target.alerting;
+select * from root.target.alerting;
 
 delete storage group root.**;
+drop trigger trig1;
+drop trigger trig2;
+drop trigger trig3;
+drop trigger trig4;
+drop trigger trig5;
+drop trigger trig6;
 
 -- 1.2
 delete storage group root.**;<<NULL;
@@ -103,61 +119,61 @@ CREATE TIMESERIES root.sg1.dev0.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN;
 
 CREATE ALIGNED TIMESERIES root.sg1.dev1(s_1 INT32 encoding=GORILLA compressor=SNAPPY, s_2 INT64 encoding=PLAIN compressor=SNAPPY,s_3 float encoding=RLE compressor=SNAPPY, s_4 double encoding=TS_2DIFF compressor=SNAPPY,s_5 text encoding=DICTIONARY compressor=SNAPPY, s_6 boolean encoding=PLAIN compressor=SNAPPY);
 
-CREATE TRIGGER trig1
+CREATE STATELESS TRIGGER trig1
 AFTER INSERT
 ON root.sg1.dev1.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig1'
 );
 
-CREATE TRIGGER trig2
+CREATE STATELESS TRIGGER trig2
 AFTER INSERT
 ON root.sg1.dev1.s_2
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int64',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig2'
 );
-CREATE TRIGGER trig3
+CREATE STATELESS TRIGGER trig3
 AFTER INSERT
 ON root.sg1.dev1.s_3
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'float',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig3'
 );
 
-CREATE TRIGGER trig4
+CREATE STATELESS TRIGGER trig4
 AFTER INSERT
 ON root.sg1.dev1.s_4
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'double',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig4'
 );
 
-CREATE TRIGGER trig5
+CREATE STATELESS TRIGGER trig5
 AFTER INSERT
 ON root.sg1.dev1.s_5
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'text',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig5'
 );
-CREATE TRIGGER trig6
+CREATE STATELESS TRIGGER trig6
 AFTER INSERT
 ON root.sg1.dev1.s_6
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'boolean',
-  'remote_ip' = '127.0.0.1',
+  'remote_ip' = '172.20.70.44',
   'trig_name'='trig6'
 );
 
@@ -166,11 +182,18 @@ insert into root.sg1.dev0(time,s_1,s_2) values(11,1100,1200),(12,1300,1400),(13,
 insert into root.sg1.dev0(time,s_1,s_2) values(111,11100,11200),(112,11300,11400),(113,11500,11600),(114,11700,11800),(115,11900,21000);
 flush;
 show devices;
-select s_1,s_2,s_3,s_4,s_5,s_6 into aligned root.sg1.dev1.s_1,root.sg1.dev1.s_2,root.sg1.dev1.s_3,root.sg1.dev1.s_4,root.sg1.dev1.s_5,root.sg1.dev1.s_6 from root.sg1.dev0;
+select s_1,s_2,s_3,s_4,s_5,s_6 into aligned root.sg1.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.sg1.dev0;
 sleep 500;
 show devices;
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev0;
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1;
-select local_trig1,local_trig2,local_trig3,local_trig4,local_trig5,local_trig6, remotetrig1,remotetrig2 from root.target.alerting;
+select * from root.target.alerting;
 
 delete storage group root.**;
+drop trigger trig1;
+drop trigger trig2;
+drop trigger trig3;
+drop trigger trig4;
+drop trigger trig5;
+drop trigger trig6;
+
