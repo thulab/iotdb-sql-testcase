@@ -1,0 +1,174 @@
+-- [1]12:CREATE TIMESERIES root.stateless.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]13:CREATE TIMESERIES root.stateless.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]14:CREATE TIMESERIES root.stateless.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]16:CREATE ALIGNED TIMESERIES root.ln.alerting (table_name text, alert_content text)
+STRICT{
+PASS
+}
+-- [1]21:CREATE STATELESS TRIGGER `cap_multi_double` AFTER INSERT ON root.stateless.** AS 'org.example.DoubleValueMonitor'  with ('lo'=700, 'hi'=1000)
+STRICT{
+PASS
+}
+-- [1]23:insert into root.stateless.d1(time, s1, s2, s3) values(1, 100,200,300),(2,400, 600, 765),(3,7400, 600, 765),(4,400, 600, 565),(5,400, 710, 665)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.555
+-- [1]28:CREATE aligned TIMESERIES root.stateful.d1(s1 DOUBLE, s2 float, s3 int32)
+STRICT{
+PASS
+}
+-- [1]30:CREATE STATEful TRIGGER `cap-stateful-beforeInsert` before INSERT ON root.stateful.** AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='cap-stateful-beforeInsert')
+STRICT{
+PASS
+}
+
+-- [1]31:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------
+cap-stateful-beforeInse|BEFORE_INSERT    |STATEFUL        |ACTIVE           |root.stateful.**       |com.abc.trigger.state|5                  |
+rt                     |                 |                |                 |                       |ful.test.StatefulTri|                   |
+                       |                 |                |                 |                       |ggerTest             |                   |
+----------------------------------------------------------------------------------------------------------------------------------------
+cap_multi_double       |AFTER_INSERT     |STATELESS       |ACTIVE           |root.stateless.**      |org.example.DoubleVal|ALL                |
+                       |                 |                |                 |                       |ueMonitor            |                   |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]33:insert into root.stateful.d1(time, s1, s2,s3) aligned values (10, 101,202,83),(20,2222,333,444),(30,333,104,34),(40,30,333,445),(50,99,100,1002),(51,20,3,44)(52,30,33,35)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.25
+
+-- [1]36:show timeseries root.**
+STRICT{
+timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s3  |null             |root.stateless           |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s1  |null             |root.stateless           |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s2  |null             |root.stateless           |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.alerting.alert|null             |root.ln                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+_content              |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.alerting.table|null             |root.ln                  |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+_name                 |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s3   |null             |root.stateful            |INT32               |RLE                 |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s1   |null             |root.stateful            |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s2   |null             |root.stateful            |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+tateful.trig_name     |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+tateful.ts_type       |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+tateful.device        |                 |                         |                    |                    |                       |                |                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
+tateful.value         |                 |                         |                    |                    |                       |                |                      |
+总数目：12
+}
+
+Elapsed Time: 0.0.14
+
+-- [1]39:select * from root.stateless.d1
+STRICT{
+Time(TIME)      |root.stateless.d1.s3(DOUBLE)      |root.stateless.d1.s1(DOUBLE)      |root.stateless.d1.s2(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------------
+1               |300.0                             |100.0                             |200.0                             |
+----------------------------------------------------------------------------------------------------------------------
+2               |765.0                             |400.0                             |600.0                             |
+----------------------------------------------------------------------------------------------------------------------
+3               |765.0                             |7400.0                            |600.0                             |
+----------------------------------------------------------------------------------------------------------------------
+4               |565.0                             |400.0                             |600.0                             |
+----------------------------------------------------------------------------------------------------------------------
+5               |665.0                             |400.0                             |710.0                             |
+总数目：5
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]41:select * from root.ln.alerting
+STRICT{
+Time(TIME)      |root.ln.alerting.alert_content(TEXT)      |root.ln.alerting.table_name(TEXT)      |
+-------------------------------------------------------------------------------------------------
+1668389633946   |[2] WARN [s3]: 765.0 greater then 700.0   |root.stateless.d1                      |
+-------------------------------------------------------------------------------------------------
+1668389634228   |[3] CRITICAL [s1]: 7400.0 greater then 100|root.stateless.d1                      |
+                |0.0                                       |                                       |
+-------------------------------------------------------------------------------------------------
+1668389634232   |[3] WARN [s3]: 765.0 greater then 700.0   |root.stateless.d1                      |
+-------------------------------------------------------------------------------------------------
+1668389634233   |[5] WARN [s2]: 710.0 greater then 700.0   |root.stateless.d1                      |
+总数目：4
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]44:select * from root.stateful.d1
+STRICT{
+Time(TIME)      |root.stateful.d1.s3(INT32)      |root.stateful.d1.s1(DOUBLE)      |root.stateful.d1.s2(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------
+10              |83                              |101.0                            |202.0                           |
+-----------------------------------------------------------------------------------------------------------------
+20              |444                             |2222.0                           |333.0                           |
+-----------------------------------------------------------------------------------------------------------------
+30              |34                              |333.0                            |104.0                           |
+-----------------------------------------------------------------------------------------------------------------
+40              |445                             |30.0                             |333.0                           |
+-----------------------------------------------------------------------------------------------------------------
+50              |1002                            |99.0                             |100.0                           |
+-----------------------------------------------------------------------------------------------------------------
+51              |44                              |20.0                             |3.0                             |
+-----------------------------------------------------------------------------------------------------------------
+52              |35                              |30.0                             |33.0                            |
+总数目：7
+}
+
+Elapsed Time: 0.0.10
+
+-- [1]46:select * from root.target.alerting.stateful
+STRICT{
+Time(TIME)      |root.target.alerting.stateful.trig_name(TEXT)      |root.target.alerting.stateful.ts_type(TEXT)      |root.target.alerting.stateful.value(TEXT)      |root.target.alerting.stateful.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668389635348   |cap-stateful-beforeInsert                          |double                                           |3                                              |root.stateful.d1.s1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+-- [1]53:drop trigger `cap_multi_double`
+STRICT{
+PASS
+}
+-- [1]54:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.259
+-- [1]55:drop trigger `cap-stateful-beforeInsert`
+STRICT{
+PASS
+}

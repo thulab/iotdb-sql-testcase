@@ -1,12 +1,12 @@
 connect root/root;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 
 
 //创建、查看、删除元数据模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -21,7 +21,7 @@ drop schema template t2;
 drop schema template t3;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t2;
 <<NULL;
@@ -31,7 +31,7 @@ drop schema template t1;
 
 //删除使用中的模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -39,7 +39,7 @@ set schema template t1 to root.sg1.d1;
 drop schema template t1;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -47,7 +47,7 @@ drop schema template t1;
 
 //先卸载在删除模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -55,7 +55,7 @@ set schema template t1 to root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
 drop schema template t1;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -63,13 +63,13 @@ drop schema template t1;
 
 //挂载模板 - 一个设备挂载一个模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
 set schema template t1 to root.sg1.d1;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -77,7 +77,7 @@ drop schema template t1;
 
 //挂载模板 - 一个设备挂载两个模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -86,7 +86,7 @@ set schema template t1 to root.sg1.d1;
 set schema template t2 to root.sg1.d1;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -96,7 +96,7 @@ drop schema template t2;
 
 //挂载和使用（插入数据）模板
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -123,7 +123,7 @@ insert into root.sg1.d2.others(time, ver) values(1, 'v1');
 insert into root.sg1.d2.others(time, ver) values(2, 'v2'), (3, 'v1');
 select ** from root.sg1.d2;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t2;
 <<NULL;
@@ -133,7 +133,7 @@ drop schema template t1;
 
 //挂载和使用（插入数据）模板 - 不创建插入合法数值
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -142,7 +142,7 @@ insert into root.sg1.d1(time, temperature, status) values(1, 1, 1);
 insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1);
 select * from root.sg1.d1;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -150,7 +150,7 @@ drop schema template t1;
 
 //挂载和使用（插入数据）模板 - 不创建插入不合法数值
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -160,7 +160,7 @@ insert into root.sg1.d1(time, temperature, status) values(1, 'v1', 'v1');
 insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1);
 select * from root.sg1.d1;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -168,7 +168,7 @@ drop schema template t1;
 
 //卸载元数据模板 - 未使用卸载
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -176,7 +176,7 @@ set schema template t1 to root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
 
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -184,7 +184,7 @@ drop schema template t1;
 
 //卸载元数据模板 - 已经使用卸载
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -193,7 +193,7 @@ create timeseries of schema template on root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -201,7 +201,7 @@ drop schema template t1;
 
 //卸载元数据模板 - 已经使用(插入数据）卸载
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -213,7 +213,7 @@ select * from root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -221,7 +221,7 @@ drop schema template t1;
 
 //卸载元数据模板 - 已经使用(插入数据）清理后卸载 - 没有这个功能
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 --测试操作
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -235,7 +235,7 @@ select ** from root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
 <<SQLSTATE;
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
@@ -243,6 +243,6 @@ drop schema template t1;
 
 
 --清理环境
-delete storage group root.**;
+delete DATABASE root.**;
 <<NULL;
 

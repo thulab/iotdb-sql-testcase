@@ -1,0 +1,46 @@
+-- [1]8:CREATE TIMESERIES root.multi.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]9:CREATE TIMESERIES root.multi.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]10:CREATE TIMESERIES root.multi.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]13:CREATE ALIGNED TIMESERIES root.ln.alerting (time_org INT64, table_name text,  value double)
+STRICT{
+PASS
+}
+-- [1]19:CREATE STATELESS TRIGGER `multi_clients_double` AFTER INSERT ON root.multi.d1.* AS 'org.example.DoubleValueSimpleMonitor'  with ('standard_value'=700)
+STRICT{
+PASS
+}
+
+-- [1]21:select count(*) from root.multi.d1
+STRICT{
+count(root.multi.d1.s3)(INT64)      |count(root.multi.d1.s1)(INT64)      |count(root.multi.d1.s2)(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]23:select count(*) from root.ln.alerting
+STRICT{
+count(root.ln.alerting.time_org)(INT64)      |count(root.ln.alerting.value)(INT64)      |count(root.ln.alerting.table_name)(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]26:drop trigger multi_clients_double
+STRICT{
+PASS
+}
+-- [1]27:delete storage group root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255

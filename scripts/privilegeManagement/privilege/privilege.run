@@ -121,7 +121,7 @@ DROP USER user02;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
@@ -130,14 +130,14 @@ LIST PRIVILEGES USER user01;
 GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP ON root.**;
 --user01登录，执行创建存储组
 connect user01/pass1234;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 --查看存储组是否已创建好
 connect root/root;
-show storage group root.ln;
+SHOW DATABASES root.ln;
 --清理环境
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -146,9 +146,9 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
@@ -156,13 +156,13 @@ LIST PRIVILEGES USER user01;
 GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**;
 --user01登录，执行删除存储组
 connect user01/pass1234;
-delete storage group root.ln;
+delete DATABASE root.ln;
 --清理环境
 connect root/root;
-show storage group root.**;
+SHOW DATABASES root.**;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -171,11 +171,11 @@ DELETE storage group root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
-CREATE STORAGE GROUP root.ln;
-CREATE STORAGE GROUP root.sg;
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sg;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 --进行赋权
@@ -192,7 +192,7 @@ show timeseries root.**;
 --清理环境
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -201,13 +201,13 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 --创建存储组和时间序列
-create storage group root.ln;
+CREATE DATABASE root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE;
 create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY); 
 --进行赋权
@@ -222,7 +222,7 @@ select * from root.**;
 --清理环境
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -231,7 +231,7 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
@@ -246,7 +246,7 @@ select temperature from root.ln.wf01.wt01;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -255,9 +255,9 @@ DELETE storage group root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 insert into root.ln.wf01.wt01(time,temperature) values(1,1);
 CREATE USER user01 'pass1234';
@@ -281,7 +281,7 @@ show timeseries root.ln.wf01.wt01.temperature;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -290,9 +290,9 @@ DELETE storage group root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
@@ -300,13 +300,13 @@ LIST PRIVILEGES USER user01;
 GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**;
 --user01登录，执行删除存储组
 connect user01/pass1234;
-delete storage group root.ln;
+delete DATABASE root.ln;
 --清理环境
 connect root/root;
-show storage group root.**;
+SHOW DATABASES root.**;
 DROP USER user01;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -410,9 +410,9 @@ DROP USER user01;
 <<NULL;
 DROP FUNCTION example;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
-create storage group root.sg;
+CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
 insert into root.sg.d1(time,s1,s2) values(1,23,32);
@@ -447,14 +447,14 @@ DROP USER user01;
 <<NULL;
 DROP FUNCTION example;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
 //16.赋予用户权限
 --测试操作
 connect root/root;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
@@ -471,17 +471,17 @@ connect user01/pass1234;
 GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**;
 --user02登录，执行操作
 connect user02/pass1234;
-create storage group root.sg;
+CREATE DATABASE root.sg;
 --root登录,查看已创建的存储组
 connect root/root;
-show storage group root.sg;
+SHOW DATABASES root.sg;
 --清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -503,10 +503,10 @@ connect user01/pass1234;
 GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**;
 --user02登录，执行操作
 connect user02/pass1234;
-create storage group root.sg;
+CREATE DATABASE root.sg;
 --root登录，查看已创建的存储组
 connect root/root;
-show storage group root.sg;
+SHOW DATABASES root.sg;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 --进行赋权
@@ -516,7 +516,7 @@ connect user01/pass1234;
 REVOKE USER user02 PRIVILEGES SET_STORAGE_GROUP on root.**;
 --user02登录，执行创建存储组
 connect user02/pass1234;
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 <<SQLSTATE;
 --清理环境
 connect root/root;
@@ -524,7 +524,7 @@ DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
-DELETE storage group root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -706,7 +706,7 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
@@ -722,17 +722,17 @@ GRANT manager TO user01;
 LIST PRIVILEGES USER user01;
 --user01登录，执行操作
 connect user01/pass1234;
-create storage group root.db;
+CREATE DATABASE root.db;
 --root登录，查看存储组
 connect root/root;
-show storage group root.db;
+SHOW DATABASES root.db;
 --清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -743,11 +743,11 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
-SET STORAGE GROUP TO root.ln;
+CREATE DATABASE root.ln;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES ROLE manager;
@@ -778,7 +778,7 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -789,7 +789,7 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
@@ -805,10 +805,10 @@ LIST PRIVILEGES ROLE manager;
 LIST PRIVILEGES USER user01;
 --user01用户登录,执行操作权限
 connect user01/pass1234;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 --root登录，查看存储组
 connect root/root;
-show storage group root.ln;
+SHOW DATABASES root.ln;
 --撤销角色权限，验证操作权限
 REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
 --查看角色拥有的权限
@@ -817,7 +817,7 @@ LIST PRIVILEGES ROLE manager;
 LIST PRIVILEGES USER user01;
 --user01用户登录,执行操作权限(user01无任何权限)
 connect user01/pass1234;
-set storage group to root.sg;
+CREATE DATABASE root.sg;
 <<SQLSTATE;
 --清理环境
 connect root/root;
@@ -825,7 +825,7 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -836,7 +836,7 @@ DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
@@ -853,10 +853,10 @@ LIST PRIVILEGES ROLE manager;
 LIST PRIVILEGES USER user01;
 --user01用户登录,执行操作权限
 connect user01/pass1234;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 --root登录，查看存储组
 connect root/root;
-show storage group root.ln;
+SHOW DATABASES root.ln;
 --撤销角色权限，验证操作权限
 REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
 --查看角色拥有的权限
@@ -865,17 +865,17 @@ LIST PRIVILEGES ROLE manager;
 LIST PRIVILEGES USER user01;
 --user01用户登录,执行操作权限(user01有该权限)
 connect user01/pass1234;
-set storage group to root.sg;
+CREATE DATABASE root.sg;
 --root登录，查看存储组
 connect root/root;
-show storage group root.sg;
+SHOW DATABASES root.sg;
 --清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -884,7 +884,7 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
@@ -895,10 +895,10 @@ GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root.**;
 LIST PRIVILEGES USER user01;
 --user01用户登录,执行操作权限
 connect user01/pass1234;
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 --root登录，查看存储组
 connect root/root;
-show storage group root.ln;
+SHOW DATABASES root.ln;
 --删除user01，再次添加回来
 DROP USER user01;
 LIST user;
@@ -909,7 +909,7 @@ LIST PRIVILEGES USER user01;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -918,7 +918,7 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE ROLE manager;
 --检验一下是否PRIVILEGES 已经存在（列出角色权限）
@@ -937,7 +937,7 @@ LIST PRIVILEGES ROLE manager;
 connect root/root;
 DROP ROLE manager;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -946,11 +946,11 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
-set storage group to root.ln;
-set storage group to root.sg;
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sg;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 --进行赋权
@@ -971,7 +971,7 @@ create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -980,11 +980,11 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
-set storage group to root.ln;
-set storage group to root.sg;
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1.m1 with datatype=INT32,encoding=RLE;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
@@ -1002,7 +1002,7 @@ show timeseries root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -1011,10 +1011,10 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 CREATE TIMESERIES root.ln.wf02.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 CREATE TIMESERIES root.ln.wf03.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
@@ -1034,7 +1034,7 @@ select * from root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 
 
@@ -1043,10 +1043,10 @@ DELETE STORAGE GROUP root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;
 CREATE USER user01 'pass1234';
-set storage group to root.ln;
+CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 --检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
@@ -1062,5 +1062,5 @@ select * from root.**;
 connect root/root;
 DROP USER user01;
 <<NULL;
-DELETE STORAGE GROUP root.**;
+DELETE DATABASE root.**;
 <<NULL;

@@ -1,0 +1,57 @@
+connect root/root;
+-- 执行缩容扩容基础脚本,需要手动执行后续操作.
+-- 需要单独执行。
+
+drop trigger `cap_multi_double`;<<NULL;
+delete DATABASE root.**;<<NULL;
+
+//drop function `my_sum`;
+//create function my_sum as "com.timecho.udf.normal.MySum";
+
+CREATE TIMESERIES root.stateless.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+CREATE TIMESERIES root.stateless.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+CREATE TIMESERIES root.stateless.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+
+CREATE ALIGNED TIMESERIES root.ln.alerting (table_name text, alert_content text);
+
+CREATE STATELESS TRIGGER `cap_multi_double`
+AFTER INSERT
+ON root.stateless.**
+AS 'org.example.DoubleValueMonitor' 
+with ('lo'=700, 'hi'=1000);
+
+insert into root.stateless.d1(time, s1, s2, s3) values(1, 100,200,300),(2,400, 600, 765),(3,7400, 600, 765),(4,400, 600, 565),(5,400, 710, 665);
+
+
+drop trigger `cap-stateful-beforeInsert`;<<NULL;
+CREATE aligned TIMESERIES root.stateful.d1(s1 DOUBLE, s2 float, s3 int32);
+
+CREATE STATEful TRIGGER `cap-stateful-beforeInsert` before INSERT ON root.stateful.** AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='cap-stateful-beforeInsert');
+
+show triggers;
+
+insert into root.stateful.d1(time, s1, s2,s3) aligned values (10, 101,202,83),(20,2222,333,444),(30,333,104,34),(40,30,333,445),(50,99,100,1002),(51,20,3,44)(52,30,33,35);
+
+
+show timeseries root.**;
+
+-- 5
+select * from root.stateless.d1;
+-- 4
+select * from root.ln.alerting;
+
+-- 7
+select * from root.stateful.d1;
+-- 1
+select * from root.target.alerting.stateful;
+
+
+//select my_sum(*) into root.stateless.d2 from root.stateless.d1;
+//select my_sum(*) into root.stateful.d2 from root.stateful.d1;
+
+-- 清理:手动测试时注释
+drop trigger `cap_multi_double`;
+delete DATABASE root.**;
+drop trigger `cap-stateful-beforeInsert`;
+
+

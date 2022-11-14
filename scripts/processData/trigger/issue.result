@@ -26,11 +26,11 @@ PASS
 STRICT{
 PASS
 }
--- [1]21:CREATE TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+-- [1]21:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '172.20.70.44',   'trig_name'='trig1' )
 STRICT{
 PASS
 }
--- [1]31:CREATE TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+-- [1]31:CREATE STATELESS TRIGGER trig2 AFTER INSERT ON root.sg1.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '172.20.70.44',   'trig_name'='trig2' )
 STRICT{
 PASS
 }
@@ -39,13 +39,13 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.91
+Elapsed Time: 0.0.279
 -- [1]33:insert into root.sg1.dev1(time,s_1,s_2) values(2,300,400)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]35:select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1
 STRICT{
@@ -57,33 +57,23 @@ Time(TIME)      |root.sg1.dev1.s_1(INT32)      |root.sg1.dev1.s_2(INT64)      |r
 总数目：2
 }
 
-Elapsed Time: 0.0.81
+Elapsed Time: 0.0.14
 
--- [1]36:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
+-- [1]36:select * from root.target.alerting
 STRICT{
-Time(TIME)      |root.target.alerting.local_trig1(INT32)      |root.target.alerting.local_trig2(INT64)      |root.target.alerting.remotetrig1(FLOAT)      |root.target.alerting.remotetrig2(FLOAT)      |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1               |100                                          |200                                          |100.0                                        |200.0                                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-2               |300                                          |400                                          |300.0                                        |400.0                                        |
-总数目：2
+Time(TIME)      |
+总数目：0
 }
 
-Elapsed Time: 0.0.5
--- [1]38:delete timeseries root.sg1.dev1.s_1
+Elapsed Time: 0.0.2
+-- [1]41:insert into root.sg1.dev1(time,s_2) values(100,1600)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.58
--- [1]40:insert into root.sg1.dev1(time,s_2) values(100,1600)
-STRICT{
-0
-}
+Elapsed Time: 0.0.538
 
-Elapsed Time: 0.0.1
-
--- [1]42:select s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1
+-- [1]43:select s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1
 STRICT{
 Time(TIME)      |root.sg1.dev1.s_2(INT64)      |root.sg1.dev1.s_3(FLOAT)      |root.sg1.dev1.s_4(DOUBLE)      |root.sg1.dev1.s_5(TEXT)      |root.sg1.dev1.s_6(BOOLEAN)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,24 +85,28 @@ Time(TIME)      |root.sg1.dev1.s_2(INT64)      |root.sg1.dev1.s_3(FLOAT)      |r
 总数目：3
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.10
 
--- [1]43:select local_trig1,local_trig2,remotetrig1,remotetrig2 from root.target.alerting
+-- [1]44:select * from root.target.alerting
 STRICT{
-Time(TIME)      |root.target.alerting.local_trig1(INT32)      |root.target.alerting.local_trig2(INT64)      |root.target.alerting.remotetrig1(FLOAT)      |root.target.alerting.remotetrig2(FLOAT)      |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1               |100                                          |200                                          |100.0                                        |200.0                                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-2               |300                                          |400                                          |300.0                                        |400.0                                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-100             |null                                         |1600                                         |null                                         |1600.0                                       |
-总数目：3
+Time(TIME)      |root.target.alerting.trig_name(TEXT)      |root.target.alerting.ts_type(TEXT)      |root.target.alerting.value(TEXT)      |root.target.alerting.device(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1668389602670   |trig2                                     |int64                                   |[100]1600                             |root.sg1.dev1.s_2                      |
+总数目：1
 }
 
-Elapsed Time: 0.0.3
--- [1]44:delete storage group root.**
+Elapsed Time: 0.0.8
+-- [1]45:delete storage group root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.76
+Elapsed Time: 0.0.256
+-- [1]47:drop trigger trig1
+STRICT{
+PASS
+}
+-- [1]48:drop trigger trig2
+STRICT{
+PASS
+}
