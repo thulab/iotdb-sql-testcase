@@ -1,15 +1,20 @@
-//最新点查询
---测试操作
+//最新点查询：它返回指定时间序列中时间戳最大的数据点，即一条序列的最新状态
+
+--0. 清理数据
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.ln;
+
+--1. 创建存储组和时间序列
+create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
---查询存储组和时间序列
-SHOW DATABASES root.ln;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
 show timeseries root.ln.**;
---插入数据
+
+--3. 插入数据
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
@@ -30,13 +35,18 @@ insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALS
 insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
---查询最新数据点
+
+--3. 查询最新数据点
+select last * from root.ln.**;
 select last status from root.ln.wf01.wt01;
 
---查询时间戳大于某个时间的最新数据点
+--4. 查询时间戳大于某个时间的最新数据点
 select last status, temperature from root.ln.wf01.wt01 where time >= 1509468600000;
 
---清理环境
+--5. 将结果集根据序列名进行排序
+select last * from root.ln.wf01.wt01 order by timeseries desc;
+
+--6. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
