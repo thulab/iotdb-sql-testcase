@@ -1,65 +1,99 @@
--- [1]14:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
-STRICT{
-PASS
-}
--- [1]15:set schema template t1 to root.sg1.d1
-STRICT{
-PASS
-}
--- [1]16:create timeseries of schema template on root.sg1.d1
+-- [1]26:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
 STRICT{
 PASS
 }
 
--- [1]17:show timeseries root.sg1.**
+-- [1]27:show schema templates
 STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.temperatur|null             |root.sg1                 |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-e                     |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.status    |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
-总数目：2
-}
-
-Elapsed Time: 0.0.0
-
--- [1]18:show devices root.sg1.**
-STRICT{
-devices(TEXT)      |isAligned(TEXT)      |
-----------------------------------------
-root.sg1.d1        |false                |
+TemplateName(TEXT)      |
+------------------------
+t1                      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
-
--- [1]19:show timeseries
+Elapsed Time: 0.0.1
+-- [1]28:create database root.sg1
 STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.temperatur|null             |root.sg1                 |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-e                     |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.status    |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
-总数目：2
+PASS
+}
+-- [1]31:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
 }
 
-Elapsed Time: 0.0.0
--- [1]20:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
+-- [1]32:show paths set schema template t1
 STRICT{
-0
+Paths(TEXT)      |
+-----------------
+root.sg1.d1      |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]35:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+
+-- [1]36:show paths using schema template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg1.d1      |
+总数目：1
 }
 
 Elapsed Time: 0.0.5
--- [1]21:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+
+-- [1]37:show timeseries root.sg1.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1            |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1            |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]38:show devices root.sg1.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg1.d1       |false                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]39:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1            |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1            |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]42:insert into root.sg1.d1(time, temperature, status) values(1, 1, 1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.263
+-- [1]43:insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1)
+STRICT{
+0
+}
 
--- [1]22:select * from root.sg1.d1
+Elapsed Time: 0.0.1
+
+-- [1]44:select * from root.sg1.d1
 STRICT{
 Time(TIME)      |root.sg1.d1.temperature(FLOAT)      |root.sg1.d1.status(BOOLEAN)      |
 -------------------------------------------------------------------------------------
@@ -71,60 +105,79 @@ Time(TIME)      |root.sg1.d1.temperature(FLOAT)      |root.sg1.d1.status(BOOLEAN
 总数目：3
 }
 
-Elapsed Time: 0.0.2
--- [1]23:delete timeseries root.sg1.d1.temperatur
+Elapsed Time: 0.0.6
+-- [1]47:delete timeseries root.sg1.d1.temperature
 STRICT{
-SQLSTATE : 506: Path [root.sg1.d1.temperatur] does not exist; 
+SQLSTATE : 304: Path [root.sg1.d1.temperature] does not exist
 }
--- [1]26:CREATE ALIGNED TIMESERIES root.sg1.d1.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY)
+-- [1]52:CREATE ALIGNED TIMESERIES root.sg1.d1.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY)
 STRICT{
 PASS
 }
--- [1]26:insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(1, 1, 1)
+
+-- [1]52:show timeseries root.sg1.d1.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.GPS.latitu|null             |root.sg1            |FLOAT               |PLAIN               |SNAPPY                 |null            |null                  |
+de                    |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.GPS.longit|null             |root.sg1            |FLOAT               |PLAIN               |SNAPPY                 |null            |null                  |
+ude                   |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1            |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1            |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.3
+-- [1]55:insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(1, 1, 1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
--- [1]27:insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(2, 2, 2), (3, 3, 3)
+Elapsed Time: 0.0.6
+-- [1]56:insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(2, 2, 2), (3, 3, 3)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
 
--- [1]29:select ** from root.sg1.d1
+-- [1]57:select ** from root.sg1.d1
 STRICT{
-Time(TIME)      |root.sg1.d1.GPS.latitude(FLOAT)      |root.sg1.d1.GPS.longitude(FLOAT)      |root.sg1.d1.temperature(FLOAT)      |root.sg1.d1.status(BOOLEAN)      |
+Time(TIME)      |root.sg1.d1.temperature(FLOAT)      |root.sg1.d1.GPS.latitude(FLOAT)      |root.sg1.d1.GPS.longitude(FLOAT)      |root.sg1.d1.status(BOOLEAN)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-1               |1.0                                  |1.0                                   |1.0                                 |true                             |
+1               |1.0                                 |1.0                                  |1.0                                   |true                             |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-2               |2.0                                  |2.0                                   |2.0                                 |false                            |
+2               |2.0                                 |2.0                                  |2.0                                   |false                            |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-3               |3.0                                  |3.0                                   |3.0                                 |true                             |
+3               |3.0                                 |3.0                                  |3.0                                   |true                             |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+-- [1]60:delete timeseries root.sg1.d1.GPS.latitude
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.252
+
+-- [1]61:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.GPS.longit|null             |root.sg1            |FLOAT               |PLAIN               |SNAPPY                 |null            |null                  |
+ude                   |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.temperatur|null             |root.sg1            |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+e                     |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.status    |null             |root.sg1            |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
 总数目：3
 }
 
 Elapsed Time: 0.0.2
--- [1]31:delete timeseries root.sg1.d1.GPS.latitude
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
-
--- [1]32:show timeseries
-STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.GPS.longit|null             |root.sg1                 |FLOAT               |PLAIN               |SNAPPY                 |null            |null                  |
-ude                   |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.temperatur|null             |root.sg1                 |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-e                     |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.status    |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
-总数目：3
-}
-
-Elapsed Time: 0.0.0
