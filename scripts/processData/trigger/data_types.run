@@ -5,8 +5,8 @@ connect root/root;
 
 
 -- 1. 非对齐timeseries 
-delete storage group root.**;<<NULL;
-set storage group to root.sg1;
+delete DATABASE root.**;<<NULL;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.sg1.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN;
 CREATE TIMESERIES root.sg1.dev1.s_3 WITH DATATYPE=float, ENCODING=RLE;
@@ -84,7 +84,7 @@ WITH (
 insert into root.sg1.dev1 (time, s_1,s_2,s_3,s_4,s_5,s_6) values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,120,100.45,200.55,'non trig',false),(7000,320,260,100.45,200.55,'non trig',true),(8000,430,270,100.45,200.55,'',true),(9000,340,280,100.45,200.55,'non trig',true),(10000,650,600,800.45,900.55,'this statement is too long to process',0);
 
 flush;
-show storage group;
+SHOW DATABASES;
 show devices;
 show timeseries;
 -- 13
@@ -111,12 +111,12 @@ drop trigger `datatype_float-s3`;
 drop trigger `datatype_double-s4`;
 drop trigger `datatype_text-s5`;
 drop trigger `datatype_boolean-s6`;
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 SHOW TRIGGERS;
 
 -- 2. aligned timeseries 
-delete storage group root.**;<<NULL;
-set storage group to root.sg1;
+delete DATABASE root.**;<<NULL;
+CREATE DATABASE root.sg1;
 CREATE ALIGNED TIMESERIES root.sg1.dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN);
 
 CREATE STATELESS TRIGGER `aligned_int_s1`
@@ -201,7 +201,7 @@ select s_1,s_2,s_3,s_4,s_5,s_6 from root.sg1.dev1;
 -- 21
 select * from root.target.alerting;
 
-delete storage group root.**;
+delete DATABASE root.**;
 drop trigger `aligned_int_s1`; 
 drop trigger `aligned_long_s2`;
 drop trigger `aligned_float_s3`;

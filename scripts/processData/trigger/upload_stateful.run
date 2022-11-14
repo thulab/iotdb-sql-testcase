@@ -3,9 +3,9 @@ connect root/root;
 -- 2. 有状态trigger,after insert,指定http uri
 
 -- 1. 有状态trigger,before insert, 指定本地jarfile
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 drop trigger `stateful-beforeInsert`;<<NULL;
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATEful TRIGGER `stateful-beforeInsert` before INSERT ON root.sg1.d1.s1 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='stateful-beforeInsert');
@@ -29,16 +29,16 @@ select * from root.sg1.d1;
 select * from root.target.alerting.stateful;
 
 drop trigger `stateful-beforeInsert`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 2. 有状态trigger,after insert
 @COMMAND start-nginx.sh ;
 sleep 1000;
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 drop trigger `stateful-afterInsert`;<<NULL;
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
 
 CREATE STATEful TRIGGER `stateful-afterInsert`
@@ -66,6 +66,6 @@ select * from root.sg1.d1;
 select * from root.target.alerting.stateful;
 
 drop trigger `stateful-afterInsert`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 

@@ -1,7 +1,7 @@
 connect root/root;
 
 -- 9. trigger链，trigger1 触发后插入 alert表，trigger2触发后通知用户
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `double-beforeInsert`
@@ -31,13 +31,13 @@ select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;
 
 -- 10. 同一个timeseries上有多个trigger, 有状态和无状态各一个
-delete storage group root.**;<<NULL;
-set storage group to root.sg1;
+delete DATABASE root.**;<<NULL;
+CREATE DATABASE root.sg1;
 CREATE ALIGNED TIMESERIES root.sg1.dev1 (s_1 DATATYPE=double ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN);
 
 CREATE STATELESS TRIGGER `double-beforeInsert`
@@ -60,6 +60,6 @@ select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;

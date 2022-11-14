@@ -11,7 +11,7 @@ connect root/root;
 -- 9. 最小实现trigger类。同一个trigger类，建立stateful, stateless trigger
 
 
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 -- 1. 单个timeseries, 2个key-value, 单值insert 
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
@@ -39,7 +39,7 @@ WITH (
 -- case 1.2 show triggers
 show triggers;
 -- trigger工作前数据库状态
-show storage group;
+SHOW DATABASES;
 show devices;
 show timeseries;
 
@@ -58,7 +58,7 @@ INSERT INTO root.sg1.d1(timestamp, s1) VALUES (10, null);
 -- 即时查询有时候查不到 sleep一下
 sleep 500;
 -- trigger工作后数据库变化
-show storage group;
+SHOW DATABASES;
 show devices;
 show timeseries;
 -- 期望3个结果
@@ -68,7 +68,7 @@ select * from root.sg1.d1;
 
 -- 清理
 -- case 1.3 删除storage 不会删除trigger
-delete storage group root.**;
+delete DATABASE root.**;
 show triggers;
 drop trigger `normal01`;
 
@@ -102,7 +102,7 @@ select * from root.sg1.d1;
 show timeseries root.**;
 -- 清理
 drop trigger `normal02`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
@@ -134,13 +134,13 @@ select * from root.ln.alerting;
 select * from root.sg1.d1;
 -- 清理
 drop trigger `multi.double`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 4. 通配符：针对多个device, key-value 3个
-delete storage group root.**;<<NULL;
-set storage group to root.sg1;
+delete DATABASE root.**;<<NULL;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `wildcard-multi-device`
@@ -181,7 +181,7 @@ select * from root.sg1.d3;
 
 -- 清理
 drop trigger `wildcard-multi-device`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
@@ -220,12 +220,12 @@ select * from root.sg1.d1;
 select * from root.ln.alerting;
 
 drop trigger `multiTS`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 6. 一个device下多个timeseries但仅有一个double
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=int32, ENCODING=PLAIN;
 CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
 
@@ -262,13 +262,13 @@ select * from root.sg1.d1;
 select * from root.ln.alerting;
 
 drop trigger `wildcard_1_sensor`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 
 -- 7. key-value 单个,key 双引号, 单个timeseries和通配符trigger叠加测试
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `alert01`
@@ -320,12 +320,12 @@ select * from root.sg1.d1;
 -- 清理
 drop trigger `alert01`;
 drop trigger `alert02`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
  
 -- 8. 类型不匹配,text类型注册double类型的trigger
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.text1 WITH DATATYPE=text, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `TypeNotTheSame`
@@ -350,7 +350,7 @@ select * from root.ln.alerting;
 select * from root.sg1.d1;
 
 drop trigger `TypeNotTheSame`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 9. 最小实现trigger类。同一个trigger类，建立stateful, stateless trigger

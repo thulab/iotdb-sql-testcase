@@ -17,7 +17,7 @@ connect root/root;
 
 -- 1. 乐观策略
 -- 1.1 before insert, throw connection exception
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `Opti-before-insert-exception`
@@ -38,11 +38,11 @@ insert into root.sg1.d1 (time, s1) values (3, 32);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `Opti-before-insert-exception`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 1.2 before insert, return false
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `Opti-before-insert-false`
@@ -62,12 +62,12 @@ insert into root.sg1.d1 (time, s1) values (2, 23);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `Opti-before-insert-false`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 1.3 before insert, return true
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `opi-beforeInsert-true`
@@ -96,12 +96,12 @@ select * from root.sg1.d1;
 select * from root.ln.alerting;
 
 drop trigger `opi-beforeInsert-true`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 1.4 after insert throw connection exception
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `opti-afterInsert-exception`
@@ -122,12 +122,12 @@ insert into root.sg1.d1 (time, s1) values (3, 32);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `opti-afterInsert-exception`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 
 -- 1.5 after insert, return false
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `opti-afterInsert-false`
@@ -151,11 +151,11 @@ select * from root.sg1.d1;
 
 
 drop trigger `opti-afterInsert-false`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 2.1 悲观策略 before insert, throw exception
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `pess-beforeInsert-exception`
@@ -176,10 +176,10 @@ insert into root.sg1.d1 (time, s1) values (3, 32);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `pess-beforeInsert-exception`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 -- 2.2 before insert, return false
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `pess-beforeInsert-false`
@@ -200,7 +200,7 @@ insert into root.sg1.d1 (time, s1) values (3, 220);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `pess-beforeInsert-false`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 2.3 before insert, return true
@@ -233,13 +233,13 @@ select * from root.sg1.d1;
 -- 2条
 select * from root.target.alerting;
 
-delete storage group root.**;
+delete DATABASE root.**;
 drop trigger `pess-beforeInsert-true`;
 
 
 -- 2.4 悲观策略 after insert, throw exception
 delete storage root.**;<<NULL;
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `pess-afterInsert-exception`
@@ -260,11 +260,11 @@ insert into root.sg1.d1 (time, s1) values (3, 220);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `pess-afterInsert-exception`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 2.5 悲观策略 after insert return false
-set storage group to root.sg1;
+CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `pess-afterInsert-false`
@@ -285,11 +285,11 @@ insert into root.sg1.d1 (time, s1) values (3, 220);<<SQLSTATE;
 select * from root.sg1.d1;
 
 drop trigger `pess-afterInsert-false`;
-delete storage group root.**;
+delete DATABASE root.**;
 
 
 -- 2.6 悲观策略, after insert, return true
-delete storage group root.**;<<NULL;
+delete DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `pess-afterInsert-true`
@@ -319,6 +319,6 @@ select * from root.sg1.d1;
 -- 2条
 select * from root.target.alerting; 
 
-delete storage group root.**;
+delete DATABASE root.**;
 drop trigger `pess-afterInsert-true`;
 
