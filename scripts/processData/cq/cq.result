@@ -1,17 +1,22 @@
--- [1]30:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+-- [1]30:CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s) END
 STRICT{
 PASS
 }
 
 -- [1]32:SHOW CONTINUOUS QUERIES
 STRICT{
-cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
-----------------------------------------------------------------------------------------------------------------------------------------
-cq4                |20000                      |20000                    |1642172400000        |select avg(temperatur|root.ln_cq.${2}.tempera|
-                   |                           |                         |                     |e) from root.ln.*.* |ture_avg               |
-                   |                           |                         |                     |group by ([now() - 2|                       |
-                   |                           |                         |                     |0s, now()), 10s), le|                       |
-                   |                           |                         |                     |vel = 2              |                       |
+CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
+--------------------------------------------------
+cq4             |CREATE CQ cq4 RES|ACTIVE           |
+                |AMPLE EVERY 20s |                 |
+                |BOUNDARY 0 BEGIN|                 |
+                | SELECT avg(temp|                 |
+                |erature) INTO ro|                 |
+                |ot.ln_cq.${2}(te|                 |
+                |mperature_avg) F|                 |
+                |ROM root.ln.*.* |                 |
+                |GROUP BY(10s) EN|                 |
+                |D                |                 |
 总数目：1
 }
 
@@ -19,26 +24,31 @@ Elapsed Time: 0.0.1
 
 -- [1]33:SHOW CQS
 STRICT{
-cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
-----------------------------------------------------------------------------------------------------------------------------------------
-cq4                |20000                      |20000                    |1642172400000        |select avg(temperatur|root.ln_cq.${2}.tempera|
-                   |                           |                         |                     |e) from root.ln.*.* |ture_avg               |
-                   |                           |                         |                     |group by ([now() - 2|                       |
-                   |                           |                         |                     |0s, now()), 10s), le|                       |
-                   |                           |                         |                     |vel = 2              |                       |
+CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
+--------------------------------------------------
+cq4             |CREATE CQ cq4 RES|ACTIVE           |
+                |AMPLE EVERY 20s |                 |
+                |BOUNDARY 0 BEGIN|                 |
+                | SELECT avg(temp|                 |
+                |erature) INTO ro|                 |
+                |ot.ln_cq.${2}(te|                 |
+                |mperature_avg) F|                 |
+                |ROM root.ln.*.* |                 |
+                |GROUP BY(10s) EN|                 |
+                |D                |                 |
 总数目：1
 }
 
 Elapsed Time: 0.0.1
--- [1]34:CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO temperature_max FROM root.ln.*.*  GROUP BY time(10s) END
+-- [1]34:CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO root.ln_cq.${2}(temperature_max) FROM root.ln.*.*  GROUP BY(10s) END
 STRICT{
 PASS
 }
--- [1]35:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s FOR 20s BEGIN SELECT avg(temperature) INTO temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+-- [1]35:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
 STRICT{
 PASS
 }
--- [1]36:CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s FOR 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END
+-- [1]36:CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
 STRICT{
 PASS
 }
@@ -60,12 +70,12 @@ PASS
 }
 -- [1]42:DROP CQ cq5
 STRICT{
-SQLSTATE : 323: Continuous Query [cq5] does not exist
+SQLSTATE : 930: CQ cq5 doesn't exist.
 }
 
 -- [1]45:SHOW CONTINUOUS QUERIES
 STRICT{
-cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
+CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
 总数目：0
 }
 
@@ -73,7 +83,7 @@ Elapsed Time: 0.0.1
 
 -- [1]46:SHOW CQS
 STRICT{
-cq name(TEXT)      |every interval(INT64)      |for interval(INT64)      |boundary(INT64)      |query sql(TEXT)      |target path(TEXT)      |
+CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
 总数目：0
 }
 
@@ -86,19 +96,19 @@ PASS
 STRICT{
 PASS
 }
--- [1]78:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO temperature_avg FROM root.ln.* GROUP BY time(5s)  END
+-- [1]78:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.* GROUP BY(5s)  END
 STRICT{
 PASS
 }
 
 -- [1]78:show timeseries
 STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.ln.wf01.temperatu|null             |root.ln                  |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
-re                    |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.ln.wf01.status   |null             |root.ln                  |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |
+re                    |                 |                    |                    |                    |                       |                |                      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.status   |null             |root.ln             |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
 总数目：2
 }
 
