@@ -1,16 +1,23 @@
-//1.时间过滤条件
---测试操作
+//查询过滤条件：时间过滤和值过滤
+
+//一、时间过滤条件
+
+--0. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.ln;
+
+--1. 创建存储组合时间序列
+create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
 create timeseries root.ln.wf02.wt02.hardware with datatype=TEXT,encoding=PLAIN;
---查看存储组和时间序列
-SHOW DATABASES root.ln;
+
+--2. 查看存储组和时间序列
+show databases root.ln;
 show timeseries root.ln.**;
---插入数据
+
+--3. 插入数据
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509321600000,FALSE,18.32);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509408000000,TRUE,15.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
@@ -38,49 +45,54 @@ insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
 
---选择时间戳大于某个时间的数据
+--4. 选择时间戳大于某个时间的数据
 select temperature from root.ln.** where time > 1509525300000;
 
---选择时间戳等于某个时间的数据
+--5. 选择时间戳等于某个时间的数据
 select temperature from root.ln.** where time = 1509525300000;
 
---选择区间[,]内的数据
+--6. 选择区间[,]内的数据
 select temperature from root.ln.** where time >= 1509525300000 and time < 1510069800000;
 
---根据一个时间区间选择一列数据
+--7. 根据一个时间区间选择一列数据
 select temperature from root.ln.wf01.wt01 where time < 1509466080000;
 
---根据一个时间区间选择多列数据
+--8. 根据一个时间区间选择多列数据
 select status, temperature from root.ln.wf01.wt01 where time > 1509465600000 and time < 1509509520000;
 
---按照多个时间区间选择同一设备的多列数据
+--9. 按照多个时间区间选择同一设备的多列数据
 select status,temperature from root.ln.wf01.wt01 where (time > 1509465600000 and time < 1509509520000) or (time >= 1509523800000 and time <= 1509525420000); 
 
---按照多个时间区间选择不同设备的多列数据
+--10. 按照多个时间区间选择不同设备的多列数据
 select wf01.wt01.status,wf02.wt02.hardware from root.ln where (time > 1509465900000 and time < 1509466320000) or (time >= 1509525000000 and time <= 1509525420000); 
 
---根据时间降序返回结果集：
+--11. 根据时间降序返回结果集：
 select * from root.ln.** where time > 1509321600000 order by time desc limit 5; 
 
---清理环境
+--12. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
 
 
-//2.值过滤条件
---测试操作
+//二、值过滤条件
+
+--0. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.ln;
+
+--1. 创建存储组合时间序列
+create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
 create timeseries root.ln.wf02.wt02.hardware with datatype=TEXT,encoding=PLAIN;
---查看存储组和时间序列
-SHOW DATABASES root.ln;
+
+--2. 查看存储组和时间序列
+show databases root.ln;
 show timeseries root.ln.**;
---插入数据
+
+--3. 插入数据
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509321600000,FALSE,18.32);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509408000000,TRUE,15.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
@@ -111,58 +123,65 @@ insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALS
 insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
---选择值大于20.5的数据
+
+--4. 选择值大于20.5的数据
 select temperature from root.ln.** where temperature > 20.5;
 
---选择值等于true的数据
+--5. 选择值等于true的数据
 select status from root.ln.** where status = true;
 
---选择区间(21.0,30]的数据
+--6. 选择区间(21.0,30]的数据
 select temperature from root.ln.** where temperature > 21.0 and temperature < 30;
 
---选择值在特定范围内的数据
+--7. 选择值在特定范围内的数据
 select hardware from root.ln.** where hardware in ('V001','V002');
 
---选择值在特定范围外的数据
+--8. 选择值在特定范围外的数据
 select hardware from root.ln.** where hardware not in ('V001','V002');
 
---清理环境
+--9. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
 
 
-//3.模糊查询
---测试操作
+//三、模糊查询
+
+--0. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.sg;
+
+--1. 创建存储组合时间序列
+create database root.sg;
 create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=DOUBLE,encoding=RLE;
 create timeseries root.sg.d1.s3 with datatype=INT32,encoding=RLE;
 create timeseries root.sg.d1.s4 with datatype=INT64,encoding=RLE;
 create timeseries root.sg.d1.s5 with datatype=BOOLEAN,encoding=RLE;
 create timeseries root.sg.d1.s6 with datatype=TEXT,encoding=PLAIN;
---查看存储组和时间序列
-SHOW DATABASES root.sg;
+
+--2. 查看存储组和时间序列
+show databases root.sg;
 show timeseries root.sg.**;
---插入数据
+
+--3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509465600000,20.33,30.16,24,65,TRUE,'aabbccdd');
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509552000000,25.21,36.10,55,68,FALSE,'cc');
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509638400000,19.33,30.16,24,65,TRUE,'abc');
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509724800000,26.21,36.10,55,68,FALSE,'try');
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509811200000,26.21,36.10,55,68,FALSE,'Box');
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1509897600000,26.21,36.10,55,68,FALSE,'BON');
---非TEXT类型的数据进行模糊匹配校验
+
+--4. 非TEXT类型的数据进行模糊匹配校验
 select * from root.sg.d1 where s5 like '%TRUE%';
 <<SQLSTATE;
 
---使用Like进行模糊匹配
+--5. 使用Like进行模糊匹配
 select * from root.sg.d1 where s6 like '%cc%';
 select * from root.sg.d1 where s6 like '_b_';
 
---使用Regexp进行模糊匹配
+--6. 使用Regexp进行模糊匹配
 select * from root.sg.d1 where s6 regexp '^[A-Za-z]+$';
 select * from root.sg.d1 where s6 regexp '^[A-Z]+$' and time > 1509465600000;
 select * from root.sg.d1 where s6 regexp '^[a-z]+$' and time > 1509638400000;
@@ -170,7 +189,7 @@ select * from root.sg.d1 where s6 regexp '^.{3,20}$';
 select * from root.sg.d1 where s6 regexp '^[A-Za-z0-9]+$'; 
 select * from root.sg.d1 where s6 regexp '^a.*';  
 
---清理环境
+--7. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;

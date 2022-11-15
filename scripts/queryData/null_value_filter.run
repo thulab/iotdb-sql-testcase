@@ -1,80 +1,95 @@
-//1.任意一列为null，过滤该行
---测试操作
+//空值过滤：使用空值过滤条件可以筛选出值为空或非空的数据
+//一、选择值为空的数据
+
+--0. 清理数据
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.ln;
+
+--1. 创建存储组和时间序列
+create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
---查询存储组和时间序列
-SHOW DATABASES root.ln;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
 show timeseries root.ln.**;
---插入数据
+
+--3. 插入数据
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,null,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,FALSE,26.92);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,null,23.29);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,TRUE,24.19);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,null,20.19);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,20.19);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,22.12);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,null);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,null,20.12);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
---WITHOUT NULL ANY
-select * from root.ln.** where time <= 1509984060000 WITHOUT NULL ANY;
 
---清理环境
+--4. 选择值为空的数据【is null】
+select temperature from root.ln.wf01.wt01 where status is null;
+select status from root.ln.wf01.wt01 where temperature is null;
+
+--5. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
 
 
-//2.降采样查询，某一行为null，过滤该行
---测试操作
+//二、选择值为非空的数据
+
+--0. 清理数据
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
-CREATE DATABASE root.ln;
+
+--1. 创建存储组和时间序列
+create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
---查询存储组和时间序列
-SHOW DATABASES root.ln;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
 show timeseries root.ln.**;
---插入数据
+
+--3. 插入数据
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,null,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,null);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,null,26.92);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,26.92);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,null,23.29);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,TRUE,24.19);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,20.19);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,22.12);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,null,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,21.22);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,20.99);
-insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,null,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,null);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
---WITHOUT NULL ALL
-select * from root.ln.** where time <= 1509984060000 WITHOUT NULL ALL;
 
---清理环境
+--4. 选择值为非空的数据【is not null】
+select status from root.ln.wf01.wt01 where temperature is not null;
+select temperature from root.ln.wf01.wt01 where status is not null;
+
+--5. 清理环境
 connect root/root;
-delete DATABASE root.**;
+delete database root.**;
 <<NULL;
