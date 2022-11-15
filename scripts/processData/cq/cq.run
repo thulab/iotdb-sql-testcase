@@ -26,13 +26,13 @@ DROP CQ cq4;
 <<NULL;
 
 --测试操作
-CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s) END;
 
 SHOW CONTINUOUS QUERIES;
 SHOW CQS;
-CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO temperature_max FROM root.ln.*.*  GROUP BY time(10s) END;
-CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s FOR 20s BEGIN SELECT avg(temperature) INTO temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
-CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s FOR 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO root.ln_cq.${2}(temperature_max) FROM root.ln.*.*  GROUP BY(10s) END;
+CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END;
+CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END;
 
 DROP CONTINUOUS QUERY cq1;
 DROP CQ cq2;
@@ -74,7 +74,7 @@ DROP CQ cq4;
 --测试操作
 create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE;
-CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO temperature_avg FROM root.ln.* GROUP BY time(5s)  END;
+CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s BEGIN SELECT avg(temperature) INTO root.ln.wf01(temperature_avg) FROM root.ln.** GROUP BY(5s)  END;
 show timeseries;
 insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0);
 sleep 1000;
