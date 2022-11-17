@@ -6,13 +6,22 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 
 测试环境，会持续更新Apache-IoTDB仓库Master分支代码构建IoTDB安装包，并配置测试用例依赖的JAR包。
 如：
-**UDF依赖**：
-- 需将JAR 包(不包括upload开头的jar)放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下,将upload开头的两个jar 放到/data/udf目录下。 
+- 安装配置trigger/UDF test cases运行环境（每个环境仅做一次,且使用root用户权限）
+
+```shell
+rsync -avz atmos@172.20.70.44:/data/support-soft .
+cd support-soft
+# target_path 默认/data/nginx
+sudo ./setup-env.sh -u <user>
+
+```
+
+reference:
+**UDF**：
 - 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnBNOqZiICQvwyafSpKVy8Qe
 - 测试java工程: https://github.com/changxue2022/iotdb-udf-test
 
-**Trigger依赖**：
-- 需将lib/trigger_jar内JAR包(不包括stateful的2个)放置到目录 `$IOTDB_HOME/ext/trigger` （也可以是`$IOTDB_HOME/ext/trigger`的子目录）下，将stateful开头的2个jar包放到目录/data/trigger下。
+**Trigger**：
 - 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnMcsLTDUnYV95XBkjiddqAg
 - 测试java工程: https://github.com/changxue2022/user-guide-trigger
 
@@ -26,24 +35,15 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 sed -i 's/172.20.31.30/新的ip/g' user/scripts/processData/trigger/*.run
 ```
 2. 放置jar包
-```markdown
-//进入到IoTDB主文件夹路径下，cd 到trigger相关目录下，添加依赖jar包(不包括stateful开头的2个)
-$IOTDB_HOME/ext/trigger
-//进入到IoTDB主文件夹路径下，cd 到udf相关目录下，添加依赖jar包(不包括upload开头的2个)
-$IOTDB_HOME/ext/udf
-```
-3. 安装docker-ce,docker-compose
-```shell
-rsync -avz atmos@172.20.70.44:/data/support-soft .
-cd support-soft/docker && yum install -y centos/*
-cd ../
-sudo cp docker-compose /usr/bin/
-```
-4. 加载nginx docker镜像
-```shell
-scp atmos@172.20.70.44:/data/support-soft/nginx_v1.23.2-alpine.tar .
-docker load -i nginx_v1.23.2-alpine.tar
-```
+- **UDF依赖**：
+  * 将`lib/udf_jar/ext` 目录下的jar放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下.
+  * 将`lib/udf_jar/local` 的两个jar 放到`/data/nginx` 目录下。
+
+- **Trigger依赖**：
+  * 将`lib/udf_jar/ext` 目录下的jar放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下.
+  * 将`lib/udf_jar/local` 的两个jar 放到`/data/nginx` 目录下。
+
+
 #### （二）SQL自动化工具中的驱动包需与IoTDB的lib包保持一致
 
 需将`$IOTDB_HOME/lib`下所有的jar包全部拷贝到`iotdb-sql/user/driver/iotdb`目录下。
