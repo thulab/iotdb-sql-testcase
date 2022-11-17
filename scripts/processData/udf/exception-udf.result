@@ -1,0 +1,62 @@
+-- [1]15:create storage group root.udf
+STRICT{
+PASS
+}
+-- [1]16:create timeseries root.udf.exp1.s1 with datatype=int32
+STRICT{
+PASS
+}
+-- [1]17:create timeseries root.udf.exp1.s2 with datatype=int32
+STRICT{
+PASS
+}
+-- [1]18:insert into root.udf.exp1(time,s1,s2) values (1,1,2),(2,2,3),(3,3,4),(4,4,5),(5,5,6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.272
+-- [1]22:create function validate_exp as "com.timecho.udf.exception.ExceptionValidata"
+STRICT{
+SQLSTATE : 370: Failed to load class 'com.timecho.udf.exception.ExceptionValidata', because it's not found in jar file: null
+EXPECT:PASS
+}
+-- [1]23:select validate_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 416: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: Failed to reflect UDF instance, because UDF VALIDATE_EXP has not been registered.
+}
+-- [1]27:create function beforeStart_exp as "com.timecho.udf.exception.ExceptionBeforeStart"
+STRICT{
+PASS
+}
+-- [1]28:select beforeStart_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 416: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: before start exception
+}
+-- [1]33:create function transform_exp as "com.timecho.udf.exception.ExceptionTransform"
+STRICT{
+PASS
+}
+-- [1]34:select transform_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 500: [INTERNAL_SERVER_ERROR(500)] Exception occurred: "select transform_exp(s1) from root.udf.exp1". executeStatement failed. Task was cancelled.
+}
+-- [1]39:create function terminate_exp as "com.timecho.udf.exception.ExceptionTerminate"
+STRICT{
+PASS
+}
+-- [1]40:select terminate_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 500: [INTERNAL_SERVER_ERROR(500)] Exception occurred: "select terminate_exp(s1) from root.udf.exp1". executeStatement failed. Task was cancelled.
+}
+-- [1]45:create function beforeDestroy_exp as "com.timecho.udf.exception.ExceptionBeforeDestroy"
+STRICT{
+PASS
+}
+-- [1]46:select beforeDestroy_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 416: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: beforeDestroy exception
+}
