@@ -6,7 +6,7 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 
 测试环境，会持续更新Apache-IoTDB仓库Master分支代码构建IoTDB安装包，并配置测试用例依赖的JAR包。
 如：
-**UDF依赖**：当前测试的UDF类，需将JAR 包放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下。 
+**UDF依赖**：当前测试的UDF类，需将JAR 包放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下,将upload开头的两个jar 放到/data/udf目录下。 
 **Trigger依赖**：需将lib/trigger_jar内JAR包(不包括stateful的2个)放置到目录 `$IOTDB_HOME/ext/trigger` （也可以是`$IOTDB_HOME/ext/trigger`的子目录）下，将stateful开头的2个jar包放到目录/data/trigger下。
 
 ###  二、操作步骤
