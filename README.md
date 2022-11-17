@@ -12,10 +12,10 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 ###  二、操作步骤
 
 #### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.13.0）
-执行trigger测试用例：
+执行trigger/udf 测试用例：
 1. 需要替换IP地址：
 ```shell
-sed -i 's/172.20.70.44/新的ip/g' user/scripts/processData/trigger/*.run
+sed -i 's/172.20.31.30/新的ip/g' user/scripts/processData/trigger/*.run
 ```
 2. 放置jar包
 ```markdown
@@ -24,6 +24,15 @@ $IOTDB_HOME/ext/trigger
 //进入到IoTDB主文件夹路径下，cd 到udf相关目录下，添加依赖jar包
 $IOTDB_HOME/ext/udf
 ```
+3. 安装docker-ce,docker-compose
+rsync -avz atmos@172.20.70.44:/data/support-soft .
+cd support-soft/docker && yum install -y centos/*
+cd ../
+sudo cp docker-compose /usr/bin/
+
+4. 加载nginx docker镜像
+scp atmos@172.20.70.44:/data/support-soft/nginx_v1.23.2-alpine.tar .
+docker load -i nginx_v1.23.2-alpine.tar
 
 #### （二）SQL自动化工具中的驱动包需与IoTDB的lib包保持一致
 
