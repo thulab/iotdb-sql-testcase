@@ -1,7 +1,7 @@
 connect root/root;
 
 -- 9. trigger链，trigger1 触发后插入 alert表，trigger2触发后通知用户
-delete DATABASE root.**;<<NULL;
+drop DATABASE root.**;<<NULL;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `double-beforeInsert`
@@ -9,10 +9,21 @@ before INSERT
 ON root.sg1.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
+  "remote_ip"="172.20.31.30",
   "lo" = '5'
 );
 
-CREATE STATEful TRIGGER `stateful-afterInsert` after INSERT ON root.ln.alerting.table_name AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.31.30', 'data_type'='text', 'standard_value'='root.sg1.d1', 'trig_name'='stateful-afterInsert');
+CREATE STATEful TRIGGER `stateful-afterInsert`
+after INSERT 
+ON root.ln.alerting.table_name 
+AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' 
+USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' 
+WITH ( 
+  'HOST'='172.20.31.30', 
+  'data_type'='text', 
+  'standard_value'='root.sg1.d1', 
+  'trig_name'='stateful-afterInsert'
+);
 
 sleep 200;
 INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0);
@@ -31,12 +42,12 @@ select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-delete DATABASE root.**;<<NULL;
+drop DATABASE root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;
 
 -- 10. 同一个timeseries上有多个trigger, 有状态和无状态各一个
-delete DATABASE root.**;<<NULL;
+drop DATABASE root.**;<<NULL;
 CREATE DATABASE root.sg1;
 CREATE ALIGNED TIMESERIES root.sg1.dev1 (s_1 DATATYPE=double ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN);
 
@@ -45,9 +56,20 @@ before INSERT
 ON root.sg1.dev1.*
 AS 'org.example.DoubleValueMonitor'
 WITH (
+  "remote_ip"="172.20.31.30",
   "lo" = '85'
 );
-CREATE STATEful TRIGGER `stateful-afterInsert` after INSERT ON root.sg1.dev1.* AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.31.30', 'data_type'='double', 'standard_value'='50', 'trig_name'='stateful-afterInsert');
+CREATE STATEful TRIGGER `stateful-afterInsert` 
+after INSERT 
+ON root.sg1.dev1.* 
+AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' 
+USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' 
+WITH ( 
+  'HOST'='172.20.31.30', 
+  'data_type'='double', 
+  'standard_value'='50', 
+  'trig_name'='stateful-afterInsert'
+);
 
 sleep 200;
 
@@ -60,6 +82,6 @@ select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-delete DATABASE root.**;<<NULL;
+drop DATABASE root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;
