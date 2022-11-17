@@ -25,15 +25,17 @@ $IOTDB_HOME/ext/trigger
 $IOTDB_HOME/ext/udf
 ```
 3. 安装docker-ce,docker-compose
+```shell
 rsync -avz atmos@172.20.70.44:/data/support-soft .
 cd support-soft/docker && yum install -y centos/*
 cd ../
 sudo cp docker-compose /usr/bin/
-
+```
 4. 加载nginx docker镜像
+```shell
 scp atmos@172.20.70.44:/data/support-soft/nginx_v1.23.2-alpine.tar .
 docker load -i nginx_v1.23.2-alpine.tar
-
+```
 #### （二）SQL自动化工具中的驱动包需与IoTDB的lib包保持一致
 
 需将`$IOTDB_HOME/lib`下所有的jar包全部拷贝到`iotdb-sql/user/driver/iotdb`目录下。
