@@ -6,24 +6,43 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 
 测试环境，会持续更新Apache-IoTDB仓库Master分支代码构建IoTDB安装包，并配置测试用例依赖的JAR包。
 如：
-**UDF依赖**：当前测试的UDF类，需将JAR 包放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下。 
-**Trigger依赖**：需将lib/trigger_jar内JAR包(不包括stateful的2个)放置到目录 `$IOTDB_HOME/ext/trigger` （也可以是`$IOTDB_HOME/ext/trigger`的子目录）下，将stateful开头的2个jar包放到目录/data/trigger下。
+- 安装配置trigger/UDF test cases运行环境（每个环境仅做一次,且使用root用户权限）
+
+```shell
+rsync -avz atmos@172.20.70.44:/data/support-soft .
+cd support-soft
+# target_path 默认/data/nginx
+sudo ./setup-env.sh -u <user>
+
+```
+
+reference:
+**UDF**：
+- 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnBNOqZiICQvwyafSpKVy8Qe
+- 测试java工程: https://github.com/changxue2022/iotdb-udf-test
+
+**Trigger**：
+- 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnMcsLTDUnYV95XBkjiddqAg
+- 测试java工程: https://github.com/changxue2022/user-guide-trigger
+
 
 ###  二、操作步骤
 
-#### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.13.0）
-执行trigger测试用例：
+#### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.14.0）
+执行trigger/udf 测试用例：
 1. 需要替换IP地址：
 ```shell
-sed -i 's/172.20.70.44/新的ip/g' user/scripts/processData/trigger/*.run
+sed -i 's/172.20.31.30/新的ip/g' user/scripts/processData/trigger/*.run
 ```
 2. 放置jar包
-```markdown
-//进入到IoTDB主文件夹路径下，cd 到trigger相关目录下，添加依赖jar包
-$IOTDB_HOME/ext/trigger
-//进入到IoTDB主文件夹路径下，cd 到udf相关目录下，添加依赖jar包
-$IOTDB_HOME/ext/udf
-```
+- **UDF依赖**：
+  * 将`lib/udf_jar/ext` 目录下的jar放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下.
+  * 将`lib/udf_jar/local` 的两个jar 放到`/data/nginx` 目录下。
+
+- **Trigger依赖**：
+  * 将`lib/udf_jar/ext` 目录下的jar放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下.
+  * 将`lib/udf_jar/local` 的两个jar 放到`/data/nginx` 目录下。
+
 
 #### （二）SQL自动化工具中的驱动包需与IoTDB的lib包保持一致
 

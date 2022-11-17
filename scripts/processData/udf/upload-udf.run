@@ -1,0 +1,41 @@
+connect root/root;
+-- use local file uri
+-- use http uri
+-- query on non aligned and aligned timeseries
+
+drop function my_compare_upload;<<NULL;
+drop function my_compare_http;<<NULL;
+drop database root.**;<<NULL;
+
+-- 使用localpath
+create function my_compare_upload as "com.timecho.udf.upload.TestObjectRow" using uri "file:///data/nginx/upload-udf-test-0.14-SNAPSHOT.jar";
+
+-- 使用http
+create function my_compare_http as "org.apache.iotdb.udf.http.TestObjectRow" using uri "http://127.0.0.1:8085/upload-http-udf-0.14-SNAPSHOT.jar";
+
+-- init data
+create database root.udf.upload;
+create timeseries root.udf.upload.d1.s1 with datatype=int32;
+create timeseries root.udf.upload.d1.s2 with datatype=int32;
+insert into root.udf.upload.d1(time, s1, s2) values (1668564372179, 32,33),(1668564394899, 88,88),(1668564424949,199,null),(1668564459691,null,97);
+
+create aligned timeseries root.udf.upload.d2 (s1 int32, s2 int32);
+insert into root.udf.upload.d2(time, s1, s2) aligned values (1668564372179, 32,33),(1668564394899, 88,88),(1668564424949,199,null),(1668564459691,null,97);
+
+-- query
+select * from root.udf.upload.d1;
+select * from root.udf.upload.d2;
+
+select my_compare_upload(s1,s2) from root.udf.upload.d1;
+select my_compare_upload(s1,s2) from root.udf.upload.d2;
+select my_compare_upload(s1, *) from root.udf.upload.d1;
+
+select my_compare_http(s1,s2) from root.udf.upload.d1;
+select my_compare_http(s1,s2) from root.udf.upload.d2;
+select my_compare_http(s1, *) from root.udf.upload.d2;
+
+show regions;
+-- cleanup
+drop database root.**;<<NULL;
+drop function my_compare_upload ;
+drop function my_compare_http ;

@@ -1,0 +1,208 @@
+connect root/root;
+
+-- 1. 名称检查
+-- 1.1 正常情况
+-- 1.2 异常情况
+-- 2. 类名检查
+-- 3. 语法顺序检查
+-- 4. uri 检查
+
+
+-- 1. 名称检查
+drop function my_sum; <<NULL;
+-- 带下划线
+create function my_sum as "com.timecho.udf.normal.MySum";
+
+-- 重名：大小写
+create function MY_SUM as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+-- 与native 重名
+create function sum as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+-- 与builtin 重名
+create function STRING_CONTAINS as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+
+-- 带点
+create function my.sum as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+create function `my.sum` as "com.timecho.udf.normal.MySum";
+-- 减号
+create function my-sum as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+create function `my-sum` as "com.timecho.udf.normal.MySum";
+-- 中文
+create function 求和 as "com.timecho.udf.normal.MySum";
+create function `求和2` as "com.timecho.udf.normal.MySum";
+
+-- 空值
+create function  as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+create function `` as "com.timecho.udf.normal.MySum";
+create function null as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+create function `null` as "com.timecho.udf.normal.MySum";
+
+-- 纯数字
+create function 123 as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+create function  `123` as "com.timecho.udf.normal.MySum";
+
+-- 带空格
+create function `my sum` as "com.timecho.udf.normal.MySum";
+
+-- 双引号
+create function "my func" as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+-- 单引号
+create function 'my func2' as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+
+--特殊字符
+create function `my&func` as "com.timecho.udf.normal.MySum";
+
+show functions;
+
+delete storage group root.**;<<NULL;
+create database root.udf.validate;
+CREATE ALIGNED TIMESERIES root.udf.validate.dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN);
+
+insert into root.udf.validate.dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,120,100.45,200.55,'non trig',false),(7000,320,260,100.45,200.55,'non trig',true),(8000,430,270,100.45,200.55,'',true),(9000,340,280,100.45,200.55,'non trig',true),(10000,650,600,800.45,900.55,'this statement is too long to process',0);
+
+-- 使用
+select my_sum(s_1) from root.udf.validate.dev1;
+select `my.sum`(s_1) from root.udf.validate.dev1;
+select `my-sum`(s_1) from root.udf.validate.dev1;
+select 求和(s_1) from root.udf.validate.dev1;
+select `求和2`(s_1) from root.udf.validate.dev1;
+select ``(s_1) from root.udf.validate.dev1;
+select `null`(s_1) from root.udf.validate.dev1;
+select `123`(s_1) from root.udf.validate.dev1;
+select `my sum`(s_1) from root.udf.validate.dev1;
+select `my&func`(s_1) from root.udf.validate.dev1;
+
+
+-- 清理
+drop function my_sum;
+drop function `my.sum` ;
+drop function `my-sum`;
+drop function 求和;
+drop function `求和2`;
+drop function ``;
+drop function `null`;
+drop function `123`;
+drop function `my sum`;
+drop function `my&func`;
+
+
+-- 2. 类名检查
+-- 正常值
+create function my_sum as "com.timecho.udf.normal.MySum";
+
+-- 无包名
+create function myMax as "Max";
+
+-- 使用同一个类，注册多个UDF函数
+create function mySum as "com.timecho.udf.normal.MySum";
+select my_sum(s_1) from root.udf.validate.dev1;
+select mySum(s_1) from root.udf.validate.dev1;
+
+-- 异常值
+-- 空值
+create function my_sum1 as "";<<SQLSTATE;
+create function my_sum2 as ``;<<SQLSTATE;
+create function my_sum3 as "null";<<SQLSTATE;
+-- 非全限定类名
+create function my_sum4 as "MySum";<<SQLSTATE;
+create function my_sum5 as ".12MySum";<<SQLSTATE;
+
+drop function my_sum;
+drop function myMax;
+drop function mysum;
+
+
+-- 3. 语法顺序检查
+-- 没有名称
+create function  as "com.timecho.udf.normal.MySum";<<SQLSTATE;
+-- 没有类名
+create function my_sum as ;<<SQLSTATE;
+create function my_sum as "";<<SQLSTATE;
+-- 没有using
+create function my_sum as "com.timecho.udf.normal.MySum2";<<SQLSTATE;
+-- as 和using顺序颠倒
+create function my_concat using uri "file:///data/nginx/upload-test-0.14-SNAPSHOT.jar" as "com.timecho.udf.upload.TestObjectRow" ;<<SQLSTATE;
+
+
+
+-- 4. uri检查
+-- 空
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri ""  ;
+<<SQLSTATE;
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri ``  ;
+<<SQLSTATE;
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri ''  ;
+<<SQLSTATE;
+
+-- 路径不存在
+create function my_concat1 as "com.timecho.udf.upload.TestObjectRow"
+using uri "file:///tmp/upload-xxx.jar"  ;
+<<SQLSTATE;
+-- uri异常值
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri "file://"  ;
+<<SQLSTATE;
+-- 非uri
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri "/data/nginx/upload-udf-test-0.14-SNAPSHOT.jar"  ;
+<<SQLSTATE;
+-- 不使用引号
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri file:///data/nginx/upload-udf-test-0.14-SNAPSHOT.jar  ;
+<<SQLSTATE;
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using `uri file:///data/nginx/upload-udf-test-0.14-SNAPSHOT.jar` ;
+<<SQLSTATE;
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri 'file:///data/nginx/upload-udf-test-0.14-SNAPSHOT.jar ' ;
+<<SQLSTATE;
+
+-- 5. jar size=0
+create function my_compare2 as "com.timecho.udf.upload.TestObjectRow"
+using uri "file:///data/nginx/zero.jar"  ;
+<<SQLSTATE;
+
+create function my_compare2 as "com.timecho.udf.upload.NonExistent"
+using uri "file:///data/nginx/upload-udf-test-0.14-SNAPSHOT.jar"  ;
+<<SQLSTATE;
+
+
+-- 6. 同名类在不同jar中: normal-udf, sam-name-test
+-- IOTDB-4949
+drop function my_test;<<NULL;
+create function my_test as "SameNameTest";<<SQLSTATE;
+create database root.same;
+create timeseries root.same.test.s1 with datatype=boolean;
+create timeseries root.same.test.s2 with datatype=int32;
+insert into root.same.test(time, s1, s2) values (1,true,32),(2,false,12);
+-- 使用的是normal-udf内的而不是 same-name-test内的
+select my_test(s1) from root.same.test;
+select my_test(s2) from root.same.test;<<SQLSTATE;
+drop function my_test;<<NULL;
+drop database root.same;<<NULL;
+
+-- 7. 使用未实现UTDF的类
+drop function unimplement_udf;<<NULL;
+create function unimplement_udf as "NotImplementUTDF";
+<<SQLSTATE;
+drop function unimplement_udf;<<NULL;
+
+-- 8. drop 内置funciton
+drop function MIN_VALUE;<<SQLSTATE;
+drop funciton STARTSWITH;<<SQLSTATE;
+-- 9. drop 不合法
+drop function;<<SQLSTATE;
+drop funciton ``;<<SQLSTATE;
+drop function null;<<SQLSTATE;
+drop function `null`;<<SQLSTATE;
+create function `my-Max` as "Max";
+create function `my.Max` as "Max";
+drop function my-Max;<<SQLSTATE;
+drop function `my-Max`;
+drop function my.Max;<<SQLSTATE;
+drop function `my.Max`;
+
+delete storage group root.**; <<NULL;
+
