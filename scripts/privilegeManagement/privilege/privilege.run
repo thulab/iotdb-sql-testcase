@@ -403,53 +403,6 @@ DROP ROLE manager;
 <<NULL;
 
 
-//15.赋予注册UDF和卸载UDF操作权限
---测试操作
-connect root/root;
-DROP USER user01;
-<<NULL;
-DROP FUNCTION example;
-<<NULL;
-DELETE DATABASE root.**;
-<<NULL;
-CREATE DATABASE root.sg;
-create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE;
-create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
-insert into root.sg.d1(time,s1,s2) values(1,23,32);
-insert into root.sg.d1(time,s1,s2) values(2,31,19);
-insert into root.sg.d1(time,s1,s2) values(3,18,21);
-insert into root.sg.d1(time,s1,s2) values(4,20,32);
-insert into root.sg.d1(time,s1,s2) values(5,33,17);
-insert into root.sg.d1(time,s1,s2) values(6,19,28);
-CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
-LIST PRIVILEGES USER user01;
---进行赋权
-GRANT USER user01 PRIVILEGES CREATE_FUNCTION;
-GRANT USER user01 PRIVILEGES DROP_FUNCTION;
---基本查询数据
-select * from root.sg.d1;
---user01登录，注册UDF
-connect user01/pass1234;
-CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
---root登录，udf数据查询
-connect root/root;
-SELECT example(*) from root.sg.d1;
---user01登录，卸载UDF
-connect user01/pass1234;
-DROP FUNCTION example;
---root登录，udf数据查询
-SELECT example(*) from root.sg.d1;
-<<SQLSTATE;
---清理环境
-connect root/root;
-DROP USER user01;
-<<NULL;
-DROP FUNCTION example;
-<<NULL;
-DELETE DATABASE root.**;
-<<NULL;
-
 
 //16.赋予用户权限
 --测试操作
