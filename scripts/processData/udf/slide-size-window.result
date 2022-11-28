@@ -27,39 +27,49 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.275
+Elapsed Time: 0.0.5
 -- [1]18:select sum_sec(s1) from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFAttributeNotProvidedException: attribute "windowSize" is required but was not provided.
 }
--- [1]20:select sum_sec(s3, 'windowSize'=3) from root.udf.d1
+-- [1]20:select sum_sec(s3, 'windowSize'='3') from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: INT32. actual: BOOLEAN.
 }
--- [1]22:select sum_sec(s1,'windowSize'=3, 'slidingStep'=0) from root.udf.d1
+-- [1]22:select sum_sec(s1,'windowSize'='3', 'slidingStep'='0') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter slidingStep(0) should be positive.
 }
--- [1]24:select sum_sec(s1,'windowSize'=0, 'slidingStep'=3) from root.udf.d1
+-- [1]24:select sum_sec(s1,'windowSize'='0', 'slidingStep'='3') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter windowSize(0) should be positive.
 }
--- [1]26:select sum_sec(s1,'windowSize'=-1) from root.udf.d1
+-- [1]26:select sum_sec(s1,'windowSize'='-1') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter windowSize(-1) should be positive.
 }
 
--- [1]28:select sum_sec(ss1,'windowSize'=3) from root.udf.d1
+-- [1]28:select sum_sec(ss1,'windowSize'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.ss1, "windowSize"="3")(INT32)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.3
+-- [1]30:select sum_sec(s1,'windowSize'='3', 'slidingStep'='a') from root.udf.d1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.NumberFormatException: For input string: "a"
+}
+-- [1]31:select sum_sec(s1,'windowSize'='a', 'slidingStep'='0') from root.udf.d1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.NumberFormatException: For input string: "a"
+}
 
--- [1]31:select * from root.udf.d1
+-- [1]34:select * from root.udf.d1
 STRICT{
 Time(TIME)      |root.udf.d1.ss1(INT32)      |root.udf.d1.s3(BOOLEAN)      |root.udf.d1.ss3(BOOLEAN)      |root.udf.d1.s1(INT32)      |root.udf.d1.s2(INT64)      |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -93,9 +103,9 @@ Time(TIME)      |root.udf.d1.ss1(INT32)      |root.udf.d1.s3(BOOLEAN)      |root
 总数目：14
 }
 
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.3
 
--- [1]32:select sum_sec(s1,'windowSize'=1, 'slidingStep'=1) from root.udf.d1
+-- [1]35:select sum_sec(s1,'windowSize'='1', 'slidingStep'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="1", "slidingStep"="1")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -127,9 +137,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="1", "slidingStep"="1")(IN
 总数目：13
 }
 
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.4
 
--- [1]33:select sum_sec(s1,'windowSize'=1, 'slidingStep'=5) from root.udf.d1
+-- [1]36:select sum_sec(s1,'windowSize'='1', 'slidingStep'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="1", "slidingStep"="5")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -141,9 +151,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="1", "slidingStep"="5")(IN
 总数目：3
 }
 
-Elapsed Time: 0.0.24
+Elapsed Time: 0.0.3
 
--- [1]34:select sum_sec(s1,'windowSize'=5, 'slidingStep'=1) from root.udf.d1
+-- [1]37:select sum_sec(s1,'windowSize'='5', 'slidingStep'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5", "slidingStep"="1")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -175,9 +185,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5", "slidingStep"="1")(IN
 总数目：13
 }
 
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.4
 
--- [1]36:select sum_sec(s1,'windowSize'=5, 'slidingStep'=5) from root.udf.d1
+-- [1]39:select sum_sec(s1,'windowSize'='5', 'slidingStep'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5", "slidingStep"="5")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -189,9 +199,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5", "slidingStep"="5")(IN
 总数目：3
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.4
 
--- [1]37:select sum_sec(s1,'windowSize'=5) from root.udf.d1
+-- [1]40:select sum_sec(s1,'windowSize'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5")(INT32)      |
 ----------------------------------------------------------------------
@@ -203,9 +213,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5")(INT32)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
 
--- [1]39:select sum_sec(s1,'windowSize'=3, 'slidingStep'=3) from root.udf.d1
+-- [1]42:select sum_sec(s1,'windowSize'='3', 'slidingStep'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3", "slidingStep"="3")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -221,9 +231,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3", "slidingStep"="3")(IN
 总数目：5
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.4
 
--- [1]40:select sum_sec(s1,'windowSize'=3) from root.udf.d1
+-- [1]43:select sum_sec(s1,'windowSize'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3")(INT32)      |
 ----------------------------------------------------------------------
@@ -239,9 +249,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3")(INT32)      |
 总数目：5
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
 
--- [1]42:select sum_sec(s1, 'windowSize'=15) from root.udf.d1
+-- [1]45:select sum_sec(s1, 'windowSize'='15') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="15")(INT32)      |
 -----------------------------------------------------------------------
@@ -249,9 +259,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="15")(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
 
--- [1]44:select sum_sec(s1,'windowSize'=3, 'slidingStep'=4) from root.udf.d1
+-- [1]47:select sum_sec(s1,'windowSize'='3', 'slidingStep'='4') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3", "slidingStep"="4")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -265,15 +275,15 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="3", "slidingStep"="4")(IN
 总数目：4
 }
 
-Elapsed Time: 0.0.6
--- [1]47:select s1 into root.udf.dd1(::) from root.udf.d1
+Elapsed Time: 0.0.3
+-- [1]50:select s1 into root.udf.dd1(::) from root.udf.d1
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.2
 
--- [1]51:select * from root.udf.dd1
+-- [1]54:select * from root.udf.dd1
 STRICT{
 Time(TIME)      |root.udf.dd1.s1(INT32)      |
 --------------------------------------------
@@ -305,9 +315,9 @@ Time(TIME)      |root.udf.dd1.s1(INT32)      |
 总数目：13
 }
 
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.4
 
--- [1]52:select sum_sec(s1,'windowSize'=1, 'slidingStep'=1) from root.udf.dd1
+-- [1]55:select sum_sec(s1,'windowSize'='1', 'slidingStep'='1') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="1", "slidingStep"="1")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -339,9 +349,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="1", "slidingStep"="1")(I
 总数目：13
 }
 
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.6
 
--- [1]53:select sum_sec(s1,'windowSize'=1, 'slidingStep'=5) from root.udf.dd1
+-- [1]56:select sum_sec(s1,'windowSize'='1', 'slidingStep'='5') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="1", "slidingStep"="5")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -353,9 +363,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="1", "slidingStep"="5")(I
 总数目：3
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.5
 
--- [1]54:select sum_sec(s1,'windowSize'=5, 'slidingStep'=1) from root.udf.dd1
+-- [1]57:select sum_sec(s1,'windowSize'='5', 'slidingStep'='1') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="5", "slidingStep"="1")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -387,9 +397,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="5", "slidingStep"="1")(I
 总数目：13
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.4
 
--- [1]56:select sum_sec(s1,'windowSize'=5, 'slidingStep'=5) from root.udf.dd1
+-- [1]59:select sum_sec(s1,'windowSize'='5', 'slidingStep'='5') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="5", "slidingStep"="5")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -401,9 +411,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="5", "slidingStep"="5")(I
 总数目：3
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.7
 
--- [1]57:select sum_sec(s1,'windowSize'=5) from root.udf.d1
+-- [1]60:select sum_sec(s1,'windowSize'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5")(INT32)      |
 ----------------------------------------------------------------------
@@ -415,9 +425,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "windowSize"="5")(INT32)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
 
--- [1]59:select sum_sec(s1,'windowSize'=3, 'slidingStep'=3) from root.udf.dd1
+-- [1]62:select sum_sec(s1,'windowSize'='3', 'slidingStep'='3') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3", "slidingStep"="3")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -433,9 +443,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3", "slidingStep"="3")(I
 总数目：5
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]60:select sum_sec(s1,'windowSize'=3) from root.udf.dd1
+-- [1]63:select sum_sec(s1,'windowSize'='3') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3")(INT32)      |
 -----------------------------------------------------------------------
@@ -451,9 +461,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3")(INT32)      |
 总数目：5
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.3
 
--- [1]61:select sum_sec(*,'windowSize'=3) from root.udf.dd1
+-- [1]64:select sum_sec(*,'windowSize'='3') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3")(INT32)      |
 -----------------------------------------------------------------------
@@ -469,9 +479,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="3")(INT32)      |
 总数目：5
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.5
 
--- [1]63:select sum_sec(s1, 'windowSize'=15) from root.udf.dd1
+-- [1]66:select sum_sec(s1, 'windowSize'='15') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="15")(INT32)      |
 ------------------------------------------------------------------------
@@ -479,19 +489,19 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "windowSize"="15")(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.7
--- [1]69:CREATE ALIGNED TIMESERIES root.udf.d2 (s1 int32, s2 int64, s3 boolean)
+Elapsed Time: 0.0.3
+-- [1]72:CREATE ALIGNED TIMESERIES root.udf.d2 (s1 int32, s2 int64, s3 boolean)
 STRICT{
 PASS
 }
--- [1]70:insert into root.udf.d2 (time, s1, s2, s3) aligned values (1, 1, 2,0),(3, 3, 4,0),(6, 5, 3,1),(7, 7, 8,1),(11, 3,55,1),(12, 11, 3,1),(15, 13, 14,0),(17, 15, 16,1),(19, 17, 18,0),(20, 19, 20,0),(25,21,22,0),(35,31,32,1),(38,33,34,1),(40,41,42,1)
+-- [1]73:insert into root.udf.d2 (time, s1, s2, s3) aligned values (1, 1, 2,0),(3, 3, 4,0),(6, 5, 3,1),(7, 7, 8,1),(11, 3,55,1),(12, 11, 3,1),(15, 13, 14,0),(17, 15, 16,1),(19, 17, 18,0),(20, 19, 20,0),(25,21,22,0),(35,31,32,1),(38,33,34,1),(40,41,42,1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.12
+Elapsed Time: 0.0.7
 
--- [1]72:select * from root.udf.d2
+-- [1]75:select * from root.udf.d2
 STRICT{
 Time(TIME)      |root.udf.d2.s3(BOOLEAN)      |root.udf.d2.s1(INT32)      |root.udf.d2.s2(INT64)      |
 ---------------------------------------------------------------------------------------------------
@@ -527,7 +537,7 @@ Time(TIME)      |root.udf.d2.s3(BOOLEAN)      |root.udf.d2.s1(INT32)      |root.
 
 Elapsed Time: 0.0.5
 
--- [1]74:select sum_sec(s1,'windowSize'=1, 'slidingStep'=1) from root.udf.d2
+-- [1]77:select sum_sec(s1,'windowSize'='1', 'slidingStep'='1') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="1", "slidingStep"="1")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -561,9 +571,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="1", "slidingStep"="1")(IN
 总数目：14
 }
 
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.6
 
--- [1]75:select sum_sec(s1,'windowSize'=1, 'slidingStep'=5) from root.udf.d2
+-- [1]78:select sum_sec(s1,'windowSize'='1', 'slidingStep'='5') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="1", "slidingStep"="5")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -575,9 +585,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="1", "slidingStep"="5")(IN
 总数目：3
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]76:select sum_sec(s1,'windowSize'=5, 'slidingStep'=1) from root.udf.d2
+-- [1]79:select sum_sec(s1,'windowSize'='5', 'slidingStep'='1') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5", "slidingStep"="1")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -611,9 +621,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5", "slidingStep"="1")(IN
 总数目：14
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]78:select sum_sec(s1,'windowSize'=5, 'slidingStep'=5) from root.udf.d2
+-- [1]81:select sum_sec(s1,'windowSize'='5', 'slidingStep'='5') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5", "slidingStep"="5")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -625,9 +635,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5", "slidingStep"="5")(IN
 总数目：3
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.4
 
--- [1]79:select sum_sec(s1,'windowSize'=5) from root.udf.d2
+-- [1]82:select sum_sec(s1,'windowSize'='5') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5")(INT32)      |
 ----------------------------------------------------------------------
@@ -639,9 +649,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="5")(INT32)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.3
 
--- [1]81:select sum_sec(s1,'windowSize'=3, 'slidingStep'=3) from root.udf.d2
+-- [1]84:select sum_sec(s1,'windowSize'='3', 'slidingStep'='3') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3", "slidingStep"="3")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -657,9 +667,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3", "slidingStep"="3")(IN
 总数目：5
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.3
 
--- [1]82:select sum_sec(s1,'windowSize'=3) from root.udf.d2
+-- [1]85:select sum_sec(s1,'windowSize'='3') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3")(INT32)      |
 ----------------------------------------------------------------------
@@ -675,9 +685,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3")(INT32)      |
 总数目：5
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.3
 
--- [1]84:select sum_sec(s1, 'windowSize'=15) from root.udf.d2
+-- [1]87:select sum_sec(s1, 'windowSize'='15') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="15")(INT32)      |
 -----------------------------------------------------------------------
@@ -685,9 +695,9 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="15")(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]86:select sum_sec(s1,'windowSize'=3, 'slidingStep'=4) from root.udf.d2
+-- [1]89:select sum_sec(s1,'windowSize'='3', 'slidingStep'='4') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3", "slidingStep"="4")(INT32)      |
 -----------------------------------------------------------------------------------------
@@ -701,15 +711,15 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "windowSize"="3", "slidingStep"="4")(IN
 总数目：4
 }
 
-Elapsed Time: 0.0.6
--- [1]88:select s1 into root.udf.dd2(::) from root.udf.d2
+Elapsed Time: 0.0.4
+-- [1]91:select s1 into root.udf.dd2(::) from root.udf.d2
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.1
 
--- [1]92:select * from root.udf.dd2
+-- [1]95:select * from root.udf.dd2
 STRICT{
 Time(TIME)      |root.udf.dd2.s1(INT32)      |
 --------------------------------------------
@@ -743,9 +753,9 @@ Time(TIME)      |root.udf.dd2.s1(INT32)      |
 总数目：14
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]94:select sum_sec(s1,'windowSize'=1, 'slidingStep'=1) from root.udf.dd2
+-- [1]97:select sum_sec(s1,'windowSize'='1', 'slidingStep'='1') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="1", "slidingStep"="1")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -779,9 +789,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="1", "slidingStep"="1")(I
 总数目：14
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.6
 
--- [1]95:select sum_sec(s1,'windowSize'=1, 'slidingStep'=5) from root.udf.dd2
+-- [1]98:select sum_sec(s1,'windowSize'='1', 'slidingStep'='5') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="1", "slidingStep"="5")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -793,9 +803,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="1", "slidingStep"="5")(I
 总数目：3
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]96:select sum_sec(s1,'windowSize'=5, 'slidingStep'=1) from root.udf.dd2
+-- [1]99:select sum_sec(s1,'windowSize'='5', 'slidingStep'='1') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5", "slidingStep"="1")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -829,9 +839,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5", "slidingStep"="1")(I
 总数目：14
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]98:select sum_sec(s1,'windowSize'=5, 'slidingStep'=5) from root.udf.dd2
+-- [1]101:select sum_sec(s1,'windowSize'='5', 'slidingStep'='5') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5", "slidingStep"="5")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -843,9 +853,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5", "slidingStep"="5")(I
 总数目：3
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
 
--- [1]99:select sum_sec(s1,'windowSize'=5) from root.udf.dd2
+-- [1]102:select sum_sec(s1,'windowSize'='5') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5")(INT32)      |
 -----------------------------------------------------------------------
@@ -857,9 +867,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="5")(INT32)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.3
 
--- [1]101:select sum_sec(s1,'windowSize'=3, 'slidingStep'=3) from root.udf.dd2
+-- [1]104:select sum_sec(s1,'windowSize'='3', 'slidingStep'='3') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3", "slidingStep"="3")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -875,9 +885,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3", "slidingStep"="3")(I
 总数目：5
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.3
 
--- [1]102:select sum_sec(s1,'windowSize'=3) from root.udf.dd2
+-- [1]105:select sum_sec(s1,'windowSize'='3') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3")(INT32)      |
 -----------------------------------------------------------------------
@@ -893,9 +903,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3")(INT32)      |
 总数目：5
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.3
 
--- [1]104:select sum_sec(s1, 'windowSize'=15) from root.udf.dd2
+-- [1]107:select sum_sec(s1, 'windowSize'='15') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="15")(INT32)      |
 ------------------------------------------------------------------------
@@ -903,9 +913,9 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="15")(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.3
 
--- [1]106:select sum_sec(*,'windowSize'=3, 'slidingStep'=4) from root.udf.dd2
+-- [1]109:select sum_sec(*,'windowSize'='3', 'slidingStep'='4') from root.udf.dd2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3", "slidingStep"="4")(INT32)      |
 ------------------------------------------------------------------------------------------
@@ -919,12 +929,8 @@ Time(TIME)      |sum_sec(root.udf.dd2.s1, "windowSize"="3", "slidingStep"="4")(I
 总数目：4
 }
 
-Elapsed Time: 0.0.7
--- [1]108:drop DATABASE root.**
-STRICT{
-PASS
-}
--- [1]109:drop function sum_sec
+Elapsed Time: 0.0.4
+-- [1]112:drop function sum_sec
 STRICT{
 PASS
 }

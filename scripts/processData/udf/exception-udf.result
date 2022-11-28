@@ -1,7 +1,3 @@
--- [1]15:create storage group root.udf
-STRICT{
-PASS
-}
 -- [1]16:create timeseries root.udf.exp1.s1 with datatype=int32
 STRICT{
 PASS
@@ -15,16 +11,15 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.272
--- [1]22:create function validate_exp as "com.timecho.udf.exception.ExceptionValidata"
+Elapsed Time: 0.0.7
+-- [1]22:create function validate_exp as "com.timecho.udf.exception.ExceptionValidate"
 STRICT{
-SQLSTATE : 1200: Failed to load class 'com.timecho.udf.exception.ExceptionValidata', because it's not found in jar file: null
-EXPECT:PASS
+PASS
 }
 -- [1]23:select validate_exp(s1) from root.udf.exp1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
-java.lang.RuntimeException: Failed to reflect UDF instance, because UDF VALIDATE_EXP has not been registered.
+java.lang.RuntimeException: validate exception
 }
 -- [1]27:create function beforeStart_exp as "com.timecho.udf.exception.ExceptionBeforeStart"
 STRICT{
@@ -41,7 +36,8 @@ PASS
 }
 -- [1]34:select transform_exp(s1) from root.udf.exp1
 STRICT{
-SQLSTATE : 305: [INTERNAL_SERVER_ERROR(305)] Exception occurred: "select transform_exp(s1) from root.udf.exp1". executeStatement failed. Task was cancelled.
+SQLSTATE : 301: Error occurred during executing UDTF#transform(Row, PointCollector): 
+java.lang.RuntimeException: ExceptionTransform exception
 }
 -- [1]39:create function terminate_exp as "com.timecho.udf.exception.ExceptionTerminate"
 STRICT{
@@ -49,7 +45,8 @@ PASS
 }
 -- [1]40:select terminate_exp(s1) from root.udf.exp1
 STRICT{
-SQLSTATE : 305: [INTERNAL_SERVER_ERROR(305)] Exception occurred: "select terminate_exp(s1) from root.udf.exp1". executeStatement failed. Task was cancelled.
+SQLSTATE : 301: Error occurred during executing UDTF#terminate(PointCollector): 
+java.lang.RuntimeException: ExceptionTerminate exception
 }
 -- [1]45:create function beforeDestroy_exp as "com.timecho.udf.exception.ExceptionBeforeDestroy"
 STRICT{
@@ -59,4 +56,30 @@ PASS
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 java.lang.RuntimeException: beforeDestroy exception
+}
+-- [1]50:delete timeseries root.udf.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.253
+-- [1]51:drop function validate_exp
+STRICT{
+PASS
+}
+-- [1]52:drop function beforeStart_exp
+STRICT{
+PASS
+}
+-- [1]53:drop function transform_exp
+STRICT{
+PASS
+}
+-- [1]54:drop function terminate_exp
+STRICT{
+PASS
+}
+-- [1]55:drop function beforeDestroy_exp
+STRICT{
+PASS
 }

@@ -6,7 +6,7 @@ connect root/root;
 -- select into
 -- include null
 
-DROP DATABASE root.**;<<NULL;
+delete timeseries root.udf.**;<<NULL;
 DROP FUNCTION SUM_SEC;<<NULL;
 
 create function sum_sec as "com.timecho.udf.normal.TestSlidingTimeWindowAccessStrategy";
@@ -21,10 +21,10 @@ insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(
 -- 检验
 -- quote
 // IOTDB-4926
-select sum_sec(s1, interval=3) from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1, interval=3) from root.udf.d1;
 select sum_sec(s1, 'interval'='3') from root.udf.d1;
 select sum_sec(s1, "interval"='3') from root.udf.d1;
-select sum_sec(s1, `interval`='3') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1, `interval`='3') from root.udf.d1;
 select sum_sec(s1, 'interval'='3') from root.udf.d1;
 select sum_sec(s1, 'interval'="3") from root.udf.d1;
 select sum_sec(s1, 'interval'=`3`) from root.udf.d1;<<SQLSTATE;
@@ -50,6 +50,9 @@ select sum_sec(s1,'interval'='-1') from root.udf.d1;<<SQLSTATE;
 select sum_sec(s1,'interval'='3', 'step'='3', 'end'='1') from root.udf.d1;<<SQLSTATE;
 select sum_sec(s1,'interval'='3', 'step'='3', 'start'='2') from root.udf.d1;<<SQLSTATE;
 
+-- 非number
+select sum_sec(s1,'interval'='a') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'interval'='3', 'step'='a') from root.udf.d1;<<SQLSTATE;
 
 -- all null
 select sum_sec(ss1,'interval'='3') from root.udf.d1;
@@ -133,7 +136,7 @@ select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.dd2;
 -- 多列
 select sum_sec(*,'interval'='15') from root.udf.dd2;
 
-DROP DATABASE root.**;
+delete timeseries root.udf.**;<<NULL;
 DROP FUNCTION SUM_SEC;
 
 
