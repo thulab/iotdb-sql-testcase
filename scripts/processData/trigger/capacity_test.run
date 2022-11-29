@@ -1,50 +1,50 @@
-connect root/root;
+//connect root/root;
 -- 执行缩容扩容基础脚本,需要手动执行后续操作.
 -- 需要单独执行。
 
-drop trigger `cap_multi_double`;<<NULL;
-drop DATABASE root.**;<<NULL;
+//drop trigger `cap_multi_double`;<<NULL;
+//delete timeseries root.**;<<NULL;
 
 //drop function `my_sum`;
 //create function my_sum as "com.timecho.udf.normal.MySum";
 
-CREATE TIMESERIES root.stateless.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
-CREATE TIMESERIES root.stateless.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
-CREATE TIMESERIES root.stateless.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+//CREATE TIMESERIES root.stateless.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+//CREATE TIMESERIES root.stateless.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+//CREATE TIMESERIES root.stateless.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+//
+//CREATE ALIGNED TIMESERIES root.ln.alerting (table_name text, alert_content text);
+//
+//CREATE STATELESS TRIGGER `cap_multi_double`
+//AFTER INSERT
+//ON root.stateless.**
+//AS 'org.example.DoubleValueMonitor'
+//with ('remote_ip'='172.20.70.44','lo'=700, 'hi'=1000);
+//
+//insert into root.stateless.d1(time, s1, s2, s3) values(1, 100,200,300),(2,400, 600, 765),(3,7400, 600, 765),(4,400, 600, 565),(5,400, 710, 665);
 
-CREATE ALIGNED TIMESERIES root.ln.alerting (table_name text, alert_content text);
 
-CREATE STATELESS TRIGGER `cap_multi_double`
-AFTER INSERT
-ON root.stateless.**
-AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30','lo'=700, 'hi'=1000);
-
-insert into root.stateless.d1(time, s1, s2, s3) values(1, 100,200,300),(2,400, 600, 765),(3,7400, 600, 765),(4,400, 600, 565),(5,400, 710, 665);
-
-
-drop trigger `cap-stateful-beforeInsert`;<<NULL;
-CREATE aligned TIMESERIES root.stateful.d1(s1 DOUBLE, s2 float, s3 int32);
-
-CREATE STATEful TRIGGER `cap-stateful-beforeInsert` before INSERT ON root.stateful.** AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.31.30', 'data_type'='double', 'standard_value'=100, 'trig_name'='cap-stateful-beforeInsert');
-
--- 2
-show triggers;
-
-insert into root.stateful.d1(time, s1, s2,s3) aligned values (10, 101,202,83),(20,2222,333,444),(30,333,104,34),(40,30,333,445),(50,99,100,1002),(51,20,3,44)(52,30,33,35);
-
---12
-show timeseries root.**;
-
--- 5
-select * from root.stateless.d1;
--- 4
-select * from root.ln.alerting;
-
--- 7
-select * from root.stateful.d1;
--- 1
-select * from root.target.alerting.stateful;
+//drop trigger `cap-stateful-beforeInsert`;<<NULL;
+//CREATE aligned TIMESERIES root.stateful.d1(s1 DOUBLE, s2 float, s3 int32);
+//
+//CREATE STATEful TRIGGER `cap-stateful-beforeInsert` before INSERT ON root.stateful.** AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='cap-stateful-beforeInsert');
+//
+//-- 2
+//show triggers;
+//
+//insert into root.stateful.d1(time, s1, s2,s3) aligned values (10, 101,202,83),(20,2222,333,444),(30,333,104,34),(40,30,333,445),(50,99,100,1002),(51,20,3,44)(52,30,33,35);
+//
+//--12
+//show timeseries root.**;
+//
+//-- 5
+//select * from root.stateless.d1;
+//-- 4
+//select * from root.ln.alerting;
+//
+//-- 7
+//select * from root.stateful.d1;
+//-- 1
+//select * from root.target.alerting.stateful;
 
 
 //select my_sum(*) into root.stateless.d2 from root.stateless.d1;
@@ -65,9 +65,9 @@ select * from root.target.alerting.stateful;
 //CREATE TIMESERIES root.stateless.load.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 //CREATE aligned TIMESERIES root.stateful.load.rest(s1 DOUBLE, s2 float, s3 int32);
 
--- 清理:手动测试时注释
-drop trigger `cap_multi_double`;
-drop DATABASE root.**;
-drop trigger `cap-stateful-beforeInsert`;
+//-- 清理:手动测试时注释
+//drop trigger `cap_multi_double`;
+//delete timeseries root.**;
+//drop trigger `cap-stateful-beforeInsert`;
 
 

@@ -1,15 +1,15 @@
 connect root/root;
 
 -- 9. trigger链，trigger1 触发后插入 alert表，trigger2触发后通知用户
-drop DATABASE root.**;<<NULL;
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+delete timeseries root.**;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `double-beforeInsert`
 before INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip"="172.20.31.30",
+  "remote_ip"="172.20.70.44",
   "lo" = '5'
 );
 
@@ -19,55 +19,55 @@ ON root.ln.alerting.table_name
 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest'
 USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar'
 WITH (
-  'HOST'='172.20.31.30',
+  'HOST'='172.20.70.44',
   'data_type'='text',
-  'standard_value'='root.sg1.d1',
+  'standard_value'='root.triggertest.d1',
   'trig_name'='stateful-afterInsert'
 );
 
 sleep 200;
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (2, 2);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (3, 4);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (4, 6);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (5, 8);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (6, 18);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (7, 28);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (8, 38);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (2, 2);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (3, 4);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (4, 6);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 18);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (7, 28);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (8, 38);
 
 -- 8
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 -- 5
 select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-drop DATABASE root.**;<<NULL;
+delete timeseries root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;
 
 -- 10. 同一个timeseries上有多个trigger, 有状态和无状态各一个
-drop DATABASE root.**;<<NULL;
-CREATE DATABASE root.sg1;
-CREATE ALIGNED TIMESERIES root.sg1.dev1 (s_1 DATATYPE=double ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN);
+delete timeseries root.**;<<NULL;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE ALIGNED TIMESERIES root.triggertest.dev1 (s_1 DATATYPE=double ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN);
 -- 临时增加，避免301:null
 sleep 500;
 
 CREATE STATELESS TRIGGER `double-beforeInsert`
 before INSERT
-ON root.sg1.dev1.*
+ON root.triggertest.dev1.*
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip"="172.20.31.30",
+  "remote_ip"="172.20.70.44",
   "lo" = '85'
 );
 CREATE STATEful TRIGGER `stateful-afterInsert`
 after INSERT
-ON root.sg1.dev1.*
+ON root.triggertest.dev1.*
 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest'
 USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar'
 WITH (
-  'HOST'='172.20.31.30',
+  'HOST'='172.20.70.44',
   'data_type'='double',
   'standard_value'='50',
   'trig_name'='stateful-afterInsert'
@@ -75,15 +75,15 @@ WITH (
 
 sleep 200;
 
-insert into root.sg1.dev1(time, s_1, s_2) aligned values(1, 105,109),(2, 33,56),(3,86,89),(4,50,56),(5,66,67),(6,77,78);
+insert into root.triggertest.dev1(time, s_1, s_2) aligned values(1, 105,109),(2, 33,56),(3,86,89),(4,50,56),(5,66,67),(6,77,78);
 
 -- 6
-select * from root.sg1.dev1;
+select * from root.triggertest.dev1;
 -- 2
 select * from root.ln.alerting;
 -- 1
 select * from root.target.alerting.stateful;
 
-drop DATABASE root.**;<<NULL;
+delete timeseries root.**;<<NULL;
 drop trigger `stateful-afterInsert`;
 drop trigger `double-beforeInsert`;

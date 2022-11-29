@@ -1,326 +1,248 @@
--- [1]8:set storage group to root.sg1
+-- [1]11:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]10:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
-STRICT{
-PASS
-}
--- [1]12:CREATE STATEful TRIGGER `stateful-beforeInsert` before INSERT ON root.sg1.d1.s1 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/trigger/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='stateful-beforeInsert')
+-- [1]13:CREATE STATEful TRIGGER `stateful-beforeInsert` before INSERT ON root.triggertest.d1.s1 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='172.20.70.44', 'data_type'='double', 'standard_value'=100, 'trig_name'='stateful-beforeInsert')
 STRICT{
 PASS
 }
 
--- [1]14:show triggers
+-- [1]15:show triggers
 STRICT{
-TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
-----------------------------------------------------------------------------------------------------------------------------------------
-stateful-beforeInsert  |BEFORE_INSERT    |STATEFUL        |ACTIVE           |root.sg1.d1.s1         |com.abc.trigger.state|5                  |
-                       |                 |                |                 |                       |ful.test.StatefulTri|                   |
-                       |                 |                |                 |                       |ggerTest             |                   |
-----------------------------------------------------------------------------------------------------------------------------------------
-stop-error             |AFTER_INSERT     |STATELESS       |DROPPING         |root.sg1.ddd.s1        |com.timecho.test.Exce|ALL                |
-                       |                 |                |                 |                       |ptionOnStopTrigger   |                   |
-总数目：2
-}
-
-Elapsed Time: 0.0.2
-
--- [1]15:show timeseries root.**
-STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.s1        |null             |root.sg1                 |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+stateful-beforeInsert  |BEFORE_INSERT    |STATEFUL        |ACTIVE           |root.triggertest.d1.s1 |com.abc.trigger.state|5                 |
+                       |                 |                |                 |                       |ful.test.StatefulTri|                  |
+                       |                 |                |                 |                       |ggerTest             |                  |
 总数目：1
 }
 
-Elapsed Time: 0.0.3
--- [1]16:insert into root.sg1.d1(time, s1) values (1, 10),(2,30)
+Elapsed Time: 0.0.1
+
+-- [1]16:show timeseries root.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.d1.s1|null             |root.triggertest    |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]17:insert into root.triggertest.d1(time, s1) values (1, 10),(2,30)
 STRICT{
 0
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.273
-=======
-Elapsed Time: 0.0.270
->>>>>>> origin
--- [1]17:flush
+Elapsed Time: 0.0.271
+-- [1]18:flush
 STRICT{
 PASS
 }
 
--- [1]18:show timeseries root.**
+-- [1]19:show timeseries root.**
 STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.s1        |null             |root.sg1                 |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.d1.s1|null             |root.triggertest    |DOUBLE              |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
 总数目：1
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.2
-=======
 Elapsed Time: 0.0.3
->>>>>>> origin
 
--- [1]20:select * from root.sg1.d1
+-- [1]21:select * from root.triggertest.d1
 STRICT{
-Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
---------------------------------------------
-1               |10.0                        |
---------------------------------------------
-2               |30.0                        |
+Time(TIME)      |root.triggertest.d1.s1(DOUBLE)      |
+----------------------------------------------------
+1               |10.0                                |
+----------------------------------------------------
+2               |30.0                                |
 总数目：2
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.8
-=======
-Elapsed Time: 0.0.7
->>>>>>> origin
+Elapsed Time: 0.0.5
 
--- [1]22:select * from root.target.alerting.stateful
+-- [1]23:select * from root.target.alerting.stateful
 STRICT{
 Time(TIME)      |
 总数目：0
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.1
-=======
-Elapsed Time: 0.0.2
->>>>>>> origin
--- [1]24:insert into root.sg1.d1(time, s1) values (3,80),(4,100),(5,20),(6,33),(7,109),(8,120)(9,85),(10,90)
+Elapsed Time: 0.0.0
+-- [1]25:insert into root.triggertest.d1(time, s1) values (3,80),(4,100),(5,20),(6,33),(7,109),(8,120)(9,85),(10,90)
 STRICT{
 0
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.540
-=======
-Elapsed Time: 0.0.554
->>>>>>> origin
--- [1]25:flush
+Elapsed Time: 0.0.543
+-- [1]26:flush
 STRICT{
 PASS
 }
 
--- [1]27:select * from root.sg1.d1
+-- [1]28:select * from root.triggertest.d1
 STRICT{
-Time(TIME)      |root.sg1.d1.s1(DOUBLE)      |
---------------------------------------------
-1               |10.0                        |
---------------------------------------------
-2               |30.0                        |
---------------------------------------------
-3               |80.0                        |
---------------------------------------------
-4               |100.0                       |
---------------------------------------------
-5               |20.0                        |
---------------------------------------------
-6               |33.0                        |
---------------------------------------------
-7               |109.0                       |
---------------------------------------------
-8               |120.0                       |
---------------------------------------------
-9               |85.0                        |
---------------------------------------------
-10              |90.0                        |
+Time(TIME)      |root.triggertest.d1.s1(DOUBLE)      |
+----------------------------------------------------
+1               |10.0                                |
+----------------------------------------------------
+2               |30.0                                |
+----------------------------------------------------
+3               |80.0                                |
+----------------------------------------------------
+4               |100.0                               |
+----------------------------------------------------
+5               |20.0                                |
+----------------------------------------------------
+6               |33.0                                |
+----------------------------------------------------
+7               |109.0                               |
+----------------------------------------------------
+8               |120.0                               |
+----------------------------------------------------
+9               |85.0                                |
+----------------------------------------------------
+10              |90.0                                |
 总数目：10
 }
 
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.6
 
--- [1]29:select * from root.target.alerting.stateful
+-- [1]30:select * from root.target.alerting.stateful
 STRICT{
 Time(TIME)      |root.target.alerting.stateful.trig_name(TEXT)      |root.target.alerting.stateful.ts_type(TEXT)      |root.target.alerting.stateful.value(TEXT)      |root.target.alerting.stateful.device(TEXT)      |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
-1668160843765   |stateful-beforeInsert                              |double                                           |0                                              |root.sg1.d1.s1                                  |
+1669693852588   |stateful-beforeInsert                              |double                                           |0                                              |root.triggertest.d1.s1                          |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1668160844297   |stateful-beforeInsert                              |double                                           |2                                              |root.sg1.d1.s1                                  |
+1669693853121   |stateful-beforeInsert                              |double                                           |2                                              |root.triggertest.d1.s1                          |
 总数目：2
 }
 
-Elapsed Time: 0.0.10
-=======
-1668389663059   |stateful-beforeInsert                              |double                                           |0                                              |root.sg1.d1.s1                                  |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1668389663605   |stateful-beforeInsert                              |double                                           |2                                              |root.sg1.d1.s1                                  |
-总数目：2
-}
-
-Elapsed Time: 0.0.11
->>>>>>> origin
--- [1]31:drop trigger `stateful-beforeInsert`
+Elapsed Time: 0.0.6
+-- [1]32:drop trigger `stateful-beforeInsert`
 STRICT{
 PASS
 }
--- [1]32:delete storage group root.**
+-- [1]33:delete timeseries root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.256
--- [1]41:set storage group to root.sg1
+Elapsed Time: 0.0.253
+-- [1]42:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]43:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=BOOLEAN, ENCODING=PLAIN
-STRICT{
-PASS
-}
--- [1]54:CREATE STATEful TRIGGER `stateful-afterInsert` after INSERT ON root.sg1.d1.s1 AS 'org.stateful.test.http.StatefulTriggerTest' Using uri 'http://127.0.0.1:8085/stateful-test-for-http-0.14-SNAPSHOT.jar'  WITH (   'HOST'= '172.20.70.44',   'data_type'= 'boolean',   'standard_value' = 1,   'trig_name' = 'stateful-afterInsert' )
+-- [1]53:CREATE STATEful TRIGGER `stateful-afterInsert` after INSERT ON root.triggertest.d1.s1 AS 'org.stateful.test.http.StatefulTriggerTest' Using uri 'http://127.0.0.1:8085/stateful-test-for-http-0.14-SNAPSHOT.jar'  WITH (   'HOST'= '172.20.70.44',   'data_type'= 'boolean',   'standard_value' = 1,   'trig_name' = 'stateful-afterInsert' )
 STRICT{
 PASS
 }
 
--- [1]56:show triggers
+-- [1]55:show triggers
 STRICT{
-TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |Node ID(TEXT)      |
-----------------------------------------------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
-stateful-afterInsert   |AFTER_INSERT     |STATEFUL        |ACTIVE           |root.sg1.d1.s1         |org.stateful.test.htt|5                  |
-=======
-stateful-afterInsert   |AFTER_INSERT     |STATEFUL        |ACTIVE           |root.sg1.d1.s1         |org.stateful.test.htt|1                  |
->>>>>>> origin
-                       |                 |                |                 |                       |p.StatefulTriggerTes|                   |
-                       |                 |                |                 |                       |t                    |                   |
-----------------------------------------------------------------------------------------------------------------------------------------
-stop-error             |AFTER_INSERT     |STATELESS       |DROPPING         |root.sg1.ddd.s1        |com.timecho.test.Exce|ALL                |
-                       |                 |                |                 |                       |ptionOnStopTrigger   |                   |
-总数目：2
-}
-
-<<<<<<< HEAD
-Elapsed Time: 0.0.2
-=======
-Elapsed Time: 0.0.1
->>>>>>> origin
-
--- [1]57:show timeseries root.**
-STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.s1        |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+stateful-afterInsert   |AFTER_INSERT     |STATEFUL        |ACTIVE           |root.triggertest.d1.s1 |org.stateful.test.htt|3                 |
+                       |                 |                |                 |                       |p.StatefulTriggerTes|                  |
+                       |                 |                |                 |                       |t                    |                  |
 总数目：1
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.3
-=======
-Elapsed Time: 0.0.2
->>>>>>> origin
--- [1]59:insert into root.sg1.d1(time, s1) values (1, 1),(2,1),(3,0),(4,1),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0),(11,1),(12,0),(13,0)
+Elapsed Time: 0.0.1
+
+-- [1]56:show timeseries root.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.d1.s1|null             |root.triggertest    |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]58:insert into root.triggertest.d1(time, s1) values (1, 1),(2,1),(3,0),(4,1),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0),(11,1),(12,0),(13,0)
 STRICT{
 0
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.829
-=======
-Elapsed Time: 0.0.799
->>>>>>> origin
--- [1]60:flush
+Elapsed Time: 0.0.36
+-- [1]59:flush
 STRICT{
 PASS
 }
 
--- [1]62:show timeseries root.**
+-- [1]61:show timeseries root.**
 STRICT{
-timeseries(TEXT)      |alias(TEXT)      |storage group(TEXT)      |dataType(TEXT)      |encoding(TEXT)      |compression(TEXT)      |tags(TEXT)      |attributes(TEXT)      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg1.d1.s1        |null             |root.sg1                 |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
-tateful.trig_name     |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
-tateful.ts_type       |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
-tateful.device        |                 |                         |                    |                    |                       |                |                      |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.target.alerting.s|null             |root.target              |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |
-tateful.value         |                 |                         |                    |                    |                       |                |                      |
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.d1.s1|null             |root.triggertest    |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+tateful.trig_name     |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+tateful.ts_type       |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+tateful.device        |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+tateful.value         |                 |                    |                    |                    |                       |                |                      |                    |                              |
 总数目：5
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.11
-=======
-Elapsed Time: 0.0.10
->>>>>>> origin
+Elapsed Time: 0.0.3
 
--- [1]64:select * from root.sg1.d1
+-- [1]63:select * from root.triggertest.d1
 STRICT{
-Time(TIME)      |root.sg1.d1.s1(BOOLEAN)      |
----------------------------------------------
-1               |true                         |
----------------------------------------------
-2               |true                         |
----------------------------------------------
-3               |false                        |
----------------------------------------------
-4               |true                         |
----------------------------------------------
-5               |false                        |
----------------------------------------------
-6               |false                        |
----------------------------------------------
-7               |false                        |
----------------------------------------------
-8               |false                        |
----------------------------------------------
-9               |false                        |
----------------------------------------------
-10              |false                        |
----------------------------------------------
-11              |true                         |
----------------------------------------------
-12              |false                        |
----------------------------------------------
-13              |false                        |
+Time(TIME)      |root.triggertest.d1.s1(BOOLEAN)      |
+-----------------------------------------------------
+1               |true                                 |
+-----------------------------------------------------
+2               |true                                 |
+-----------------------------------------------------
+3               |false                                |
+-----------------------------------------------------
+4               |true                                 |
+-----------------------------------------------------
+5               |false                                |
+-----------------------------------------------------
+6               |false                                |
+-----------------------------------------------------
+7               |false                                |
+-----------------------------------------------------
+8               |false                                |
+-----------------------------------------------------
+9               |false                                |
+-----------------------------------------------------
+10              |false                                |
+-----------------------------------------------------
+11              |true                                 |
+-----------------------------------------------------
+12              |false                                |
+-----------------------------------------------------
+13              |false                                |
 总数目：13
 }
 
-<<<<<<< HEAD
-Elapsed Time: 0.0.7
-=======
-Elapsed Time: 0.0.5
->>>>>>> origin
+Elapsed Time: 0.0.6
 
--- [1]66:select * from root.target.alerting.stateful
+-- [1]65:select * from root.target.alerting.stateful
 STRICT{
 Time(TIME)      |root.target.alerting.stateful.trig_name(TEXT)      |root.target.alerting.stateful.ts_type(TEXT)      |root.target.alerting.stateful.value(TEXT)      |root.target.alerting.stateful.device(TEXT)      |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
-1668160847310   |stateful-afterInsert                               |boolean                                          |2                                              |root.sg1.d1.s1                                  |
+1669693854392   |stateful-afterInsert                               |boolean                                          |1                                              |root.triggertest.d1.s1                          |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1668160847859   |stateful-afterInsert                               |boolean                                          |5                                              |root.sg1.d1.s1                                  |
+1669693854404   |stateful-afterInsert                               |boolean                                          |5                                              |root.triggertest.d1.s1                          |
 总数目：2
 }
 
-Elapsed Time: 0.0.8
-=======
-1668389666538   |stateful-afterInsert                               |boolean                                          |2                                              |root.sg1.d1.s1                                  |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1668389667070   |stateful-afterInsert                               |boolean                                          |5                                              |root.sg1.d1.s1                                  |
-总数目：2
-}
-
-Elapsed Time: 0.0.11
->>>>>>> origin
--- [1]68:drop trigger `stateful-afterInsert`
+Elapsed Time: 0.0.6
+-- [1]67:drop trigger `stateful-afterInsert`
 STRICT{
 PASS
 }
--- [1]69:delete storage group root.**
+-- [1]68:delete timeseries root.**
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.255
+Elapsed Time: 0.0.254
