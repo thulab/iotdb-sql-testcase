@@ -12,6 +12,7 @@ connect root/root;
 -- 5.2 onDrop throws exeption
 -- 5.3 jar 为0
 -- 5.4 FailureStrategy throw exception
+-- 5.5 unimplement Trigger class
 
 
 -- 1.1 名称校验：异常
@@ -52,70 +53,83 @@ show triggers;
 
 -- 1.2 名称校验:正常值
 -- 空值
-CREATE STATELESS TRIGGER `` 
+CREATE STATELESS TRIGGER ``
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 无引号
 CREATE STATELESS TRIGGER no_quote
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 无引号:下划线开头
 CREATE STATELESS TRIGGER _12ab
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 无引号:数字开头
 CREATE STATELESS TRIGGER 12ab
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 点
 CREATE STATELESS TRIGGER `window.avg.alerter`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 下划线
 CREATE STATELESS TRIGGER `window_avg_alerter`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 纯数字
 CREATE STATELESS TRIGGER `1`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 中文
 CREATE STATELESS TRIGGER `触发器`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 带空格
 CREATE STATEful TRIGGER `stateful trigger`
 after INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 特殊字符
 CREATE STATELESS TRIGGER `window#avg*alerter`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 转义
 CREATE STATELESS TRIGGER `window$avg\talerter`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 -- 关键字
 CREATE STATELESS TRIGGER `null`
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 
 CREATE STATELESS TRIGGER select
 AFTER INSERT
 ON root.sg1.d1.s1
-AS 'org.example.DoubleValueMonitor';
+AS 'org.example.DoubleValueMonitor'
+with ('remote_ip'='172.20.31.30');
 
 show triggers;
 
@@ -204,6 +218,7 @@ AFTER INSERT
 ON root.sg1.d1
 AS 'org.example.DoubleValueMonitor'
 WITH (
+  "remote_ip" = '172.20.31.30',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -256,6 +271,7 @@ before INSERT
 ON root.sg1.d1
 AS org.example.DoubleValueMonitor
 WITH (
+  "remote_ip" = '172.20.31.30',
   'lo' = '10'
 );
 <<SQLSTATE;
@@ -325,7 +341,7 @@ cREATE STATELESS TRIGGER `alert02`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
 ON root.sg1.d1
-WITH ('lo'='abc');
+WITH ( "remote_ip" = '172.20.31.30','lo'='abc');
 <<SQLSTATE;
 
 -- USING 子句
@@ -403,7 +419,7 @@ show triggers;
 drop DATABASE root.**;<<NULL;
 
 
--- 5.1 onCreate throws exception 
+-- 5.1 onCreate throws exception
 CREATE STATELESS TRIGGER `exception-onCreate`
 before INSERT
 ON root.sg1.d1.s1
@@ -438,4 +454,13 @@ AS 'com.timecho.test.ExceptionTrigger';
 insert into root.sg1.d1(time, s1) values (1, 2);<<SQLSTATE;
 
 drop trigger getFailureStrategy;
+
+
+-- 5.5 unimplement Trigger class
+create stateless trigger `unimplement_trigger`
+before insert
+on root.sg.d1.*
+as 'com.timecho.test.UnImplementTrigger';
+<<SQLSTATE;
+
 

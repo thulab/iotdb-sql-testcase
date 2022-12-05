@@ -10,8 +10,7 @@ CREATE DATABASE root.udf;
 CREATE TIMESERIES root.udf.d1.s1 WITH DATATYPE=text, ENCODING=PLAIN;
 CREATE TIMESERIES root.udf.d1.s2 WITH DATATYPE=text, ENCODING=PLAIN;
 
-select count_sec(s1, 'max_interval'=3, 'standard'='udf') from root.udf.d1;
-<<SQLSTATE;
+select count_sec(s1, 'max_interval'='3', 'standard'='udf') from root.udf.d1;
 
 insert into root.udf.d1 (time, s1, s2) values (1, 'udf', 'trigger'),(2, 'some' , 'old'),(3, null, 'trigger'),(9, 'udf', 'new'),(5, 'woman', 'udf'),(12, 'trigger', null),(14, 'udf', 14),(18, 'udf', 16),(21, 'trigger', 18),(24, 'udf', 20);
 
@@ -19,35 +18,37 @@ select * from root.udf.d1;
 -- 检查
 -- quotes with value
 select count_sec(s1, 'max_interval'=1, 'standard'=udf) from root.udf.d1;<<SQLSTATE;
-select count_sec(s1, 'max_interval'=1, 'standard'='udf') from root.udf.d1;
-select count_sec(s1, 'max_interval'=1, 'standard'="udf") from root.udf.d1;
+select count_sec(s1, 'max_interval'=1, 'standard'='udf') from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'=`1`, 'standard'=`udf`) from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf') from root.udf.d1;
+select count_sec(s1, 'max_interval'="1", 'standard'="udf") from root.udf.d1;
 -- null IOTDB-4934
-select count_sec(s1, 'max_interval'=1, 'standard'=null) from root.udf.d1;<<SQLSTATE;
-select count_sec(s1, 'max_interval'=1, 'standard'='null') from root.udf.d1;
+select count_sec(s1, 'max_interval'='1', 'standard'=null) from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='1', 'standard'='null') from root.udf.d1;
 
 -- 0
-select count_sec(s1, 'max_interval'=0, 'standard'='udf') from root.udf.d1;<<SQLSTATE;
-select count_sec(s1, 'max_interval'=-1, 'standard'='udf') from root.udf.d1;<<SQLSTATE;
-select count_sec(s1, 'max_interval'=1, 'standard'='udf','start'=0, 'end'=1) from root.udf.d1;
-select count_sec(s1, 'max_interval'=1,'standard'='udf','start'=1, 'end'=0) from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='0', 'standard'='udf') from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='-1', 'standard'='udf') from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf','start'='0', 'end'='1') from root.udf.d1;
+select count_sec(s1, 'max_interval'='1','standard'='udf','start'='1', 'end'='0') from root.udf.d1;<<SQLSTATE;
 -- start > end
-select count_sec(s1, 'max_interval'=1, 'standard'='udf','start'=3, 'end'=1) from root.udf.d1;<<SQLSTATE;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf','start'='3', 'end'='1') from root.udf.d1;<<SQLSTATE;
 -- start == end
-select count_sec(s1, 'max_interval'=1, 'standard'='udf','start'=2, 'end'=2) from root.udf.d1;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf','start'='2', 'end'='2') from root.udf.d1;
 
 -- 查询
 -- < max_interval
-select count_sec(s1, 'max_interval'=1, 'standard'='udf') from root.udf.d1;
-select count_sec(s1, 'max_interval'=2, 'standard'='udf') from root.udf.d1;
-select count_sec(s1, 'max_interval'=5, 'standard'='udf') from root.udf.d1;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf') from root.udf.d1;
+select count_sec(s1, 'max_interval'='2', 'standard'='udf') from root.udf.d1;
+select count_sec(s1, 'max_interval'='5', 'standard'='udf') from root.udf.d1;
 
 -- start end
-select count_sec(s1, 'max_interval'=3, 'standard'='udf', 'start'=0, 'end'=10) from root.udf.d1;
-select count_sec(s1, 'max_interval'=3, 'standard'='udf', 'start'=12, 'end'=24) from root.udf.d1;
+select count_sec(s1, 'max_interval'='3', 'standard'='udf', 'start'='0', 'end'='10') from root.udf.d1;
+select count_sec(s1, 'max_interval'='3', 'standard'='udf', 'start'='12', 'end'='24') from root.udf.d1;
 -- non-existent
-select count_sec(s1, 'max_interval'=5, 'standard'='udf2') from root.udf.d1;
+select count_sec(s1, 'max_interval'='5', 'standard'='udf2') from root.udf.d1;
 -- big value of interval(timestamp)
-select count_sec(s1, 'max_interval'=1668481541196, 'standard'='udf') from root.udf.d1;
+select count_sec(s1, 'max_interval'='1668481541196', 'standard'='udf') from root.udf.d1;
 
 
 -- aligned
@@ -59,17 +60,17 @@ select * from root.udf.d2;
 
 -- 查询
 -- < max_interval
-select count_sec(s1, 'max_interval'=1, 'standard'='udf') from root.udf.d2;
-select count_sec(s1, 'max_interval'=2, 'standard'='udf') from root.udf.d2;
-select count_sec(s1, 'max_interval'=5, 'standard'='udf') from root.udf.d2;
+select count_sec(s1, 'max_interval'='1', 'standard'='udf') from root.udf.d2;
+select count_sec(s1, 'max_interval'='2', 'standard'='udf') from root.udf.d2;
+select count_sec(s1, 'max_interval'='5', 'standard'='udf') from root.udf.d2;
 
 -- start end
-select count_sec(s1, 'max_interval'=3, 'standard'='udf', 'start'=0, 'end'=10) from root.udf.d2;
-select count_sec(s1, 'max_interval'=3, 'standard'='udf', 'start'=12, 'end'=24) from root.udf.d2;
+select count_sec(s1, 'max_interval'='3', 'standard'='udf', 'start'='0', 'end'='10') from root.udf.d2;
+select count_sec(s1, 'max_interval'='3', 'standard'='udf', 'start'='12', 'end'='24') from root.udf.d2;
 -- non-existent
-select count_sec(s1, 'max_interval'=5, 'standard'='udf2') from root.udf.d2;
+select count_sec(s1, 'max_interval'='5', 'standard'='udf2') from root.udf.d2;
 -- big value of interval(timestamp)
-select count_sec(s1, 'max_interval'=1668481541196, 'standard'='udf') from root.udf.d2;
+select count_sec(s1, 'max_interval'='1668481541196', 'standard'='udf') from root.udf.d2;
 
 -- 清理
 DROP DATABASE root.**;
