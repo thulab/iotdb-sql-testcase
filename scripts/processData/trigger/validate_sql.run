@@ -15,9 +15,8 @@ connect root/root;
 -- 5.5 unimplement Trigger class
 
 -- 清理
-delete timeseries root.triggertest.**;<<NULL;
-delete from root.ln.alerting.*;<<NULL;
-
+drop database root.**;<<NULL;
+sleep 2000;
 -- 1.1 名称校验：异常
 -- 纯数字
 CREATE STATELESS TRIGGER 123
@@ -134,15 +133,14 @@ ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 with ('remote_ip'='172.20.31.30');
 
-show triggers;
 
 CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
-
 sleep 500;
 -- 2条 defaut lo=50 hi=100
-select * from root.ln.alerting;
-delete timeseries root.**;
+select count(*) from root.ln.alerting;
+drop database root.**;<<NULL;
+sleep 2000;
 
 -- 2. drop trigger 名称检验
 -- 2.1 异常case
@@ -197,9 +195,9 @@ INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,1
 
 sleep 500;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 drop trigger `alert-error`;
-delete timeseries root.**;
+delete timeseries root.**;<<NULL;
 
 
 

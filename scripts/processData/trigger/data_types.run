@@ -4,7 +4,7 @@
 connect root/root;
 
 
-drop database root.triggertest.**;<<NULL;
+drop database root.**;<<NULL;
 sleep 5000;
 
 -- 1. 非对齐timeseries
@@ -53,7 +53,7 @@ sleep 200;
 -- 3条
 select * from root.triggertest.nonaligned_dev1;
 -- 3条
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
 CREATE STATELESS TRIGGER `datatype_float-s3`
 AFTER INSERT
@@ -106,21 +106,18 @@ show timeseries;
 //-- 13
 select * from root.triggertest.nonaligned_dev1;
 //-- 17
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
 -- 4.3 delete 操作不会触发
 delete from root.triggertest.nonaligned_dev1.*;
 //-- 0
 select * from root.triggertest.nonaligned_dev1;
 //-- 17
-select * from root.target.alerting;
--- 6
-show triggers;
+select count(*) from root.target.alerting;
 -- 4.4 delete timeseries，其上的触发器不会被删除
 delete timeseries root.triggertest.nonaligned_dev1.s_1;
-show triggers;
 //-- 17
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
 drop trigger `datatype_int-s1`;
 drop trigger `datatype_long-s2`;
@@ -130,6 +127,7 @@ drop trigger `datatype_text-s5`;
 drop trigger `datatype_boolean-s6`;
 SHOW TRIGGERS;
 delete timeseries root.**;<<NULL;
+sleep 1000;
 
 
 -- 2. aligned timeseries
@@ -173,7 +171,7 @@ sleep 200;
 -- 3
 select * from root.triggertest.aligned_dev1;
 -- 3
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
 CREATE STATELESS TRIGGER `aligned_float_s3`
 AFTER INSERT
@@ -218,7 +216,7 @@ sleep 200;
 -- 13
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.aligned_dev1;
 -- 17
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 -- 4.8  相同时间戳 更新一下值（4.9乱序）
 insert into root.triggertest.aligned_dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,100,200,500.45,200.55,'non trig',true),(2000,1150,1210,1100.45,1200.55,'non trig',false);
 
@@ -226,9 +224,9 @@ flush;
 -- 13
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.aligned_dev1;
 -- 23
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
-delete timeseries root.**;
+drop database root.**;<<NULL;
 drop trigger `aligned_int_s1`;
 drop trigger `aligned_long_s2`;
 drop trigger `aligned_float_s3`;

@@ -2,7 +2,9 @@ connect root/root;
 // 1 select into
 -- 1.1 普通序列into 普通序列
 -- 1.2 普通序列into aligned序列
-delete timeseries root.**;<<NULL;
+drop database root.**;<<NULL;
+sleep 2000;
+
 drop trigger trig1;<<NULL;
 drop trigger trig2;<<NULL;
 drop trigger trig3;<<NULL;
@@ -88,27 +90,27 @@ insert into root.triggertest.dev0(time,s_1,s_2) values(1,100,200),(2,300,400),(3
 insert into root.triggertest.dev0(time,s_1,s_2) values(11,1100,1200),(12,1300,1400),(13,1500,1600),(14,1700,1800),(15,1900,2000);
 insert into root.triggertest.dev0(time,s_1,s_2) values(111,11100,11200),(112,11300,11400),(113,11500,11600),(114,11700,11800),(115,11900,21000);
 flush;
-show devices;
 
 //-- select into
-select s_1,s_2,s_3,s_4,s_5,s_6 into root.triggertest.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.triggertest.dev0;
+//select s_1,s_2,s_3,s_4,s_5,s_6 into root.triggertest.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.triggertest.dev0;
+select s_1,s_2,s_3,s_4,s_5,s_6 into root.triggertest.dev1(::) from root.triggertest.dev0;
 
-sleep 500;
-show devices;
+sleep 3000;
 -- 15
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev0;
 -- 15
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev1;
 -- 26
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
-delete timeseries root.**;
+drop database root.**;<<NULL;
 drop trigger trig1;
 drop trigger trig2;
 drop trigger trig3;
 drop trigger trig4;
 drop trigger trig5;
 drop trigger trig6;
+sleep 2000;
 
 -- 1.2
 delete timeseries root.**;<<NULL;
@@ -184,18 +186,17 @@ insert into root.triggertest.dev0(time,s_1,s_2) values(1,100,200),(2,300,400),(3
 insert into root.triggertest.dev0(time,s_1,s_2) values(11,1100,1200),(12,1300,1400),(13,1500,1600),(14,1700,1800),(15,1900,2000);
 insert into root.triggertest.dev0(time,s_1,s_2) values(111,11100,11200),(112,11300,11400),(113,11500,11600),(114,11700,11800),(115,11900,21000);
 flush;
-show devices;
-select s_1,s_2,s_3,s_4,s_5,s_6 into aligned root.triggertest.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.triggertest.dev0;
-sleep 500;
-show devices;
+//select s_1,s_2,s_3,s_4,s_5,s_6 into aligned root.triggertest.dev1(s_1,s_2,s_3,s_4,s_5,s_6) from root.triggertest.dev0;
+select s_1,s_2,s_3,s_4,s_5,s_6 into aligned root.triggertest.dev1(::) from root.triggertest.dev0;
+sleep 3000;
 -- 15
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev0;
 -- 15
 select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev1;
 -- 26
-select * from root.target.alerting;
+select count(*) from root.target.alerting;
 
-delete timeseries root.**;
+drop database root.**;<<NULL;
 drop trigger trig1;
 drop trigger trig2;
 drop trigger trig3;

@@ -7,12 +7,13 @@ connect root/root;
 -- 5. 一个device下多个timeseries:单独插入，多值插入
 -- 6. 一个device下多个timeseries但仅有一个double
 -- 7. 单个timeseries和通配符叠加使用。key-value 单个,key使用双引号
--- 8. 类型不匹配,text类型注册double类型的trigger 
+-- 8. 类型不匹配,text类型注册double类型的trigger
 -- 9. 最小实现trigger类。同一个trigger类，建立stateful, stateless trigger
 
+drop database root.**;<<NULL;
+sleep 2000;
 
-delete timeseries root.**;<<NULL;
--- 1. 单个timeseries, 2个key-value, 单值insert 
+-- 1. 单个timeseries, 2个key-value, 单值insert
 CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `normal01`
@@ -21,7 +22,7 @@ ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
   'remote_ip'='172.20.31.30',
-  'lo' = '10', 
+  'lo' = '10',
   'hi' = '15.5'
 );
 -- case 1.1 同名检测
@@ -31,7 +32,7 @@ ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
   'remote_ip'='172.20.31.30',
-  'lo' = '10', 
+  'lo' = '10',
   'hi' = '15.5'
 );
 <<SQLSTATE;
@@ -62,7 +63,7 @@ SHOW DATABASES;
 show devices;
 show timeseries;
 -- 期望3个结果
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 8条
 select * from root.triggertest.d1;
 
@@ -96,7 +97,7 @@ INSERT INTO root.triggertest.d1(timestamp, s2) VALUES (6, 10),(7,12),(1,88),(8,1
 
 sleep 500;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 7条
 select * from root.triggertest.d1;
 show timeseries root.**;
@@ -130,7 +131,7 @@ insert into root.triggertest.d1 (time, s1, s2) values (4, 15.6, 210);
 flush;
 sleep 500;
 -- 期望4个值
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 4条
 select * from root.triggertest.d1;
 -- 清理
@@ -157,7 +158,7 @@ INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0),(2, 2),(3, 4),(4, 6
 flush;
 sleep 500;
 -- 期望3个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 9
 select * from root.triggertest.d1;
 
@@ -168,7 +169,7 @@ INSERT INTO root.triggertest.d2(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(
 flush;
 sleep 500;
 -- 期望5个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
 select * from root.triggertest.d2;
 
@@ -176,7 +177,7 @@ INSERT INTO root.triggertest.d3(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(
 flush;
 sleep 500;
 -- 期望5个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
 select * from root.triggertest.d3;
 
@@ -206,12 +207,12 @@ show triggers;
 insert into root.triggertest.d1(time,s2) values (1, 11.3),(2,10),(3,13.44);
 flush;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 
 insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13.44,15.6);
 flush;
 -- 5条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 6
 select * from root.triggertest.d1;
 
@@ -220,7 +221,7 @@ insert into root.triggertest.d2(time, s1) values (1000,29.768),(2000,5.65),(3000
 -- 3
 select * from root.triggertest.d2;
 -- 5
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 
 drop trigger `multiTS`;
 delete timeseries root.**;
@@ -246,14 +247,14 @@ show triggers;
 insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13, 15.6);
 flush;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 3
 select * from root.triggertest.d1;
 
 insert into root.triggertest.d1(time,s2) values (6, 11.3),(2,10),(3,19),(10,3);
 flush;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 6
 select * from root.triggertest.d1;
 
@@ -263,7 +264,7 @@ flush;
 -- 6
 select * from root.triggertest.d1;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 
 drop trigger `wildcard_1_sensor`;
 delete timeseries root.**;
@@ -292,7 +293,7 @@ INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
 
 sleep 500;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
 select * from root.triggertest.d1;
 
@@ -317,7 +318,7 @@ INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (10,120,80.00000000000
 -- 即时查询有时候查不到 sleep一下
 sleep 500;
 -- 期望10个值: 不包括5.00000000000000000000000000001
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 10
 select * from root.triggertest.d1;
 
@@ -349,7 +350,7 @@ insert into root.triggertest.d1 (time, text1) values (2, 'localpath');
 insert into root.triggertest.d1 (time, text1) values (3, 'prefix');
 insert into root.triggertest.d1 (time, text1) values (4, 'iotdb');
 -- 0
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 4
 select * from root.triggertest.d1;
 
@@ -368,8 +369,6 @@ before INSERT
 ON root.triggertest.d1.*
 AS 'com.timecho.test.EmptyTrigger';
 
--- 2
-show triggers;
 
 insert into root.triggertest.d1 (time, text1) values (7,'could');
 select * from root.triggertest.d1;
