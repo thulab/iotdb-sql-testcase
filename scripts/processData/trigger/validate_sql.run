@@ -14,36 +14,38 @@ connect root/root;
 -- 5.4 FailureStrategy throw exception
 -- 5.5 unimplement Trigger class
 
-
+-- 清理
+drop database root.**;<<NULL;
+sleep 2000;
 -- 1.1 名称校验：异常
 -- 纯数字
 CREATE STATELESS TRIGGER 123
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor';
 <<SQLSTATE;
 -- 单引号
 CREATE STATELESS TRIGGER 'window_avg_alerter'
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor';
 <<SQLSTATE;
 -- 双引号
 CREATE STATELESS TRIGGER "window_avg_alerter"
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor';
 <<SQLSTATE;
 -- 空值
 CREATE STATELESS TRIGGER
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor';
 <<SQLSTATE;
 -- 特殊字符‘
 CREATE STATELESS TRIGGER ‘n2’
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor';
 <<SQLSTATE;
 
@@ -55,91 +57,90 @@ show triggers;
 -- 空值
 CREATE STATELESS TRIGGER ``
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 无引号
 CREATE STATELESS TRIGGER no_quote
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 无引号:下划线开头
 CREATE STATELESS TRIGGER _12ab
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 无引号:数字开头
 CREATE STATELESS TRIGGER 12ab
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 点
 CREATE STATELESS TRIGGER `window.avg.alerter`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 下划线
 CREATE STATELESS TRIGGER `window_avg_alerter`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 纯数字
 CREATE STATELESS TRIGGER `1`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 中文
 CREATE STATELESS TRIGGER `触发器`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 带空格
 CREATE STATEful TRIGGER `stateful trigger`
 after INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 特殊字符
 CREATE STATELESS TRIGGER `window#avg*alerter`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 转义
 CREATE STATELESS TRIGGER `window$avg\talerter`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 -- 关键字
 CREATE STATELESS TRIGGER `null`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 
 CREATE STATELESS TRIGGER select
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
-with ('remote_ip'='172.20.31.30');
+with ('remote_ip'='127.0.0.1');
 
-show triggers;
 
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
-
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
 sleep 500;
 -- 2条 defaut lo=50 hi=100
-select * from root.ln.alerting;
-drop DATABASE root.**;
+select count(*) from root.ln.alerting;
+drop database root.**;<<NULL;
+sleep 2000;
 
 -- 2. drop trigger 名称检验
 -- 2.1 异常case
@@ -182,21 +183,21 @@ show triggers;
 -- 3. key-value 的key不正确,会忽略
 CREATE STATELESS TRIGGER `alert-error`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "looo" = '5'
 );
-CREATE DATABASE root.sg1;
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
 
 sleep 500;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 drop trigger `alert-error`;
-drop DATABASE root.**;
+delete timeseries root.**;<<NULL;
 
 
 
@@ -204,10 +205,10 @@ drop DATABASE root.**;
 -- 没有trigger类型:0.13版本
 CREATE  TRIGGER `window_avg_alerter01`
 AFTER INSERT
-on root.sg1.d1
+on root.triggertest.d1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -215,10 +216,10 @@ WITH (
 -- 错误的trigger类型
 CREATE STATE TRIGGER `window_avg_alerter01`
 AFTER INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -226,10 +227,10 @@ WITH (
 -- 错误的触发时机
 CREATE stateless TRIGGER `window_avg_alerter01`
 AFTER delete
-ON root.sg1.d1
+ON root.triggertest.d1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -240,7 +241,7 @@ CREATE STATELESS TRIGGER `window_avg_alerter01`
 AFTER INSERT
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -251,7 +252,7 @@ AFTER INSERT
 on root.root
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   "lo" = '0',
   'hi' = "10.0"
 );
@@ -259,39 +260,39 @@ WITH (
 -- 没有AS子句
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10'
 );
 <<SQLSTATE;
 -- 类名没有引号
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 AS org.example.DoubleValueMonitor
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10'
 );
 <<SQLSTATE;
 -- 类名没有包名
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 AS 'DoubleValueMonitor'
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10'
 );
 <<SQLSTATE;
 -- 类名为空
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 AS ''
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10',
   "hi" = "80"
 );
@@ -299,7 +300,7 @@ WITH (
 -- with 语句为空
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 AS 'org.example.DoubleValueMonitor'
 WITH ();
 <<SQLSTATE;
@@ -307,9 +308,9 @@ WITH ();
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10',
   hi = 80
 );
@@ -317,9 +318,9 @@ WITH (
 -- AS语句在最后
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1
+ON root.triggertest.d1
 WITH (
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10',
   hi = 80
 )
@@ -329,9 +330,9 @@ AS 'org.example.DoubleValueMonitor';
 cREATE STATELESS TRIGGER `alert02`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 WITH （
-  "remote_ip" = '172.20.31.30',
+  "remote_ip" = '127.0.0.1',
   'lo' = '10',
   hi = 80
 ）;
@@ -340,8 +341,8 @@ WITH （
 cREATE STATELESS TRIGGER `alert02`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
-WITH ( "remote_ip" = '172.20.31.30','lo'='abc');
+ON root.triggertest.d1
+WITH ( "remote_ip" = '127.0.0.1','lo'='abc');
 <<SQLSTATE;
 
 -- USING 子句
@@ -349,80 +350,80 @@ WITH ( "remote_ip" = '172.20.31.30','lo'='abc');
 CREATE STATELESS TRIGGER `using01`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI file:///data/nginx/stateful-test-0.14-snapshot.jar ;
 <<SQLSTATE;
 -- 没有uri关键字
 CREATE STATELESS TRIGGER `using02`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING 'file:///data/nginx/double-value-monitor-0.14-SNAPSHOT.jar' ;
 <<SQLSTATE;
 -- localpath 不存在
 CREATE STATELESS TRIGGER `using03`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI "file:///data/nginx/stateful-test.jar" ;
 <<SQLSTATE;
 -- uri 为空
 CREATE STATELESS TRIGGER `using04`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI '';
 <<SQLSTATE;
 CREATE STATELESS TRIGGER `using05`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI ;
 <<SQLSTATE;
 -- null
 CREATE STATELESS TRIGGER `using06`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI null;
 <<SQLSTATE;
 -- uri 符合格式但为空
 CREATE STATELESS TRIGGER `using07`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI 'file://';
 <<SQLSTATE;
 -- 不合法
 CREATE STATELESS TRIGGER `using08`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI '/data/nginx/double-value-monitor-0.14-SNAPSHOT.jar';
 <<SQLSTATE;
 -- 不合法
 CREATE STATELESS TRIGGER `using09`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI `file:///data/nginx/double-value-monitor-0.14-SNAPSHOT.jar`;
 <<SQLSTATE;
 -- http
 CREATE STATELESS TRIGGER `using10`
 before INSERT
 AS 'org.example.DoubleValueMonitor'
-ON root.sg1.d1
+ON root.triggertest.d1
 USING URI "https://apache-iotdb.feishu.cn/docx/doxcn8DbAHGeQUuwtOaOgsRIBlc";
 <<SQLSTATE;
 
 show triggers;
-drop DATABASE root.**;<<NULL;
+delete timeseries root.**;<<NULL;
 
 
 -- 5.1 onCreate throws exception
 CREATE STATELESS TRIGGER `exception-onCreate`
 before INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'com.timecho.test.ExceptionOnCreateTrigger';
 <<SQLSTATE;
 
@@ -430,16 +431,16 @@ AS 'com.timecho.test.ExceptionOnCreateTrigger';
 -- 5.2 onStop throw exception
 CREATE STATELESS TRIGGER `stop-error`
 AFTER INSERT
-ON root.sg1.ddd.s1
+ON root.triggertest.ddd.s1
 AS 'com.timecho.test.ExceptionOnStopTrigger';
 
-drop trigger `stop-error`; <<SQLSTATE;
+drop trigger `stop-error`;
 
 
 -- 5.3 jar 为空
 CREATE STATELESS TRIGGER `empty-jar`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'com.timecho.test.ExceptionOnStopTrigger'
 Using uri "file:///data/nginx/zero.jar";
 <<SQLSTATE;
@@ -448,10 +449,10 @@ Using uri "file:///data/nginx/zero.jar";
 -- 5.4 FailureStrategy throw exception
 CREATE STATELESS TRIGGER `getFailureStrategy`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'com.timecho.test.ExceptionTrigger';
 
-insert into root.sg1.d1(time, s1) values (1, 2);<<SQLSTATE;
+insert into root.triggertest.d1(time, s1) values (1, 2);<<SQLSTATE;
 
 drop trigger getFailureStrategy;
 

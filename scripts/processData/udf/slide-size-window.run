@@ -2,7 +2,8 @@ connect root/root;
 -- 1. attributes: step, interval
 -- 2. attributes: interval
 
-delete DATABASE root.**;<<NULL;
+drop database root.**;<<NULL;
+sleep 1000;
 
 create function sum_sec as "com.timecho.udf.normal.TestSlidingSizeWindowAccessStrategy";
 
@@ -26,6 +27,9 @@ select sum_sec(s1,'windowSize'='0', 'slidingStep'='3') from root.udf.d1;<<SQLSTA
 select sum_sec(s1,'windowSize'='-1') from root.udf.d1;<<SQLSTATE;
 -- all null
 select sum_sec(ss1,'windowSize'='3') from root.udf.d1;
+-- 非number
+select sum_sec(s1,'windowSize'='3', 'slidingStep'='a') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'windowSize'='a', 'slidingStep'='0') from root.udf.d1;<<SQLSTATE;
 
 -- 查询
 select * from root.udf.d1;
@@ -105,6 +109,6 @@ select sum_sec(s1, 'windowSize'='15') from root.udf.dd2;
 
 select sum_sec(*,'windowSize'='3', 'slidingStep'='4') from root.udf.dd2;
 
-drop DATABASE root.**;
+delete timeseries root.udf.**;<<NULL;
 drop function sum_sec;
 

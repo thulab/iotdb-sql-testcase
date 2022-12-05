@@ -1,20 +1,353 @@
--- [1]14:create user lily_create_trig '123456'
+-- [1]18:create user lily_create_trig '123456'
 STRICT{
 PASS
 }
--- [1]15:set storage group to root.sg1
+-- [1]21:CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]17:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]32:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_TRIGGER
+}
+-- [1]35:grant user lily_create_trig privileges CREATE_TRIGGER on root.triggertest.**
 STRICT{
 PASS
 }
--- [1]27:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.sg1.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '172.20.70.44',   'trig_name'='trig1' )
+-- [1]36:grant user lily_create_trig privileges READ_TIMESERIES on root.**
 STRICT{
-SQLSTATE : 602: No permissions for this operation, please add privilege CREATE_TRIGGER
+PASS
 }
--- [1]38:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.sg1.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '172.20.70.44',   'trig_name'='trig1' )
+-- [1]39:CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
-SQLSTATE : 602: No permissions for this operation, please add privilege CREATE_TRIGGER
+PASS
+}
+-- [1]40:CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]51:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+PASS
+}
+
+-- [1]51:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+trig1                  |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.dev0.s|TriggerTest          |ALL               |
+                       |                 |                |                 |_1                     |                     |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]52:insert into root.triggertest.dev0(time,s_1) values(1,100)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]62:CREATE STATELESS TRIGGER trig2 before INSERT ON root.triggertest.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+PASS
+}
+-- [1]72:CREATE STATELESS TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_TRIGGER
+}
+-- [1]73:drop trigger trig1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DROP_TRIGGER
+}
+-- [1]74:drop trigger trig2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DROP_TRIGGER
+}
+-- [1]117:drop user lily_create_trig
+STRICT{
+PASS
+}
+-- [1]118:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.253
+-- [1]126:create user lily_create_trig '123456'
+STRICT{
+PASS
+}
+-- [1]129:CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]131:CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]132:CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]132:grant user lily_create_trig privileges CREATE_TRIGGER on root.**
+STRICT{
+PASS
+}
+-- [1]133:grant user lily_create_trig privileges READ_TIMESERIES on root.**
+STRICT{
+PASS
+}
+
+-- [1]134:list privileges user lily_create_trig on root.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.** : READ_TIMESE|
+                |RIES CREATE_TRIGGER  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]135:list privileges user lily_create_trig on root.triggertest.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]136:list privileges user lily_create_trig on root.sg2.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]148:CREATE STATELESS TRIGGER trig1 before INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+PASS
+}
+
+-- [1]149:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+trig1                  |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.dev0.s|TriggerTest          |ALL               |
+                       |                 |                |                 |_1                     |                     |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]160:CREATE STATELESS TRIGGER trig2 AFTER INSERT ON root.triggertest.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+PASS
+}
+-- [1]169:CREATE STATELESS TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+STRICT{
+PASS
+}
+
+-- [1]169:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+trig1                  |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.dev0.s|TriggerTest          |ALL               |
+                       |                 |                |                 |_1                     |                     |                  |
+---------------------------------------------------------------------------------------------------------------------------------------
+trig2                  |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.dev1.s|TriggerTest          |ALL               |
+                       |                 |                |                 |_1                     |                     |                  |
+---------------------------------------------------------------------------------------------------------------------------------------
+trig3                  |AFTER_INSERT     |STATELESS       |ACTIVE           |root.sg2.dev0.s_1      |TriggerTest          |ALL               |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]171:revoke user lily_create_trig  privileges create_trigger on root.**
+STRICT{
+PASS
+}
+-- [1]172:drop trigger trig1
+STRICT{
+PASS
+}
+-- [1]173:drop trigger trig2
+STRICT{
+PASS
+}
+-- [1]174:drop trigger trig3
+STRICT{
+PASS
+}
+-- [1]186:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_TRIGGER
+}
+-- [1]196:CREATE STATELESS TRIGGER trig3 AFTER INSERT ON root.sg2.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig3' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_TRIGGER
+}
+-- [1]199:drop user lily_create_trig
+STRICT{
+PASS
+}
+-- [1]200:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.253
+-- [1]285:create role role_trigger
+STRICT{
+PASS
+}
+-- [1]286:create role role_trigger_status
+STRICT{
+PASS
+}
+-- [1]287:grant role role_trigger privileges create_trigger on root.triggertest
+STRICT{
+PASS
+}
+-- [1]288:grant role role_trigger privileges drop_trigger on root.triggertest
+STRICT{
+PASS
+}
+
+-- [1]289:list privileges role role_trigger on root.triggertest.**
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]290:list privileges role role_trigger_status on root.triggertest.**
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]293:CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]293:create user lily_create_trigger '123456'
+STRICT{
+PASS
+}
+
+-- [1]294:list privileges user lily_create_trigger on root.triggertest.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]295:grant  role_trigger to lily_create_trigger
+STRICT{
+PASS
+}
+
+-- [1]296:list privileges user lily_create_trigger on root.triggertest.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]297:grant user lily_create_trigger privileges create_trigger on root.triggertest.**
+STRICT{
+PASS
+}
+
+-- [1]298:list privileges user lily_create_trigger on root.triggertest.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.triggertest.** :|
+                | CREATE_TRIGGER      |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]310:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+PASS
+}
+-- [1]311:insert into root.triggertest.dev0(time,s_1) values(1,100)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.264
+-- [1]312:insert into root.triggertest.dev0(time,s_1) values(2,500)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.529
+
+-- [1]314:select * from root.triggertest.dev0
+STRICT{
+Time(TIME)      |root.triggertest.dev0.s_1(INT32)      |
+------------------------------------------------------
+1               |100                                   |
+------------------------------------------------------
+2               |500                                   |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]316:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                                                 |1                                               |1                                             |1                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.10
+-- [1]319:drop trigger trig1
+STRICT{
+PASS
+}
+
+-- [1]320:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]321:drop role role_trigger
+STRICT{
+PASS
+}
+-- [1]322:drop role role_trigger_status
+STRICT{
+PASS
+}
+
+-- [1]323:list privileges user lily_create_trigger on root.triggertest.**
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.triggertest.** :|
+                | CREATE_TRIGGER      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]334:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev0.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+PASS
+}
+-- [1]334:drop trigger trig1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DROP_TRIGGER
+}
+-- [1]337:drop user lily_create_trigger
+STRICT{
+PASS
 }

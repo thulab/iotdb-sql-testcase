@@ -1,25 +1,24 @@
 connect root/root;
 
 -- 带下划线
-//create function mymax as "Max";
 create function my_sum as "com.timecho.udf.normal.EnumBug";
 //create function my_sum as "com.timecho.udf.normal.MySum" using uri "file:///data/nginx/normla-udf-0.14-SNAPSHOT.jar";
-
+drop database root.**;<<NULL;
+sleep 1000;
 
 show functions;
 
-delete storage group root.**;<<NULL;
-set storage group to root.sg1;
-CREATE ALIGNED TIMESERIES root.sg1.dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN);
+create database root.udf;<<NULL;
+CREATE ALIGNED TIMESERIES root.udf.dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN);
 
-insert into root.sg1.dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,120,100.45,200.55,'non trig',false),(7000,320,260,100.45,200.55,'non trig',true),(8000,430,270,100.45,200.55,'',true),(9000,340,280,100.45,200.55,'non trig',true),(10000,650,600,800.45,900.55,'this statement is too long to process',0);
+insert into root.udf.dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,120,100.45,200.55,'non trig',false),(7000,320,260,100.45,200.55,'non trig',true),(8000,430,270,100.45,200.55,'',true),(9000,340,280,100.45,200.55,'non trig',true),(10000,650,600,800.45,900.55,'this statement is too long to process',0);
 
 -- 使用
-select my_sum(s_1) from root.sg1.dev1;
+select my_sum(s_1) from root.udf.dev1;
 
 
 -- 清理
-delete storage group root.**; <<NULL;
+delete timeseries root.udf.dev1.**;
 drop function my_sum;
 
 

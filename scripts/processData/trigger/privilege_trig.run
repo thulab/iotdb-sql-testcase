@@ -6,72 +6,58 @@ connect root/root;
 -- 1.3 revoke CREATE_TRIGGER;再create trigger;revoke does not have CREATE_TRIGGER on root.sg2
 // 2 DROP_TRIGGER
 // 3 **
-// 6 ROLE
-delete DATABASE root.**;<<NULL;
+// 6 ROLE 
+drop database root.**;<<NULL;
+sleep 2000;
+
 drop user lily_create_trig;<<NULL;
+drop trigger trig1;<<NULL;
+drop trigger trig2;<<NULL;
+drop trigger trig3;<<NULL;
 
 create user lily_create_trig '123456';
-CREATE DATABASE root.sg1;
-CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 -- 无任何权限
 connect lily_create_trig/123456;
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT
-ON root.sg1.dev0.s_1
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );<<SQLSTATE;
 
 -- 授权create
 connect root/root;
-grant user lily_create_trig privileges CREATE_TRIGGER on root.sg1.**;
+grant user lily_create_trig privileges CREATE_TRIGGER on root.triggertest.**;
 grant user lily_create_trig privileges READ_TIMESERIES on root.**;
-CREATE DATABASE root.sg2;
+CREATE DATABASE root.sg2;<<NULL;
 CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 
 connect lily_create_trig/123456;
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT
-ON root.sg1.dev0.s_1
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.70.44',
-  'trig_name'='trig1'
-);<<SQLSTATE;
-
--- 授权create
-connect root/root;
-grant user lily_create_trig privileges CREATE_TRIGGER on root.sg1.**;
-grant user lily_create_trig privileges READ_TIMESERIES on root.**;
-CREATE DATABASE root.sg2;
-CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-
-connect lily_create_trig/123456;
-CREATE STATELESS TRIGGER trig1
-AFTER INSERT
-ON root.sg1.dev0.s_1
-AS 'TriggerTest'
-WITH (
-  'ts_type' = 'int32',
-  'remote_ip' = '172.20.70.44',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
 show triggers;
-insert into root.sg1.dev0(time,s_1) values(1,100);<<SQLSTATE;
+insert into root.triggertest.dev0(time,s_1) values(1,100);<<SQLSTATE;
 
 CREATE STATELESS TRIGGER trig2
-AFTER INSERT
-ON root.sg1.dev1.s_1
+before INSERT
+ON root.triggertest.dev1.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig2'
 );
 CREATE STATELESS TRIGGER trig3
@@ -80,7 +66,7 @@ ON root.sg2.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig3'
 );
 <<SQLSTATE;
@@ -88,11 +74,11 @@ drop trigger trig1;<<SQLSTATE;
 drop trigger trig2;<<SQLSTATE;
 
 //connect root/root;
-//insert into root.sg1.dev0(time,s_1) values(1,100);
-//select s_1 from root.sg1.dev0;
+//insert into root.triggertest.dev0(time,s_1) values(1,100);
+//select s_1 from root.triggertest.dev0;
 //sleep 100;
 //select local_trig1,remotetrig1 from root.target.alerting;
-//grant user lily_create_trig privileges DROP_TRIGGER on root.sg1.**;
+//grant user lily_create_trig privileges DROP_TRIGGER on root.triggertest.**;
 //
 //connect lily_create_trig/123456;
 //drop trigger trig1;
@@ -101,71 +87,74 @@ drop trigger trig2;<<SQLSTATE;
 //show triggers;
 //CREATE STATELESS TRIGGER trig1
 //AFTER INSERT
-//ON root.sg1.dev0.s_1
+//ON root.triggertest.dev0.s_1
 //AS 'TriggerTest'
 //WITH (
 //  'ts_type' = 'int32',
-//  'remote_ip' = '172.20.70.44',
+//  'remote_ip' = '127.0.0.1',
 //  'trig_name'='trig1'
 //);
 //show triggers;
 //
 //
 //connect root/root;
-//revoke user lily_create_trig  privileges create_trigger on root.sg1.**;
+//revoke user lily_create_trig  privileges create_trigger on root.triggertest.**;
 //revoke user lily_create_trig  privileges create_trigger on root.sg2.**;<<SQLSTATE;
 //
 //connect lily_create_trig/123456;
 //CREATE STATELESS TRIGGER trig2
 //AFTER INSERT
-//ON root.sg1.dev1.s_1
+//ON root.triggertest.dev1.s_1
 //AS 'TriggerTest'
 //WITH (
 //  'ts_type' = 'int32',
-//  'remote_ip' = '172.20.70.44',
+//  'remote_ip' = '127.0.0.1',
 //  'trig_name'='trig2'
 //);
 //<<SQLSTATE;
 //
 connect root/root;
 drop user lily_create_trig;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 // grant **
-delete DATABASE root.**;<<NULL;
+delete timeseries root.**;<<NULL;
 drop user lily_create_trig;<<NULL;
+drop trigger trig1;<<NULL;
+drop trigger trig2;<<NULL;
+drop trigger trig3;<<NULL;
 create user lily_create_trig '123456';
-CREATE DATABASE root.sg1;
-CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-CREATE DATABASE root.sg2;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+CREATE DATABASE root.sg2;<<NULL;
 CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 grant user lily_create_trig privileges CREATE_TRIGGER on root.**;
 grant user lily_create_trig privileges READ_TIMESERIES on root.**;
 list privileges user lily_create_trig on root.**;
-list privileges user lily_create_trig on root.sg1.**;
+list privileges user lily_create_trig on root.triggertest.**;
 list privileges user lily_create_trig on root.sg2.**;
 
 connect lily_create_trig/123456;
 
 CREATE STATELESS TRIGGER trig1
-AFTER INSERT
-ON root.sg1.dev0.s_1
+before INSERT
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
 show triggers;
 
 CREATE STATELESS TRIGGER trig2
 AFTER INSERT
-ON root.sg1.dev1.s_1
+ON root.triggertest.dev1.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig2'
 );
 CREATE STATELESS TRIGGER trig3
@@ -174,24 +163,24 @@ ON root.sg2.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig3'
 );
 show triggers;
 connect root/root;
 revoke user lily_create_trig  privileges create_trigger on root.**;
-drop trigger trig1;
-drop trigger trig2;
+drop trigger trig1; 
+drop trigger trig2; 
 drop trigger trig3;
 connect lily_create_trig/123456;
 
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT
-ON root.sg1.dev0.s_1
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
 <<SQLSTATE;
@@ -201,48 +190,48 @@ ON root.sg2.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig3'
 );
 <<SQLSTATE;
 
 connect root/root;
 drop user lily_create_trig;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
 //// START_TRIGGER
-//delete DATABASE root.**;<<NULL;
+//delete timeseries root.**;<<NULL;
 //drop user lily_create_trig;<<NULL;
 //drop user lily_start_trig;<<NULL;
 //drop user lily_stop_trig;<<NULL;
 //create user lily_start_trig '123456';
 //create user lily_stop_trig '123456';
 //
-//CREATE DATABASE root.sg1;
-//CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-//CREATE DATABASE root.sg2;
+//CREATE DATABASE root.triggertest;<<NULL;
+//CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+//CREATE DATABASE root.sg2;<<NULL;
 //CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-//CREATE TIMESERIES root.sg1.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+//CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 //
 //CREATE STATELESS TRIGGER trig1
 //AFTER INSERT
-//ON root.sg1.dev0.s_1
+//ON root.triggertest.dev0.s_1
 //AS 'TriggerTest'
 //WITH (
 //  'ts_type' = 'int32',
-//  'remote_ip' = '172.20.70.44',
+//  'remote_ip' = '127.0.0.1',
 //  'trig_name'='trig1'
 //);
 //show triggers;
 //
 //CREATE STATELESS TRIGGER trig2
 //AFTER INSERT
-//ON root.sg1.dev1.s_1
+//ON root.triggertest.dev1.s_1
 //AS 'TriggerTest'
 //WITH (
 //  'ts_type' = 'int32',
-//  'remote_ip' = '172.20.70.44',
+//  'remote_ip' = '127.0.0.1',
 //  'trig_name'='trig2'
 //);
 //CREATE STATELESS TRIGGER trig3
@@ -251,7 +240,7 @@ delete DATABASE root.**;
 //AS 'TriggerTest'
 //WITH (
 //  'ts_type' = 'int32',
-//  'remote_ip' = '172.20.70.44',
+//  'remote_ip' = '127.0.0.1',
 //  'trig_name'='trig3'
 //);
 //
@@ -259,16 +248,16 @@ delete DATABASE root.**;
 //
 //connect lily_start_trig/123456;
 //drop trigger trig3;<<SQLSTATE;
-//
+// 
 //connect lily_stop_trig/123456;
 //drop trigger trig1;<<SQLSTATE;
 //
 //connect root/root;
 ////grant user lily_start_trig privileges START_TRIGGER on root.sg2.**;
-////grant user lily_stop_trig privileges STOP_TRIGGER on root.sg1.**;
-//grant user lily_stop_trig privileges DROP_TRIGGER on root.sg1.**;
+////grant user lily_stop_trig privileges STOP_TRIGGER on root.triggertest.**;
+//grant user lily_stop_trig privileges DROP_TRIGGER on root.triggertest.**;
 //list privileges user lily_start_trig on root.sg2.**;
-//list privileges user lily_stop_trig on root.sg1.**;
+//list privileges user lily_stop_trig on root.triggertest.**;
 //
 //connect lily_stop_trig/123456;
 //drop trigger trig1;
@@ -276,72 +265,76 @@ delete DATABASE root.**;
 //
 //connect root/root;
 //show triggers;
-//insert into root.sg1.dev0(time,s_1) values(1,100);
-//insert into root.sg1.dev1(time,s_1) values(2,200);
+//insert into root.triggertest.dev0(time,s_1) values(1,100);
+//insert into root.triggertest.dev1(time,s_1) values(2,200);
 //insert into root.sg2.dev0(time,s_1) values(3,300);
-//select s_1 from root.sg1.dev0;
-//select s_1 from root.sg1.dev1;
+//select s_1 from root.triggertest.dev0;
+//select s_1 from root.triggertest.dev1;
 //select s_1 from root.sg2.dev0;
 //sleep 100;
-//select * from root.target.alerting;
-//delete DATABASE root.**;
+//select count(*) from root.target.alerting;
+//delete timeseries root.**;
 //drop user lily_start_trig;
 //drop user lily_stop_trig;
 
 // 6 ROLE
 connect root/root;
-delete DATABASE root.**;<<NULL;
+delete timeseries root.**;<<NULL;
 drop role role_trigger;<<NULL;
 drop role role_trigger_status;<<NULL;
 create role role_trigger;
 create role role_trigger_status;
-grant role role_trigger privileges create_trigger on root.sg1;
-grant role role_trigger privileges drop_trigger on root.sg1;
-list privileges role role_trigger on root.sg1.**;
-list privileges role role_trigger_status on root.sg1.**;
-CREATE DATABASE root.sg1;
-CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
+grant role role_trigger privileges create_trigger on root.triggertest;
+grant role role_trigger privileges drop_trigger on root.triggertest;
+list privileges role role_trigger on root.triggertest.**;
+list privileges role role_trigger_status on root.triggertest.**;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 create user lily_create_trigger '123456';
-list privileges user lily_create_trigger on root.sg1.**;
+list privileges user lily_create_trigger on root.triggertest.**;
 grant  role_trigger to lily_create_trigger;
-list privileges user lily_create_trigger on root.sg1.**;
-grant user lily_create_trigger privileges create_trigger on root.sg1.**;
-list privileges user lily_create_trigger on root.sg1.**;
+list privileges user lily_create_trigger on root.triggertest.**;
+grant user lily_create_trigger privileges create_trigger on root.triggertest.**;
+list privileges user lily_create_trigger on root.triggertest.**;
 
 connect lily_create_trigger/123456;
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT
-ON root.sg1.dev0.s_1
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
 connect root/root;
-insert into root.sg1.dev0(time,s_1) values(1,100);
-select * from root.sg1.dev0;
+insert into root.triggertest.dev0(time,s_1) values(1,100);
+insert into root.triggertest.dev0(time,s_1) values(2,500);
+-- 2
+select * from root.triggertest.dev0;
+-- 1
+select count(*) from root.target.alerting;
+
 sleep 50;
-select local_trig1,remotetrig1 from root.target.alerting;
 drop trigger trig1;
 show triggers;
 drop role role_trigger;
 drop role role_trigger_status;
-list privileges user lily_create_trigger on root.sg1.**;
+list privileges user lily_create_trigger on root.triggertest.**;
 connect lily_create_trigger/123456;
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT
-ON root.sg1.dev0.s_1
+ON root.triggertest.dev0.s_1
 AS 'TriggerTest'
 WITH (
   'ts_type' = 'int32',
-  'remote_ip' = '172.20.31.30',
+  'remote_ip' = '127.0.0.1',
   'trig_name'='trig1'
 );
 drop trigger trig1;<<SQLSTATE;
 connect root/root;
-delete DATABASE root.**;
-drop user lily_create_trigger;
+drop database root.**;<<NULL;
+drop user lily_create_trigger; 
 drop trigger trig1;<<NULL;
 drop trigger trig2;<<NULL;
 drop trigger trig3;<<NULL;
