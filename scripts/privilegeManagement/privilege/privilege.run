@@ -1,30 +1,39 @@
-//1.赋予创建用户权限
---测试操作
+//一、赋予创建用户权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_USER;
---user01用户登录，执行创建用户
+
+--4. user01用户登录，执行创建用户
 connect user01/pass1234;
 CREATE USER user02 'pass1234';
---root登录，查看新增用户列表
+
+--5. root登录，查看新增用户列表
 connect root/root;
 list user;
---清理环境
+
+--6. 清理环境
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
 
 
-//2.列出所有用户，列出某用户权限，列出某用户具有的角色以及列出所有用户的角色四种操作的权限
---测试操作
+//二、列出所有用户，列出具有某角色的所有用户，列出用户在指定路径下相关权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -32,29 +41,35 @@ DROP USER user02;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
+
+--1. 创建用户
 CREATE ROLE manager;
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
 GRANT manager TO user01;
 GRANT manager TO user02;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES USER user02;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES LIST_USER;
 GRANT USER user02 PRIVILEGES CREATE_TIMESERIES on root.**;
---user01登录，执行查看用户
+
+--4. user01登录，执行查看用户
 connect user01/pass1234;
---列出用户
+--4.1 列出用户
 LIST USER;
---列出用户所有权限
+--4.2 列出用户所有权限
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES USER user02;
---列出用户在具体路径上相关联的权限
+--4.3 列出用户在具体路径上相关联的权限
 LIST PRIVILEGES USER user02 on root.**;
---列出指定角色下所有用户
+--4.4 列出指定角色下所有用户
 LIST USER OF ROLE manager;
---清理环境
+
+--5. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -64,25 +79,33 @@ DROP ROLE manager;
 <<NULL;
 
 
-//3.赋予修改所有用户的密码
---测试操作
+//三、赋予修改所有用户的密码
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES MODIFY_PASSWORD;
---user01登录，修改user02密码
+
+--4. user01登录，修改user02密码
 connect user01/pass1234;
 ALTER USER user02 SET PASSWORD 'passwd';
---user02登录，验证user02是否可正常登录
+
+--5. user02登录，验证user02是否可正常登录
 connect user02/passwd;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -90,159 +113,280 @@ DROP USER user02;
 <<NULL;
 
 
-//4.赋予删除用户权限
---测试操作
+//四、赋予删除用户权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES DELETE_USER;
---user01登录，执行删除user02
+
+--4. user01登录，执行删除user02
 connect user01/pass1234;
 DROP USER user02;
---查看用户列表中是否减少user02
+
+--5. root登录，查看用户列表中是否减少user02
 connect root/root;
 list user;
---清理环境
+
+--6. 清理环境
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
 
 
-//5.赋予创建存储组权限
---测试操作
+//五、赋予创建存储组权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
-GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP ON root.**;
---user01登录，执行创建存储组
+
+--3. 进行赋权
+GRANT USER user01 PRIVILEGES CREATE_DATABASE ON root.**;
+
+--4. user01登录，执行创建存储组
 connect user01/pass1234;
 CREATE DATABASE root.ln;
---查看存储组是否已创建好
+
+--5. root用户登录，查看存储组是否已创建好
 connect root/root;
 SHOW DATABASES root.ln;
---清理环境
+
+--6. 清理环境
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
 
 
-//6.赋予删除存储组权限
---测试操作
+//六、赋予删除存储组权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建存储组和用户
 CREATE DATABASE root.ln;
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行授权
-GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**;
---user01登录，执行删除存储组
+
+--3. 进行授权
+GRANT USER user01 PRIVILEGES DELETE_DATABASE on root.**;
+
+--4. user01登录，执行删除存储组
 connect user01/pass1234;
 delete DATABASE root.ln;
---清理环境
+
+--5. 查看存储组列表
 connect root/root;
 SHOW DATABASES root.**;
+
+--6. 清理环境
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
 
 
-//7.赋予创建时间序列权限
---测试操作
+//七、赋予创建时间序列权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户和存储组
 CREATE USER user01 'pass1234';
 CREATE DATABASE root.ln;
 CREATE DATABASE root.sg;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.ln.**;
 GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.sg.*;
---user01登录，执行创建时间序列
+
+--4. user01登录，执行创建时间序列
 connect user01/pass1234;
 create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE;
 create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY);
 create timeseries root.sg.d1 with datatype=INT32,encoding=RLE;
---查看时间序列是否已经创建好
+
+--5. 查看时间序列是否已经创建好
 connect root/root;
 show timeseries root.**;
---清理环境
+
+--6. 清理环境
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
 
 
-//8.赋予插入数据权限
---测试操作
+//八、赋予插入数据权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---创建存储组和时间序列
+
+--3. 创建存储组和时间序列
 CREATE DATABASE root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=RLE;
 create ALIGNED timeseries root.ln.wf02.wt02 (status BOOLEAN encoding=PLAIN compressor=SNAPPY, temperature FLOAT encoding=PLAIN compressor=SNAPPY); 
---进行赋权
+
+--4. 进行赋权
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**;
---user01登录，执行插入数据并查询
+
+--5. user01登录，执行插入数据并查询
 connect user01/pass1234;
 insert into root.ln.wf01.wt01(time,temperature) values(1,1);
 insert into root.ln.wf02.wt02(time,status,temperature) aligned values(1,true,2.1),(2,false,3.1),(3,true,4.1);
---查询数据
+
+--6. root用户登录，查询数据
 connect root/root;
 select * from root.**;
---清理环境
+
+--7. 清理环境
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
 
 
-//9.赋予查询数据权限
---测试操作
+//九、赋予修改时间序列标签权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST PRIVILEGES USER user01;
+
+--3. 创建存储组和时间序列
+CREATE DATABASE root.turbine;
+create timeseries root.turbine.d1.s1(temprature) with datatype=FLOAT, encoding=RLE, compression=SNAPPY tags(tag1=v1, tag2=v2, tag3=v3, tag4=v4) attributes(attr1=v1, attr2=v2);
+
+--4. 进行赋权
+GRANT USER user01 PRIVILEGES ALTER_TIMESERIES on root.**;
+
+--5. user01登录，重命名标签或属性
+connect user01/pass1234;
+ALTER timeseries root.turbine.d1.s1 RENAME tag1 TO newTag1;
+
+--6. root用户登录，查看时间序列
+connect root/root;
+show timeseries root.turbine.d1.s1;
+
+--7. user01登录，重新设置标签或属性的值
+connect user01/pass1234;
+ALTER timeseries root.turbine.d1.s1 SET newTag1=newV1, attr1=newV1;
+
+--8. root用户登录，查看时间序列
+connect root/root;
+show timeseries root.turbine.d1.s1;
+
+--9. user01登录，删除已经存在的标签或属性
+connect user01/pass1234;
+ALTER timeseries root.turbine.d1.s1 DROP tag3, tag4;
+
+--10. root用户登录，查看时间序列
+connect root/root;
+show timeseries root.turbine.d1.s1;
+
+--11. user01登录，添加新的标签和属性
+connect user01/pass1234;
+ALTER timeseries root.turbine.d1.s1 ADD TAGS tag5=v5;
+ALTER timeseries root.turbine.d1.s1 ADD ATTRIBUTES attr3=v3, attr4=v4;
+
+--12. root用户登录，查看时间序列
+connect root/root;
+show timeseries root.turbine.d1.s1;
+
+--13. user01登录，更新插入别名，标签和属性
+connect user01/pass1234;
+ALTER timeseries root.turbine.d1.s1 UPSERT ALIAS=newAlias TAGS(tag2=newV2, tag3=v3) ATTRIBUTES(attr3=v3, attr4=v4);
+
+--14. root用户登录，查看时间序列
+connect root/root;
+show timeseries root.turbine.d1.s1;
+
+--15. 清理环境
+DROP USER user01;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+
+
+//十、赋予查询数据权限
+
+--0. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+
+--1. 创建用户
+CREATE USER user01 'pass1234';
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES  USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
+
+--4. 插入数据
 insert into root.ln.wf01.wt01(time,temperature) values(1,1);
---user01登录，执行查询数据
+
+--5. user01登录，执行查询数据
 connect user01/pass1234;
 select temperature from root.ln.wf01.wt01;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -250,34 +394,46 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//10.赋予删除数据或时间序列权限
---测试操作
+//十一、赋予删除数据或时间序列权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户
+CREATE USER user01 'pass1234';
+
+--2. 创建存储组和时间序列，然后插入数据
 CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 insert into root.ln.wf01.wt01(time,temperature) values(1,1);
-CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--4. 进行赋权
 GRANT USER user01 PRIVILEGES DELETE_TIMESERIES on root.**;
---user01登录，执行删除数据
+
+--5. user01登录，执行删除数据
 connect user01/pass1234;
 delete from root.ln.wf01.wt01.temperature;
---root登录,执行查询，查看数据是否存在
+
+--6. root登录,执行查询，查看数据是否存在
 connect root/root;
 select temperature from root.ln.wf01.wt01;
---user01登录，执行删除时间序列
+
+--7. user01登录，执行删除时间序列
 connect user01/pass1234;
 delete timeseries root.ln.wf01.wt01.temperature;
---root登录,查询时间序列是否存在
+
+--8. root登录,查询时间序列是否存在
 connect root/root;
 show timeseries root.ln.wf01.wt01.temperature;
---清理环境
+
+--9. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -285,50 +441,33 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//11.赋予删除存储组权限
---测试操作
-connect root/root;
-DROP USER user01;
-<<NULL;
-DELETE DATABASE root.**;
-<<NULL;
-CREATE DATABASE root.ln;
-CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
-LIST PRIVILEGES USER user01;
---进行授权
-GRANT USER user01 PRIVILEGES DELETE_STORAGE_GROUP on root.**;
---user01登录，执行删除存储组
-connect user01/pass1234;
-delete DATABASE root.ln;
---清理环境
-connect root/root;
-SHOW DATABASES root.**;
-DROP USER user01;
-<<NULL;
-DELETE DATABASE root.**;
-<<NULL;
+//十二、 赋予创建角色权限
 
-
-//12.赋予创建角色权限
---测试操作
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP ROLE staff;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_ROLE;
---user01登录，执行创建角色
+
+--4. user01登录，执行创建角色
 connect user01/pass1234;
 create role staff;
---root登录，列出role列表
+
+--5. root登录，列出role列表
 connect root/root;
 list role;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -336,8 +475,9 @@ DROP ROLE staff;
 <<NULL;
 
 
-//13.赋予列出所有角色的操作权限
---测试操作
+//十三、赋予列出所有角色的操作权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -347,24 +487,33 @@ DROP ROLE manager;
 <<NULL;
 DROP ROLE staff;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
+
+--2. 创建角色
 CREATE ROLE manager;
 CREATE ROLE staff;
+
+--3. 将角色赋予给用户
 GRANT manager TO user02;
 GRANT staff TO user02;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--4. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--5. 进行赋权
 GRANT USER user01 PRIVILEGES LIST_ROLE;
---user01登录，执行查看角色列表权限
+
+--6. user01登录，执行查看角色列表权限
 connect user01/pass1234;
---列出所有角色
+--6.1 列出所有角色
 list role;
---列出指定用户下所有角色
+--6.2 列出指定用户下所有角色
 LIST ROLE OF USER user02;
 
---清理环境
+--7. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -376,26 +525,36 @@ DROP ROLE staff;
 <<NULL;
 
 
-//14.赋予删除角色操作权限
---测试操作
+//十四、赋予删除角色操作权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
+
+--2. 创建角色
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--4. 进行赋权
 GRANT USER user01 PRIVILEGES DELETE_ROLE;
---user01登录，执行删除角色
+
+--5. user01登录，执行删除角色
 connect user01/pass1234;
 DROP ROLE manager;
---root登录，查看role列表
+
+--6. root登录，查看role列表
 connect root/root;
 list role;
---清理环境
+
+--7. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -403,9 +562,9 @@ DROP ROLE manager;
 <<NULL;
 
 
+//十五、赋予用户权限
 
-//16.赋予用户权限
---测试操作
+--0. 清理环境
 connect root/root;
 DELETE DATABASE root.**;
 <<NULL;
@@ -413,22 +572,30 @@ DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE;
---user01登录，执行授权操作
+
+--4. user01登录，执行授权操作
 connect user01/pass1234;
-GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**;
---user02登录，执行操作
+GRANT USER user02 PRIVILEGES CREATE_DATABASE ON root.**;
+
+--5. user02登录，执行操作
 connect user02/pass1234;
 CREATE DATABASE root.sg;
---root登录,查看已创建的存储组
+
+--6. root登录,查看已创建的存储组
 connect root/root;
 SHOW DATABASES root.sg;
---清理环境
+
+--7. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -438,40 +605,53 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//17.撤销用户权限
---测试操作
+//十六、撤销用户权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP USER user02;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES GRANT_USER_PRIVILEGE;
---user01登录，执行授权操作
+
+--4. user01登录，执行授权操作
 connect user01/pass1234;
-GRANT USER user02 PRIVILEGES SET_STORAGE_GROUP ON root.**;
---user02登录，执行操作
+GRANT USER user02 PRIVILEGES CREATE_DATABASE ON root.**;
+
+--5. user02登录，执行操作
 connect user02/pass1234;
 CREATE DATABASE root.sg;
---root登录，查看已创建的存储组
+
+--6. root登录，查看已创建的存储组
 connect root/root;
 SHOW DATABASES root.sg;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--7. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--8. 进行赋权
 GRANT USER user01 PRIVILEGES REVOKE_USER_PRIVILEGE;
---user01登录，执行撤销user02的创建存储组权限
+
+--9. user01登录，执行撤销user02的创建存储组权限
 connect user01/pass1234;
-REVOKE USER user02 PRIVILEGES SET_STORAGE_GROUP on root.**;
---user02登录，执行创建存储组
+REVOKE USER user02 PRIVILEGES CREATE_DATABASE on root.**;
+
+--10. user02登录，执行创建存储组
 connect user02/pass1234;
 CREATE DATABASE root.sg1;
 <<SQLSTATE;
---清理环境
+
+--11. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -481,63 +661,83 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//18.赋予角色操作权限
---测试操作
-connect root/root;
-DROP USER user01;
-<<NULL;
-DROP ROLE manager;
-<<NULL;
-CREATE USER user01 'pass1234';
-CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
-LIST PRIVILEGES USER user01;
---进行赋权
-GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE;
---user01登录，执行角色赋予查询数据权限
-connect user01/pass1234;
-GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root.**;
---root登录，查看某角色拥有的权限
-connect root/root;
-LIST PRIVILEGES  ROLE manager;
---清理环境
+//十七、赋予角色操作权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DROP ROLE manager;
 <<NULL;
 
-
-//19.撤销角色操作权限
---测试操作
-connect root/root;
-DROP USER user01;
-<<NULL;
-DROP ROLE manager;
-<<NULL;
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE;
---user01登录，执行角色赋予查询数据权限
+
+--4. user01登录，执行角色赋予查询数据权限
 connect user01/pass1234;
 GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root.**;
---root登录，查看某角色拥有的权限
+
+--5. root登录，查看某角色拥有的权限
 connect root/root;
 LIST PRIVILEGES ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--6. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+
+
+//十八、撤销角色操作权限
+
+--0. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+
+--1. 分别创建用户和角色
+CREATE USER user01 'pass1234';
+CREATE ROLE manager;
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
+GRANT USER user01 PRIVILEGES GRANT_ROLE_PRIVILEGE;
+
+--4. user01登录，执行角色赋予查询数据权限
+connect user01/pass1234;
+GRANT ROLE manager PRIVILEGES READ_TIMESERIES ON root.**;
+
+--5. root登录，查看某角色拥有的权限
+connect root/root;
+LIST PRIVILEGES ROLE manager;
+
+--6. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST PRIVILEGES USER user01;
+
+--7. 进行赋权
 GRANT USER user01 PRIVILEGES REVOKE_ROLE_PRIVILEGE;
---user01登录，执行撤销角色赋予查询数据权限
+
+--8. user01登录，执行撤销角色赋予查询数据权限
 connect user01/pass1234;
 REVOKE ROLE manager PRIVILEGES READ_TIMESERIES ON root.**;
---root登录，查看某角色拥有的权限
+
+--9. root登录，查看某角色拥有的权限
 connect root/root;
 LIST PRIVILEGES ROLE manager;
---清理环境
+
+--10. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -545,8 +745,9 @@ DROP ROLE manager;
 <<NULL;
 
 
-//20.赋予用户角色操作权限
---测试操作
+//十九、赋予用户角色操作权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -556,23 +757,30 @@ DROP ROLE manager;
 <<NULL;
 DROP ROLE staff;
 <<NULL;
+
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
 CREATE ROLE manager;
 CREATE ROLE staff;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES USER user02;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES GRANT_USER_ROLE;
---user01登录，执行赋予user02角色权限
+
+--4. user01登录，执行赋予user02角色权限
 connect user01/pass1234;
 GRANT manager TO user02;
 GRANT staff TO user02;
---root登录，查看user02所属于的角色
+
+--5. root登录，查看user02所属于的角色
 connect root/root;
 LIST ROLE OF USER user02;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -584,8 +792,9 @@ DROP ROLE staff;
 <<NULL;
 
 
-//21.赋予取消用户角色操作权限
---测试操作
+//二十、赋予取消用户角色操作权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -595,31 +804,41 @@ DROP ROLE manager;
 <<NULL;
 DROP ROLE staff;
 <<NULL;
+
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
 CREATE ROLE manager;
 CREATE ROLE staff;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES GRANT_USER_ROLE;
---user01登录，执行赋予user02角色权限
+
+--4. user01登录，执行赋予user02角色权限
 connect user01/pass1234;
 GRANT manager TO user02;
 GRANT staff TO user02;
---root登录，执行查看user02角色列表
+
+--5. root登录，执行查看user02角色列表
 connect root/root;
 LIST ROLE OF USER user02;
---撤销user01赋予的角色权限
+
+--6. 撤销user01赋予的角色权限
 GRANT USER user01 PRIVILEGES REVOKE_USER_ROLE;
---user01登录，执行撤销user02查看角色列表权限
+
+--7. user01登录，执行撤销user02查看角色列表权限
 connect user01/pass1234;
 REVOKE manager FROM user02;
 REVOKE staff FROM user02;
---root登录，查看user02所有的角色
+
+--8. root登录，查看user02所有的角色
 connect root/root;
 LIST ROLE OF USER user02;
---清理环境
+
+--9. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -631,29 +850,37 @@ DROP ROLE staff;
 <<NULL;
 
 
-//22.赋予角色权限
---测试操作
+//二十一、赋予角色权限
+
+--0. 清理环境
 connect root/root;
 DROP ROLE manager;
 <<NULL;
+
+--1. 创建角色
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出角色权限）
 LIST PRIVILEGES ROLE manager;
---进行赋权
+
+--3. 进行赋权
 GRANT ROLE manager PRIVILEGES CREATE_USER;
-GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
+GRANT ROLE manager PRIVILEGES CREATE_DATABASE ON root.**;
 GRANT ROLE manager PRIVILEGES CREATE_ROLE;
---root登录，查看角色拥有的权限列表
+
+--4. root登录，查看角色拥有的权限列表
 connect root/root;
 LIST PRIVILEGES ROLE manager;
---清理环境
+
+--5. 清理环境
 connect root/root;
 DROP ROLE manager;
 <<NULL;
 
 
-//23.角色赋予权限后，再将角色赋予给用户操作
---测试操作
+//二十二、角色赋予权限后，再将角色赋予给用户操作
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -661,25 +888,35 @@ DROP ROLE manager;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出角色权限）
 LIST PRIVILEGES ROLE manager;
---进行赋权
-GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
---检验一下是否PRIVILEGES 已经存在（列出用户角色）
+
+--3. 进行赋权
+GRANT ROLE manager PRIVILEGES CREATE_DATABASE ON root.**;
+
+--4. 检验一下是否PRIVILEGES 已经存在（列出用户角色）
 LIST ROLE OF USER user01;
---进行赋权
+
+--5. 进行赋权
 GRANT manager TO user01;
---查看user01拥有的权限
+
+--6. 查看user01拥有的权限
 LIST PRIVILEGES USER user01;
---user01登录，执行操作
+
+--7. user01登录，执行操作
 connect user01/pass1234;
 CREATE DATABASE root.db;
---root登录，查看存储组
+
+--8. root登录，查看存储组
 connect root/root;
 SHOW DATABASES root.db;
---清理环境
+
+--9. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -689,8 +926,9 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//24.用户拥有某权限，所属的角色无任何权限,撤销权限后验证操作权限优先级
---测试操作
+//二十三、用户拥有某权限，所属的角色无任何权限,撤销权限后验证操作权限优先级
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -698,34 +936,46 @@ DROP ROLE manager;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户，角色，存储组
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
 CREATE DATABASE root.ln;
---检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES ROLE manager;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.**;
 GRANT manager TO user01;
---再次查看用户拥有的权限
+
+--4. 再次查看用户拥有的权限
 LIST PRIVILEGES USER user01;
---再次查看角色拥有的权限
+
+--5. 再次查看角色拥有的权限
 LIST PRIVILEGES ROLE manager;
---user01用户登录,执行操作权限
+
+--6. user01用户登录,执行操作权限
 connect user01/pass1234;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
---root登录，查看时间序列
+
+--7. root登录，查看时间序列
 connect root/root;
 show timeseries root.ln.wf01.wt01.temperature;
---撤销用户权限，验证操作权限
+
+--8. 撤销用户权限，验证操作权限
 REVOKE USER user01 PRIVILEGES CREATE_TIMESERIES on root.**;
---查看用户拥有的权限
+
+--9. 查看用户拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限(user01所属的role无任何权限)
+
+--10. user01用户登录,执行操作权限(user01所属的role无任何权限)
 connect user01/pass1234;
 CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
 <<SQLSTATE;
---清理环境
+
+--11. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -735,8 +985,9 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//25.用户无任何权限，所属的角色有某权限,撤销权限后验证操作权限优先级
---测试操作
+//二十四、用户无任何权限，所属的角色有某权限,撤销权限后验证操作权限优先级
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -744,35 +995,48 @@ DROP ROLE manager;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES ROLE manager;
---进行赋权
-GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
+
+--3. 进行赋权
+GRANT ROLE manager PRIVILEGES CREATE_DATABASE ON root.**;
 GRANT manager TO user01;
---查看角色manager拥有的权限
+
+--4. 查看角色manager拥有的权限
 LIST PRIVILEGES ROLE manager;
---查看user01拥有的权限
+
+--5. 查看user01拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限
+
+--6. user01用户登录,执行操作权限
 connect user01/pass1234;
 CREATE DATABASE root.ln;
---root登录，查看存储组
+
+--7. root登录，查看存储组
 connect root/root;
 SHOW DATABASES root.ln;
---撤销角色权限，验证操作权限
-REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
---查看角色拥有的权限
+
+--8. 撤销角色权限，验证操作权限
+REVOKE ROLE manager PRIVILEGES CREATE_DATABASE ON root.**;
+
+--9. 查看角色拥有的权限
 LIST PRIVILEGES ROLE manager;
---查看user01拥有的权限
+
+--10. 查看user01拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限(user01无任何权限)
+
+--11. user01用户登录,执行操作权限(user01无任何权限)
 connect user01/pass1234;
 CREATE DATABASE root.sg;
 <<SQLSTATE;
---清理环境
+ 
+--12. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -782,8 +1046,9 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//26.用户和所属的角色均有某权限，撤销角色权限，验证操作权限优先级
---测试操作
+//二十五、用户和所属的角色均有某权限，撤销角色权限，验证操作权限优先级
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -791,38 +1056,52 @@ DROP ROLE manager;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限和列出角色权限）
 LIST PRIVILEGES USER user01;
 LIST PRIVILEGES ROLE manager;
---进行赋权
-GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root.**;
-GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
+
+--3. 进行赋权
+GRANT USER user01 PRIVILEGES CREATE_DATABASE on root.**;
+GRANT ROLE manager PRIVILEGES CREATE_DATABASE ON root.**;
 GRANT manager TO user01;
---查看角色拥有的权限
+
+--4. 查看角色拥有的权限
 LIST PRIVILEGES ROLE manager;
---查看user01拥有的权限
+
+--5. 查看user01拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限
+
+--6. user01用户登录,执行操作权限
 connect user01/pass1234;
 CREATE DATABASE root.ln;
---root登录，查看存储组
+
+--7. root登录，查看存储组
 connect root/root;
 SHOW DATABASES root.ln;
---撤销角色权限，验证操作权限
+
+--8. 撤销角色权限，验证操作权限
 REVOKE ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
---查看角色拥有的权限
+
+--9. 查看角色拥有的权限
 LIST PRIVILEGES ROLE manager;
---查看用户拥有的权限
+
+--10. 查看用户拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限(user01有该权限)
+
+--11. user01用户登录,执行操作权限(user01有该权限)
 connect user01/pass1234;
 CREATE DATABASE root.sg;
---root登录，查看存储组
+
+--12. root登录，查看存储组
 connect root/root;
 SHOW DATABASES root.sg;
---清理环境
+
+--13. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -832,33 +1111,44 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//27.用户拥有某权限，删除用户后再次添加回来，验证权限是否存在
---测试操作
+//二十六、用户拥有某权限，删除用户后再次添加回来，验证权限是否存在
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
-GRANT USER user01 PRIVILEGES SET_STORAGE_GROUP on root.**;
---查看用户拥有的权限
+
+--3. 进行赋权
+GRANT USER user01 PRIVILEGES CREATE_DATABASE on root.**;
+
+--4. 查看用户拥有的权限
 LIST PRIVILEGES USER user01;
---user01用户登录,执行操作权限
+
+--5. user01用户登录,执行操作权限
 connect user01/pass1234;
 CREATE DATABASE root.ln;
---root登录，查看存储组
+
+--6. root登录，查看存储组
 connect root/root;
 SHOW DATABASES root.ln;
---删除user01，再次添加回来
+
+--7. 删除user01，再次添加回来
 DROP USER user01;
 LIST user;
 CREATE USER user01 'pass1234';
---验证该新添加回来的用户是否存在之前的权限
+
+--8. 验证该新添加回来的用户是否存在之前的权限
 LIST PRIVILEGES USER user01;
---清理环境
+
+--9. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -866,27 +1156,36 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//28.角色拥有某权限，删除角色后再次添加回来，验证权限是否存在
---测试操作
+//二十七、角色拥有某权限，删除角色后再次添加回来，验证权限是否存在
+
+--0. 清理环境
 connect root/root;
 DROP ROLE manager;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 创建角色
 CREATE ROLE manager;
---检验一下是否PRIVILEGES 已经存在（列出角色权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出角色权限）
 LIST PRIVILEGES ROLE manager;
---进行赋权
+
+--3. 进行赋权
 GRANT ROLE manager PRIVILEGES SET_STORAGE_GROUP ON root.**;
---查看角色拥有的权限
+
+--4. 查看角色拥有的权限
 LIST PRIVILEGES ROLE manager;
---删除角色manager，再次添加回来
+
+--5. 删除角色manager，再次添加回来
 DROP ROLE manager;
 list role;
 CREATE ROLE manager;
---验证该新添加回来的角色是否存在之前的权限
+
+--6. 验证该新添加回来的角色是否存在之前的权限
 LIST PRIVILEGES ROLE manager;
---清理环境
+
+--7. 清理环境
 connect root/root;
 DROP ROLE manager;
 <<NULL;
@@ -894,33 +1193,43 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//29.用户授予具体路径下某权限，验证其他路径是否有该权限
---测试操作
+//二十八、用户授予具体路径下某权限，验证其他路径是否有该权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户和存储组
 CREATE USER user01 'pass1234';
 CREATE DATABASE root.ln;
 CREATE DATABASE root.sg;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.ln.*.**;
---查看user01拥有的权限
+
+--4. 查看user01拥有的权限
 LIST PRIVILEGES USER user01;
---user01登录，执行操作
+
+--5. user01登录，执行操作
 connect user01/pass1234;
 CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
---root登录，查看时间序列是否已经创建好
+
+--6. root登录，查看时间序列是否已经创建好
 connect root/root;
 show timeseries root.ln.wf01.wt01.status;
---user01登录，在其他路径执行操作权限
+
+--7. user01登录，在其他路径执行操作权限
 connect user01/pass1234;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 <<SQLSTATE;
---清理环境
+
+--8. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -928,30 +1237,38 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//30.用户授予关于通配符路径root.**和root.sg.*.**的路径，验证创建时间序列的权限
---测试操作
+//二十九、用户授予关于通配符路径root.**和root.sg.*.**的路径，验证创建时间序列的权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户，存储组，时间序列
 CREATE USER user01 'pass1234';
 CREATE DATABASE root.ln;
 CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1.m1 with datatype=INT32,encoding=RLE;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES CREATE_TIMESERIES on root.**;
 GRANT USER user01 PRIVILEGES DELETE_TIMESERIES on root.sg.*.**;
---user01登录，执行操作
+
+--4. user01登录，执行操作
 connect user01/pass1234;
 CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
 DELETE TIMESERIES root.sg.d1.s1.m1;
---root登录，查看时间序列是否已经创建好
+
+--5. root登录，查看时间序列是否已经创建好
 connect root/root;
 show timeseries root.**;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -959,31 +1276,39 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//31.用户授予关于通配符路径root.**.wt01.**的路径，验证插入数据的权限
---测试操作
+//三十、用户授予关于通配符路径root.**.wt01.**的路径，验证插入数据的权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户，存储组，时间序列
 CREATE USER user01 'pass1234';
 CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 CREATE TIMESERIES root.ln.wf02.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
 CREATE TIMESERIES root.ln.wf03.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**.wt01.**;
---user01登录，执行插入数据操作
+
+--4. user01登录，执行插入数据操作
 connect user01/pass1234;
 insert into root.ln.wf01.wt01(time,temperature) values(1,1);
 insert into root.ln.wf02.wt01(time,temperature) values(1,2.1);
 insert into root.ln.wf03.wt01(time,temperature) values(1,3.1);
---root登录，查询user01插入的数据是否正确
+
+--5. root登录，查询user01插入的数据是否正确
 connect root/root;
 select * from root.**;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
@@ -991,27 +1316,35 @@ DELETE DATABASE root.**;
 <<NULL;
 
 
-//32.用户授予具体时间序列某权限
---测试操作
+//三十一、用户授予具体时间序列某权限
+
+--0. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
+
+--1. 分别创建用户，存储组和时间序列
 CREATE USER user01 'pass1234';
 CREATE DATABASE root.ln;
 CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--2. 检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--3. 进行赋权
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.ln.wf01.wt01.temperature;
---user01登录，执行插入数据操作
+
+--4. user01登录，执行插入数据操作
 connect user01/pass1234;
 insert into root.ln.wf01.wt01(time,temperature) values(1,1.1);
---root登录，查询user01插入的数据是否正确
+
+--5. root登录，查询user01插入的数据是否正确
 connect root/root;
 select * from root.**;
---清理环境
+
+--6. 清理环境
 connect root/root;
 DROP USER user01;
 <<NULL;
