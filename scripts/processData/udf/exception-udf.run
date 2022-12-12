@@ -5,14 +5,17 @@ connect root/root;
 -- 4. terminate throws exception
 -- 5. beforeDestroy throws exception
 
-drop database root.**;<<NULL;
+drop database root.udf;<<NULL;
+sleep 1000;
+
+delete timeseries root.udf.**;<<NULL;
 drop function validate_exp;<<NULL;
 drop function beforeStart_exp;<<NULL;
 drop function transform_exp;<<NULL;
 drop function terminate_exp;<<NULL;
 drop function beforeDestroy_exp;<<NULL;
 
-create storage group root.udf;
+create database root.udf;<<NULL;
 create timeseries root.udf.exp1.s1 with datatype=int32;
 create timeseries root.udf.exp1.s2 with datatype=int32;
 insert into root.udf.exp1(time,s1,s2) values (1,1,2),(2,2,3),(3,3,4),(4,4,5),(5,5,6);
@@ -47,7 +50,7 @@ select beforeDestroy_exp(s1) from root.udf.exp1;
 <<SQLSTATE;
 
 -- cleanup
-drop database root.**;
+delete timeseries root.udf.**;
 drop function validate_exp;
 drop function beforeStart_exp;
 drop function transform_exp;

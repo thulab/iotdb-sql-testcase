@@ -1,52 +1,39 @@
--- [1]12:create function sum_sec as "com.timecho.udf.normal.TestSlidingTimeWindowAccessStrategy"
+-- [1]13:create function sum_sec as "com.timecho.udf.normal.TestSlidingTimeWindowAccessStrategy"
 STRICT{
 PASS
 }
--- [1]15:CREATE TIMESERIES root.udf.d1.s1 WITH DATATYPE=int64, ENCODING=PLAIN
+-- [1]16:CREATE TIMESERIES root.udf.d1.s1 WITH DATATYPE=int64, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]16:CREATE TIMESERIES root.udf.d1.s2 WITH DATATYPE=int64, ENCODING=PLAIN
+-- [1]17:CREATE TIMESERIES root.udf.d1.s2 WITH DATATYPE=int64, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]17:CREATE TIMESERIES root.udf.d1.s3 WITH DATATYPE=int32, ENCODING=PLAIN
+-- [1]18:CREATE TIMESERIES root.udf.d1.s3 WITH DATATYPE=int32, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]18:CREATE TIMESERIES root.udf.d1.ss1 WITH DATATYPE=int64, ENCODING=PLAIN
+-- [1]19:CREATE TIMESERIES root.udf.d1.ss1 WITH DATATYPE=int64, ENCODING=PLAIN
 STRICT{
 PASS
 }
--- [1]19:insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20)
+-- [1]20:insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.271
--- [1]24:select sum_sec(s1, interval=3) from root.udf.d1
+Elapsed Time: 0.0.260
+
+-- [1]25:select sum_sec(s1, interval=3) from root.udf.d1
 STRICT{
-PASS
-EXPECT:FAIL
+Time(TIME)      |
+总数目：0
 }
 
--- [1]25:select sum_sec(s1, 'interval'=3) from root.udf.d1
-STRICT{
-Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
---------------------------------------------------------------------
-1               |4                                                   |
---------------------------------------------------------------------
-4               |27                                                  |
---------------------------------------------------------------------
-7               |28                                                  |
---------------------------------------------------------------------
-12              |17                                                  |
-总数目：4
-}
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.10
-
--- [1]26:select sum_sec(s1, "interval"=3) from root.udf.d1
+-- [1]26:select sum_sec(s1, 'interval'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 --------------------------------------------------------------------
@@ -57,17 +44,14 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 7               |28                                                  |
 --------------------------------------------------------------------
 12              |17                                                  |
-总数目：4
+--------------------------------------------------------------------
+20              |19                                                  |
+总数目：5
 }
 
-Elapsed Time: 0.0.6
--- [1]27:select sum_sec(s1, `interval`=3) from root.udf.d1
-STRICT{
-PASS
-EXPECT:FAIL
-}
+Elapsed Time: 0.0.3
 
--- [1]28:select sum_sec(s1, 'interval'='3') from root.udf.d1
+-- [1]27:select sum_sec(s1, "interval"='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 --------------------------------------------------------------------
@@ -78,12 +62,22 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 7               |28                                                  |
 --------------------------------------------------------------------
 12              |17                                                  |
-总数目：4
+--------------------------------------------------------------------
+20              |19                                                  |
+总数目：5
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
 
--- [1]29:select sum_sec(s1, 'interval'="3") from root.udf.d1
+-- [1]28:select sum_sec(s1, `interval`='3') from root.udf.d1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]29:select sum_sec(s1, 'interval'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 --------------------------------------------------------------------
@@ -94,81 +88,124 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
 7               |28                                                  |
 --------------------------------------------------------------------
 12              |17                                                  |
-总数目：4
+--------------------------------------------------------------------
+20              |19                                                  |
+总数目：5
 }
 
-Elapsed Time: 0.0.5
--- [1]30:select sum_sec(s1, 'interval'=`3`) from root.udf.d1
+Elapsed Time: 0.0.2
+
+-- [1]30:select sum_sec(s1, 'interval'="3") from root.udf.d1
 STRICT{
-PASS
-EXPECT:FAIL
+Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3")(INT64)      |
+--------------------------------------------------------------------
+1               |4                                                   |
+--------------------------------------------------------------------
+4               |27                                                  |
+--------------------------------------------------------------------
+7               |28                                                  |
+--------------------------------------------------------------------
+12              |17                                                  |
+--------------------------------------------------------------------
+20              |19                                                  |
+总数目：5
 }
--- [1]33:select sum_sec(s1) from root.udf.d1
+
+Elapsed Time: 0.0.2
+-- [1]31:select sum_sec(s1, 'interval'=`3`) from root.udf.d1
+STRICT{
+SQLSTATE : 507: Check metadata error: Attributes of functions should be quoted with '' or ""
+}
+-- [1]34:select sum_sec(s1) from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFAttributeNotProvidedException: attribute "interval" is required but was not provided.
 }
--- [1]35:select sum_sec(s3, 'interval'=3) from root.udf.d1
+-- [1]36:select sum_sec(s3, 'interval'='3') from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: INT64. actual: INT32.
 }
--- [1]37:select sum_sec(s1,'interval'=0) from root.udf.d1
+-- [1]38:select sum_sec(s1,'interval'='0') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter timeInterval(0) should be positive.
 }
--- [1]38:select sum_sec(s1,'interval'=3, 'step'=0) from root.udf.d1
+-- [1]39:select sum_sec(s1,'interval'='3', 'step'='0') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter slidingStep(0) should be positive.
 }
 
--- [1]40:select sum_sec(s1,'interval'=3,'step'=3, 'start'=0,'end'=0) from root.udf.d1
+-- [1]41:select sum_sec(s1,'interval'='3','step'='3', 'start'='0','end'='0') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3", "step"="3", "start"="0", "end"="0")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.5
--- [1]43:select sum_sec(s1,'interval'=3, 'step'=3, 'start'=2, 'end'=1) from root.udf.d1
+Elapsed Time: 0.0.2
+-- [1]44:select sum_sec(s1,'interval'='3', 'step'='3', 'start'='2', 'end'='1') from root.udf.d1
 STRICT{
 SQLSTATE : 301: displayWindowEnd(1) < displayWindowBegin(2)
 }
--- [1]46:select sum_sec(s1,'interval'=3, 'step'=-1) from root.udf.d1
+-- [1]47:select sum_sec(s1,'interval'='3', 'step'='-1') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter slidingStep(-1) should be positive.
 }
--- [1]47:select sum_sec(s1,'interval'=-1) from root.udf.d1
+-- [1]48:select sum_sec(s1,'interval'='-1') from root.udf.d1
 STRICT{
 SQLSTATE : 301: Parameter timeInterval(-1) should be positive.
 }
--- [1]50:select sum_sec(s1,'interval'=3, 'step'=3, 'end'=1) from root.udf.d1
+-- [1]51:select sum_sec(s1,'interval'='3', 'step'='3', 'end'='1') from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 java.lang.RuntimeException: start and end must be both existed. 
 }
--- [1]51:select sum_sec(s1,'interval'=3, 'step'=3, 'start'=2) from root.udf.d1
+-- [1]52:select sum_sec(s1,'interval'='3', 'step'='3', 'start'='2') from root.udf.d1
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 java.lang.RuntimeException: start and end must be both existed. 
+}
+-- [1]55:select sum_sec(s1,'interval'='a') from root.udf.d1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.NumberFormatException: For input string: "a"
+}
+-- [1]56:select sum_sec(s1,'interval'='3', 'step'='a') from root.udf.d1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.NumberFormatException: For input string: "a"
 }
 
--- [1]55:select sum_sec(ss1,'interval'=3) from root.udf.d1
+-- [1]59:select sum_sec(ss1,'interval'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.ss1, "interval"="3")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
--- [1]58:select sum_sec(s1,'start'=0,'end'=12,'interval'=1,'step'=1) from root.udf.d1
+-- [1]62:select sum_sec(s1,'start'='0','end'='12','interval'='1','step'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "start"="0", "end"="12", "interval"="1", "step"="1")(INT64)      |
-总数目：0
+---------------------------------------------------------------------------------------------------------
+1               |1                                                                                        |
+---------------------------------------------------------------------------------------------------------
+2               |3                                                                                        |
+---------------------------------------------------------------------------------------------------------
+4               |7                                                                                        |
+---------------------------------------------------------------------------------------------------------
+5               |9                                                                                        |
+---------------------------------------------------------------------------------------------------------
+6               |11                                                                                       |
+---------------------------------------------------------------------------------------------------------
+7               |13                                                                                       |
+---------------------------------------------------------------------------------------------------------
+8               |15                                                                                       |
+总数目：7
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
 
--- [1]61:select sum_sec(s1,'start'=0,'end'=5,'interval'=3,'step'=1) from root.udf.d1
+-- [1]65:select sum_sec(s1,'start'='0','end'='5','interval'='3','step'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "start"="0", "end"="5", "interval"="3", "step"="1")(INT64)      |
 --------------------------------------------------------------------------------------------------------
@@ -176,9 +213,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "start"="0", "end"="5", "interval"="3",
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
--- [1]62:select sum_sec(s1,'start'=0,'end'=10,'interval'=3,'step'=1) from root.udf.d1
+-- [1]66:select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "start"="0", "end"="10", "interval"="3", "step"="1")(INT64)      |
 ---------------------------------------------------------------------------------------------------------
@@ -186,9 +223,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "start"="0", "end"="10", "interval"="3"
 总数目：1
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
--- [1]63:select sum_sec(s1,'interval'=3,'step'=1) from root.udf.d1
+-- [1]67:select sum_sec(s1,'interval'='3','step'='1') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3", "step"="1")(INT64)      |
 --------------------------------------------------------------------------------
@@ -200,9 +237,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="3", "step"="1")(INT64)     
 总数目：3
 }
 
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.2
 
--- [1]66:select sum_sec(s1,'interval'=5,'step'=5) from root.udf.d1
+-- [1]70:select sum_sec(s1,'interval'='5','step'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="5", "step"="5")(INT64)      |
 --------------------------------------------------------------------------------
@@ -216,9 +253,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="5", "step"="5")(INT64)     
 总数目：4
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
 
--- [1]67:select sum_sec(s1,'interval'=5) from root.udf.d1
+-- [1]71:select sum_sec(s1,'interval'='5') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="5")(INT64)      |
 --------------------------------------------------------------------
@@ -232,9 +269,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="5")(INT64)      |
 总数目：4
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
--- [1]69:select sum_sec(s1,'interval'=15, 'step'=3) from root.udf.d1
+-- [1]73:select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="15", "step"="3")(INT64)      |
 ---------------------------------------------------------------------------------
@@ -250,9 +287,9 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="15", "step"="3")(INT64)    
 总数目：5
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
--- [1]71:select sum_sec(s1,s2,'interval'=15) from root.udf.d1
+-- [1]75:select sum_sec(s1,s2,'interval'='15') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, root.udf.d1.s2, "interval"="15")(INT64)      |
 -------------------------------------------------------------------------------------
@@ -262,15 +299,15 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, root.udf.d1.s2, "interval"="15")(INT64)
 总数目：2
 }
 
-Elapsed Time: 0.0.9
--- [1]74:select s1,s2 into root.udf.dd1(::) from root.udf.d1
+Elapsed Time: 0.0.2
+-- [1]78:select s1,s2 into root.udf.dd1(::) from root.udf.d1
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.3
 
--- [1]76:select * from root.udf.dd1
+-- [1]80:select * from root.udf.dd1
 STRICT{
 Time(TIME)      |root.udf.dd1.s1(INT64)      |root.udf.dd1.s2(INT64)      |
 ------------------------------------------------------------------------
@@ -296,17 +333,17 @@ Time(TIME)      |root.udf.dd1.s1(INT64)      |root.udf.dd1.s2(INT64)      |
 总数目：10
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.8
 
--- [1]78:select sum_sec(s1,'start'=0,end=5,'interval'=3,'step'=1) from root.udf.dd1
+-- [1]82:select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.dd1
 STRICT{
 Time(TIME)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]80:select sum_sec(s1,'start'=0,'end'=10,'interval'=3,'step'=1) from root.udf.dd1
+-- [1]84:select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "start"="0", "end"="10", "interval"="3", "step"="1")(INT64)      |
 ----------------------------------------------------------------------------------------------------------
@@ -314,9 +351,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "start"="0", "end"="10", "interval"="3
 总数目：1
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
 
--- [1]81:select sum_sec(s1,'interval'=3,'step'=1) from root.udf.dd1
+-- [1]85:select sum_sec(s1,'interval'='3','step'='1') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="3", "step"="1")(INT64)      |
 ---------------------------------------------------------------------------------
@@ -328,9 +365,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="3", "step"="1")(INT64)    
 总数目：3
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.6
 
--- [1]83:select sum_sec(s1,'interval'=5,'step'=5) from root.udf.dd1
+-- [1]87:select sum_sec(s1,'interval'='5','step'='5') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5", "step"="5")(INT64)      |
 ---------------------------------------------------------------------------------
@@ -346,7 +383,7 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5", "step"="5")(INT64)    
 
 Elapsed Time: 0.0.4
 
--- [1]84:select sum_sec(s1,'interval'=5) from root.udf.dd1
+-- [1]88:select sum_sec(s1,'interval'='5') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5")(INT64)      |
 ---------------------------------------------------------------------
@@ -360,9 +397,9 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5")(INT64)      |
 总数目：4
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
 
--- [1]86:select sum_sec(*,'interval'=5) from root.udf.dd1
+-- [1]90:select sum_sec(*,'interval'='5') from root.udf.dd1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5")(INT64)      |sum_sec(root.udf.dd1.s2, "interval"="5")(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------
@@ -376,17 +413,17 @@ Time(TIME)      |sum_sec(root.udf.dd1.s1, "interval"="5")(INT64)      |sum_sec(r
 总数目：4
 }
 
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.4
 
--- [1]89:select sum_sec(s1,'interval'=4, 'start'=4,'end'=4) from root.udf.d1
+-- [1]93:select sum_sec(s1,'interval'='4', 'start'='4','end'='4') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="4", "start"="4", "end"="4")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
--- [1]90:select sum_sec(s1,'interval'=4) from root.udf.d1
+-- [1]94:select sum_sec(s1,'interval'='4') from root.udf.d1
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="4")(INT64)      |
 --------------------------------------------------------------------
@@ -395,22 +432,24 @@ Time(TIME)      |sum_sec(root.udf.d1.s1, "interval"="4")(INT64)      |
 5               |48                                                  |
 --------------------------------------------------------------------
 12              |17                                                  |
-总数目：3
+--------------------------------------------------------------------
+20              |19                                                  |
+总数目：4
 }
 
-Elapsed Time: 0.0.4
--- [1]95:CREATE ALIGNED TIMESERIES root.udf.d2 (s1 int64, s2 int64)
+Elapsed Time: 0.0.3
+-- [1]99:CREATE ALIGNED TIMESERIES root.udf.d2 (s1 int64, s2 int64)
 STRICT{
 PASS
 }
--- [1]95:insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20)
+-- [1]99:insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
 
--- [1]98:select sum_sec(ss1,'interval'=3) from root.udf.d2
+-- [1]102:select sum_sec(ss1,'interval'='3') from root.udf.d2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -418,7 +457,7 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.1
 
--- [1]101:select sum_sec(s1,'start'=0,end=5,'interval'=3,'step'=1) from root.udf.d2
+-- [1]105:select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.d2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -426,15 +465,15 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.1
 
--- [1]103:select sum_sec(s1,'start'=0,'end'=10,'interval'=3,'step'=1) from root.udf.d2
+-- [1]107:select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "start"="0", "end"="10", "interval"="3", "step"="1")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]104:select sum_sec(s1,'interval'=3,'step'=1) from root.udf.d2
+-- [1]108:select sum_sec(s1,'interval'='3','step'='1') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="3", "step"="1")(INT64)      |
 总数目：0
@@ -442,15 +481,15 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="3", "step"="1")(INT64)     
 
 Elapsed Time: 0.0.1
 
--- [1]106:select sum_sec(s1,'interval'=5,'step'=5) from root.udf.d2
+-- [1]110:select sum_sec(s1,'interval'='5','step'='5') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="5", "step"="5")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]107:select sum_sec(s1,'interval'=5) from root.udf.d2
+-- [1]111:select sum_sec(s1,'interval'='5') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="5")(INT64)      |
 总数目：0
@@ -458,7 +497,7 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="5")(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]109:select sum_sec(s1,'interval'=15, 'step'=3) from root.udf.d2
+-- [1]113:select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="15", "step"="3")(INT64)      |
 总数目：0
@@ -466,53 +505,37 @@ Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="15", "step"="3")(INT64)    
 
 Elapsed Time: 0.0.1
 
--- [1]111:select sum_sec(s1,s2,'interval'=15) from root.udf.d2
+-- [1]115:select sum_sec(s1,s2,'interval'='15') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, root.udf.d2.s2, "interval"="15")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]114:select sum_sec(s1,'interval'=4, 'start'=4,'end'=4) from root.udf.d2
+-- [1]118:select sum_sec(s1,'interval'='4', 'start'='4','end'='4') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="4", "start"="4", "end"="4")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]115:select sum_sec(s1,'interval'=4) from root.udf.d2
+-- [1]119:select sum_sec(s1,'interval'='4') from root.udf.d2
 STRICT{
 Time(TIME)      |sum_sec(root.udf.d2.s1, "interval"="4")(INT64)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.2
--- [1]119:select s1,s2 into root.udf.dd2(::) from root.udf.d2
+Elapsed Time: 0.0.1
+-- [1]123:select s1,s2 into root.udf.dd2(::) from root.udf.d2
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
 
--- [1]121:select * from root.udf.dd2
-STRICT{
-Time(TIME)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.2
-
--- [1]124:select sum_sec(s1,'start'=0,end=5,'interval'=3,'step'=1) from root.udf.dd2
-STRICT{
-Time(TIME)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.2
-
--- [1]126:select sum_sec(s1,'start'=0,'end'=10,'interval'=3,'step'=1) from root.udf.dd2
+-- [1]125:select * from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -520,7 +543,7 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.1
 
--- [1]127:select sum_sec(s1,'interval'=3,'step'=1) from root.udf.dd2
+-- [1]128:select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -528,7 +551,7 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.1
 
--- [1]129:select sum_sec(s1,'interval'=5,'step'=5) from root.udf.dd2
+-- [1]130:select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -536,7 +559,7 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.1
 
--- [1]130:select sum_sec(s1,'interval'=5) from root.udf.dd2
+-- [1]131:select sum_sec(s1,'interval'='3','step'='1') from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -544,7 +567,7 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.0
 
--- [1]132:select sum_sec(s1,'interval'=15, 'step'=3) from root.udf.dd2
+-- [1]133:select sum_sec(s1,'interval'='5','step'='5') from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
@@ -552,18 +575,30 @@ Time(TIME)      |
 
 Elapsed Time: 0.0.0
 
--- [1]134:select sum_sec(*,'interval'=15) from root.udf.dd2
+-- [1]134:select sum_sec(s1,'interval'='5') from root.udf.dd2
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]136:select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.dd2
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]138:select sum_sec(*,'interval'='15') from root.udf.dd2
 STRICT{
 Time(TIME)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]137:DROP DATABASE root.**
-STRICT{
-PASS
-}
--- [1]138:DROP FUNCTION SUM_SEC
+-- [1]142:DROP FUNCTION SUM_SEC
 STRICT{
 PASS
 }

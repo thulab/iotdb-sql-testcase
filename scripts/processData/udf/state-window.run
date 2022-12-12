@@ -3,8 +3,11 @@ connect root/root;
 -- 2. attributes: step, interval
 -- 3. attributes: interval
 
-DROP DATABASE root.**;<<NULL;
+drop database root.**;<<NULL;
+sleep 1000;
+-- delete timeseries root.udf.**;<<NULL;
 DROP FUNCITON count_sec;<<NULL;
+create database root.udf;<<NULL;
 
 CREATE FUNCTION count_sec as "com.timecho.udf.normal.TestStateWindowAccessStrategy";
 
@@ -72,11 +75,9 @@ select count_sec_double(s2,'delta'='2.5') from root.udf.d4;
 
 select count_sec_double(*,'delta'='0.5') from root.udf.d4;
 
-show regions;
-
 
 -- cleanup
-DROP DATABASE root.**;
+delete timeseries root.udf.**;
 DROP FUNCTION count_sec;
 DROP FUNCTION count_sec_double;
 

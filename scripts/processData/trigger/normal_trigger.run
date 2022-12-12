@@ -7,31 +7,32 @@ connect root/root;
 -- 5. 一个device下多个timeseries:单独插入，多值插入
 -- 6. 一个device下多个timeseries但仅有一个double
 -- 7. 单个timeseries和通配符叠加使用。key-value 单个,key使用双引号
--- 8. 类型不匹配,text类型注册double类型的trigger 
+-- 8. 类型不匹配,text类型注册double类型的trigger
 -- 9. 最小实现trigger类。同一个trigger类，建立stateful, stateless trigger
 
+drop database root.**;<<NULL;
+sleep 2000;
 
-drop DATABASE root.**;<<NULL;
--- 1. 单个timeseries, 2个key-value, 单值insert 
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+-- 1. 单个timeseries, 2个key-value, 单值insert
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `normal01`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
-  'lo' = '10', 
+  'remote_ip'='127.0.0.1',
+  'lo' = '10',
   'hi' = '15.5'
 );
 -- case 1.1 同名检测
 CREATE STATELESS TRIGGER `normal01`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
-  'lo' = '10', 
+  'remote_ip'='127.0.0.1',
+  'lo' = '10',
   'hi' = '15.5'
 );
 <<SQLSTATE;
@@ -43,17 +44,17 @@ SHOW DATABASES;
 show devices;
 show timeseries;
 
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (2, 2);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (3, null);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (4, 6);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (5, 8);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (2, 2);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (3, null);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (4, 6);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
 
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (6, 10);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (7, 12);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (8, 15);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (9, 16);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (10, null);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (7, 12);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (8, 15);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (9, 16);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (10, null);
 
 -- 即时查询有时候查不到 sleep一下
 sleep 500;
@@ -62,13 +63,13 @@ SHOW DATABASES;
 show devices;
 show timeseries;
 -- 期望3个结果
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 8条
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
 -- 清理
 -- case 1.3 删除storage 不会删除trigger
-delete DATABASE root.**;
+delete timeseries root.**;
 show triggers;
 drop trigger `normal01`;
 
@@ -82,273 +83,276 @@ show timeseries root.**;
 -- 名称case insensitive, 创建trigger在创建timeseries之前
 CREATE STATELESS TRIGGER `normal02`
 AFTER INSERT
-ON root.sg1.d1.s2
+ON root.triggertest.d1.s2
 AS 'org.example.DoubleValueMonitor'
 with (
-  'remote_ip'='172.20.31.30'
+  'remote_ip'='127.0.0.1'
 );
 
 show triggers;
-CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 show timeseries root.**;
-INSERT INTO root.sg1.d1(timestamp, s2) VALUES (6, 10),(7,12),(1,88),(8,14),(9,160),(10,null),(11,58),(2,67.345);
+INSERT INTO root.triggertest.d1(timestamp, s2) VALUES (6, 10),(7,12),(1,88),(8,14),(9,160),(10,null),(11,58),(2,67.345);
 
 sleep 500;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 7条
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 show timeseries root.**;
 -- 清理
 drop trigger `normal02`;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
 
 
 -- 3. 一个device下多个double值,期望每个值都被处理
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `multi.double`
 AFTER INSERT
-ON root.sg1.d1.*
+ON root.triggertest.d1.*
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  "remote_ip"="172.20.31.30",
+  "remote_ip"="127.0.0.1",
   'lo' = '10',
   'hi' = '15.5'
 );
 
 show triggers;
 
-insert into root.sg1.d1 (time, s1, s2) values (1, 4, 21);
-insert into root.sg1.d1 (time, s1, s2) values (2, 11, 1);
-insert into root.sg1.d1 (time, s1, s2) values (3, 8, 2);
-insert into root.sg1.d1 (time, s1, s2) values (4, 15.6, 210);
+insert into root.triggertest.d1 (time, s1, s2) values (1, 4, 21);
+insert into root.triggertest.d1 (time, s1, s2) values (2, 11, 1);
+insert into root.triggertest.d1 (time, s1, s2) values (3, 8, 2);
+insert into root.triggertest.d1 (time, s1, s2) values (4, 15.6, 210);
 flush;
 sleep 500;
 -- 期望4个值
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 4条
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 -- 清理
 drop trigger `multi.double`;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
 
 -- 4. 通配符：针对多个device, key-value 3个
-delete DATABASE root.**;<<NULL;
-CREATE DATABASE root.sg1;
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+delete timeseries root.**;<<NULL;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `wildcard-multi-device`
 AFTER INSERT
-ON root.sg1.**
+ON root.triggertest.**
 AS 'org.example.DoubleValueMonitor'
 WITH (
   hi = 16.0,
-  remote_ip='172.20.31.30',
+  remote_ip='127.0.0.1',
   lo = 12
 );
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0),(2, 2),(3, 4),(4, 6),(5, 8),(6, NULL),(7, 12),(8, 14),(9, 16),(10, 18);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0),(2, 2),(3, 4),(4, 6),(5, 8),(6, NULL),(7, 12),(8, 14),(9, 16),(10, 18);
 flush;
 sleep 500;
 -- 期望3个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 9
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
-CREATE TIMESERIES root.sg1.d2.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
-CREATE TIMESERIES root.sg1.d3.s1 WITH DATATYPE=float, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d2.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d3.s1 WITH DATATYPE=float, ENCODING=PLAIN;
 
-INSERT INTO root.sg1.d2(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(4, 6),(5, 18);
+INSERT INTO root.triggertest.d2(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(4, 6),(5, 18);
 flush;
 sleep 500;
 -- 期望5个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
-select * from root.sg1.d2;
+select * from root.triggertest.d2;
 
-INSERT INTO root.sg1.d3(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(4, 6),(5, 18);
+INSERT INTO root.triggertest.d3(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(4, 6),(5, 18);
 flush;
 sleep 500;
 -- 期望5个值
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
-select * from root.sg1.d3;
+select * from root.triggertest.d3;
 
 -- 清理
 drop trigger `wildcard-multi-device`;
-drop DATABASE root.**;
+delete timeseries root.**;
 
 
 
 
 
 -- 5. 一个device下多个timeseries:单独插入，多值插入
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `multiTS`
 AFTER INSERT
-ON root.sg1.d1.**
+ON root.triggertest.d1.**
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
+  'remote_ip'='127.0.0.1',
   'lo' = '10',
   'hi' = '15.5'
 );
 show triggers;
 
-insert into root.sg1.d1(time,s2) values (1, 11.3),(2,10),(3,13.44);
+insert into root.triggertest.d1(time,s2) values (1, 11.3),(2,10),(3,13.44);
 flush;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 
-insert into root.sg1.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13.44,15.6);
+insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13.44,15.6);
 flush;
 -- 5条
-select * from root.ln.alerting;
-select * from root.sg1.d1;
+select count(*) from root.ln.alerting;
+-- 6
+select * from root.triggertest.d1;
 
-CREATE TIMESERIES root.sg1.d2.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-insert into root.sg1.d2(time, s1) values (1000,29.768),(2000,5.65),(3000,13.45);
-
-select * from root.sg1.d1;
-select * from root.ln.alerting;
+CREATE TIMESERIES root.triggertest.d2.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+insert into root.triggertest.d2(time, s1) values (1000,29.768),(2000,5.65),(3000,13.45);
+-- 3
+select * from root.triggertest.d2;
+-- 5
+select count(*) from root.ln.alerting;
 
 drop trigger `multiTS`;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
 
 -- 6. 一个device下多个timeseries但仅有一个double
-delete DATABASE root.**;<<NULL;
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=int32, ENCODING=PLAIN;
-CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
+delete timeseries root.**;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=int32, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=double, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER wildcard_1_sensor
 AFTER INSERT
-ON root.sg1.d1.**
+ON root.triggertest.d1.**
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
+  'remote_ip'='127.0.0.1',
   'lo' = '10',
   'hi' = '15.5'
 );
 show triggers;
 
-insert into root.sg1.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13, 15.6);
+insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20)(8,13, 15.6);
 flush;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 3
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
-insert into root.sg1.d1(time,s2) values (6, 11.3),(2,10),(3,19),(10,3);
+insert into root.triggertest.d1(time,s2) values (6, 11.3),(2,10),(3,19),(10,3);
 flush;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 6
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
-CREATE TIMESERIES root.sg1.d2.s1 WITH DATATYPE=double, ENCODING=PLAIN;
-insert into root.sg1.d2(time, s1) values (1000,29.768),(2000,5.65),(3000,13.45);
+CREATE TIMESERIES root.triggertest.d2.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+insert into root.triggertest.d2(time, s1) values (1000,29.768),(2000,5.65),(3000,13.45);
 flush;
-select * from root.sg1.d1;
+-- 6
+select * from root.triggertest.d1;
 -- 4条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 
 drop trigger `wildcard_1_sensor`;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
 
 
 -- 7. key-value 单个,key 双引号, 单个timeseries和通配符trigger叠加测试
-delete DATABASE root.**;<<NULL;
-CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+delete timeseries root.**;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `alert01`
 AFTER INSERT
-ON root.sg1.d1.s1
+ON root.triggertest.d1.s1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
+  'remote_ip'='127.0.0.1',
   "lo" = '5'
 );
 
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (1, 0);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (2, 2);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (3, 4);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (4, 6);
-INSERT INTO root.sg1.d1(timestamp, s1) VALUES (5, 8);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (2, 2);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (3, 4);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (4, 6);
+INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
 
 sleep 500;
 -- 2条
-select * from root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 5
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
 CREATE STATELESS TRIGGER `alert02`
 before INSERT
-ON root.sg1.d1.*
+ON root.triggertest.d1.*
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
+  'remote_ip'='127.0.0.1',
   'lo' = '10',
   hi = 80
 );
 
-CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
-INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (6,4,5.00000000000000000000000000001);
-INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (7,8,4.567);
-INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (8,10,18);
-INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (9,20,1.8);
-INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (10,120,80.00000000000000000000123);
+INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (6,4,5.00000000000000000000000000001);
+INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (7,8,4.567);
+INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (8,10,18);
+INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (9,20,1.8);
+INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (10,120,80.00000000000000000000123);
 
 -- 即时查询有时候查不到 sleep一下
 sleep 500;
 -- 期望10个值: 不包括5.00000000000000000000000000001
-SELECT * FROM root.ln.alerting;
+select count(*) from root.ln.alerting;
 -- 10
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
 -- 清理
 drop trigger `alert01`;
 drop trigger `alert02`;
-delete DATABASE root.**;
+delete timeseries root.**;
 
 
  
 -- 8. 类型不匹配,text类型注册double类型的trigger
-delete DATABASE root.**;<<NULL;
-CREATE TIMESERIES root.sg1.d1.text1 WITH DATATYPE=text, ENCODING=PLAIN;
+delete timeseries root.**;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.text1 WITH DATATYPE=text, ENCODING=PLAIN;
 
 CREATE STATELESS TRIGGER `TypeNotTheSame`
 AFTER INSERT
-ON root.sg1.d1.text1
+ON root.triggertest.d1.text1
 AS 'org.example.DoubleValueMonitor'
 WITH (
-  'remote_ip'='172.20.31.30',
+  'remote_ip'='127.0.0.1',
   'lo' = '10',
   'hi' = '15.5'
 );
 
 show triggers;
 
-insert into root.sg1.d1 (time, text1) values (1, 'tomy');
-insert into root.sg1.d1 (time, text1) values (2, 'localpath');
-insert into root.sg1.d1 (time, text1) values (3, 'prefix');
-insert into root.sg1.d1 (time, text1) values (4, 'iotdb');
-
-select * from root.ln.alerting;
+insert into root.triggertest.d1 (time, text1) values (1, 'tomy');
+insert into root.triggertest.d1 (time, text1) values (2, 'localpath');
+insert into root.triggertest.d1 (time, text1) values (3, 'prefix');
+insert into root.triggertest.d1 (time, text1) values (4, 'iotdb');
+-- 0
+select count(*) from root.ln.alerting;
 -- 4
-select * from root.sg1.d1;
+select * from root.triggertest.d1;
 
 drop trigger `TypeNotTheSame`;
 
@@ -356,22 +360,21 @@ drop trigger `TypeNotTheSame`;
 -- 9. 最小实现trigger类。同一个trigger类，建立stateful, stateless trigger
 CREATE STATELESS TRIGGER `min_class`
 AFTER INSERT
-ON root.sg1.d1.*
+ON root.triggertest.d1.*
 AS 'com.timecho.test.EmptyTrigger';
 
 
 CREATE STATEful TRIGGER `min_class_stateful`
 before INSERT
-ON root.sg1.d1.*
+ON root.triggertest.d1.*
 AS 'com.timecho.test.EmptyTrigger';
 
-show triggers;
 
-insert into root.sg1.d1 (time, text1) values (7,'could');
-select * from root.sg1.d1;
+insert into root.triggertest.d1 (time, text1) values (7,'could');
+select * from root.triggertest.d1;
 
 drop trigger min_class;
 drop trigger min_class_stateful;
 
-delete DATABASE root.**;
+delete timeseries root.**;
 

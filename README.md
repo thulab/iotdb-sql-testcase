@@ -30,11 +30,7 @@ reference:
 
 #### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.14.0）
 执行trigger/udf 测试用例：
-1. 需要替换IP地址：
-```shell
-sed -i 's/172.20.31.30/新的ip/g' user/scripts/processData/trigger/*.run
-```
-2. 放置jar包
+放置jar包
 - **UDF依赖**：
   * 将`lib/udf_jar/ext` 目录下的jar放置到目录 `$IOTDB_HOME/ext/udf` （也可以是`$IOTDB_HOME/ext/udf`的子目录）下.
   * 将`lib/udf_jar/local` 的两个jar 放到`/data/nginx` 目录下。
