@@ -1,84 +1,153 @@
-//1.仅有【READ_TIMESERIES】权限，无【INSERT_TIMESERIES】权限，执行查询写回
---测试操作
+//一、没有权限，仅提示没有【READ_TIMESERIES】
+
+--0.清理环境
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
+
+--1.创建存储组和时间序列
 CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+
+--2.插入数据
 insert into root.sg.d1(time,s1) values(1,1.2);
+
+--3.创建普通用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--4.检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
-GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
---user01用户登录，执行查询写回
+
+--5.user01用户登录，执行查询写回
 connect user01/pass1234;
---查询数据
+select s1 into root.sg.d1(t1) from root.sg.d1;
+<<SQLSTATE;
+
+--6.清理数据
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+
+
+//二、仅有【READ_TIMESERIES】权限，无【INSERT_TIMESERIES】权限，执行查询写回
+
+--0.清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+
+--1.创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+
+--2.插入数据
+insert into root.sg.d1(time,s1) values(1,1.2);
+
+--3.创建普通用户
+CREATE USER user01 'pass1234';
+
+--4.检验一下是否PRIVILEGES 已经存在（列出用户权限）
+LIST PRIVILEGES USER user01;
+
+--5.进行赋权并列出用户权限
+GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
+LIST PRIVILEGES USER user01;
+
+--6.user01用户登录，执行查询写回
+connect user01/pass1234;
 select * from root.**;
-select s1 into p1 from root.sg.d1;
+select s1 into root.sg.d1(p1) from root.sg.d1;
 <<SQLSTATE;
---清理数据
+
+--7.清理数据
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
 
-//2.仅有【INSERT_TIMESERIES】权限，无【READ_TIMESERIES】权限，执行查询写回
---测试操作
+
+//三、仅有【INSERT_TIMESERIES】权限，无【READ_TIMESERIES】权限，执行查询写回
+
+--0.清理环境
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
+
+--1.创建存储组和时间序列
 CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+
+--2.插入数据
 insert into root.sg.d1(time,s1) values(1,1.2);
+
+--3.创建普通用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--4.检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--5.进行赋权并列出用户权限
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**;
---user01用户登录，执行查询写回
+LIST PRIVILEGES USER user01;
+
+--6.user01用户登录，执行查询写回
 connect user01/pass1234;
---查询数据
 select * from root.sg.**;
 <<SQLSTATE;
-select s1 into p1 from root.sg.d1;
+select s1 into root.sg.d1(m1) from root.sg.d1;
 <<SQLSTATE;
---清理数据
+
+--7.清理数据
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
 
-//3.既有【READ_TIMESERIES】，又有【INSERT_TIMESERIES】，执行查询写回
+
+//四、既有【READ_TIMESERIES】，又有【INSERT_TIMESERIES】，执行查询写回
+
+--0.清理环境
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
+
+--1.创建存储组和时间序列
 CREATE DATABASE root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+
+--2.插入数据
 insert into root.sg.d1(time,s1) values(1,1.2);
+
+--3.创建普通用户
 CREATE USER user01 'pass1234';
---检验一下是否PRIVILEGES 已经存在（列出用户权限）
+
+--4.检验一下是否PRIVILEGES 已经存在（列出用户权限）
 LIST PRIVILEGES USER user01;
---进行赋权
+
+--5.进行赋权并列出用户权限
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
 GRANT USER user01 PRIVILEGES INSERT_TIMESERIES on root.**;
---user01用户登录，执行创建用户
+LIST PRIVILEGES USER user01;
+
+--6.user01用户登录，执行查询写回
 connect user01/pass1234;
---查询数据
 select * from root.sg.**;
---执行查询写回
-select s1 into p1 from root.sg.d1;
---查询数据
-select s1, p1 from root.sg.d1;
---清理数据
+select s1 into root.sg.d1(w1) from root.sg.d1;
+select * from root.sg.d1;
+
+--7.清理数据
 connect root/root;
 delete DATABASE root.**;
 <<NULL;
