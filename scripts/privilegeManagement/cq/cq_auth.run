@@ -27,15 +27,17 @@ DROP CONTINUOUS QUERY cq4;
 
 --准备测试数据
 connect root/root;
-CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 20s BOUNDARY 2022-01-14T23:00:00.000+08:00  RANGE 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY time(10s), level=2 END;
 CREATE USER user01 'pass1234';
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
 
 --测试操作
 connect user01/pass1234;
-CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 RANGE 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.*
+ GROUP BY time(10s), level=2 END;
 <<SQLSTATE;
 SHOW CONTINUOUS QUERIES;
+<<SQLSTATE;
 DROP CONTINUOUS QUERY cq1;
 <<SQLSTATE;
 
@@ -70,8 +72,9 @@ GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
 
 --测试操作
 connect user01/pass1234;
-CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s FOR 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}.temperature_avg FROM root.ln.*.* GROUP BY time(10s), level=2 END;
+CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s BOUNDARY 2022-01-14T23:00:00.000+08:00 RANGE 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY time(10s), level=2 END;
 SHOW CONTINUOUS QUERIES;
+<<SQLSTATE;
 DROP CONTINUOUS QUERY cq4;
 
 --清理环境
@@ -103,7 +106,7 @@ GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.gcc.**;
 GRANT USER user01 PRIVILEGES READ_TIMESERIES on root.**;
 --测试操作
 connect user01/pass1234;
-CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s FOR 10s BEGIN SELECT avg(temperature) INTO root.gcc.d1.temperature_avg FROM root.ln.* GROUP BY time(5s)  END;
+CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s RANGE 10s BEGIN SELECT avg(temperature) INTO root.gcc.d1(temperature_avg) FROM root.ln.* GROUP BY time(5s)  END;
 
 connect root/root;
 --清理环境
