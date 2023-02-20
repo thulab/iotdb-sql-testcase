@@ -25,6 +25,8 @@ insert into root.wt01(timestamp,PLAIN1) values(5,3.4028235E300);
 <<SQLSTATE;
 insert into root.wt01(timestamp,PLAIN1) values(6,'v1');
 <<SQLSTATE;
+insert into root.wt01(timestamp,PLAIN1) values(7,1);
+insert into root.wt01(timestamp,PLAIN1) values(8,0);
 
 --4. 查询数据
 select PLAIN1 from root.wt01;
@@ -59,6 +61,8 @@ insert into root.wt02(timestamp,PLAIN1) values(5,3.4028235E300);
 <<SQLSTATE;
 insert into root.wt02(timestamp,PLAIN1) values(6,'v1');
 <<SQLSTATE;
+insert into root.wt02(timestamp,PLAIN1) values(7,0);
+insert into root.wt02(timestamp,PLAIN1) values(8,-1);
 
 --4. 查询数据
 select PLAIN1 from root.wt02;
@@ -92,6 +96,11 @@ insert into root.wt03(timestamp,PLAIN1) values(5,3.4028235E300);
 <<SQLSTATE;
 insert into root.wt03(timestamp,PLAIN1) values(6,'v1');
 <<SQLSTATE;
+insert into root.wt03(timestamp,PLAIN1) values(7,1.12);
+<<SQLSTATE;
+insert into root.wt03(timestamp,PLAIN1) values(8,0);
+insert into root.wt03(timestamp,PLAIN1) values(9,-2.05);
+<<SQLSTATE;
 
 --4. 查询数据
 select PLAIN1 from root.wt03;
@@ -124,6 +133,9 @@ insert into root.wt04(timestamp,PLAIN1) values(5,3.4028235E300);
 <<SQLSTATE;
 insert into root.wt04(timestamp,PLAIN1) values(6,'v1');
 <<SQLSTATE;
+insert into root.wt04(timestamp,PLAIN1) values(7,.1);
+insert into root.wt04(timestamp,PLAIN1) values(8,1.2E3);
+insert into root.wt04(timestamp,PLAIN1) values(9,-1.2E-3);
 
 --4. 查询数据
 select PLAIN1 from root.wt04;
@@ -155,6 +167,9 @@ insert into root.wt05(timestamp,PLAIN1) values(4,3.4028235E38);
 insert into root.wt05(timestamp,PLAIN1) values(5,3.4028235E300);
 insert into root.wt05(timestamp,PLAIN1) values(6,'v1');
 <<SQLSTATE;
+insert into root.wt05(timestamp,PLAIN1) values(7,.1);
+insert into root.wt05(timestamp,PLAIN1) values(8,1.2E3);
+insert into root.wt05(timestamp,PLAIN1) values(9,-1.2E-3);
 
 --4. 查询数据
 select PLAIN1 from root.wt05;
@@ -325,8 +340,29 @@ delete DATABASE root.**;
 <<NULL;
 
 
-
---清理环境
+//十二、空值null写入
+--0. 清理环境
 delete DATABASE root.**;
 <<NULL;
+
+--1. 创建时间序列
+create timeseries root.sg.d1.s1 INT32 encoding=RLE;
+create timeseries root.sg.d1.s2 TEXT encoding=PLAIN;
+
+--2.查看设备和时间序列
+show timeseries;
+show devices;
+
+--3.插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1,"v1");
+insert into root.sg.d1(time,s1,s2) values(2,null,"v2");
+insert into root.sg.d1(time,s1,s2) values(3,3,null);
+
+--4. 查询数据
+select * from root.sg.d1;
+
+--5.清理环境
+delete DATABASE root.**;
+<<NULL;
+
 sleep 6000;
