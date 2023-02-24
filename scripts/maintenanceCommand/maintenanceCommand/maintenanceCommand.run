@@ -3,12 +3,12 @@ connect root/root;
 delete DATABASE root.**;
 <<NULL;
 
-
-//SET SYSTEM TO 
---清理环境
+//一、运维命令：SET SYSTEM TO 
+--0.清理环境
 delete DATABASE root.**;
 <<NULL;
---测试操作
+
+--1.默认系统状态
 CREATE USER user01 'pass1234';
 GRANT USER user01 PRIVILEGES CREATE_USER;
 CREATE DATABASE root.sg1;
@@ -19,7 +19,7 @@ create aligned timeseries root.sg1.d2(s1 INT32, s2 DOUBLE);
 insert into root.sg1.d2(time, s1, s2) aligned values(1, 1, 1);
 select * from root.sg1.d2;
 
--- set system to readonly/running 修改系统状态
+--2.set system to readonly/running 修改系统状态
 SET SYSTEM TO READONLY;
 sleep 5000;
 show cluster;
@@ -42,8 +42,7 @@ create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE);
 insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
 select * from root.sg2.d3;
 
-
---清理环境
+--3.清理环境
 DROP USER user01;
 <<NULL;
 DROP USER user02;
@@ -60,24 +59,77 @@ delete DATABASE root.**;
 <<NULL;
 
 
-//MERGE
---清理环境
+//二、运维命令：MERGE | FULL MERGE | CLEAR CACHE | FLUSH
+--0.清理环境
 delete DATABASE root.**;
 <<NULL;
---测试操作
+
+--1.创建时间序列和插入数据
 create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
 create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE);
 insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1);
 insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1);
 insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1);
 insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1);
+
+--2.触发合并：MERGE和FULL MERGE
 MERGE;
 FULL MERGE;
+
+--3.手动清除缓存
 CLEAR CACHE;
+
+--4.持久化到磁盘上，数据文件封口
 FLUSH;
 FLUSH root.sg1;
 FLUSH root.sg1,root.sg2;
 
---清理环境
+--5.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//三、集群运维命令
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.展示关键参数
+SHOW VARIABLES;
+
+--2.展示ConfigNode信息
+SHOW CONFIGNODES;
+
+--3.展示 DataNode 信息
+create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE;
+create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,true);
+insert into root.sg.d2(time,s1) values(1,1.1);
+insert into root.ln.d1(time,s1) values(1,1);
+SHOW DATANODES;
+--4.展示全部节点信息以及全部节点的详细配置信息
+SHOW CLUSTER;
+SHOW CLUSTER DETAILS;
+
+--5.展示Region信息
+SHOW REGIONS;
+SHOW SCHEMA REGIONS;
+SHOW DATA REGIONS;
+show databases;
+show regions of database root.sg;
+show regions of database root.ln;
+show data regions of database root.sg, root.ln;
+show schema regions of database root.sg, root.ln;
+show regions on nodeid 1;
+show regions of database root.sg on nodeid 1;
+
+--6.展示数据库的序列槽
+show data seriesslotid of root.sg;
+
+--7.展示序列槽下的时间槽
+show timeslotid of root.sg where seriesslotid=1107;
+
+--8.清理环境
 delete DATABASE root.**;
 <<NULL;
