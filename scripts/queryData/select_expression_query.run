@@ -383,3 +383,52 @@ select ID, sun, moon from root.sg.*;
 connect root/root;
 delete database root.**;
 <<NULL;
+
+
+//六、DIFF：统计序列中某数据点的值与前一数据点的值的差。第一个数据点没有对应的结果输出，输出值为null
+
+--0. 清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.0,1.1,false,'V1',1,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,-1.1,1.0,true,'V2',0,-1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.0,null,false,'V1',1,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,null,1.2,true,'V2',0,-1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,2.0,null,false,'V1',1,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,-1.2,0.0,true,'V2',null,2);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,0.1,false,'V1',20,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,3.0,0.2,false,'V2',2,10);
+
+--2.查询存储组和时间序列，然后数据查询
+show databases root.**;
+show devices;
+show timeseries root.**;
+select * from root.**;
+
+--3.不使用ignoreNull参数(忽略null)
+SELECT DIFF(s1), DIFF(s2) from root.sg.d1;
+
+--4.使用ignoreNull参数
+SELECT DIFF(s5, 'ignoreNull'='false'), DIFF(s6, 'ignoreNull'='false') from root.sg.d1;
+
+--5.不支持的数据类型验证
+SELECT DIFF(s3), DIFF(s5) from root.sg.d1;
+<<SQLSTATE;
+SELECT DIFF(s4), DIFF(s6) from root.sg.d1;
+<<SQLSTATE;
+
+--6. 清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
