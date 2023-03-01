@@ -1,11 +1,71 @@
--- [1]30:CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s) END
+-- [1]47:CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO root.ln_cq.${2}(temperature_max) FROM root.ln.*.*  GROUP BY(10s) END
+STRICT{
+PASS
+}
+-- [1]48:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
+STRICT{
+PASS
+}
+-- [1]49:CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
+STRICT{
+PASS
+}
+-- [1]50:CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s) END
+STRICT{
+PASS
+}
+-- [1]52:CREATE CONTINUOUS QUERY cq5 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT max_value(temperature) INTO root.ln.wf02.wt02(temperature_max) FROM root.ln.*.* where time >= now()-10s END
+STRICT{
+SQLSTATE : 305: CQ: Specifying time filters in the query body is prohibited.
+}
+-- [1]55:CREATE CONTINUOUS QUERY cq6 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT sum(temperature) INTO root.ln.wf03.wt03(temperature_sum) FROM root.ln.*.* GROUP BY([0,50), 20s) END
+STRICT{
+SQLSTATE : 305: CQ: Specifying time range in GROUP BY TIME clause is prohibited.
+}
+-- [1]58:CREATE CONTINUOUS QUERY cq7 RESAMPLE RANGE 40s, 20s BEGIN SELECT count(temperature) INTO root.ln.wf04.wt04(temperature_count) FROM root.ln.*.* where temperature >= 15 END
+STRICT{
+SQLSTATE : 701: CQ: At least one of the parameters `every_interval` and `group_by_interval` needs to be specified.
+}
+-- [1]60:CREATE CONTINUOUS QUERY cq8 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT last_value(temperature) INTO root.ln.wf05.wt05(temperature_last_value) FROM root.ln.*.* END
 STRICT{
 PASS
 }
 
--- [1]32:SHOW CONTINUOUS QUERIES
+-- [1]63:SHOW CONTINUOUS QUERIES
 STRICT{
 CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
+--------------------------------------------------
+cq1             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq1 BEGIN|                 |
+                | SELECT max_valu|                 |
+                |e(temperature) I|                 |
+                |NTO root.ln_cq.$|                 |
+                |{2}(temperature_|                 |
+                |max) FROM root.l|                 |
+                |n.*.*  GROUP BY(|                 |
+                |10s) END         |                 |
+--------------------------------------------------
+cq2             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq2 RESAM|                 |
+                |PLE EVERY 20s BE|                 |
+                |GIN SELECT avg(t|                 |
+                |emperature) INTO|                 |
+                | root.ln_cq.${2}|                 |
+                |(temperature_avg|                 |
+                |) FROM root.ln.*|                 |
+                |.* GROUP BY(10s)|                 |
+                |, level=2 END    |                 |
+--------------------------------------------------
+cq3             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq3 RESAM|                 |
+                |PLE EVERY 20s BE|                 |
+                |GIN SELECT avg(t|                 |
+                |emperature) INTO|                 |
+                | root.ln_cq.${2}|                 |
+                |(temperature_avg|                 |
+                |) FROM root.ln.*|                 |
+                |.* GROUP BY(10s)|                 |
+                |, level=2 END    |                 |
 --------------------------------------------------
 cq4             |CREATE CQ cq4 RES|ACTIVE           |
                 |AMPLE EVERY 20s |                 |
@@ -17,14 +77,58 @@ cq4             |CREATE CQ cq4 RES|ACTIVE           |
                 |ROM root.ln.*.* |                 |
                 |GROUP BY(10s) EN|                 |
                 |D                |                 |
-总数目：1
+--------------------------------------------------
+cq8             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq8 RESAM|                 |
+                |PLE EVERY 20s RA|                 |
+                |NGE 40s, 20s BEG|                 |
+                |IN SELECT last_v|                 |
+                |alue(temperature|                 |
+                |) INTO root.ln.w|                 |
+                |f05.wt05(tempera|                 |
+                |ture_last_value)|                 |
+                | FROM root.ln.*.|                 |
+                |* END            |                 |
+总数目：5
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.15
 
--- [1]33:SHOW CQS
+-- [1]64:SHOW CQS
 STRICT{
 CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
+--------------------------------------------------
+cq1             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq1 BEGIN|                 |
+                | SELECT max_valu|                 |
+                |e(temperature) I|                 |
+                |NTO root.ln_cq.$|                 |
+                |{2}(temperature_|                 |
+                |max) FROM root.l|                 |
+                |n.*.*  GROUP BY(|                 |
+                |10s) END         |                 |
+--------------------------------------------------
+cq2             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq2 RESAM|                 |
+                |PLE EVERY 20s BE|                 |
+                |GIN SELECT avg(t|                 |
+                |emperature) INTO|                 |
+                | root.ln_cq.${2}|                 |
+                |(temperature_avg|                 |
+                |) FROM root.ln.*|                 |
+                |.* GROUP BY(10s)|                 |
+                |, level=2 END    |                 |
+--------------------------------------------------
+cq3             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq3 RESAM|                 |
+                |PLE EVERY 20s BE|                 |
+                |GIN SELECT avg(t|                 |
+                |emperature) INTO|                 |
+                | root.ln_cq.${2}|                 |
+                |(temperature_avg|                 |
+                |) FROM root.ln.*|                 |
+                |.* GROUP BY(10s)|                 |
+                |, level=2 END    |                 |
 --------------------------------------------------
 cq4             |CREATE CQ cq4 RES|ACTIVE           |
                 |AMPLE EVERY 20s |                 |
@@ -36,72 +140,122 @@ cq4             |CREATE CQ cq4 RES|ACTIVE           |
                 |ROM root.ln.*.* |                 |
                 |GROUP BY(10s) EN|                 |
                 |D                |                 |
-总数目：1
+--------------------------------------------------
+cq8             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq8 RESAM|                 |
+                |PLE EVERY 20s RA|                 |
+                |NGE 40s, 20s BEG|                 |
+                |IN SELECT last_v|                 |
+                |alue(temperature|                 |
+                |) INTO root.ln.w|                 |
+                |f05.wt05(tempera|                 |
+                |ture_last_value)|                 |
+                | FROM root.ln.*.|                 |
+                |* END            |                 |
+总数目：5
 }
 
 Elapsed Time: 0.0.1
--- [1]34:CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO root.ln_cq.${2}(temperature_max) FROM root.ln.*.*  GROUP BY(10s) END
+-- [1]68:DROP CONTINUOUS QUERY cq1
 STRICT{
 PASS
 }
--- [1]35:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
+-- [1]69:DROP CQ cq2
 STRICT{
 PASS
 }
--- [1]36:CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END
+-- [1]70:DROP CONTINUOUS QUERY cq3
 STRICT{
 PASS
 }
--- [1]38:DROP CONTINUOUS QUERY cq1
+-- [1]71:DROP CQ cq4
 STRICT{
 PASS
 }
--- [1]39:DROP CQ cq2
-STRICT{
-PASS
-}
--- [1]40:DROP CONTINUOUS QUERY cq3
-STRICT{
-PASS
-}
--- [1]41:DROP CQ cq4
-STRICT{
-PASS
-}
--- [1]42:DROP CQ cq5
+-- [1]72:DROP CQ cq5
 STRICT{
 SQLSTATE : 1400: CQ cq5 doesn't exist.
 }
 
--- [1]45:SHOW CONTINUOUS QUERIES
+-- [1]76:SHOW CONTINUOUS QUERIES
 STRICT{
 CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
-总数目：0
+--------------------------------------------------
+cq8             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq8 RESAM|                 |
+                |PLE EVERY 20s RA|                 |
+                |NGE 40s, 20s BEG|                 |
+                |IN SELECT last_v|                 |
+                |alue(temperature|                 |
+                |) INTO root.ln.w|                 |
+                |f05.wt05(tempera|                 |
+                |ture_last_value)|                 |
+                | FROM root.ln.*.|                 |
+                |* END            |                 |
+总数目：1
 }
 
 Elapsed Time: 0.0.1
 
--- [1]46:SHOW CQS
+-- [1]77:SHOW CQS
 STRICT{
 CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
-总数目：0
+--------------------------------------------------
+cq8             |CREATE CONTINUOUS|ACTIVE           |
+                | QUERY cq8 RESAM|                 |
+                |PLE EVERY 20s RA|                 |
+                |NGE 40s, 20s BEG|                 |
+                |IN SELECT last_v|                 |
+                |alue(temperature|                 |
+                |) INTO root.ln.w|                 |
+                |f05.wt05(tempera|                 |
+                |ture_last_value)|                 |
+                | FROM root.ln.*.|                 |
+                |* END            |                 |
+总数目：1
 }
 
 Elapsed Time: 0.0.0
--- [1]75:create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN
+-- [1]116:create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]76:create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE
+-- [1]117:create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE
 STRICT{
 PASS
 }
--- [1]78:CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 10s BEGIN SELECT avg(temperature) INTO root.ln.wf01(temperature_avg) FROM root.ln.** GROUP BY(5s)  END
+-- [1]120:CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END
+STRICT{
+PASS
+}
+-- [1]122:CREATE CONTINUOUS QUERY cq2 RESAMPLE RANGE 10s BEGIN SELECT avg(temperature) INTO root.ln.wf01(temperature_avg) FROM root.ln.wf01 GROUP BY(5s) END
+STRICT{
+PASS
+}
+-- [1]124:CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 10s RANGE 20s BEGIN SELECT min_value(temperature) INTO root.ln.wf01(temperature_min) FROM root.ln.wf01 GROUP BY(3s) FILL(100.0) END
+STRICT{
+PASS
+}
+-- [1]126:CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 10s RANGE 30s, 10s BEGIN SELECT sum(temperature) INTO root.ln.wf01(temperature_sum) FROM root.ln.wf01 GROUP BY(10s) FILL(100.0) END
+STRICT{
+PASS
+}
+-- [1]128:CREATE CONTINUOUS QUERY cq5 RESAMPLE EVERY 10s BEGIN SELECT temperature + 1 INTO root.ln.wf01(temperature_add) FROM root.ln.wf01 align by device END
 STRICT{
 PASS
 }
 
--- [1]78:show timeseries
+-- [1]130:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.ln.wf01      |false                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]131:show timeseries
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -112,202 +266,348 @@ root.ln.wf01.status   |null             |root.ln             |BOOLEAN           
 总数目：2
 }
 
-Elapsed Time: 0.0.0
--- [1]79:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0)
+Elapsed Time: 0.0.1
+-- [1]135:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.3
--- [1]81:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.1)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]83:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.2)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]85:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.3)
+Elapsed Time: 0.0.257
+-- [1]137:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]87:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.4)
+-- [1]139:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]141:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.3)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]89:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.5)
+-- [1]143:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.4)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]91:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.6)
+-- [1]145:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.5)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.0
--- [1]93:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.7)
+-- [1]147:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]149:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.7)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]95:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.8)
+-- [1]151:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.8)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
--- [1]97:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.9)
+Elapsed Time: 0.0.1
+-- [1]153:insert into root.ln.wf01(time,status,temperature) values(now(),1,22.9)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
--- [1]99:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.0)
+Elapsed Time: 0.0.1
+-- [1]155:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.0)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
--- [1]101:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1)
+Elapsed Time: 0.0.1
+-- [1]157:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
 
--- [1]103:show timeseries
+-- [1]160:show timeseries
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_sum                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_min                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
 re_avg                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_add                |                 |                    |                    |                    |                       |                |                      |                    |                              |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |
 re                    |                 |                    |                    |                    |                       |                |                      |                    |                              |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_max                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.status   |null             |root.ln             |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
-总数目：3
+总数目：7
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]104:select count(temperature_avg) from root.ln.wf01
+-- [1]161:select count(temperature_max) from root.ln.wf01
 STRICT{
-count(root.ln.wf01.temperature_avg)(INT64)      |
+count(root.ln.wf01.temperature_max)(INT64)      |
 ------------------------------------------------
 2                                               |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]105:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.2)
-STRICT{
-0
-}
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
--- [1]107:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.3)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]109:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.4)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]111:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.5)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]113:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.6)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]115:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.7)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]117:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.8)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]119:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.9)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.1
--- [1]121:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.0)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]123:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]125:select count(temperature_avg) from root.ln.wf01
+-- [1]162:select count(temperature_avg) from root.ln.wf01
 STRICT{
 count(root.ln.wf01.temperature_avg)(INT64)      |
+------------------------------------------------
+3                                               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]163:select count(temperature_min) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_min)(INT64)      |
+------------------------------------------------
+14                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]164:select count(temperature_sum) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_sum)(INT64)      |
+------------------------------------------------
+3                                               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]165:select count(temperature_add) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_add)(INT64)      |
+------------------------------------------------
+9                                               |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]167:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]169:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]171:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]173:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.5)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]175:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]177:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.7)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]179:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.8)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]181:insert into root.ln.wf01(time,status,temperature) values(now(),1,23.9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]183:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.0)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]185:insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]188:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_sum                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_min                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_avg                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_add                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |
+re                    |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_max                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.status   |null             |root.ln             |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
+总数目：7
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]189:select count(temperature_max) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_max)(INT64)      |
 ------------------------------------------------
 4                                               |
 总数目：1
 }
 
+Elapsed Time: 0.0.1
+
+-- [1]190:select count(temperature_avg) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_avg)(INT64)      |
+------------------------------------------------
+5                                               |
+总数目：1
+}
+
 Elapsed Time: 0.0.2
 
--- [1]126:select count(*) from root.ln.wf01
+-- [1]191:select count(temperature_min) from root.ln.wf01
 STRICT{
-count(root.ln.wf01.temperature_avg)(INT64)      |count(root.ln.wf01.temperature)(INT64)      |count(root.ln.wf01.status)(INT64)      |
------------------------------------------------------------------------------------------------------------------------------------
-4                                               |22                                          |22                                     |
+count(root.ln.wf01.temperature_min)(INT64)      |
+------------------------------------------------
+21                                              |
 总数目：1
 }
 
 Elapsed Time: 0.0.1
 
--- [1]127:show timeseries
+-- [1]192:select count(temperature_sum) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_sum)(INT64)      |
+------------------------------------------------
+4                                               |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]193:select count(temperature_add) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_add)(INT64)      |
+------------------------------------------------
+19                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]194:select count(temperature_avg) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_avg)(INT64)      |
+------------------------------------------------
+5                                               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]195:select count(*) from root.ln.wf01
+STRICT{
+count(root.ln.wf01.temperature_sum)(INT64)      |count(root.ln.wf01.temperature_avg)(INT64)      |count(root.ln.wf01.temperature_min)(INT64)      |count(root.ln.wf01.temperature_add)(INT64)      |count(root.ln.wf01.temperature_max)(INT64)      |count(root.ln.wf01.temperature)(INT64)      |count(root.ln.wf01.status)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4                                               |5                                               |21                                              |19                                              |4                                               |22                                          |22                                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]196:show timeseries
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_sum                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_min                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
 re_avg                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_add                |                 |                    |                    |                    |                       |                |                      |                    |                              |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |
 re                    |                 |                    |                    |                    |                       |                |                      |                    |                              |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.temperatu|null             |root.ln             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |
+re_max                |                 |                    |                    |                    |                       |                |                      |                    |                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.status   |null             |root.ln             |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |
-总数目：3
+总数目：7
 }
 
-Elapsed Time: 0.0.0
--- [1]129:DROP CONTINUOUS QUERY cq2
+Elapsed Time: 0.0.2
+-- [1]200:DROP CQ cq1
+STRICT{
+PASS
+}
+-- [1]201:DROP CONTINUOUS QUERY cq2
 STRICT{
 PASS
 }
