@@ -1228,3 +1228,41 @@ unset schema template t1 from root.sg1.d1;
 <<NULL;
 drop schema template t1;
 <<NULL;
+
+
+//二十五、select into和UDF连用
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库和时间序列
+CREATE DATABASE root.sg1;
+CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN;
+
+--2.插入数据
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (0, -1, 1);
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (1, -2, 2);
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (2, -3, 3);
+
+--3.注册UDF并查看UDF（已注册的UDF是否存在）
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+SHOW FUNCTIONS;
+
+--4. UDF查询
+SELECT s1, example(s1), s2, example(s2) FROM root.sg1.d1;
+
+--5.select into与UDF连用
+select example(s1), example(s2) into root.sg2.d1(s1,s2) from root.sg1.d1;
+select * from root.sg2.d1;
+select example(s1), example(s2) into root.db.d1(::,${3}) from root.sg1.d1;
+<<SQLSTATE;
+
+--6. 清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;

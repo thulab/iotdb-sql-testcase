@@ -1,14 +1,23 @@
-//最新点查询：它返回指定时间序列中时间戳最大的数据点，即一条序列的最新状态
+//一、最新点查询：它返回指定时间序列中时间戳最大的数据点，即一条序列的最新状态
 
 --0. 清理数据
 connect root/root;
 delete database root.**;
 <<NULL;
 
---1. 创建存储组和时间序列
+--1. 创建数据库和时间序列
 create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+
+--参考用户数据
+create timeseries root.fbox.`300222080935`.G13WSD.ljhdl with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.ljfdl with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.jymtl with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.jssm with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.jsco2 with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.jrfdl with datatype=FLOAT;
+create timeseries root.fbox.`300222080935`.G13WSD.dyfdl with datatype=FLOAT;
 
 --2. 查询存储组和时间序列
 show databases root.ln;
@@ -36,6 +45,15 @@ insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE
 insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
 insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
 
+--参考用户数据
+insert into root.fbox.`300222080935`.G13WSD(time,jymtl) values(1677118801459,9655.84);
+insert into root.fbox.`300222080935`.G13WSD(time,jssm) values(1677118801460,1327.68);
+insert into root.fbox.`300222080935`.G13WSD(time,jsco2) values(1677118801738,24067.18);
+insert into root.fbox.`300222080935`.G13WSD(time,ljfdl) values(1677118802005,24139.6);
+insert into root.fbox.`300222080935`.G13WSD(time,ljhdl) values(1677118809698,106442.7);
+insert into root.fbox.`300222080935`.G13WSD(time,jrfdl) values(1677118803363,24139.6);
+insert into root.fbox.`300222080935`.G13WSD(time,dyfdl) values(1677118803976,24139.6);
+
 --3. 查询最新数据点
 select * from root.**;
 select last * from root.ln.**;
@@ -47,7 +65,30 @@ select last status, temperature from root.ln.wf01.wt01 where time >= 15094686000
 --5. 将结果集根据序列名进行排序
 select last * from root.ln.wf01.wt01 order by timeseries desc;
 
+--参考用户执行last查询
+select last * from root.fbox.`300222080935`.G13WSD order by timeseries desc;
+select last * from root.fbox.`300222080935`.G13WSD;
+
 --6. 清理环境
 connect root/root;
 delete database root.**;
 <<NULL;
+
+
+//二、last和last_value的验证
+
+--0. 清理数据
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+CREATE DATABASE root.sg1;
+CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN;
+
+--2. 不插入任何值，执行last查询
+select last * from root.sg1.d1;
+
+--3. 不插入任何值，执行last_value查询
+select last_value(*) from root.sg1.d1;
