@@ -1,11 +1,11 @@
-//最新点查询：它返回指定时间序列中时间戳最大的数据点，即一条序列的最新状态
+//一、最新点查询：它返回指定时间序列中时间戳最大的数据点，即一条序列的最新状态
 
 --0. 清理数据
 connect root/root;
 delete database root.**;
 <<NULL;
 
---1. 创建存储组和时间序列
+--1. 创建数据库和时间序列
 create database root.ln;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
@@ -73,3 +73,22 @@ select last * from root.fbox.`300222080935`.G13WSD;
 connect root/root;
 delete database root.**;
 <<NULL;
+
+
+//二、last和last_value的验证
+
+--0. 清理数据
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+CREATE DATABASE root.sg1;
+CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN;
+
+--2. 不插入任何值，执行last查询
+select last * from root.sg1.d1;
+
+--3. 不插入任何值，执行last_value查询
+select last_value(*) from root.sg1.d1;
