@@ -49,7 +49,7 @@ delete database root.**;
 <<NULL;
 
 
-//二、逻辑运算查询
+//二、比较运算符和逻辑运算符
 
 --0. 清理环境
 connect root/root;
@@ -74,8 +74,12 @@ show devices;
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.1,2.2,TRUE,'001',false,12,10);
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(2,2.2,3.3,FALSE,'002',true,13,30);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(3,10.1,11.2,TRUE,'102',false,1,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(4,22.2,30.3,FALSE,'4586145',true,3,30);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(5,31.1,25.2,TRUE,'303',false,22,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(6,8.82,9.3,FALSE,'aabcddf',true,-5,30);
 
---4. 一元逻辑运算【！】：输入输出均为BOOLEAN数据类型
+--4. 逻辑运算【!/NOT 】：输入输出均为BOOLEAN数据类型
 --4.1 非BOOLEAN数据类型执行逻辑运算
 select s1, !(s1) from root.sg.d1;
 <<SQLSTATE;
@@ -83,12 +87,15 @@ select s2, !(s2) from root.sg.d1;
 <<SQLSTATE;
 select s4, !(s4) from root.sg.d1;
 <<SQLSTATE;
+select s7, not(s7) from root.sg.d1;
+<<SQLSTATE;
+
 --4.2 BOOLEAN数据类型执行逻辑运算
 select s3, !(s3) from root.sg.d1;
-select s5, !(s5) from root.sg.d1;
+select s5, not(s5) from root.sg.d1;
 select s3, s5, !(s3 != s5) from root.sg.d1;
 
---5. 二元比较运算符【>, >=, <, <=, ==, !=】：输入类型为INT32, INT64, FLOAT, DOUBLE，输出为BOOLEAN
+--5. 比较运算符【>, >=, <, <=, ==, !=】：输入类型为INT32, INT64, FLOAT, DOUBLE，输出为BOOLEAN
 --5.1 不支持的数据类型比较运算【BOOLEAN和TEXT】
 select s1, s4, s4 >=  s1 from root.sg.d1; 
 <<SQLSTATE;
@@ -101,7 +108,7 @@ select s1, s2, s6, s7, s1 > s2, s6 <= s7, s1 == s6, s2 != s7, s1 >= s7, s2 < s7 
 --5.3 两个BOOLEAN类型运算【==和!=】
 select s3, s5, s3 == s5, s3 != s5 from root.sg.d1;
 
---6. 二元逻辑运算符【and,&, &&; OR:or,|,||】
+--6. 逻辑运算符【AND,&,&&; OR,|,||】
 --6.1 非BOOLEAN数据类型执行逻辑运算
 select s1, s3, s1 and s3  from root.sg.d1;
 <<SQLSTATE;
@@ -118,7 +125,7 @@ select s3, s5, s3 and s5, s3 or s5 from root.sg.d1;
 select s3, s5, s3 & s5, s3 | s5 from root.sg.d1;
 select s3, s5, s3 && s5, s3 || s5 from root.sg.d1;
 
---7. IN运算符【IN】
+--7. IN运算符【IN,NOT IN,CONTAINS,NOT CONTAINS】
 --7.1 查询的列对应的数据类型匹配不到括号里数值对应的数据类型
 select s1 in (1,169,12.5,100.15,false,true,'V001') from root.sg.d1;
 <<SQLSTATE;
@@ -133,11 +140,15 @@ select s7 in (1,169,12.5,100.15) from root.sg.d1;
 <<SQLSTATE;
 --7.2 查询的列对应的数据类型匹配到括号里数值对应的数据类型
 select s1 in (1,169,12.5,100.15) from root.sg.d1;
-select s2 in (1,169,12.5,100.15) from root.sg.d1;
+select s2 in (3.3,169,11.2,100.15) from root.sg.d1;
 select s4 in (1,169,12.5,100.15,false,true,'V001') from root.sg.d1;
-select s3 in (1,169,12.5,100.15,false,true) from root.sg.d1;
-<<SQLSTATE;
---8. 字符串匹配运算符【LIKE, REGEXP】：输入类型为所有的6种数据类型，输出为BOOLEAN类型
+select s6 contains (-1, 0, 22, 1) from root.sg.d1;
+
+--7.3 【NOT IN】和【NOT CONTAINS】：不是指定列表中的值
+select s1 from root.sg.d1 where s1 not in (-2, 1.1, '1.2', 10);
+select s2 from root.sg.d1 where s2 not contains (0, 9.3, '1.2', 1);
+
+--8. 字符串匹配运算符【LIKE,NOT LIKE,REGEXP,NOT REGEXP】：输入类型为所有的6种数据类型，输出为BOOLEAN类型
 --8.1 非TEXT数据类型匹配查询
 select s1 like '1%' from root.sg.d1;
 <<SQLSTATE;
@@ -151,7 +162,21 @@ select s7 regexp '[0-100]' from root.sg.d1;
 <<SQLSTATE;
 --8.2 TEXT数据类型匹配查询
 select s4 regexp '[0-100]' from root.sg.d1;
+select s4 not regexp '^[A-Za-z]+$' from root.sg.d1;
 select s4 like '1%' from root.sg.d1;
+select s4 not like '_bc_' from root.sg.d1;
+
+--9.BETWEEN ... AND ... 运算符
+--9.1 BETWEEN ... AND ...【在指定范围内】
+select s1 from root.sg.d1 where s1 between 10.0 and 35;
+
+--9.2 NOT BETWEEN ... AND ...【不在指定范围内】
+select s2 from root.sg.d1 where s2 not between 1.0 and 10;
+
+--10.清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
 
 
 //三、内置时间序列生成函数
@@ -169,27 +194,30 @@ create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
 create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
 create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
 create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d1.s7 with datatype=TEXT,encoding=PLAIN;
 create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE;
 
 --2. 查询存储组和时间序列
 show databases root.sg;
 show timeseries root.sg.**;
 
---3. 插入数据
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,0.0,-1.0,FALSE,'warn:-8721',-1,14);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,-1.2,TRUE,'error:-37229',14,-1);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,0.0,FALSE,'1731',23,14);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'false',0,20);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,-1.1,1.1,FALSE,'warn:-8721',22,1);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,3.0,2.2,TRUE,'warn:1731',1,22);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,2.6,3.3,FALSE,'true',222,0);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,-1.0,-0.5,TRUE,'-37229.1',23,14);
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,-0.5,-0.25,TRUE,'false',-2,2);
+--3. 插入数据并数据查询
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.1,2.2,TRUE,'warn:1731',12,20,'abcdiekdhs');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(2,0.0,-1.0,FALSE,'warn:-8721',-1,14,'test');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(3,2.5,-1.2,TRUE,'error:-37229',14,-1,'102');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(4,2.6,0.0,FALSE,'1731',23,14,'18403');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(5,1.1,2.2,TRUE,'FALSE',0,20,'[0.0.0.0][FAIL]');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(6,-1.1,1.1,FALSE,'warn:-8721',22,1,'20394');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(7,3.0,2.2,TRUE,'warn:1731',1,22,'sunA839');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(8,2.6,3.3,FALSE,'true',222,0,'Version 002 QQ');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(9,-1.0,-0.5,TRUE,'-37229.1',23,14,'[127.0.0.1][PASS]');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(10,-0.5,-0.25,TRUE,'false',-2,2,'uiewi 88kd');
 insert into root.sg.d2(time,s1) values(1,12);
 insert into root.sg.d2(time,s1) values(2,32);
 insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742);
 insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595);
+
+select * from root.sg.**;
 
 --4. 数学函数
 select s1, sin(s1), cos(s1), tan(s1) from root.sg.d1 limit 5 offset 2;
@@ -201,6 +229,19 @@ select s5, LN(s6), LOG10(s5), SQRT(s6) from root.sg.d1;
 
 --5. 字符串函数
 select s4, string_contains(s4, 's'='warn'), string_matches(s4, 'regex'='[^\\s]+37229') from root.sg.d1;
+select s4, LENGTH(s4), LOCATE(s4, 'target'='warn', 'reverse'='true') from root.sg.d1;
+select s4, STARTSWITH(s4, 'target'='w'), ENDSWITH(s4, 'target'='229') from root.sg.d1;
+select s4, CONCAT(s4, 'target'='t', 'series_behind'='true'), SUBSTR(s4, 'start'='0','end'='2') from root.sg.d1;
+select s4, UPPER(s4), LOWER(s4) from root.sg.d1;
+select s4, s7, TRIM(s7), STRCMP(s4,s7) from root.sg.d1;
+select s7, STRREPLACE(s7,'target'='test','replace'='num','limit'='1','offset'='1','reverse'='true') from root.sg.d1;
+<<SQLSTATE;
+select s7, REGEXMATCH(s7,"regex"="\d+\.\d+\.\d+\.\d+", "group"="0") from root.sg.d1;
+<<SQLSTATE;
+select s7, REGEXREPLACE(s7,"regex"="0\.0\.0\.(\d+)", "replace"="cluster-$1", "limit"="1") from root.sg.d1;
+<<SQLSTATE;
+select s7, REGEXSPLIT(s7,"regex"=",", "index"="-1") from root.sg.d1;
+<<SQLSTATE;
 
 --6. 选择函数
 select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') from root.sg.d2 where time > 1607603775000; 
