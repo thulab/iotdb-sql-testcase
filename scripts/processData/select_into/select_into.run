@@ -269,7 +269,7 @@ select * from root.sg.d8;
 select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) into root.sg.d9(s1,s2,s3,s4,s5) from root.sg.d1;
 select * from root.sg.d9;
 --6.6 数据类型转换函数
-select cast(s1, 'type'='BOOLEAN'), cast(s1, 'type'='INT32'), cast(s1, 'type'='FLOAT'), cast(s1, 'type'='TEXT'), cast(s1, 'type'='DOUBLE') into root.sg.d10(s1,s2,s3,s4,s5) from root.sg.d1;
+select cast(s1, 'type'='BOOLEAN'), cast(s1, 'type'='INT64'), cast(s1, 'type'='FLOAT'), cast(s1, 'type'='TEXT'), cast(s1, 'type'='DOUBLE') into root.sg.d10(s1,s2,s3,s4,s5) from root.sg.d1;
 select * from root.sg.d10;
 --6.7 条件函数
 select s1, on_off(s1, 'threshold'='2'), in_range(s1, 'lower'='2', 'upper'='3.1') into root.sg.d11(s1,s2,s3) from root.sg.d1;
@@ -1261,6 +1261,154 @@ select example(s1), example(s2) into root.db.d1(::,${3}) from root.sg1.d1;
 <<SQLSTATE;
 
 --6. 清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十六、select into 数据类型自动转换
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建时间序列和插入数据
+create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=FLOAT,encoding=RLE,'MAX_POINT_NUMBER'='2';
+create timeseries root.sg.d1.s5 with datatype=DOUBLE,encoding=RLE,'MAX_POINT_NUMBER'='3';
+create timeseries root.sg.d1.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d2.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d2.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d3.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d3.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d3.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d3.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d3.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d3.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d4.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d4.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d4.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d4.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d4.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d4.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d5.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d5.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d5.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d5.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d5.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d5.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d6.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d6.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d6.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d6.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d6.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d6.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d7.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d7.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d7.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d7.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d7.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d7.s6 with datatype=TEXT,encoding=PLAIN;
+
+--2.源序列写入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,false,1,1,1.008,1.1256,'001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,true,0,-1,-0.123,0.2371,'002');
+
+--3. 查看源序列设备和时间序列
+show devices root.sg.**;
+show timeseries root.sg.**;
+select * from root.sg.d1;
+
+--4.数据类型转换
+--4.1 BOOLEAN类型只能转换BOOLEAN类型，其他类型转换不了
+select s1 into root.sg.d2(s1) from root.sg.d1;
+select s1 from root.sg.d2;
+select s1 into root.sg.d2(s2) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s3) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s4) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s5) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.2 INT32类型可以转换INT64，FLOAT，DOUBLE，其他的数据类型不支持
+select s2 into root.sg.d3(s1) from root.sg.d1;
+<<SQLSTATE;
+select s2 into root.sg.d3(s2) from root.sg.d1;
+select s2 from root.sg.d3;
+select s2 into root.sg.d3(s3) from root.sg.d1;
+select s3 from root.sg.d3;
+select s2 into root.sg.d3(s4) from root.sg.d1;
+select s4 from root.sg.d3;
+select s2 into root.sg.d3(s5) from root.sg.d1;
+select s5 from root.sg.d3;
+select s2 into root.sg.d3(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.3 INT64类型可以转换DOUBLE，除本身之外，其他类型不支持
+select s3 into root.sg.d4(s1) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s2) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s3) from root.sg.d1;
+select s3 from root.sg.d4;
+select s3 into root.sg.d4(s4) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s5) from root.sg.d1;
+select s5 from root.sg.d4;
+select s3 into root.sg.d4(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.4 FLOAT类型可以转换DOUBLE，除本身之外，其他类型不支持
+select s4 into root.sg.d5(s1) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s2) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s3) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s4) from root.sg.d1;
+select s4 from root.sg.d5;
+select s4 into root.sg.d5(s5) from root.sg.d1;
+select s5 from root.sg.d5;
+select s4 into root.sg.d5(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.5 DOUBLE类型不支持其他数据类型转换
+select s5 into root.sg.d6(s1) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s2) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s3) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s4) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s5) from root.sg.d1;
+select s5 from root.sg.d6;
+select s5 into root.sg.d6(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.6 Text类型不支持其他数据类型转换
+select s6 into root.sg.d7(s1) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s2) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s3) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s4) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s5) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s6) from root.sg.d1;
+select s6 from root.sg.d7;
+
+--5. 清理环境
 connect root/root;
 DROP FUNCTION example;
 <<NULL;

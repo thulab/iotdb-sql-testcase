@@ -42,11 +42,12 @@ DROP CQ cq8;
 <<NULL;
 
 --1.创建CQ
---1.0 正常创建CQ
+--1.0 正常创建CQ，并查看时间序列
+create timeseries root.ln.wf01.temperature with datatype=FLOAT,encoding=RLE;
 CREATE CONTINUOUS QUERY cq1 BEGIN SELECT max_value(temperature) INTO root.ln_cq.${2}(temperature_max) FROM root.ln.*.*  GROUP BY(10s) END;
 CREATE CONTINUOUS QUERY cq2 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END;
-CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s), level=2 END;
-CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT avg(temperature) INTO root.ln_cq.${2}(temperature_avg) FROM root.ln.*.* GROUP BY(10s) END;
+CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 20s BEGIN SELECT first_value(temperature) INTO root.ln_cq.${2}(temperature_first_value) FROM root.ln.*.* GROUP BY(10s), level=2 END;
+CREATE CQ cq4 RESAMPLE EVERY 20s BOUNDARY 0 BEGIN SELECT max_time(temperature) INTO root.ln_cq.${2}(temperature_max_time) FROM root.ln.*.* GROUP BY(10s) END;
 --1.1 where子句出现任何时间过滤条件校验
 CREATE CONTINUOUS QUERY cq5 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT max_value(temperature) INTO root.ln.wf02.wt02(temperature_max) FROM root.ln.*.* where time >= now()-10s END;
 <<SQLSTATE;
@@ -57,13 +58,16 @@ CREATE CONTINUOUS QUERY cq6 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT sum(t
 CREATE CONTINUOUS QUERY cq7 RESAMPLE RANGE 40s, 20s BEGIN SELECT count(temperature) INTO root.ln.wf04.wt04(temperature_count) FROM root.ln.*.* where temperature >= 15 END;
 <<SQLSTATE;
 CREATE CONTINUOUS QUERY cq8 RESAMPLE EVERY 20s RANGE 40s, 20s BEGIN SELECT last_value(temperature) INTO root.ln.wf05.wt05(temperature_last_value) FROM root.ln.*.* END;
+sleep 5000;
+show timeseries;
+count timeseries;
 
 --2.查看CQ
 SHOW CONTINUOUS QUERIES;
 SHOW CQS;
 
 
---3、删除已有的CQ
+--3.删除已有的CQ
 DROP CONTINUOUS QUERY cq1;
 DROP CQ cq2;
 DROP CONTINUOUS QUERY cq3;
@@ -71,11 +75,11 @@ DROP CQ cq4;
 DROP CQ cq5;
 <<SQLSTATE;
 
---查看存在的CQ列表
+--4.查看存在的CQ列表
 SHOW CONTINUOUS QUERIES;
 SHOW CQS;
 
---清理环境
+--5.清理环境
 delete DATABASE root.**;
 <<NULL;
 DROP CQ cq1;
@@ -125,10 +129,12 @@ CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 10s RANGE 20s BEGIN SELECT min_value(
 CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 10s RANGE 30s, 10s BEGIN SELECT sum(temperature) INTO root.ln.wf01(temperature_sum) FROM root.ln.wf01 GROUP BY(10s) FILL(100.0) END;
 --1.6 没有GROUP BY TIME子句的连续查询
 CREATE CONTINUOUS QUERY cq5 RESAMPLE EVERY 10s BEGIN SELECT temperature + 1 INTO root.ln.wf01(temperature_add) FROM root.ln.wf01 align by device END;
+sleep 1000;
 
 --2.查看设备和时间序列
 show devices;
 show timeseries;
+count timeseries;
 
 --3.插入数据并执行CQ查询
 --3.1 插入数据
@@ -157,6 +163,7 @@ sleep 1000;
 insert into root.ln.wf01(time,status,temperature) values(now(),1,23.1);
 sleep 1000;
 --3.2 查看时间序列和CQ查询
+sleep 5000;
 show timeseries;
 select count(temperature_max) from root.ln.wf01;
 select count(temperature_avg) from root.ln.wf01;
@@ -199,7 +206,7 @@ show timeseries;
 DROP CQ cq1;
 DROP CONTINUOUS QUERY cq2;
 
---清理环境
+--5.清理环境
 delete DATABASE root.**;
 <<NULL;
 DROP CQ cq1;
