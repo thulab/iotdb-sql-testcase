@@ -192,6 +192,7 @@ create database root.sg;
 create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=float,encoding=RLE;
 create timeseries root.sg.d2.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=text,encoding=PLAIN;
 
 --2. 查询存储组和时间序列
 show databases root.sg;
@@ -204,8 +205,8 @@ insert into root.sg.d1(time,s1,s2) values(3,1.1,null);
 insert into root.sg.d1(time,s1,s2) values(4,1.1,0.0);
 insert into root.sg.d1(time,s1,s2) values(5,2.2,1.1);
 insert into root.sg.d1(time,s1,s2) values(6,2.1,0.1);
-insert into root.sg.d2(time,s1) values(1,1);
-insert into root.sg.d2(time,s1) values(2,1);
+insert into root.sg.d2(time,s1,s2) values(1,1,'\\');
+insert into root.sg.d2(time,s1,s2) values(2,1,'001');
 
 --4. sum特定时间序列查询
 select sum(s1) from root.sg.d1;
@@ -236,6 +237,13 @@ select extreme(s1) from root.sg.d1;
 
 --13. extreme求特定存储组下的所有指定的sensor极值，level层级查询
 select extreme(s1) from root.sg.** group by level = 1; 
+
+--14. replace 字符串处理函数
+select s2, replace(s2,'test') from root.sg.d2;
+<<SQLSTATE; 
+select s1, replace(s1,'1','10') from root.sg.d2;
+<<SQLSTATE;
+select s2, replace(s2,'\\','V1') from root.sg.d2; 
 
 --14. 清理环境
 connect root/root;
