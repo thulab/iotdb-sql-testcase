@@ -758,3 +758,43 @@ select avg(temperature),count(status),sum(hardware) from root.ln.wf01.wt01 group
 connect root/root;
 delete database root.**;
 <<NULL;
+
+//十二、点数分段聚合
+--0. 清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+insert into root.sg.d1(time,s1,s2) values(1,14,1);
+insert into root.sg.d1(time,s1,s2) values(2,16,1);
+insert into root.sg.d1(time,s1,s2) values(3,16,0);
+insert into root.sg.d1(time,s1,s2) values(4,16,0);
+insert into root.sg.d1(time,s1,s2) values(5,18,1);
+insert into root.sg.d1(time,s1,s2) values(6,24,1);
+insert into root.sg.d1(time,s1,s2) values(7,36,1);
+insert into root.sg.d1(time,s1,s2) values(8,36,null);
+insert into root.sg.d1(time,s1,s2) values(9,45,1);
+insert into root.sg.d1(time,s1,s2) values(10,60,1);
+
+--2.查看设备和时间序列，执行数据查询
+show devices;
+show timeseries;
+select * from root.**;
+
+--3.group by count 查询
+select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,2);
+select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,3) align by device;
+
+--4. ignoreNull为TRUE和false验证
+select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=false);
+select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=true);
+
+--5.当前暂不支持与【GROUP BY LEVEL】搭配使用
+select count(s2),first_value(s1) from root.sg.d1 group by count(s2,2),level=2;
+<<SQLSTATE;
+
+--6.清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
