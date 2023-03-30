@@ -51,7 +51,8 @@ create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
 create timeseries root.sg.d1.s3 with datatype=int32,encoding=RLE;
 create timeseries root.sg.d1.s4 with datatype=int64,encoding=RLE;
-create timeseries root.sg.d1.s5 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d1.s5 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d1.s6 with datatype=boolean,encoding=PLAIN;
 create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
 create timeseries root.sg.d2.s2 with datatype=INT64,encoding=RLE;
 create timeseries root.sg.d2.s3 with datatype=Boolean,encoding=RLE;
@@ -62,21 +63,26 @@ show databases root.sg;
 show timeseries root.sg.**;
 
 --3. 插入数据
-insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,1.2,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(2,2.5,1.2,null,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(3,1.1,1.2,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(4,1.1,1.3,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(5,3.2,1.2,1,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(6,2.5,1.2,1,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(7,2.2,1.2,1,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(8,-1.0,1.2,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(9,2.3,1.2,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(10,7.8,43.1,0,0);
-insert into root.sg.d1(time,s1,s2,s3,s4) values(11,7.8,43.1,12,22);
-insert into root.sg.d2(time,s1,s2,s3,s4) values(1,1,2,TRUE,'10');
-insert into root.sg.d2(time,s1,s2,s3,s4) values(2,3,6,FALSE,'11');
-insert into root.sg.d2(time,s1,s2,s3,s4) values(5,13,32,TRUE,'13');
-insert into root.sg.d2(time,s1,s2,s3,s4) values(10,22,26,FALSE,'18');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,NaN,0,10,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.5,1.2,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,1.1,NaN,5,0,'test',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,1.1,1.3,null,10,'AaBbC',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,3.2,NaN,3,0,'V1',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.5,1.2,1,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.2,NaN,1,0,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,-1.0,1.2,0,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,2.3,NaN,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,7.8,43.1,6,0,'V2',false);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(1,1,2,TRUE,'test');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(2,3,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(3,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(4,0,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(5,13,32,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(6,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(7,111,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(8,13,2,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(9,255,32,TRUE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(10,22,26,null,'18');
 
 --4. 统计指定时间序列下的sensor的数据点个数
 select count(s1) from root.sg.d1;
@@ -172,10 +178,16 @@ select count_if(s3=0 & s4=0, 3), count_if(s3=1 & s4=0, 3) from root.sg.d1;
 select count_if(s3=0 & s4=0, 3, 'ignoreNull'='false'), count_if(s3=1 & s4=0, 3, 'ignoreNull'='true') from root.sg.d1;
  
 --18.TIME_DURATION：求某一列最大一个不为NULL的值所在时间戳与最小一个不为NULL的值所在时间戳的时间戳差
-select time_duration(s1) from root.sg.d1;
+select time_duration(*) from root.sg.* where time >= 2;
+select time_duration(s1),time_duration(s2) from root.sg.d2 where time > 2 and time <= 9;
+select time_duration(*) from root.sg.** group by ([0,10),2ms);
+select time_duration(s3),time_duration(s4) from root.sg.d2 group by ((1,10],5ms);
+select time_duration(s1) from root.sg.** group by ((0,11],5ms) having count(s1) > 4;
+select time_duration(*) from root.sg.** align by device;
+select time_duration(*) from root.sg.** align by time;
 
 --19. MODE： 求众数。
-select mode(s1),mode(s2),mode(s3),mode(s4) from root.sg.d1;
+select mode(s1),mode(s2),mode(s3),mode(s4),mode(s5),mode(s6) from root.sg.d1;
 select mode(*) from root.sg.d1;
 select mode(*) from root.**;
 
@@ -198,20 +210,30 @@ create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=float,encoding=RLE;
 create timeseries root.sg.d2.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d2.s2 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d2.s3 with datatype=double,encoding=PLAIN;
+create timeseries root.sg.d2.s4 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d2.s5 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d2.s6 with datatype=boolean,encoding=PLAIN;
 
 --2. 查询存储组和时间序列
 show databases root.sg;
 show timeseries root.sg.**;
 
---3. 插入数据
+--3. 插入数据并数据查询
 insert into root.sg.d1(time,s1,s2) values(1,1.1,0.0);
 insert into root.sg.d1(time,s1,s2) values(2,1.1,1.1);
 insert into root.sg.d1(time,s1,s2) values(3,1.1,null);
 insert into root.sg.d1(time,s1,s2) values(4,1.1,0.0);
 insert into root.sg.d1(time,s1,s2) values(5,2.2,1.1);
 insert into root.sg.d1(time,s1,s2) values(6,2.1,0.1);
-insert into root.sg.d2(time,s1,s2) values(1,1,'\\');
-insert into root.sg.d2(time,s1,s2) values(2,1,'001');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,'\\',-1.4,1,100,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,10.12,'001',2.54,2,25,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,'abctest001',11.0,36,120,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(4,-1.15,'null',2.1,25,1,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(5,1001,'Waitamoment!',0.11,4,55,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(6,252.1,'!!!Please001@#',0.00,0,100,FALSE);
+
+select * from root.sg.**;
 
 --4. sum特定时间序列查询
 select sum(s1) from root.sg.d1;
@@ -244,11 +266,36 @@ select extreme(s1) from root.sg.d1;
 select extreme(s1) from root.sg.** group by level = 1; 
 
 --14. replace 字符串处理函数
+--14.1 缺少要替换的目标子串
 select s2, replace(s2,'test') from root.sg.d2;
 <<SQLSTATE; 
-select s1, replace(s1,'1','10') from root.sg.d2;
+--14.2 FlOAT数据类型校验
+show timeseries root.sg.d2.s1;
+select replace(s1,'1','10') from root.sg.d2;
 <<SQLSTATE;
+--14.3 DOUBLE数据类型校验
+show timeseries root.sg.d2.s3;
+select replace(s3,'0','6') from root.sg.d2;
+<<SQLSTATE;
+--14.4 INT32数据类型校验
+show timeseries root.sg.d2.s4;
+select replace(s4,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.5 INT64数据类型校验
+show timeseries root.sg.d2.s5;
+select replace(s5,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.6 BOOLEAN数据类型校验
+show timeseries root.sg.d2.s6;
+select replace(s6,'false','true') from root.sg.d2;
+<<SQLSTATE;
+--14.7 TEXT数据类型校验
+show timeseries root.sg.d2.s2;
 select s2, replace(s2,'\\','V1') from root.sg.d2; 
+select s2, replace(s2,'Waitamoment','Wait a moment') from root.sg.d2;
+select s2, replace(s2,'!','') from root.sg.d2;
+select s2, replace(s2,'null','test') from root.sg.d2;
+select s2, replace(s2,'\\','null') from root.sg.d2;
 
 --14. 清理环境
 connect root/root;

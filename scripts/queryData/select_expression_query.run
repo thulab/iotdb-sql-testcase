@@ -188,8 +188,8 @@ delete database root.**;
 
 --1. 创建存储组和时间序列
 create database root.sg;
-create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
-create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=PLAIN;
 create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
 create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
 create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
@@ -202,18 +202,18 @@ show databases root.sg;
 show timeseries root.sg.**;
 
 --3. 插入数据并数据查询
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.1,2.2,TRUE,'1731',12,20,'abcdiekdhs');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(2,1.1,2.2,TRUE,'0.001',12,20,'abcdiekdhs');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(3,1.1,2.2,TRUE,'111',12,20,'abcdiekdhs');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(4,0.0,-1.0,FALSE,'warn:-8721',-1,14,'test');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(5,2.5,-1.2,TRUE,'error:-37229',14,-1,'102');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(6,2.6,0.0,FALSE,'100',23,14,'18403');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(7,1.1,2.2,TRUE,'FALSE',0,20,'[0.0.0.0][FAIL]');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(8,-1.1,1.1,FALSE,'warn:-8721',22,1,'20394');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(9,3.0,2.2,TRUE,'false',1,10,'sunA839');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(10,2.6,3.3,FALSE,'true',222,0,'Version 002 QQ');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(11,-1.0,-0.5,TRUE,'-37229.1',23,14,'[127.0.0.1][PASS]');
-insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(12,-0.5,-0.25,TRUE,'false',-2,2,'uiewi 88kd');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.111,2.21023,TRUE,'1731',12,20,'abcdiekdhs');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(2,1.10,2.20013,TRUE,'0.001',12,20,'abcdiekdhs');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(3,1.1015,2.142,TRUE,'111',12,20,'abcdiekdhs');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(4,0.0,-1.0013,FALSE,'warn:-8721',-1,14,'test');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(5,25360.51,-1.2148632,TRUE,'error:-37229',14,-1,'102');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(6,2.6278,0.0,FALSE,'100',23,14,'18403');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(7,1001.1006,0.156242,TRUE,'FALSE',0,20,'[0.0.0.0][FAIL]');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(8,-1.10123,1.1,FALSE,'warn:-8721',22,1,'20394');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(9,3.045,2.0023145,TRUE,'false',1,10,'sunA839');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(10,200.60012,3.3101,FALSE,'true',222,0,'Version 002 QQ');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(11,-101.011,-0.512,TRUE,'-37229.1',23,14,'[127.0.0.1][PASS]');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(12,-0.5153,-0.205,TRUE,'false',-2,2,'uiewi 88kd');
 insert into root.sg.d2(time,s1) values(1,12);
 insert into root.sg.d2(time,s1) values(2,32);
 insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742);
@@ -222,20 +222,63 @@ insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595);
 select * from root.sg.**;
 
 --4. 数学函数
+--4.1【SIN】、【COS】、【TAN】
 select s1, sin(s1), cos(s1), tan(s1) from root.sg.d1 limit 5 offset 2;
+--4.2【ASIN】、【ACOS】、【ATAN】
 select s2, ASIN(s2), ACOS(s2), ATAN(s2) from root.sg.d1;
+--4.3【SINH】、【COSH】、【TANH】
 select s5, SINH(s5), COSH(s5), TANH(s5) from root.sg.d1;
+--4.4【DEGREES】、【RADIANS】、【ABS】、【SIGN】
 select s6, DEGREES(s6), RADIANS(s6), ABS(s6),SIGN(s6) from root.sg.d1;
-select s1, CEIL(s1), FLOOR(s1), ROUND(s1),EXP(s1) from root.sg.d2;
+--4.5【CEIL】、【FLOOR】
+select s1, CEIL(s1), FLOOR(s1) from root.sg.d2;
+--4.6【ROUND】
+select s1, round(s1,2) from root.sg.**;
+select s1, round(s1) from root.sg.d1;
+select s1, round(s1,0) from root.sg.d1;
+select s1, round(s1,-2) from root.sg.d1;
+select s2, round(s2,3) from root.sg.d1;
+select s3, round(s3,1) from root.sg.d1;
+<<SQLSTATE;
+select s4, round(s4,1) from root.sg.d1;
+<<SQLSTATE;
+select s5, round(s5,2) from root.sg.d1;
+select s6, round(s6,2) from root.sg.d1;
+
+--4.7【EXP】
+select s1, EXP(s1) from root.sg.d2;
+--4.8【LN】、【LOG10】、【SQRT】
 select s5, LN(s6), LOG10(s5), SQRT(s6) from root.sg.d1;
 
 --5. 字符串函数
+--5.1【string_contains】和【string_matches】
 select s4, string_contains(s4, 's'='warn'), string_matches(s4, 'regex'='[^\\s]+37229') from root.sg.d1;
+--5.2 【LENGTH】和【LOCATE】
 select s4, LENGTH(s4), LOCATE(s4, 'target'='warn', 'reverse'='true') from root.sg.d1;
+--5.3 【STARTSWITH】和【ENDSWITH】
 select s4, STARTSWITH(s4, 'target'='w'), ENDSWITH(s4, 'target'='229') from root.sg.d1;
-select s4, CONCAT(s4, 'target'='t', 'series_behind'='true'), SUBSTRING(s4, 'start'='0','end'='2') from root.sg.d1;
+--5.4 【CONCAT】
+select s4, CONCAT(s4, 'target'='t', 'series_behind'='true') from root.sg.d1;
+--5.5 【SUBSTRING】
+select s4, SUBSTRING(s4, 'start'='0','end'='2') from root.sg.d1;
+select s4, substring(s4,3,2) from root.sg.d1;
+select s7, substring(s7,1),substring(s7,0),substring(s7,-1) from root.sg.d1;
+select s7, substring(s7,-2,1),substring(s7,-3,5) from root.sg.d1;
+select s1,substring(s1,1) from root.sg.d1;
+<<SQLSTATE;
+select s2,substring(s2,1) from root.sg.d1;
+<<SQLSTATE;
+select s3,substring(s3,1) from root.sg.d1;
+<<SQLSTATE;
+select s5,substring(s5,1) from root.sg.d1;
+<<SQLSTATE;
+select s6,substring(s6,1) from root.sg.d1;
+<<SQLSTATE;
+--5.6 【UPPER】和【LOWER】
 select s4, UPPER(s4), LOWER(s4) from root.sg.d1;
+--5.7 【TRIM】和【STRCMP】
 select s4, s7, TRIM(s7), STRCMP(s4,s7) from root.sg.d1;
+--5.8 【STRREPLACE】、【REGEXMATCH】、【REGEXREPLACE】、【REGEXSPLIT】
 select s7, STRREPLACE(s7,'target'='test','replace'='num','limit'='1','offset'='1','reverse'='true') from root.sg.d1;
 <<SQLSTATE;
 select s7, REGEXMATCH(s7,"regex"="\d+\.\d+\.\d+\.\d+", "group"="0") from root.sg.d1;
@@ -254,7 +297,7 @@ select s1, time_difference(s1), difference(s1), non_negative_difference(s1), der
 --8. 常序列生成函数
 select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) from root.sg.d1; 
  
---9. 数据类型转换函数
+--9. 数据类型转换函数【CAST】
 --9.1 FLOAT类型转换其他数据类型
 select s1, cast(s1 as DOUBLE), cast(s1 as INT32), cast(s1 as INT64), cast(s1 as BOOLEAN), cast(s1 as TEXT) from root.sg.d1;
 --9.2 DOUBLE类型转换其他数据类型
