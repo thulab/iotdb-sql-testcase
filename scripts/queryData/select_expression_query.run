@@ -466,19 +466,25 @@ create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
 create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
 create timeseries root.sg.d1.s3(ID) with datatype=INT32,encoding=RLE tags(tag1=V1) attributes(attr1=001);
 create aligned timeseries root.sg.d2(s1(sun) INT32 tags(tag1=v1, tag2=v2) attributes(attr1=v1, attr2=v2), s2(moon) DOUBLE tags(tag3=v3, tag4=v4) attributes(attr3=v3, attr4=v4));
+create timeseries root.db.test.m1 with datatype=BOOLEAN,encoding=PLAIN;
 
 --2. 查询存储组和时间序列
-show databases root.sg;
-show timeseries root.sg.**;
+show databases root.**;
 show devices;
+show timeseries root.**;
 
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3) values(1,20.12,50.32,1);
 insert into root.sg.d1(time,s1,s2,s3) values(20,21.44,65.33,2);
 insert into root.sg.d2(time,s1,s2) aligned values(1,10,1.1),(2,5,-1.2);
+insert into root.db.test(time,m1) values(1,true),(2,true),(20,false);
 
 --4. 别名查询
 select ** from root;
+select s1 as temperature,s1 as ID from root.sg.d1, root.sg.d2 align by time;
+<<SQLSTATE;
+select s1 as temperature,m1 as status from root.sg.d1, root.db.test align by time;
+select s1, s2 from root.sg.d1, root.sg.d2 align by time;
 select s1 as temperature, s2 as speed from root.sg.d1; 
 select ID, s1, s2 from root.sg.d1;
 select ID, sun, moon from root.sg.*;
