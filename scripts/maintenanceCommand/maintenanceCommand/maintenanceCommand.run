@@ -5,6 +5,18 @@ delete DATABASE root.**;
 
 //一、运维命令：SET SYSTEM TO 
 --0.清理环境
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t2 from root.sg2.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+drop schema template t2;
+<<NULL;
 delete DATABASE root.**;
 <<NULL;
 
@@ -15,9 +27,9 @@ CREATE DATABASE root.sg1;
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
 set schema template t1 to root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
-create aligned timeseries root.sg1.d2(s1 INT32, s2 DOUBLE);
-insert into root.sg1.d2(time, s1, s2) aligned values(1, 1, 1);
-select * from root.sg1.d2;
+create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE);
+insert into root.sg2.d2(time, s1, s2) aligned values(1, 1, 1);
+select * from root.sg2.d2;
 
 --2.set system to readonly/running 修改系统状态
 SET SYSTEM TO READONLY;
@@ -25,15 +37,15 @@ sleep 5000;
 show cluster;
 CREATE USER user02 'pass1234';
 GRANT USER user02 PRIVILEGES CREATE_CONTINUOUS_QUERY;
-CREATE DATABASE root.sg2;
+CREATE DATABASE root.sg3;
 create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla);
-set schema template t2 to root.sg2.d1;
-unset schema template t2 from root.sg2.d1;
-create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE);
+set schema template t2 to root.sg3.d1;
+unset schema template t2 from root.sg3.d1;
+create aligned timeseries root.sg3.d2(s1 INT32, s2 DOUBLE);
 <<SQLSTATE;
-insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+insert into root.sg3.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
 <<SQLSTATE;
-select * from root.sg1.d2;
+select * from root.**;
 
 SET SYSTEM TO RUNNING;
 sleep 5000;

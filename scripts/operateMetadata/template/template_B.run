@@ -1,18 +1,7 @@
-connect root/root;
---清理环境
-delete database root.**;
-<<NULL;
-delete timeseries of schema template t1 from root.sg1.d1;
-<<NULL;
-unset schema template t1 from root.sg1.d1;
-<<NULL;
-drop schema template t1;
-<<NULL;
-
-
-//首先挂载模板后，然后添加对齐时间序列,接着操作删除时间序列，最后查看时间序列列表
+//一、先创建并挂载模板，然后在挂载模板路径上创建对齐时间序列校验
 
 --0. 清理环境
+connect root/root;
 delete database root.**;
 <<NULL;
 delete timeseries of schema template t1 from root.sg1.d1;
@@ -34,9 +23,9 @@ show paths set schema template t1;
 --3. 激活模板
 create timeseries of schema template on root.sg1.d1;
 show paths using schema template t1;
-show timeseries root.sg1.**;
 show devices root.sg1.**;
 show timeseries;
+show timeseries root.sg1.**;
 
 --4. 插入数据并数据查询
 insert into root.sg1.d1(time, temperature, status) values(1, 1, 1);
@@ -47,37 +36,60 @@ select * from root.sg1.d1;
 delete timeseries root.sg1.d1.temperature;
 <<SQLSTATE;
 
---6. 创建对齐时间序列
+--6. 目标路径上已挂载了模板，在这个路径上创建其他的对齐时间序列校验
 CREATE ALIGNED TIMESERIES root.sg1.d1.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
-show timeseries root.sg1.d1.**;
+<<SQLSTATE;
 
---7. 针对对齐序列插入数据，然后执行数据查询
+--7. 通过插入数据，校验默认自动创建已有目标路径的时间序列
 insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(1, 1, 1);
-insert into root.sg1.d1.GPS(time, latitude, longitude) aligned values(2, 2, 2), (3, 3, 3);
-select ** from root.sg1.d1;
+<<SQLSTATE;
+show timeseries root.sg1.d1.**;
+select * from root.sg1.**;
 
---8. 删除对齐时间序列中的某个序列，然后查看当前时间序列列表
-delete timeseries root.sg1.d1.GPS.latitude;
+--8. 清理环境
+delete database root.**;
+<<NULL;
+delete timeseries of schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+
+
+//二、目标路径的子树上存在普通时间序列，该路径挂载模板校验
+
+--0.清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+delete timeseries of schema template k1 from root.sg2.d1;
+<<NULL;
+unset schema template k1 from root.sg2.d1;
+<<NULL;
+drop schema template k1;
+<<NULL;
+
+--1.插入数据，自动创建元数据
+insert into root.sg2.d1(time,s1,s2) values(1,1.1,false),(2,2.2,true),(3,3.3,false);
+show databases;
 show timeseries;
+show devices;
 
+--2.创建元数据模板
+create schema template k1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+show schema templates;
 
---10. 清理环境
+--3.目标路径上存在普通时间序列，然后执行挂载模板校验
+set schema template k1 to root.sg2.d1;
+<<SQLSTATE;
+
+--4.清理环境
 delete database root.**;
 <<NULL;
-delete timeseries of schema template t1 from root.sg1.d1;
+delete timeseries of schema template k1 from root.sg2.d1;
 <<NULL;
-unset schema template t1 from root.sg1.d1;
+unset schema template k1 from root.sg2.d1;
 <<NULL;
-drop schema template t1;
-<<NULL;
-
-
---清理环境
-delete database root.**;
-<<NULL;
-delete timeseries of schema template t1 from root.sg1.d1;
-<<NULL;
-unset schema template t1 from root.sg1.d1;
-<<NULL;
-drop schema template t1;
+drop schema template k1;
 <<NULL;
