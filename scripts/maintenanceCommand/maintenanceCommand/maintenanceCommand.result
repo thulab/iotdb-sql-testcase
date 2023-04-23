@@ -1,53 +1,53 @@
--- [1]13:CREATE USER user01 'pass1234'
+-- [1]25:CREATE USER user01 'pass1234'
 STRICT{
 PASS
 }
--- [1]14:GRANT USER user01 PRIVILEGES CREATE_USER
+-- [1]26:GRANT USER user01 PRIVILEGES CREATE_USER
 STRICT{
 PASS
 }
--- [1]15:CREATE DATABASE root.sg1
+-- [1]27:CREATE DATABASE root.sg1
 STRICT{
 PASS
 }
--- [1]15:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
+-- [1]27:create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
 STRICT{
 PASS
 }
--- [1]16:set schema template t1 to root.sg1.d1
+-- [1]28:set schema template t1 to root.sg1.d1
 STRICT{
 PASS
 }
--- [1]17:unset schema template t1 from root.sg1.d1
+-- [1]29:unset schema template t1 from root.sg1.d1
 STRICT{
 PASS
 }
--- [1]18:create aligned timeseries root.sg1.d2(s1 INT32, s2 DOUBLE)
+-- [1]30:create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
--- [1]19:insert into root.sg1.d2(time, s1, s2) aligned values(1, 1, 1)
+-- [1]31:insert into root.sg2.d2(time, s1, s2) aligned values(1, 1, 1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.259
+Elapsed Time: 0.0.261
 
--- [1]20:select * from root.sg1.d2
+-- [1]32:select * from root.sg2.d2
 STRICT{
-Time(TIME)      |root.sg1.d2.s1(INT32)      |root.sg1.d2.s2(DOUBLE)      |
+Time(TIME)      |root.sg2.d2.s1(INT32)      |root.sg2.d2.s2(DOUBLE)      |
 -----------------------------------------------------------------------
 1               |1                          |1.0                         |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
--- [1]24:SET SYSTEM TO READONLY
+Elapsed Time: 0.0.3
+-- [1]36:SET SYSTEM TO READONLY
 STRICT{
 PASS
 }
 
--- [1]25:show cluster
+-- [1]37:show cluster
 STRICT{
 NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |
 -------------------------------------------------------------------------------------------------------------
@@ -57,55 +57,55 @@ NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT
 总数目：2
 }
 
-Elapsed Time: 0.0.15
--- [1]27:CREATE USER user02 'pass1234'
+Elapsed Time: 0.0.13
+-- [1]39:CREATE USER user02 'pass1234'
 STRICT{
 PASS
 }
--- [1]28:GRANT USER user02 PRIVILEGES CREATE_CONTINUOUS_QUERY
+-- [1]40:GRANT USER user02 PRIVILEGES CREATE_CONTINUOUS_QUERY
 STRICT{
 PASS
 }
--- [1]29:CREATE DATABASE root.sg2
+-- [1]41:CREATE DATABASE root.sg3
 STRICT{
 PASS
 }
--- [1]29:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
+-- [1]41:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
--- [1]30:set schema template t2 to root.sg2.d1
+-- [1]42:set schema template t2 to root.sg3.d1
 STRICT{
 PASS
 }
--- [1]31:unset schema template t2 from root.sg2.d1
+-- [1]43:unset schema template t2 from root.sg3.d1
 STRICT{
 PASS
 }
--- [1]32:create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE)
+-- [1]44:create aligned timeseries root.sg3.d2(s1 INT32, s2 DOUBLE)
 STRICT{
 SQLSTATE : 1003: ConfigNode failed to extend Region because there are not enough DataNodes
 }
--- [1]34:insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+-- [1]46:insert into root.sg3.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
 STRICT{
-SQLSTATE : 600: Fail to do non-query operations because system is read-only.
+SQLSTATE : 1003: ConfigNode failed to extend Region because there are not enough DataNodes
 }
 
--- [1]36:select * from root.sg1.d2
+-- [1]48:select * from root.**
 STRICT{
-Time(TIME)      |root.sg1.d2.s1(INT32)      |root.sg1.d2.s2(DOUBLE)      |
+Time(TIME)      |root.sg2.d2.s1(INT32)      |root.sg2.d2.s2(DOUBLE)      |
 -----------------------------------------------------------------------
 1               |1                          |1.0                         |
 总数目：1
 }
 
-Elapsed Time: 0.0.3
--- [1]39:SET SYSTEM TO RUNNING
+Elapsed Time: 0.0.5
+-- [1]51:SET SYSTEM TO RUNNING
 STRICT{
 PASS
 }
 
--- [1]40:show cluster
+-- [1]52:show cluster
 STRICT{
 NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |
 -------------------------------------------------------------------------------------------------------------
@@ -115,19 +115,19 @@ NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT
 总数目：2
 }
 
-Elapsed Time: 0.0.1
--- [1]41:create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE)
+Elapsed Time: 0.0.2
+-- [1]53:create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
--- [1]42:insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+-- [1]54:insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.258
+Elapsed Time: 0.0.266
 
--- [1]43:select * from root.sg2.d3
+-- [1]55:select * from root.sg2.d3
 STRICT{
 Time(TIME)      |root.sg2.d3.s1(INT32)      |root.sg2.d3.s2(DOUBLE)      |
 -----------------------------------------------------------------------
@@ -137,65 +137,65 @@ Time(TIME)      |root.sg2.d3.s1(INT32)      |root.sg2.d3.s2(DOUBLE)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.9
--- [1]68:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
+Elapsed Time: 0.0.5
+-- [1]80:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
--- [1]69:create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE)
+-- [1]81:create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
--- [1]70:insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1)
+-- [1]82:insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.258
--- [1]71:insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1)
-STRICT{
-0
-}
-
-Elapsed Time: 0.0.0
--- [1]72:insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1)
+Elapsed Time: 0.0.264
+-- [1]83:insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1)
 STRICT{
 0
 }
 
 Elapsed Time: 0.0.1
--- [1]73:insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1)
+-- [1]84:insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.257
--- [1]77:MERGE
+Elapsed Time: 0.0.1
+-- [1]85:insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.259
+-- [1]89:MERGE
 STRICT{
 PASS
 }
--- [1]78:FULL MERGE
+-- [1]90:FULL MERGE
 STRICT{
 PASS
 }
--- [1]81:CLEAR CACHE
+-- [1]93:CLEAR CACHE
 STRICT{
 PASS
 }
--- [1]84:FLUSH
+-- [1]96:FLUSH
 STRICT{
 PASS
 }
--- [1]85:FLUSH root.sg1
+-- [1]97:FLUSH root.sg1
 STRICT{
 PASS
 }
--- [1]86:FLUSH root.sg1,root.sg2
+-- [1]98:FLUSH root.sg1,root.sg2
 STRICT{
 PASS
 }
 
--- [1]99:SHOW VARIABLES
+-- [1]111:SHOW VARIABLES
 STRICT{
 Variable(TEXT)      |Value(TEXT)      |
 -------------------------------------
@@ -245,9 +245,9 @@ shold               |                 |
 总数目：14
 }
 
-Elapsed Time: 0.0.24
+Elapsed Time: 0.0.18
 
--- [1]102:SHOW CONFIGNODES
+-- [1]114:SHOW CONFIGNODES
 STRICT{
 NodeID(INT32)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |Role(TEXT)      |
 ---------------------------------------------------------------------------------------------------------
@@ -255,39 +255,39 @@ NodeID(INT32)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(
 总数目：1
 }
 
-Elapsed Time: 0.0.29
--- [1]104:create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN
+Elapsed Time: 0.0.16
+-- [1]116:create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]105:create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE
+-- [1]117:create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE
 STRICT{
 PASS
 }
--- [1]106:create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN
+-- [1]118:create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN
 STRICT{
 PASS
 }
--- [1]107:insert into root.sg.d1(time,s1) values(1,true)
+-- [1]119:insert into root.sg.d1(time,s1) values(1,true)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.262
--- [1]108:insert into root.sg.d2(time,s1) values(1,1.1)
+Elapsed Time: 0.0.261
+-- [1]120:insert into root.sg.d2(time,s1) values(1,1.1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.272
--- [1]109:insert into root.ln.d1(time,s1) values(1,1)
+Elapsed Time: 0.0.263
+-- [1]121:insert into root.ln.d1(time,s1) values(1,1)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.262
+Elapsed Time: 0.0.261
 
--- [1]111:SHOW DATANODES
+-- [1]123:SHOW DATANODES
 STRICT{
 NodeID(INT32)      |Status(TEXT)      |RpcAddress(TEXT)      |RpcPort(INT32)      |DataRegionNum(INT32)      |SchemaRegionNum(INT32)      |
 -------------------------------------------------------------------------------------------------------------------------------------
@@ -297,7 +297,7 @@ NodeID(INT32)      |Status(TEXT)      |RpcAddress(TEXT)      |RpcPort(INT32)    
 
 Elapsed Time: 0.0.15
 
--- [1]113:SHOW CLUSTER
+-- [1]125:SHOW CLUSTER
 STRICT{
 NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |
 -------------------------------------------------------------------------------------------------------------
@@ -307,9 +307,9 @@ NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]114:SHOW CLUSTER DETAILS
+-- [1]126:SHOW CLUSTER DETAILS
 STRICT{
 NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |ConfigConsensusPort(TEXT)      |RpcAddress(TEXT)      |RpcPort(TEXT)      |MppPort(TEXT)      |SchemaConsensusPort(TEXT)      |DataConsensusPort(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -319,9 +319,9 @@ NodeID(INT32)      |NodeType(TEXT)      |Status(TEXT)      |InternalAddress(TEXT
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]128:show data seriesslotid of root.sg
+-- [1]140:show data seriesslotid of root.sg
 STRICT{
 SeriesSlotId(INT32)      |
 -------------------------
@@ -331,9 +331,9 @@ SeriesSlotId(INT32)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.15
+Elapsed Time: 0.0.12
 
--- [1]131:show timeslotid of root.sg where seriesslotid=1107
+-- [1]143:show timeslotid of root.sg where seriesslotid=1107
 STRICT{
 TimeSlotId(INT64)      |
 -----------------------
@@ -341,4 +341,4 @@ TimeSlotId(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.14
