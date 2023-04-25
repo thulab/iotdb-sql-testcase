@@ -27,9 +27,9 @@ CREATE DATABASE root.sg1;
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
 set schema template t1 to root.sg1.d1;
 unset schema template t1 from root.sg1.d1;
-create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE);
-insert into root.sg2.d2(time, s1, s2) aligned values(1, 1, 1);
-select * from root.sg2.d2;
+create aligned timeseries root.sg1.d2(s1 INT32, s2 DOUBLE);
+insert into root.sg1.d2(time, s1, s2) aligned values(1, 1, 1);
+select * from root.sg1.d2;
 
 --2.set system to readonly/running 修改系统状态
 SET SYSTEM TO READONLY;
@@ -37,15 +37,15 @@ sleep 5000;
 show cluster;
 CREATE USER user02 'pass1234';
 GRANT USER user02 PRIVILEGES CREATE_CONTINUOUS_QUERY;
-CREATE DATABASE root.sg3;
+CREATE DATABASE root.sg2;
 create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla);
-set schema template t2 to root.sg3.d1;
-unset schema template t2 from root.sg3.d1;
-create aligned timeseries root.sg3.d2(s1 INT32, s2 DOUBLE);
+set schema template t2 to root.sg2.d1;
+unset schema template t2 from root.sg2.d1;
+create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE);
 <<SQLSTATE;
-insert into root.sg3.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
 <<SQLSTATE;
-select * from root.**;
+select * from root.sg1.d2;
 
 SET SYSTEM TO RUNNING;
 sleep 5000;
@@ -116,10 +116,11 @@ SHOW CONFIGNODES;
 create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE;
 create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN;
-insert into root.sg.d1(time,s1) values(1,true);
-insert into root.sg.d2(time,s1) values(1,1.1);
-insert into root.ln.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(1,true),(1000,false);
+insert into root.sg.d2(time,s1) values(1,1.1),(2,3.3);
+insert into root.ln.wf01.wt01(time,temperature) values(1,1),(1000,2);
 SHOW DATANODES;
+
 --4.展示全部节点信息以及全部节点的详细配置信息
 SHOW CLUSTER;
 SHOW CLUSTER DETAILS;
@@ -128,7 +129,7 @@ SHOW CLUSTER DETAILS;
 --SHOW REGIONS;
 --SHOW SCHEMA REGIONS;
 --SHOW DATA REGIONS;
---show databases;
+show databases;
 --show regions of database root.sg;
 --show regions of database root.ln;
 --show data regions of database root.sg, root.ln;
@@ -136,12 +137,63 @@ SHOW CLUSTER DETAILS;
 --show regions on nodeid 1;
 --show regions of database root.sg on nodeid 1;
 
---6.展示数据库的序列槽
-show data seriesslotid of root.sg;
+--5.1展示数据分区所在的Dataregion
+show databases;
+show data regionid where database=root.ln;
+show data regionid where database=root.sg;
+show data regionid where database=root.sg,root.ln;
+<<SQLSTATE;
+show data regionid where database=sg;
+<<SQLSTATE;
+show data regionid where database=root.**;
+show data regionid where database=root.sg and time=1;
+show data regionid where database=root.sg and time=1970-01-08T00:00:00.001;
+show devices;
+show data regionid where device=root.sg.d1;
+show data regionid where device=root.ln;
+show data regionid where device=root.ln.wf01.wt01;
+show data regionid where deivce=root.sg.d1,root.ln.wf01.wt01;
+<<SQLSTATE;
+show data regionid where device=root.ln.**;
+show data regionid where device=sg.d1;
+<<SQLSTATE;
+show data regionid where device=root.ln.wf01.wt01 and time=1;
+show data regionid where device=root.ln.wf01.wt01 and time=-1;
+<<SQLSTATE;
+show data regionid where device=root.ln.wf01.wt01 and time=1970-01-01T08:00:00.001;
+show data regionid where device=root.ln.wf01.wt01 and time=1969-01-01T08:00:00.001;
+<<SQLSTATE;
 
---7.展示序列槽下的时间槽
-show timeslotid of root.sg where seriesslotid=1107;
+--5.2展示元数据分区所在的SchemaRegion
+show schema regionid where database=root.sg;
+show schema regionid where device=root.ln.wf01.wt01;
 
---8.清理环境
+--6.展示数据库的当前序列槽
+show data seriesslotid where database=root.sg;
+show data seriesslotid where database=root.ln;
+show data seriesslotid where device=root.ln.wf01.wt01;
+<<SQLSTATE;
+show schema seriesslotid where database=root.sg;
+show schema seriesslotid where device=root.sg.d1;
+<<SQLSTATE;
+show schema seriesslotid where database=root.ln;
+
+--7.展示过滤条件下的时间分区
+show timepartition where database=root.sg;
+show timepartition where device=root.ln.wf01.wt01;
+show timePartition where regionid=2;
+show timePartition where regionid=1,2;
+<<SQLSTATE;
+show timepartition where device=root.ln.wf01.wt01 and starttime=0;
+show timepartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000;
+
+--8. 统计过滤条件下的时间分区个数
+count timePartition where database=root.sg;
+count timePartition where device=root.ln.wf01.wt01;
+count timePartition where regionid=2;
+count timePartition where device=root.ln.wf01.wt01 and starttime=0;
+count timePartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000;
+
+--9.清理环境
 delete DATABASE root.**;
 <<NULL;
