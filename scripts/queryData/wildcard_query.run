@@ -97,6 +97,8 @@ create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
 create timeseries root.sg.d3.s1 with datatype=INT64,encoding=RLE;
 create timeseries root.sg.d3.s2 with datatype=boolean,encoding=RLE;
 create timeseries root.sg.s1 with datatype=INT32,encoding=PLAIN;
+create database root.test.group_0;
+create aligned timeseries root.test.group_0.aligned_device21(s_1001 float encoding=PLAIN compressor=SNAPPY,s_2010 INT32 encoding=PLAIN compressor=SNAPPY);
 
 --2. 查看存储组和时间序列
 show databases root.**;
@@ -116,6 +118,7 @@ insert into root.sg.d3(time,s1) values(3,10);
 insert into root.sg.d3(time,s2) values(1,TRUE);
 insert into root.sg(time,s1) values(1,9);
 insert into root.sg(time,s1) values(2,11);
+insert into root.test.group_0.aligned_device21(time,s_1001,s_2010) aligned values(1,22.1,5),(2,10.1,2),(3,5.1,1);
 
 --4. 数据查询
 --4.1 select结果路径为：root.sg.*
@@ -133,6 +136,15 @@ select ** from root.sg where s1 <= 10;
 select s1 from root.sg.** where t1<=10;
 --4.6 select值过滤结果路径为：root.sg.d1.*
 select * from root.sg.d1 where s1.t1 >= 0 and root.sg.d1.s2 < 10;
+--4.7 查询root开头的全部路径数据：root.**
+select * from root.**;
+--4.8 通配物理量或设备名
+select s_* from root.test.group_0.aligned_device21;
+select *s_* from root.test.group_0.aligned_device21;
+select * from root.test.group_0.aligned_*21;
+<<SQLSTATE;
+select * from root.test.group_*.aligned_device21;
+select s_* from root.sg.d*;
 
 --5. 清理环境
 connect root/root;
