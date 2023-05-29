@@ -6,6 +6,9 @@ delete database root.**;
 <<NULL;
 
 --1. 创建数据库和时间序列
+create timeseries root.sg.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.s2 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sw.s1 with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.ln.wf01.wt01.status with datatype=boolean,encoding=plain tags(tag1=v1,tag2=v2) attributes(attr1=v1,attr2=v2);
 create timeseries root.ln.wf01.wt01.temperature with datatype=float,encoding=rle tags(tag1=M1,tag2=M2) attributes(attr1=N1,attr2=N2);
 create timeseries root.ln.wf01.wt01.hardware with datatype=text,encoding=plain tags(unit_1=c1,unit_2=c2) attributes(attr1=Y1,attr2=y2);
@@ -92,7 +95,13 @@ show timeseries root.ln.** where attributes(attr)=Q1;
 show timeseries root.ln.** where Alias(s1)=status;
 <<SQLSTATE;
 
---7. 清理环境
+--7.数据库和设备名为同一字段
+show timeseries root.** where timeseries contains 's1';
+show timeseries root.*.s1 where timeseries contains 's1';
+show devices root.** where device contains 'sg';
+show devices root.* where device contains 'sw';
+
+--8. 清理环境
 connect root/root;
 delete database root.**;
 <<NULL;
