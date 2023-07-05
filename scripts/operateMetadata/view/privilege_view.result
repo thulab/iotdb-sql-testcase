@@ -1,0 +1,2809 @@
+-- [1]7:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]7:create database root.db
+STRICT{
+PASS
+}
+-- [1]8:create database root.view
+STRICT{
+PASS
+}
+-- [1]9:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]10:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]11:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]12:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.264
+-- [1]13:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]14:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.273
+-- [1]15:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]16:create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02
+STRICT{
+PASS
+}
+
+-- [1]18:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]18:grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1
+STRICT{
+PASS
+}
+
+-- [1]20:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.v1 : READ_T|
+                |IMESERIES            |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]21:select c1,c2 from root.view.v1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+-- [1]24:grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.*
+STRICT{
+PASS
+}
+
+-- [1]26:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.v1 : READ_T|
+                |IMESERIES            |
+-------------------------------------
+                |root.view.v1.* : READ|
+                |_TIMESERIES          |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]27:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]28:insert into root.view.v1(time,c1) aligned values(5000,9999)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]30:insert into root.view.v1(time,c2) values(5000,"greate wall.")
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]32:create view root.view.v1(c3) as select s02 from root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_VIEW
+}
+-- [1]34:drop database root.db
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_DATABASE
+}
+-- [1]35:drop database root.view
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_DATABASE
+}
+-- [1]36:drop user u_security
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_USER
+}
+-- [1]39:drop database root.db
+STRICT{
+PASS
+}
+-- [1]40:drop database root.view
+STRICT{
+PASS
+}
+-- [1]41:drop user u_security
+STRICT{
+PASS
+}
+-- [1]43:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]43:create database root.db
+STRICT{
+PASS
+}
+-- [1]44:create database root.view
+STRICT{
+PASS
+}
+-- [1]45:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]46:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]47:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]48:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.262
+-- [1]49:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]50:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.268
+-- [1]51:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]52:create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02
+STRICT{
+PASS
+}
+-- [1]53:grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1
+STRICT{
+PASS
+}
+-- [1]54:grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1
+STRICT{
+SQLSTATE : 810: User u_security already has READ_TIMESERIES on root.view.v1.c1
+}
+-- [1]57:select * from root.view.v1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+
+-- [1]59:select c1 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |
+--------------------------------------------
+1000            |123                         |
+--------------------------------------------
+2000            |1111                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]60:select s01 from root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+-- [1]61:select s02 from root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+-- [1]63:LIST PRIVILEGES USER u_security
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege LIST_USER
+}
+-- [1]66:drop database root.db
+STRICT{
+PASS
+}
+-- [1]67:drop database root.view
+STRICT{
+PASS
+}
+-- [1]68:drop user u_security
+STRICT{
+PASS
+}
+-- [1]70:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]70:create database root.db
+STRICT{
+PASS
+}
+-- [1]71:create database root.view
+STRICT{
+PASS
+}
+-- [1]72:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]73:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]74:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]75:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.264
+-- [1]76:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]77:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.266
+-- [1]78:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]79:create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02
+STRICT{
+PASS
+}
+-- [1]80:grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1
+STRICT{
+PASS
+}
+-- [1]82:delete timeseries root.db.d1.s01
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]84:delete timeseries root.view.v1.c1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]85:delete timeseries root.view.v1.c2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+
+-- [1]88:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]92:drop database root.db
+STRICT{
+PASS
+}
+-- [1]93:drop database root.view
+STRICT{
+PASS
+}
+-- [1]94:drop user u_security
+STRICT{
+PASS
+}
+-- [1]96:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]96:create database root.db
+STRICT{
+PASS
+}
+-- [1]97:create database root.view
+STRICT{
+PASS
+}
+-- [1]98:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]99:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]100:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]101:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]102:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]103:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.270
+-- [1]104:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]105:create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02
+STRICT{
+PASS
+}
+-- [1]106:grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1
+STRICT{
+PASS
+}
+-- [1]108:delete timeseries root.db.d1.s01
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]110:drop view root.view.v1.c1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_VIEW
+}
+-- [1]112:delete timeseries root.view.v1.c2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]114:delete timeseries root.view.v1.c1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.262
+-- [1]115:show view root.view.v1.c1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+
+-- [1]118:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]120:drop database root.db
+STRICT{
+PASS
+}
+-- [1]121:drop database root.view
+STRICT{
+PASS
+}
+-- [1]122:drop user u_security
+STRICT{
+PASS
+}
+-- [1]124:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]124:create database root.db
+STRICT{
+PASS
+}
+-- [1]125:create database root.view
+STRICT{
+PASS
+}
+-- [1]126:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]127:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]128:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]129:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.265
+-- [1]130:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]131:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]132:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]133:create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02
+STRICT{
+PASS
+}
+-- [1]134:grant user u_security PRIVILEGES  ALTER_TIMESERIES on root.view.v1.c1
+STRICT{
+PASS
+}
+
+-- [1]135:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]137:alter view root.view.v1.c1 as select s01 from root.db.d2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege ALTER_VIEW
+}
+-- [1]139:alter timeseries root.view.v1.c1 upsert tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+-- [1]140:alter timeseries root.view.v1.c2 upsert tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege ALTER_TIMESERIES
+}
+
+-- [1]143:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]144:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]145:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]146:grant user u_security PRIVILEGES  ALTER_view on root.view.v1.c1
+STRICT{
+PASS
+}
+-- [1]148:alter view root.view.v1.c1 upsert tags(city_region=changping, description='this is a beautiful region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+
+-- [1]150:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |changping","des|:"90"}                |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a beautiful|                      |                    |                  |
+                      |                    |                    | region"}       |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]151:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]152:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]154:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.v1.c1 : ALT|
+                |ER_VIEW ALTER_TIMESE|
+                |RIES                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]155:REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES
+STRICT{
+SQLSTATE : 811: User u_security does not have ALTER_TIMESERIES on root.**
+}
+-- [1]157:REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES on root.view.v1.c1
+STRICT{
+PASS
+}
+
+-- [1]158:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.v1.c1 : ALT|
+                |ER_VIEW              |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]159:alter timeseries root.view.v1.c1 upsert tags(city_region=huairou, description='this is a super beautiful region') attributes(speed=90, color=red)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege ALTER_TIMESERIES
+}
+
+-- [1]162:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |changping","des|:"90"}                |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a beautiful|                      |                    |                  |
+                      |                    |                    | region"}       |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]163:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]164:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]166:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.v1.c1 : ALT|
+                |ER_VIEW              |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]167:alter view root.view.v1.c1 rename to root.view.v1.cici
+STRICT{
+SQLSTATE : 701: Renaming view is not supported.
+}
+
+-- [1]170:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |changping","des|:"90"}                |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a beautiful|                      |                    |                  |
+                      |                    |                    | region"}       |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |TEXT                |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]171:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]172:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |null                       |
+-----------------------------------------------------------------------
+2000            |1111                        |hello                      |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]173:drop database root.db
+STRICT{
+PASS
+}
+-- [1]174:drop database root.view
+STRICT{
+PASS
+}
+-- [1]175:drop user u_security
+STRICT{
+PASS
+}
+-- [1]180:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]180:create database root.db
+STRICT{
+PASS
+}
+-- [1]181:create database root.view
+STRICT{
+PASS
+}
+-- [1]182:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]183:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]184:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]185:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]186:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]187:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.256
+-- [1]188:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]189:grant user u_security PRIVILEGES  CREATE_VIEW on root.view.v1.c1
+STRICT{
+PASS
+}
+
+-- [1]190:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]192:create view root.view.v1(c1) as select s01 from  root.db.d1
+STRICT{
+PASS
+}
+-- [1]193:select s01 from  root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+
+-- [1]195:show view root.view.v1.*
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]196:select * from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |
+--------------------------------------------
+1000            |123                         |
+--------------------------------------------
+2000            |1111                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]197:insert into root.view.v1(time,c1) aligned values(3000,7777)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]198:select * from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |
+--------------------------------------------
+1000            |123                         |
+--------------------------------------------
+2000            |1111                        |
+--------------------------------------------
+3000            |7777                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]200:create timeseries root.view.v1.c1 with datatype=int32
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_TIMESERIES
+}
+-- [1]203:drop database root.db
+STRICT{
+PASS
+}
+-- [1]204:drop database root.view
+STRICT{
+PASS
+}
+-- [1]205:drop user u_security
+STRICT{
+PASS
+}
+-- [1]209:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]209:create database root.db
+STRICT{
+PASS
+}
+-- [1]210:create database root.view
+STRICT{
+PASS
+}
+-- [1]211:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]212:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]213:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]214:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]215:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]216:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.260
+-- [1]217:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]218:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]219:create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]220:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]221:grant user u_security PRIVILEGES  insert_timeseries on root.view.v1.*
+STRICT{
+PASS
+}
+-- [1]223:insert into root.view.v1(time,c1) aligned values(3000,7777)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]224:insert into root.view.v1(time,c1) aligned values(5000,9999)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]225:insert into root.view.v1(time,c2) values(7000,"car")
+STRICT{
+SQLSTATE : 507: Can not insert data to a view which is not alias series. (View path: root.view.v1.c2)
+}
+-- [1]227:insert into root.view.v1(time,c1,c2) values(8000,8888,"error")
+STRICT{
+SQLSTATE : 507: Can not insert data to a view which is not alias series. (View path: root.view.v1.c2)
+}
+
+-- [1]230:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |7777                        |seize the day,beijing      |
+-----------------------------------------------------------------------
+5000            |9999                        |,beijing                   |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]231:drop database root.db
+STRICT{
+PASS
+}
+-- [1]232:drop database root.view
+STRICT{
+PASS
+}
+-- [1]233:drop user u_security
+STRICT{
+PASS
+}
+-- [1]238:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]238:create database root.db
+STRICT{
+PASS
+}
+-- [1]239:create database root.view
+STRICT{
+PASS
+}
+-- [1]240:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]241:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]242:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]243:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]244:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]245:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.273
+-- [1]246:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]247:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]248:create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]249:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]250:grant user u_security PRIVILEGES  insert_timeseries on root.db.d1.s01
+STRICT{
+PASS
+}
+-- [1]251:grant user u_security PRIVILEGES  insert_timeseries on root.db.d2.s02
+STRICT{
+PASS
+}
+-- [1]253:insert into root.view.v1(time,c1) aligned values(3000,7777)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]255:insert into root.view.v1(time,c1) aligned values(5000,9999)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]257:insert into root.db.d1(time,s01) aligned values(6000,6677)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]258:insert into root.db.d1(time,s02) aligned values(6000,6677)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+}
+-- [1]260:insert into root.db.d2(time,s02) values(6000,"insert into by timeseries")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]263:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+-----------------------------------------------------------------------
+6000            |6677                        |insert into by timeseries,b|
+                |                            |eijing                     |
+总数目：4
+}
+
+Elapsed Time: 0.0.6
+-- [1]265:drop database root.db
+STRICT{
+PASS
+}
+-- [1]266:drop database root.view
+STRICT{
+PASS
+}
+-- [1]267:drop user u_security
+STRICT{
+PASS
+}
+-- [1]274:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]274:create database root.db
+STRICT{
+PASS
+}
+-- [1]275:create database root.view
+STRICT{
+PASS
+}
+-- [1]276:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]277:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]278:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]279:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]280:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]281:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.270
+-- [1]282:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]283:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]284:create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]285:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]286:grant user u_security PRIVILEGES  delete_timeseries on root.view.**
+STRICT{
+PASS
+}
+
+-- [1]288:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.** : DELETE|
+                |_TIMESERIES          |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]289:delete from root.db.d1.s01
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]291:delete from root.view.v1.c1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]292:delete from root.view.v1.c2
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]294:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+2000            |null                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]295:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |null                       |456                        |
+----------------------------------------------------------------------
+2000            |null                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]296:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]298:delete timeseries root.view.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.256
+
+-- [1]300:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]301:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]302:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |null                       |456                        |
+----------------------------------------------------------------------
+2000            |null                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]303:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]304:drop database root.db
+STRICT{
+PASS
+}
+-- [1]305:drop database root.view
+STRICT{
+PASS
+}
+-- [1]306:drop user u_security
+STRICT{
+PASS
+}
+-- [1]313:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]313:create database root.db
+STRICT{
+PASS
+}
+-- [1]314:create database root.view
+STRICT{
+PASS
+}
+-- [1]315:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]316:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]317:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]318:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]319:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]320:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.263
+-- [1]321:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]322:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]323:create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]324:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]325:grant user u_security PRIVILEGES  delete_view on root.view.**
+STRICT{
+PASS
+}
+
+-- [1]327:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.** : DELETE|
+                |_VIEW                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]327:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]328:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]330:delete from root.db.d1.s01
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]332:delete from root.view.v1.c1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]334:delete from root.view.v1.c2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]336:drop view  root.view.v1.c1
+STRICT{
+PASS
+}
+-- [1]337:drop view  root.view.v1.c2
+STRICT{
+PASS
+}
+
+-- [1]339:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]340:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]341:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]342:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]343:drop database root.db
+STRICT{
+PASS
+}
+-- [1]344:drop database root.view
+STRICT{
+PASS
+}
+-- [1]345:drop user u_security
+STRICT{
+PASS
+}
+-- [1]353:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]353:create database root.db
+STRICT{
+PASS
+}
+-- [1]354:create database root.view
+STRICT{
+PASS
+}
+-- [1]355:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]356:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]357:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]358:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.258
+-- [1]359:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]360:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]361:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]362:create view root.db.d1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]363:create view root.db.d2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]364:select c1,c2 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.c1(INT32)      |
+------------------------------------------
+1000            |123                       |
+------------------------------------------
+2000            |1111                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]365:grant user u_security PRIVILEGES  delete_view on root.db.**
+STRICT{
+PASS
+}
+
+-- [1]367:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.db.** : DELETE_V|
+                |IEW                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]367:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]368:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]369:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.c1         |root.db             |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.c2         |root.db             |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]371:delete from root.db.d1.c1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+-- [1]373:delete from root.db.d2.c2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_TIMESERIES
+}
+
+-- [1]376:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.c1(INT32)      |
+------------------------------------------------------------------------------------------------
+1000            |123                        |456                        |123                       |
+------------------------------------------------------------------------------------------------
+2000            |1111                       |4444                       |1111                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]377:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |root.db.d2.c2(TEXT)      |
+----------------------------------------------------------------------------------------------
+2000            |789                        |hello                     |hello,beijing            |
+----------------------------------------------------------------------------------------------
+3000            |9                          |seize the day             |seize the day,beijing    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]378:flush
+STRICT{
+PASS
+}
+
+-- [1]379:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.c1(INT32)      |
+------------------------------------------------------------------------------------------------
+1000            |123                        |456                        |123                       |
+------------------------------------------------------------------------------------------------
+2000            |1111                       |4444                       |1111                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]380:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |root.db.d2.c2(TEXT)      |
+----------------------------------------------------------------------------------------------
+2000            |789                        |hello                     |hello,beijing            |
+----------------------------------------------------------------------------------------------
+3000            |9                          |seize the day             |seize the day,beijing    |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]381:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.c1         |root.db             |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.c2         |root.db             |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]383:drop view root.db.d1.s01
+STRICT{
+SQLSTATE : 508: View [root.db.d1.s01] does not exist
+}
+-- [1]385:drop view root.db.**
+STRICT{
+PASS
+}
+
+-- [1]387:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]388:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]389:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]390:flush
+STRICT{
+PASS
+}
+
+-- [1]391:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]392:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]393:drop database root.db
+STRICT{
+PASS
+}
+-- [1]394:drop database root.view
+STRICT{
+PASS
+}
+-- [1]395:drop user u_security
+STRICT{
+PASS
+}
+-- [1]403:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]403:create database root.db
+STRICT{
+PASS
+}
+-- [1]404:create database root.view
+STRICT{
+PASS
+}
+-- [1]405:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]406:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]407:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]408:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.511
+-- [1]409:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]410:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]411:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]412:create view root.db.d1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]413:create view root.db.d2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]414:select c1,c2 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.c1(INT32)      |
+------------------------------------------
+1000            |123                       |
+------------------------------------------
+2000            |1111                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]415:grant user u_security PRIVILEGES  delete_timeseries on root.db.**
+STRICT{
+PASS
+}
+
+-- [1]417:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.db.** : DELETE_T|
+                |IMESERIES            |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]417:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]418:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]419:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.c1         |root.db             |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.c2         |root.db             |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]421:delete from root.db.d1.c1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]422:delete from root.db.d2.c2
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]424:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.c1(INT32)      |
+------------------------------------------------------------------------------------------------
+1000            |null                       |456                        |null                      |
+------------------------------------------------------------------------------------------------
+2000            |null                       |4444                       |null                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]425:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |root.db.d2.c2(TEXT)      |
+----------------------------------------------------------------------------------------------
+2000            |789                        |hello                     |hello,beijing            |
+----------------------------------------------------------------------------------------------
+3000            |9                          |seize the day             |seize the day,beijing    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]426:flush
+STRICT{
+PASS
+}
+
+-- [1]427:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.c1(INT32)      |
+------------------------------------------------------------------------------------------------
+1000            |null                       |456                        |null                      |
+------------------------------------------------------------------------------------------------
+2000            |null                       |4444                       |null                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]428:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |root.db.d2.c2(TEXT)      |
+----------------------------------------------------------------------------------------------
+2000            |789                        |hello                     |hello,beijing            |
+----------------------------------------------------------------------------------------------
+3000            |9                          |seize the day             |seize the day,beijing    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]429:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.c1         |root.db             |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.c2         |root.db             |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+-- [1]431:drop view root.db.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege DELETE_VIEW
+}
+-- [1]433:delete timeseries root.db.d1.c1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]434:delete timeseries root.db.d2.c2
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+
+-- [1]436:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]437:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |null                       |456                        |
+----------------------------------------------------------------------
+2000            |null                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]438:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]439:flush
+STRICT{
+PASS
+}
+
+-- [1]440:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |null                       |456                        |
+----------------------------------------------------------------------
+2000            |null                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]441:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]442:drop database root.db
+STRICT{
+PASS
+}
+-- [1]443:drop database root.view
+STRICT{
+PASS
+}
+-- [1]444:drop user u_security
+STRICT{
+PASS
+}
+-- [1]452:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]452:create role r_test
+STRICT{
+PASS
+}
+-- [1]453:create database root.db
+STRICT{
+PASS
+}
+-- [1]454:create database root.view
+STRICT{
+PASS
+}
+-- [1]455:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]456:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]457:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]458:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]459:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]460:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.263
+-- [1]461:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]462:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]463:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]465:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]466:LIST PRIVILEGES role r_test
+STRICT{
+privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]466:grant role r_test privileges create_view,alter_view,delete_view on root.view.**
+STRICT{
+PASS
+}
+
+-- [1]468:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]469:LIST PRIVILEGES role r_test
+STRICT{
+privilege(TEXT)      |
+---------------------
+root.view.** : CREATE|
+_VIEW ALTER_VIEW DEL|
+ETE_VIEW             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]469:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]470:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]471:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]473:show view root.view.v1.*
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+-- [1]475:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_VIEW
+}
+-- [1]477:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_VIEW
+}
+-- [1]480:grant  u_security to  r_test
+STRICT{
+SQLSTATE : 808: No such role : u_security
+}
+-- [1]482:grant  r_test to  u_security
+STRICT{
+PASS
+}
+
+-- [1]484:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+r_test          |root.view.** : CREATE|
+                |_VIEW ALTER_VIEW DEL|
+                |ETE_VIEW             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]485:LIST PRIVILEGES role r_test
+STRICT{
+privilege(TEXT)      |
+---------------------
+root.view.** : CREATE|
+_VIEW ALTER_VIEW DEL|
+ETE_VIEW             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]485:select s01,s02,c1 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]486:select s01,s02,c2 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]487:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]489:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]490:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+-- [1]491:show view root.view.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+}
+
+-- [1]494:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]495:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |
+--------------------------------------------
+1000            |123                         |
+--------------------------------------------
+2000            |1111                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]496:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]497:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]498:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]500:alter view root.view.v1.c1 upsert tags(city=beijing, description='this is a capital') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]501:alter view root.view.v1.c2 upsert tags(color=blue, description='this is good day') attributes(temp=20, color=red)
+STRICT{
+SQLSTATE : 508: Path [root.view.v1.c2] does not exist
+}
+
+-- [1]503:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]504:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |
+--------------------------------------------
+1000            |123                         |
+--------------------------------------------
+2000            |1111                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]505:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]506:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+-- [1]508:drop view root.view.v1.c1
+STRICT{
+PASS
+}
+
+-- [1]510:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]511:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]512:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]513:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]514:grant user u_security PRIVILEGES READ_TIMESERIES ON root.view.**
+STRICT{
+PASS
+}
+
+-- [1]516:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.** : READ_T|
+                |IMESERIES            |
+-------------------------------------
+r_test          |root.view.** : CREATE|
+                |_VIEW ALTER_VIEW DEL|
+                |ETE_VIEW             |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]517:LIST PRIVILEGES role r_test
+STRICT{
+privilege(TEXT)      |
+---------------------
+root.view.** : CREATE|
+_VIEW ALTER_VIEW DEL|
+ETE_VIEW             |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]518:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]519:drop view root.view.**
+STRICT{
+PASS
+}
+
+-- [1]521:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]522:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]523:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]524:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]525:drop database root.db
+STRICT{
+PASS
+}
+-- [1]526:drop database root.view
+STRICT{
+PASS
+}
+-- [1]527:drop user u_security
+STRICT{
+PASS
+}
+-- [1]528:drop role r_test
+STRICT{
+PASS
+}
+-- [1]535:CREATE USER u_security '123456'
+STRICT{
+PASS
+}
+-- [1]536:create database root.db
+STRICT{
+PASS
+}
+-- [1]537:create database root.view
+STRICT{
+PASS
+}
+-- [1]538:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]539:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]540:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]541:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.265
+-- [1]542:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]543:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.258
+-- [1]544:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]545:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]546:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]548:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]548:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]549:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+-- [1]550:grant user u_security privileges read_timeseries,insert_timeseries,delete_view on root.view.**
+STRICT{
+PASS
+}
+
+-- [1]552:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.** : INSERT|
+                |_TIMESERIES READ_TIM|
+                |ESERIES DELETE_VIEW  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]552:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]553:select s01,s02 from root.db.d1
+STRICT{
+Time(TIME)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+----------------------------------------------------------------------
+1000            |123                        |456                        |
+----------------------------------------------------------------------
+2000            |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]554:select s01,s02 from root.db.d2
+STRICT{
+Time(TIME)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+---------------------------------------------------------------------
+2000            |789                        |hello                     |
+---------------------------------------------------------------------
+3000            |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]555:select c1,c2 from root.view.**
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v2.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]558:select c1,c2 from root.view.**
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v2.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]559:insert into root.view.v1(time,c1) values(4000,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]562:drop view root.view.**
+STRICT{
+PASS
+}
+
+-- [1]563:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]565:LIST PRIVILEGES USER u_security
+STRICT{
+role(TEXT)      |privilege(TEXT)      |
+-------------------------------------
+                |root.view.** : INSERT|
+                |_TIMESERIES READ_TIM|
+                |ESERIES DELETE_VIEW  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]565:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]566:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]570:select c1,c2 from root.view.**
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v2.c2(TEXT)      |
+-----------------------------------------------------------------------
+1000            |123                         |,beijing                   |
+-----------------------------------------------------------------------
+2000            |1111                        |hello,beijing              |
+-----------------------------------------------------------------------
+3000            |null                        |seize the day,beijing      |
+-----------------------------------------------------------------------
+4000            |456                         |,beijing                   |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]572:insert into root.view.v1(time,c1) values(5000,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]576:drop database root.db
+STRICT{
+PASS
+}
+-- [1]577:drop database root.view
+STRICT{
+PASS
+}
+-- [1]578:drop user u_security
+STRICT{
+PASS
+}
