@@ -1,0 +1,775 @@
+-- [1]5:create database root.db
+STRICT{
+PASS
+}
+-- [1]6:create database root.view
+STRICT{
+PASS
+}
+-- [1]7:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text)
+STRICT{
+PASS
+}
+-- [1]8:create timeseries root.db.d2.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+-- [1]9:create timeseries root.db.d2.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+PASS
+}
+-- [1]10:create timeseries root.db.d2.s03 with datatype=boolean
+STRICT{
+PASS
+}
+-- [1]11:create timeseries root.db.d2.s04 with datatype=float
+STRICT{
+PASS
+}
+-- [1]12:create timeseries root.db.d2.s05 with datatype=double
+STRICT{
+PASS
+}
+-- [1]13:create timeseries root.db.d2.s06 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]14:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(1000,123,456,true,1.2,1.3,"one day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.257
+-- [1]15:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(2000,222,444,false,2.3,4.5,"two days")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]16:insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(2000,789,456,true,1.2,1.3,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.256
+-- [1]17:insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(3000,789,444,false,2.3,4.5,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]18:create view root.view.v1(c1,c2) as select s01,s02 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]19:create view root.view.v2(c1,c2) as select s01,s02 from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]20:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(INT64)      |
+------------------------------------------------------------------------
+1000            |123                         |456                         |
+------------------------------------------------------------------------
+2000            |222                         |444                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]21:select c1,c2 from root.view.v2
+STRICT{
+Time(TIME)      |root.view.v2.c1(INT32)      |root.view.v2.c2(INT64)      |
+------------------------------------------------------------------------
+2000            |789                         |456                         |
+------------------------------------------------------------------------
+3000            |789                         |444                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]22:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |null            |null                  |VIEW                |root.db.d1.s02    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d2.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]23:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]24:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city":"shangha|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |i","description|":"111"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |":"this is a bi|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |g city"}        |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city":"beijing|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |","description"|:"100"}               |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |:"this is a cap|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |ital"}          |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |changping","des|":"112"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |cription":"this|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       | is a region"}  |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |haidian","descr|:"90"}                |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |iption":"this i|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |s a region"}    |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+总数目：12
+}
+
+Elapsed Time: 0.0.0
+-- [1]25:alter view root.view.v1.c1 upsert tags(city=beijing, description='this is a capital') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]26:alter view root.view.v1.c2 upsert tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue)
+STRICT{
+PASS
+}
+-- [1]27:alter view root.view.v2.c1 upsert tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+-- [1]28:alter view root.view.v2.c2 upsert tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+PASS
+}
+
+-- [1]29:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |{"city":"shangha|{"color":"blue","speed|VIEW                |root.db.d1.s02    |
+                      |                    |                    |i","description|":"111"}              |                    |                  |
+                      |                    |                    |":"this is a bi|                      |                    |                  |
+                      |                    |                    |g city"}        |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d2.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |{"city_region":"|{"color":"blue","speed|VIEW                |root.db.d2.s02    |
+                      |                    |                    |changping","des|":"112"}              |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]30:show view root.** where datatype=int32
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d2.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]31:show view root.** where datatype=int
+STRICT{
+SQLSTATE : 701: unsupported datatype: int
+}
+
+-- [1]33:show view root.** limit 1
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]34:show view root.** limit 1 offset 1
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |{"city":"shangha|{"color":"blue","speed|VIEW                |root.db.d1.s02    |
+                      |                    |                    |i","description|":"111"}              |                    |                  |
+                      |                    |                    |":"this is a bi|                      |                    |                  |
+                      |                    |                    |g city"}        |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]35:show view root.** limit 1 offset 10
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]36:show view root.** limit 10
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |{"city":"shangha|{"color":"blue","speed|VIEW                |root.db.d1.s02    |
+                      |                    |                    |i","description|":"111"}              |                    |                  |
+                      |                    |                    |":"this is a bi|                      |                    |                  |
+                      |                    |                    |g city"}        |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d2.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |{"city_region":"|{"color":"blue","speed|VIEW                |root.db.d2.s02    |
+                      |                    |                    |changping","des|":"112"}              |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]37:show view root.** where view contains 'view'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:29 mismatched input 'contains' expecting {'==', '='}
+}
+
+-- [1]39:show view root.** where timeseries contains 'view'
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |{"city":"shangha|{"color":"blue","speed|VIEW                |root.db.d1.s02    |
+                      |                    |                    |i","description|":"111"}              |                    |                  |
+                      |                    |                    |":"this is a bi|                      |                    |                  |
+                      |                    |                    |g city"}        |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d2.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |{"city_region":"|{"color":"blue","speed|VIEW                |root.db.d2.s02    |
+                      |                    |                    |changping","des|":"112"}              |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]40:show view root.view.** WHERE TAGS(city) contains 'beijing'
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]41:show view root.view.** WHERE TAGS(city)='beijing'
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]42:show timeseries root.view.** WHERE TAGS(city)='beijing'
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |null             |root.view           |INT32               |null                |null                   |{"city":"beijing|{"color":"red","speed"|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |","description"|:"100"}               |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |:"this is a cap|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |ital"}          |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]43:show view root.view.** WHERE TAGS(city)='beijin'
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]44:show latest timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |changping","des|":"112"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |cription":"this|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       | is a region"}  |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |haidian","descr|:"90"}                |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |iption":"this i|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |s a region"}    |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city":"shangha|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |i","description|":"111"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |":"this is a bi|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |g city"}        |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city":"beijing|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |","description"|:"100"}               |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |:"this is a cap|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |ital"}          |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+总数目：12
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]45:show latest timeseries root.view.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |null             |root.view           |INT32               |null                |null                   |{"city_region":"|{"color":"red","speed"|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |haidian","descr|:"90"}                |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |iption":"this i|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |s a region"}    |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |null             |root.view           |INT64               |null                |null                   |{"city_region":"|{"color":"blue","speed|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |changping","des|":"112"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |cription":"this|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       | is a region"}  |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |null             |root.view           |INT32               |null                |null                   |{"city":"beijing|{"color":"red","speed"|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |","description"|:"100"}               |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |:"this is a cap|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |ital"}          |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |null             |root.view           |INT64               |null                |null                   |{"city":"shangha|{"color":"blue","speed|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |i","description|":"111"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |":"this is a bi|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |g city"}        |                      |                    |                              |                    |
+总数目：4
+}
+
+Elapsed Time: 0.0.6
+-- [1]46:drop database root.db
+STRICT{
+PASS
+}
+-- [1]47:drop database root.view
+STRICT{
+PASS
+}
+-- [1]53:create database root.db
+STRICT{
+PASS
+}
+-- [1]54:create database root.view
+STRICT{
+PASS
+}
+-- [1]55:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text)
+STRICT{
+PASS
+}
+-- [1]56:create timeseries root.db.d2.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+-- [1]57:create timeseries root.db.d2.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+PASS
+}
+-- [1]58:create timeseries root.db.d2.s03 with datatype=boolean
+STRICT{
+PASS
+}
+-- [1]59:create timeseries root.db.d2.s04 with datatype=float
+STRICT{
+PASS
+}
+-- [1]60:create timeseries root.db.d2.s05 with datatype=double
+STRICT{
+PASS
+}
+-- [1]61:create timeseries root.db.d2.s06 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]62:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(1000,123,456,true,1.2,1.3,"one day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]63:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(2000,222,444,false,2.3,4.5,"two days")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]64:insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(2000,789,456,true,1.2,1.3,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.259
+-- [1]65:insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(3000,789,444,false,2.3,4.5,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]66:create view root.view.v1(c1,c2) as select s01,s02 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]67:create view root.view.v2(c1,c2) as select s01,s02 from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]68:select c1,c2 from root.view.v1
+STRICT{
+Time(TIME)      |root.view.v1.c1(INT32)      |root.view.v1.c2(INT64)      |
+------------------------------------------------------------------------
+1000            |123                         |456                         |
+------------------------------------------------------------------------
+2000            |222                         |444                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]69:select c1,c2 from root.view.v2
+STRICT{
+Time(TIME)      |root.view.v2.c1(INT32)      |root.view.v2.c2(INT64)      |
+------------------------------------------------------------------------
+2000            |789                         |456                         |
+------------------------------------------------------------------------
+3000            |789                         |444                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]70:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |null            |null                  |VIEW                |root.db.d1.s02    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d2.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |null            |null                  |VIEW                |root.db.d2.s02    |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]71:show view root.db.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]72:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city":"shangha|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |i","description|":"111"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |":"this is a bi|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |g city"}        |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city":"beijing|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |","description"|:"100"}               |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |:"this is a cap|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |ital"}          |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s02        |null             |root.db             |INT64               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"blue","speed|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |changping","des|":"112"}              |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |cription":"this|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       | is a region"}  |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s01        |null             |root.db             |INT32               |RLE                 |SNAPPY                 |{"city_region":"|{"color":"red","speed"|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |haidian","descr|:"90"}                |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |iption":"this i|                      |                    |                              |                    |
+                      |                 |                    |                    |                    |                       |s a region"}    |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s04        |null             |root.db             |FLOAT               |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s03        |null             |root.db             |BOOLEAN             |RLE                 |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s06        |null             |root.db             |TEXT                |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s05        |null             |root.db             |DOUBLE              |GORILLA             |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
+总数目：12
+}
+
+Elapsed Time: 0.0.1
+-- [1]73:alter view root.view.v1.c1 upsert tags(city=beijing, description='this is a capital') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]74:alter view root.view.v1.c2 upsert tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue)
+STRICT{
+PASS
+}
+-- [1]75:alter view root.view.v2.c1 upsert tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red)
+STRICT{
+PASS
+}
+-- [1]76:alter view root.view.v2.c2 upsert tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+PASS
+}
+
+-- [1]77:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |{"city":"beijing|{"color":"red","speed"|VIEW                |root.db.d1.s01    |
+                      |                    |                    |","description"|:"100"}               |                    |                  |
+                      |                    |                    |:"this is a cap|                      |                    |                  |
+                      |                    |                    |ital"}          |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c2       |root.view           |INT64               |{"city":"shangha|{"color":"blue","speed|VIEW                |root.db.d1.s02    |
+                      |                    |                    |i","description|":"111"}              |                    |                  |
+                      |                    |                    |":"this is a bi|                      |                    |                  |
+                      |                    |                    |g city"}        |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c1       |root.view           |INT32               |{"city_region":"|{"color":"red","speed"|VIEW                |root.db.d2.s01    |
+                      |                    |                    |haidian","descr|:"90"}                |                    |                  |
+                      |                    |                    |iption":"this i|                      |                    |                  |
+                      |                    |                    |s a region"}    |                      |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |INT64               |{"city_region":"|{"color":"blue","speed|VIEW                |root.db.d2.s02    |
+                      |                    |                    |changping","des|":"112"}              |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]78:count timeseries root.view.**
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+4                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]79:count timeseries root.view.v1.*
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+2                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]80:count timeseries root.view.v1.c1
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]81:count timeseries root.view.** WHERE TIMESERIES contains 'c1'
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+2                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]82:count timeseries root.view.** where datatype=int32
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+2                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]83:count timeseries root.view.** where datatype=int
+STRICT{
+SQLSTATE : 701: unsupported datatype: int
+}
+
+-- [1]85:COUNT TIMESERIES root.view.** WHERE TAGS(city) contains 'beijing'
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]86:COUNT TIMESERIES root.view.** WHERE TAGS(city) contains 'beijin'
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]87:COUNT TIMESERIES root.view.** WHERE TAGS(city) = 'beijin'
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+0                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]88:COUNT TIMESERIES root.view.** WHERE TAGS(city) = 'beijing'
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]89:COUNT TIMESERIES root.view.** WHERE TIMESERIES contains 'v1' group by level = 1
+STRICT{
+Column(TEXT)      |count(timeseries)(INT64)      |
+------------------------------------------------
+root.view         |2                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]90:COUNT TIMESERIES root.view.** WHERE TIMESERIES contains 'v1' group by level = 3
+STRICT{
+Column(TEXT)      |count(timeseries)(INT64)      |
+------------------------------------------------
+root.view.v1.c2   |1                             |
+------------------------------------------------
+root.view.v1.c1   |1                             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]90:drop database root.db
+STRICT{
+PASS
+}
+-- [1]91:drop database root.view
+STRICT{
+PASS
+}
