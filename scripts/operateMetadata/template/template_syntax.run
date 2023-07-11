@@ -1,19 +1,21 @@
 connect root/root;
 // 语法测试
 drop schema template t1;<<NULL;
+drop schema template null;<<NULL;
+drop schema template t2;<<NULL;
 create database root.template.syntax;
+create database root.template.syntax_1;
+create database root.template.syntax_2;
 
 -- 创建模版
 -- 正常
 create schema template t1 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 -- 异常
 create schema template null aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
 create schema template t2 aligned (null FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t0 aligned (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema template t2 aligned (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
-create schema template t2 aligned (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
+create schema template t12 aligned (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
 create template t3 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
@@ -25,19 +27,18 @@ create schema template t6 aligned (s_lat  encoding=Gorilla, s_lon FLOAT encoding
 <<SQLSTATE;
 create schema template null (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema template t2 (null FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t22 (null FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t32 (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema template t2 (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t42 (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema template t2 (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
+create template t13 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create template t3 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema  t14 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema  t4 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t15 ( FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
-create schema template t5 ( FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
-create schema template t6 (s_lat  encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create schema template t16 (s_lat  encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
 <<SQLSTATE;
 
 
@@ -46,16 +47,14 @@ alter schema template t1 add (s_speed FLOAT encoding=RLE, FLOAT TEXT encoding=PL
 alter schema template nonExistTemplate add (s_speed FLOAT encoding=RLE);
 <<SQLSTATE;
 alter schema template null add (s_speed FLOAT encoding=RLE);
-<<SQLSTATE;
 alter schema template add (s_speed FLOAT encoding=RLE);
 <<SQLSTATE;
 alter schema template t1 add (null FLOAT encoding=RLE);
+alter schema template t1 add (ss_speed null encoding=RLE);
 <<SQLSTATE;
-alter schema template t1 add (s_speed null encoding=RLE);
+alter schema template t1 add (sss_speed FLOAT encoding=null);
 <<SQLSTATE;
-alter schema template t1 add (s_speed FLOAT encoding=null);
-<<SQLSTATE;
-alter schema template t1 add (s_speed FLOAT encoding=);
+alter schema template t1 add (ssss_speed FLOAT encoding=);
 <<SQLSTATE;
 alter schema template t1 add ( FLOAT);
 <<SQLSTATE;
@@ -75,11 +74,11 @@ show templates;
 
 -- 查看模版下定义的序列列表
 show nodes in schema template t1;
+show nodes in schema template t2;
+show nodes in schema template null;
 show nodes in schema template nonExistTemplate;
 <<SQLSTATE;
 show nodes in schema template ;
-<<SQLSTATE;
-show nodes in schema template null;
 <<SQLSTATE;
 show nodes in template t1;
 <<SQLSTATE;
@@ -106,8 +105,8 @@ unset schema template t1 from root.template.syntax.d1;
 set schema template t1 to root.template.syntax;
 set schema template nonExistTemplate to root.template.syntax;
 <<SQLSTATE;
-set schema template null to root.template.syntax;
-<<SQLSTATE;
+set schema template null to root.template.syntax_1;
+set schema template t2 to root.template.syntax_2;
 set schema template to root.template.syntax;
 <<SQLSTATE;
 set schema template t1 to root.nonExist.syntax;
@@ -134,9 +133,9 @@ show child root.template.syntax;
 
 -- 查看挂载的节点
 show paths set schema template t1;
-show paths set schema template nonExistTemplate;
-<<SQLSTATE;
+show paths set schema template t2;
 show paths set schema template null;
+show paths set schema template nonExistTemplate;
 <<SQLSTATE;
 show paths set schema template;
 <<SQLSTATE;
@@ -146,14 +145,13 @@ show paths set schema template;
 show paths using schema template t1;
 show paths using schema template nonExistTemplate;
 show paths using schema template null;
-<<SQLSTATE;
+show paths using schema template t2;
 show paths using schema template;
 <<SQLSTATE;
 show paths schema template t1;
 <<SQLSTATE;
 show paths of schema template t1;
 <<SQLSTATE;
-
 
 
 -- 激活
@@ -212,6 +210,8 @@ drop schema template t1;
 
 -- 卸载
 unset schema template t1 from root.template.syntax;
+unset schema template null from root.template.syntax_1;
+unset schema template t2 from root.template.syntax_2;
 unset schema template t1 from root.nonExist.syntax.d1;
 <<SQLSTATE;
 unset schema template t1 from root.template.syntax.d2;
@@ -233,6 +233,8 @@ unset  template  t1 from root.template.syntax.d1;
 
 -- 删除模版
 drop schema template t1;
+drop schema template null;
+drop schema template t2;
 drop schema template nonExistTemplate;
 <<SQLSTATE;
 drop schema template null;
@@ -244,4 +246,6 @@ drop  template t1;
 
 
 drop database root.template.syntax;
+drop database root.template.syntax_1;
+drop database root.template.syntax_2;
 
