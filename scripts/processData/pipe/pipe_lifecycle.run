@@ -1,0 +1,94 @@
+-- 正常流程: 在各个状态执行create,start,stop,drop，查看处理是否正确
+-- 1. 在各个状态执行create,start,stop,drop，查看处理是否正确
+-- 1.1 未创建: show, start,stop,drop
+-- 2. created( -> stopped)->running
+-- 3. stopped -> running
+-- 3.1 重复start: running->running
+-- 4. running -> stopped
+-- 4.1 重复stop: stopped->stopped
+-- 5. running -> dropped
+-- 5.1 重复drop: dropped->dropped
+-- 6. stopped -> dropped
+-- 7. created -> dropped
+
+connect root/root;
+
+drop pipe lifecycle_test;
+<<NULL;
+-- 正常流程: 在各个状态执行create,start,stop,drop，查看处理是否正确
+show pipe lifecycle_test;
+
+create pipe lifecycle_test
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+//show pipe lifecycle_test;
+start pipe lifecycle_test;
+
+//show pipe lifecycle_test;
+stop pipe lifecycle_test;
+
+//show pipe lifecycle_test;
+drop pipe lifecycle_test;
+//show pipe lifecycle_test;
+
+-- 1.1. 未创建: show, start,stop,drop
+show pipe lifecycle_test;
+start pipe lifecycle_test;
+<<SQLSTATE;
+stop pipe lifecycle_test;
+<<SQLSTATE;
+drop pipe lifecycle_test;
+<<SQLSTATE;
+
+-- 2. created( -> stopped)->running
+create pipe lifecycle_test
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+-- 重复create
+create pipe lifecycle_test
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+//show pipe lifecycle_test;
+start pipe lifecycle_test;
+
+-- 4. running -> stopped
+//show pipe lifecycle_test;
+stop pipe lifecycle_test;
+-- 4.1 重复stop: stopped->stopped
+stop pipe lifecycle_test;
+<<SQLSTATE;
+
+-- 3. stopped -> running
+//show pipe lifecycle_test;
+start pipe lifecycle_test;
+-- 3.1 重复start: running->running
+start pipe lifecycle_test;
+<<SQLSTATE;
+
+//show pipe lifecycle_test;
+-- 5. running -> dropped
+drop pipe lifecycle_test;
+<<SQLSTATE;
+//show pipe lifecycle_test;
+
+stop pipe lifecycle_test;
+//show pipe lifecycle_test;
+
+-- 6. stopped -> dropped
+drop pipe lifecycle_test;
+//show pipe lifecycle_test;
+-- 5.1 重复drop: dropped->dropped
+drop pipe lifecycle_test;
+<<SQLSTATE;
+
+-- 7. created -> dropped
+create pipe lifecycle_test
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+//show pipe lifecycle_test;
+drop pipe lifecycle_test;
