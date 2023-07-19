@@ -1,0 +1,106 @@
+-- [1]9:create database root.sg1
+STRICT{
+PASS
+}
+-- [1]12:create schema template t1(s1 INT64)
+STRICT{
+PASS
+}
+-- [1]13:create schema template t2(s1 INT64)
+STRICT{
+PASS
+}
+-- [1]14:create schema template t3(s1 INT64)
+STRICT{
+PASS
+}
+-- [1]17:set schema template t1 to root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]18:set schema template t2 to root.sg1.d2
+STRICT{
+PASS
+}
+-- [1]19:set schema template t3 to root.sg1.d3
+STRICT{
+PASS
+}
+-- [1]22:create timeseries of schema template on root.sg1.d1
+STRICT{
+PASS
+}
+-- [1]23:create timeseries of schema template on root.sg1.d2
+STRICT{
+PASS
+}
+-- [1]24:create timeseries of schema template on root.sg1.d3
+STRICT{
+PASS
+}
+
+-- [1]27:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg1.d1       |false                |
+---------------------------------------
+root.sg1.d2       |false                |
+---------------------------------------
+root.sg1.d3       |false                |
+总数目：3
+}
+
+Elapsed Time: 0.0.87
+
+-- [1]28:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+3                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.15
+-- [1]29:count devices root.sg.** group by level=1
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 mismatched input 'group' expecting {<EOF>, ';'}
+}
+
+-- [1]33:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d1.s1        |null             |root.sg1            |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.s1        |null             |root.sg1            |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d3.s1        |null             |root.sg1            |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：3
+}
+
+Elapsed Time: 0.0.12
+
+-- [1]34:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+3                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]35:count timeseries root.sg1.** group by level=2
+STRICT{
+Column(TEXT)      |count(timeseries)(INT64)      |
+------------------------------------------------
+root.sg1.d1       |1                             |
+------------------------------------------------
+root.sg1.d2       |1                             |
+------------------------------------------------
+root.sg1.d3       |1                             |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
