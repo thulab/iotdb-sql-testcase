@@ -1,0 +1,467 @@
+-- 1. create 名称校验
+-- 1.1 异常情况
+-- 1.2 正常情况
+-- 2. show 名称校验
+-- 2.1 异常情况
+-- 2.2 正常情况
+-- 3. start 名称校验
+-- 3.1 异常情况
+-- 3.2 正常情况
+-- 4. stop 名称校验
+-- 4.1 异常情况
+-- 4.2 正常情况
+-- 5. drop 名称校验
+-- 5.1 异常情况
+-- 5.2 正常情况
+
+-- 6. create 语句合法性
+-- 6.1. extractor,processor,connector 数量和排列
+-- 6.2 with 语句中key-value校验: 引号测试
+-- 6.3 with 语句中key-value校验: 必须check, 值合法check
+
+
+connect root/root;
+
+-- 1. create 名称校验
+-- 1.1 异常情况
+create pipe 123 with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+create pipe with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+create pipe '' with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+create pipe * with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+create pipe test-name with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+create pipe localhost.tt with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+-- 1.2 正常情况
+create pipe `test-name` with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+create pipe `` with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+create pipe normalPipe with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+create pipe test_name with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+-- 1.1 重复创建
+create pipe test_name with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+-- 2. show 名称校验
+-- 2.1 异常情况
+show pipe 123;
+<<SQLSTATE;
+show pipe ;
+<<SQLSTATE;
+show pipe '';
+<<SQLSTATE;
+show pipe *;
+<<SQLSTATE;
+show pipe test-name;
+<<SQLSTATE;
+show pipe localhost.tt;
+<<SQLSTATE;
+show pipe test*;
+<<SQLSTATE;
+
+-- 2.2 正常情况
+--show pipes;
+--show pipe ``;
+--show pipe `test-name`;
+--show pipe normalPipe;
+--show pipe test_name;
+
+
+-- 3. start 名称校验
+-- 3.1 异常情况
+start pipe 123;
+<<SQLSTATE;
+start pipe ;
+<<SQLSTATE;
+start pipe '';
+<<SQLSTATE;
+start pipe *;
+<<SQLSTATE;
+start pipe test-name;
+<<SQLSTATE;
+start pipe localhost.tt;
+<<SQLSTATE;
+-- 模糊匹配
+start pipe test*;
+<<SQLSTATE;
+-- 不存在
+start pipe abc;
+<<SQLSTATE;
+
+-- 3.2 正常情况
+start pipe ``;
+start pipe `test-name`;
+start pipe normalPipe;
+start pipe test_name;
+
+-- 重复启动
+start pipe `test-name`;
+<<SQLSTATE;
+
+-- 4. stop 名称校验
+-- 4.1 异常情况
+stop pipe 123;
+<<SQLSTATE;
+stop pipe ;
+<<SQLSTATE;
+stop pipe '';
+<<SQLSTATE;
+stop pipe *;
+<<SQLSTATE;
+stop pipe test-name;
+<<SQLSTATE;
+stop pipe localhost.tt;
+<<SQLSTATE;
+stop pipe abc;
+<<SQLSTATE;
+-- 模糊匹配
+stop pipe test*;
+<<SQLSTATE;
+
+-- 4.2 正常情况
+stop pipe ``;
+stop pipe `test-name`;
+stop pipe normalPipe;
+stop pipe test_name;
+
+-- 5. drop 名称校验
+-- 5.1 异常情况
+drop pipe 123;
+<<SQLSTATE;
+drop pipe ;
+<<SQLSTATE;
+drop pipe '';
+<<SQLSTATE;
+drop pipe *;
+<<SQLSTATE;
+drop pipe test-name;
+<<SQLSTATE;
+drop pipe localhost.tt;
+<<SQLSTATE;
+drop pipe abc;
+<<SQLSTATE;
+-- 模糊匹配
+drop pipe test*;
+<<SQLSTATE;
+
+-- 5.2 正常情况
+drop pipe ``;
+drop pipe `test-name`;
+drop pipe normalPipe;
+drop pipe test_name;
+
+show pipes;
+
+-- 6. create 语句合法性
+-- 6.1. extractor,processor,connector 数量和排列
+create pipe expect_with;
+<<SQLSTATE;
+
+create pipe only_extractor
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false');
+<<SQLSTATE;
+
+create pipe only_processor
+with processor ('processor'='do-nothing-processor');
+<<SQLSTATE;
+
+create pipe only_connector
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe lack_connector
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor');
+<<SQLSTATE;
+
+create pipe lack_processor
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe lack_extractor
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe connector_ahead_processor
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667')
+with processor ('processor'='do-nothing-processor');
+<<SQLSTATE;
+
+create pipe 3with
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe processor_ahead_extractor
+with processor ('processor'='do-nothing-processor')
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+drop pipe only_connector;
+drop pipe lack_processor;
+drop pipe lack_extractor;
+drop pipe 3with;
+
+
+-- 6.2 with 语句中key-value校验: 引号测试
+create pipe extractor_no_quote
+with extractor (extractor=iotdb-extractor, extractor.pattern=root.aligned,extractor.history.enable=false,extractor.realtime.enable=false)
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe processor_no_quote
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor (processor=do-nothing-processor)
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe connector_no_quote
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector (connector=iotdb-thrift-connector, connector.ip=127.0.0.1, connector.port=6667);
+<<SQLSTATE;
+
+create pipe port_no_quote
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'=6667);
+<<SQLSTATE;
+
+create pipe port_double_quote
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'="6667");
+drop pipe port_double_quote;
+
+
+create pipe class_double_quote
+with extractor ('extractor'="iotdb-extractor", 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'="6667");
+drop pipe class_double_quote;
+
+create pipe class_back_quote
+with extractor ('extractor'=`iotdb-extractor`, 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='do-nothing-processor')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+-- 6.3 with 语句中key-value校验: 必须check, 值合法check
+create pipe extractor_required_check_noExtractor
+with extractor ('extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe extractor_required_check_noExtractor;
+
+create pipe extractor_required_check_emptyExtractor
+with extractor ('extractor'='', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe extractor_required_check_nullExtractor
+with extractor ('extractor'='null', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe extractor_required_check_noPattern
+with extractor ('extractor'='iotdb-extractor', 'extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe extractor_required_check_noPattern;
+
+
+create pipe extractor_required_check_noHistory
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe extractor_required_check_noHistory;
+
+create pipe extractor_required_check_noRealtime
+with extractor ('extractor.history.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe extractor_required_check_noRealtime;
+
+
+create pipe processor_required_check_noValue
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ()
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe processor_required_check_noValue;
+
+
+create pipe processor_required_check_empty
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe processor_required_check_empty
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with processor ('processor'='null')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+<<SQLSTATE;
+
+create pipe extractor_required_check_historyFalse_emptyStart
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.history.start-time'='','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyTrue_emptyStart
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='true','extractor.history.start-time'='','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyFalse_emptyEnd
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.history.end-time'='','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyTrue_emptyEnd
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='true','extractor.history.end-time'='','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+drop pipe extractor_required_check_historyFalse_emptyStart;
+drop pipe extractor_required_check_historyTrue_emptyStart;
+drop pipe extractor_required_check_historyFalse_emptyEnd;
+drop pipe extractor_required_check_historyTrue_emptyEnd;
+
+
+create pipe extractor_required_check_historyTrue_onlyStart
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='true','extractor.history.start-time'='33','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyTrue_onlyEnd
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='true','extractor.history.end-time'='33','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyFalse_onlyStart
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.history.start-time'='33','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_required_check_historyFalse_onlyEnd
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.history.end-time'='33','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+drop pipe extractor_required_check_historyTrue_onlyStart;
+drop pipe extractor_required_check_historyTrue_onlyEnd;
+drop pipe extractor_required_check_historyFalse_onlyStart;
+drop pipe extractor_required_check_historyFalse_onlyEnd;
+
+
+create pipe extractor_endGTstart
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='true','extractor.history.end-time'='33','extractor.history.end-time'='133','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+drop pipe extractor_endGTstart;
+
+
+create pipe extractor_realtime_0
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='0')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_realtime_1
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='1')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_realtime_abc
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='abc')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_realtime_null
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='null')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_realtime_empty
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+drop pipe extractor_realtime_0;
+drop pipe extractor_realtime_1;
+drop pipe extractor_realtime_abc;
+drop pipe extractor_realtime_null;
+drop pipe extractor_realtime_empty;
+
+
+
+create pipe extractor_history_0
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='0')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_history_1
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='1')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_history_abc
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='abc')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_history_null
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='null')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe extractor_history_empty
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+drop pipe extractor_history_0;
+drop pipe extractor_history_1;
+drop pipe extractor_history_abc;
+drop pipe extractor_history_null;
+drop pipe extractor_history_empty;
+
+
+create pipe connector_class_empty1
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe connector_class_empty2
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='null', 'connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+create pipe connector_class_empty3
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector.ip'='127.0.0.1', 'connector.port'='6667');
+
+drop pipe connector_class_empty1;
+drop pipe connector_class_empty2;
+drop pipe connector_class_empty3;
+
+
+
+create pipe connector_ip_invalid1
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.0', 'connector.port'='6667');
+
+create pipe connector_ip_invalid2
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='1271', 'connector.port'='6667');
+
+create pipe connector_ip_invalid3
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='', 'connector.port'='6667');
+
+drop pipe connector_ip_invalid1;
+drop pipe connector_ip_invalid2;
+drop pipe connector_ip_invalid3;
+
+
+
+create pipe connector_port_invalid1
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='-1');
+
+create pipe connector_port_invalid2
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='');
+
+create pipe connector_port_invalid3
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='76667');
+
+create pipe connector_port_invalid4
+with extractor ('extractor'='iotdb-extractor', 'extractor.pattern'='root.aligned','extractor.history.enable'='false','extractor.realtime.enable'='false')
+with connector ('connector'='iotdb-thrift-connector', 'connector.ip'='127.0.0.1', 'connector.port'='null');
+
+drop pipe connector_port_invalid1;
+drop pipe connector_port_invalid2;
+drop pipe connector_port_invalid3;
+drop pipe connector_port_invalid4;
+
