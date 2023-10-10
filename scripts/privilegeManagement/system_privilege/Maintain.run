@@ -1,0 +1,117 @@
+//运维命令
+//MAINTAIN
+//KILL QUERY：允许用户取消查询
+//show variable：允许用户查看变量。
+
+--0. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
+
+--1. 创建用户
+CREATE USER user01 'pass1234';
+CREATE USER user02 'pass1234';
+CREATE USER user03 'pass1234';
+CREATE USER user04 'pass1234';
+
+--2.列表用户列表
+LIST USER;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+LIST PRIVILEGES OF USER user03;
+LIST PRIVILEGES OF USER user04;
+
+--4. 进行MAINTAIN运维命令权限
+GRANT MAINTAIN ON root.** TO USER user01;
+GRANT MAINTAIN ON root.** TO USER user02 WITH GRANT OPTION;
+
+--5.运维命令
+show version;
+show cluster;
+show cluster details;
+show confignodes;
+show datanodes;
+show variables;
+show regions;
+show schema regions;
+flush
+clear cache;
+merge;
+set system to readonly;
+set system to running;
+kill all queries;
+load configuration;
+
+--6. user01用户登录
+connect user01/pass1234;
+show cluster;
+show cluster details;
+show variables;
+kill all queries;
+show version;
+<<SQLSTATE;
+show confignodes;
+<<SQLSTATE;
+show datanodes;
+<<SQLSTATE;
+show regions;
+<<SQLSTATE;
+show schema regions;
+<<SQLSTATE;
+flush;
+<<SQLSTATE;
+clear cache;
+<<SQLSTATE;
+merge;
+<<SQLSTATE;
+set system to readonly;
+<<SQLSTATE;
+set system to running;
+<<SQLSTATE;
+load configuration;
+<<SQLSTATE;
+
+--7. user02用户登录
+connect user02/pass1234;
+GRANT MAINTAIN ON root.** TO USER user03;
+show cluster;
+show cluster details;
+show variables;
+kill all queries;
+
+--8. user03 用户登录
+connect user03/pass1234;
+show cluster;
+show cluster details;
+show variables;
+kill all queries;
+
+--9. user04用户登录
+connect user04/pass1234;
+show cluster;
+<<SQLSTATE;
+show cluster details;
+<<SQLSTATE;
+show variables;
+<<SQLSTATE;
+kill all queries;
+<<SQLSTATE;
+
+--10. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
