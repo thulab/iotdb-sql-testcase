@@ -1,0 +1,53 @@
+//创建的普通用户，不授予任何权限
+//仅能修改自己登录密码
+//仅能展示自己的用户权限
+//仅能展示自己拥有的角色
+
+--0.清理环境
+connect root/root;
+DROP USER `new_user`; <<NULL;
+DROP ROLE `student`; <<NULL;
+DROP ROLE `teacher`; <<NULL;
+
+--1.root用户创建普通用户，并列出用户列表
+CREATE USER `new_user` 'pass1234';
+LIST USER;
+
+--2.列出用户拥有权限
+LIST PRIVILEGES OF USER `new_user`;
+
+--3.创建角色，并列出角色列表
+CREATE ROLE `teacher`;
+CREATE ROLE `student`;
+LIST ROLE;
+
+--4.授予普通用户角色
+GRANT ROLE `student` TO `new_user`;
+
+--5.列出指定用户下所有角色
+LIST ROLE OF USER `new_user`;
+
+--6. 列出指定角色下所有用户
+LIST USER OF ROLE `teacher`;
+LIST USER OF ROLE `student`;
+
+--7.user01登录
+connect new_user/pass1234;
+alter user `new_user` SET PASSWORD '123456';
+connect new_user/123456;
+list privileges of user `new_user`;
+list role of user `new_user`;
+list user;
+<<SQLSTATE;
+list role;
+<<SQLSTATE;
+list user of role teacher;
+<<SQLSTATE;
+list user of role student;
+<<SQLSTATE;
+
+--8.清理环境
+connect root/root;
+DROP USER `new_user`; <<NULL;
+DROP ROLE `student`; <<NULL;
+DROP ROLE `teacher`; <<NULL;
