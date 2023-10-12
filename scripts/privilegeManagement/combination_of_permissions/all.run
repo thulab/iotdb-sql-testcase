@@ -14,15 +14,18 @@ drop schema template t2; <<NULL;
 DROP USER user01; <<NULL;
 DROP USER user02; <<NULL;
 DROP USER user03; <<NULL;
-DROP USER user04; <<NULL;
+DROP USER user02; <<NULL;
+DROP USER user01_user; <<NULL;
+DROP ROLE teacher; <<NULL;
+DROP ROLE student; <<NULL;
 DELETE DATABASE root.**; <<NULL;
 
 --1.创建对齐时间序列
 create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle);
 
 --2.创建非对齐时间序列
-create timeseries root.sg.d2.s1 with datatype=float,encoding=rle;
-create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle;
+create timeseries root.sg.d2.s1 with datatype=int32,encoding=rle;
+create timeseries root.sg.d2.s2 with datatype=int32,encoding=rle;
 
 --3.分别创建、挂载、激活对齐序列的元数据模板
 create schema template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
@@ -57,43 +60,95 @@ insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3);
 insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false);
 insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false);
 
---8.创建用户
+--8.创建用户和角色
 CREATE USER user01 'pass1234';
 CREATE USER user02 'pass1234';
 CREATE USER user03 'pass1234';
-CREATE USER user04 'pass1234';
+CREATE ROLE teacher;
 
 --9.检查用户是否有privilege存在（列出用户所有权限）
 LIST USER;
 LIST PRIVILEGES OF USER `user01`;
 LIST PRIVILEGES OF USER `user02`;
 LIST PRIVILEGES OF USER `user03`;
-LIST PRIVILEGES OF USER `user04`;
 
---10.进行赋权
+--10.检查角色是否有privilege存在
+LIST PRIVILEGES OF ROLE `teacher`;
+
+--11.进行赋权
 GRANT ALL ON root.** TO USER user01;
 GRANT ALL ON root.sg.d1.** TO USER user02 with grant option;
-GRANT ALL ON root.sg.aligned_template.temperature TO USER user03;
+<<SQLSTATE;
+GRANT ALL ON root.** TO USER user02 with grant option;
+GRANT ALL ON root.** TO ROLE teacher;
 
---11.列出用户已有的权限
+--13.列出用户和角色已有的权限
 LIST USER;
 LIST PRIVILEGES OF USER `user01`;
 LIST PRIVILEGES OF USER `user02`;
-LIST PRIVILEGES OF USER `user03`;
+LIST PRIVILEGES OF ROLE `teacher`;
 
---12.user01登录 ALL
+--12.user01登录 【ALL权限】
 connect user01/pass1234;
+--12.1 权限管理【MANAGE_USER | MANAGE_ROLE】
+alter user `user01` SET PASSWORD '123456';
+connect user01/123456;
+list privileges of user user01;
+create user user01_user 'pass1234';
+list user;
+create role student;
+list role;
+grant role teacher to user01_user;
+grant role teacher to user01;
+grant role student to user02;
+list user of role teacher;
+list role of user user01;
+list role of user user02;
+list privileges of user user02;
+list privileges of user root;
+list privileges of role teacher;
+REVOKE ROLE teacher FROM  user01;
+grant all on root.** to role student;
+<<SQLSTATE;
+revoke all on root.** from user user01;
+<<SQLSTATE;
+drop user user01_user;
+list user;
+drop role student;
+list role;
+--12.2 数据库管理【MANAGE_DATABASE】
+create database root.test.g_0;
 show databases;
+delete database root.test.g_0;
+show databases;
+--12.3 测点管理【READ_DATA | WRITE_DATA | READ_SCHEMA | WRITE_SCHEMA】
+show database;
 count databases;
-show child paths root.sg;
-show child nodes root.sg.*;
-count nodes root.sg.** LEVEL=2;
+show child paths root.**;
+show child nodes root.**;
 show devices;
 count devices;
 show timeseries;
 count timeseries;
+create timeseries root.sg.d3.s1 with datatype=INT32;
+show timeseries root.sg.**;
+alter timeseries root.sg.d3.s1 upsert alias=ID tags(tag1=new1) attributes(attr=v1);
+show timeseries root.sg.d3.s1;
+delete timeseries root.sg.d3.s1;
+show timeseries root.sg.**;
+create view root.calcu_view.d.s as select s1+1 from root.sg.d1;
 show view;
+select * from root.calcu_view.d;
+alter view root.calcu_view.d.s as select (tan(s1+s2)/2)+s2 from root.sg.d1;
+show view root.calcu_view.d.s;
+select * from root.calcu_view.d;
+delete view root.calcu_view.d.s;
+show view root.calcu_view.d.s;
+create database root.ln;
+set ttl to root.ln 3600000;
 show all ttl;
+unset ttl to root.ln;
+show ttl on root.ln;
 select * from root.**;
 select s1 from root.** where time=3;
 select * from root.** where s1=3;
@@ -101,109 +156,58 @@ select count(*) from root.**;
 select count(*) from root.** group by level=1;
 select last(*) from root.**;
 select sin((s1+s2)/2) from root.sg.**;
-list privileges of user user01;
-create timeseries root.sg.d1.s3 with datatype=boolean;
-<<SQLSTATE;
-insert into root.sg.d1(time,s1,s2) values(4,4,4);
-<<SQLSTATE;
+insert into root.data.d1(time,s1,s2) values(4,4,4);
+show databases root.data;
+show timeseries root.data.d1.**;
+select * from root.data.d1;
 select s1,s2 into root.db.d1(s1,s2) from root.sg.d1;
-<<SQLSTATE;
-create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
-<<SQLSTATE;
-alter view root.sg.view_d1.calculation upsert tags(tag1=v1,tag2=v2) attributes(attr1=D1,attr2=D2);
-<<SQLSTATE;
-delete view root.sg.view_d1.calculation;
-<<SQLSTATE;
-create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
-<<SQLSTATE;
-create database root.db;
-<<SQLSTATE;
-delete database root.**;
-<<SQLSTATE;
-delete from root.sg.d1.*;
-<<SQLSTATE;
-delete timeseries root.sg.d1.s1;
-<<SQLSTATE;
-create user user05 'pass1234';
-<<SQLSTATE;
-list user;
-<<SQLSTATE;
-list role;
-<<SQLSTATE;
-list privileges of user user02;
-<<SQLSTATE;
-revoke read on root.** from user user01;
-<<SQLSTATE;
-set system to readonly;
-<<SQLSTATE;
-CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END;
-<<SQLSTATE;
-show functions;
-<<SQLSTATE;
+select * from root.db.**;
+--12.4 运维命令【MAINTAIN】
 show variables;
-<<SQLSTATE;
+--12.5 高级功能【USE_TRIGGER | USE_UDF | USE_CQ | USE_PIPE | EXTEND_TEMPLATE】
+create function example AS 'org.apache.iotdb.udf.UDTFExample';
+show functions;
+select example(*) from root.sg.d2;
+drop function example;
+show functions;
+CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT avg(s1) INTO root.sg.cq.wt01(s1_avg) FROM root.sg.d2 END;
+show cqs;
+insert into root.sg.d2(time,s1,s2) values(now(),10,10);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),11,11);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),12,12);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),13,13);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),14,14);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),15,15);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),16,16);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),17,17);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),18,18);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),19,19);
+sleep 1000;
+insert into root.sg.d2(time,s1,s2) values(now(),20,20);
+sleep 1000;
+select count(s1_avg) from root.sg.cq.wt01;
+drop cq cq1;
 
---13.user02登录
---READ（READ_SCHEMA | READ_DATA）
+--13.user02登录:执行授权权限
 connect user02/pass1234;
 list privileges of user user02;
-GRANT READ ON root.sg.d1.** TO USER user04;
-show databases;
-count databases;
-show child paths root;
-show child nodes root.sg.*;
-count nodes root.sg.** LEVEL=2;
-show devices;
-count devices;
-show timeseries;
-count timeseries;
-show view;
-show all ttl;
-select * from root.**;
-select s1 from root.sg.d1 where time=3;
-select * from root.** where s1=3;
-select count(*) from root.**;
-select count(*) from root.** group by level=1;
-select last(*) from root.**;
-select sin((s1+s2)/2) from root.sg.**;
+GRANT ALL ON root.** TO USER user03;
+list privileges of user user03;
 
 --14.user03登录，执行查询元数据
 connect user03/pass1234;
 list privileges of user user03;
-show databases;
-count databases;
-show child paths root.sg.*;
-show child paths root.sg.**;
-show child nodes root.sg;
-count nodes root.sg.** level=2;
-show devices root.sg.**;
-count devices;
-show timeseries root.sg.**;
-count timeseries;
-show view;
-show all ttl;
-select * from root.**;
-select last(*) from root.**;
 
---15.user04登录，执行查询元数据
-connect user04/pass1234;
-list privileges of user user04;
-show databases;
-count databases;
-show child paths root.sg.*;
-show child paths root.sg.**;
-show child nodes root.sg;
-count nodes root.sg.** level=2;
-show devices root.sg.**;
-count devices;
-show timeseries root.sg.**;
-count timeseries;
-show view;
-show all ttl;
-select * from root.**;
-select last(*) from root.**;
-
---16.清理环境
+--15.清理环境
 connect root/root;
 delete timeseries of schema template t1 from root.sg.aligned_template; <<NULL;
 unset schema template t1 from root.sg.aligned_template; <<NULL;
@@ -214,7 +218,8 @@ drop schema template t2; <<NULL;
 DROP USER user01; <<NULL;
 DROP USER user02; <<NULL;
 DROP USER user03; <<NULL;
-DROP USER user04; <<NULL;
-DROP USER `null`; <<NULL;
-DROP USER `USER`; <<NULL;
+DROP USER user02; <<NULL;
+DROP USER user01_user; <<NULL;
+DROP ROLE teacher; <<NULL;
+DROP ROLE student; <<NULL;
 DELETE DATABASE root.**; <<NULL;
