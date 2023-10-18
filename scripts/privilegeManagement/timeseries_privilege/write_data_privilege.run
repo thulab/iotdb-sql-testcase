@@ -7,17 +7,28 @@ connect root/root;
 
 --0.清理环境
 connect root/root;
-delete timeseries of schema template t1 from root.sg.aligned_template; <<NULL;
-unset schema template t1 from root.sg.aligned_template; <<NULL;
-drop schema template t1; <<NULL;
-delete timeseries of schema template t2 from root.sg.nonaligned_template; <<NULL;
-unset schema template t2 from root.sg.nonaligned_template; <<NULL;
-drop schema template t2; <<NULL;
-DROP USER user01; <<NULL;
-DROP USER user02; <<NULL;
-DROP USER user03; <<NULL;
-DROP USER user04; <<NULL;
-DELETE DATABASE root.**; <<NULL;
+delete timeseries of schema template t1 from root.sg.aligned_template;
+<<NULL;
+unset schema template t1 from root.sg.aligned_template;
+<<NULL;
+drop schema template t1;
+<<NULL;
+delete timeseries of schema template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset schema template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop schema template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
 
 --1.创建数据库
 create database root.sg;
@@ -95,6 +106,8 @@ GRANT WRITE_DATA ON root.data TO USER user04;
 --12.user01登录
 --12.1 WRITE_DATA可支持的操作
 connect user01/pass1234;
+show version;
+<<SQLSTATE;
 show databases;
 count databases;
 show child paths root;
@@ -119,9 +132,17 @@ select sin((s1+s2)/2) from root.sg.**;
 select count(*) from root.** group by level=1;
 select last(*) from root.**;
 select count(s1) from root.** align by device;
-delete from root.sg.d1.*;
+delete from root.sg.d2.*;
 select * from root.sg.d1;
 --12.2 WRITE_DATA不支持的操作
+show cluster details;
+<<SQLSTATE;
+show regions;
+<<SQLSTATE;
+show confignodes;
+<<SQLSTATE;
+show datanodes;
+<<SQLSTATE;
 create aligned timeseries root.sg.d1(s3 double encoding=rle, s4 int32 encoding=rle);
 <<SQLSTATE;
 create timeseries root.sg.d2.s3 with datatype=INT32;
@@ -173,9 +194,16 @@ select sin((s1+s2)/2) from root.sg.**;
 select count(*) from root.** group by level=1;
 select last(*) from root.**;
 select count(s1) from root.** align by device;
-delete from root.sg.d1.s1;
+delete from root.sg.d1.s1 where time=5;
 select * from root.sg.d1;
+--取消权限，root用户再次授予权限
 revoke write_data on root.sg.d1.** from user user02;
+LIST PRIVILEGES OF USER `user02`;
+connect root/root;
+GRANT WRITE_DATA ON root.sg.d1.** TO USER user02;
+connect user02/pass1234;
+LIST PRIVILEGES OF USER `user02`;
+
 --13.2 WRITE_DATA不支持的操作
 insert into root.sg.d2(time,s1,s2) values(5,5,5);
 <<SQLSTATE;
@@ -185,7 +213,7 @@ create timeseries root.sg.d2.s3 with datatype=INT32;
 <<SQLSTATE;
 create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
 <<SQLSTATE;
-select s1,s2 into root.sg1.d1(s1,s2) from root.sg.d1;
+select s1,s2 into root.sg2.d1(s1,s2) from root.sg.d1;
 <<SQLSTATE;
 delete from root.sg.**;
 <<SQLSTATE;
@@ -220,24 +248,33 @@ show databases;
 show timeseries;
 select * from root.**;
 delete from root.data;
-
 --15.2 WRITE_DATA不支持的操作
 insert into root.data.d1(time,s1) values(1,true);
 <<SQLSTATE;
 delete database root.**;
 <<SQLSTATE;
 
-
 --16.清理环境
 connect root/root;
-delete timeseries of schema template t1 from root.sg.aligned_template; <<NULL;
-unset schema template t1 from root.sg.aligned_template; <<NULL;
-drop schema template t1; <<NULL;
-delete timeseries of schema template t2 from root.sg.nonaligned_template; <<NULL;
-unset schema template t2 from root.sg.nonaligned_template; <<NULL;
-drop schema template t2; <<NULL;
-DROP USER user01; <<NULL;
-DROP USER user02; <<NULL;
-DROP USER user03; <<NULL;
-DROP USER user04; <<NULL;
-DELETE DATABASE root.**; <<NULL;
+delete timeseries of schema template t1 from root.sg.aligned_template;
+<<NULL;
+unset schema template t1 from root.sg.aligned_template;
+<<NULL;
+drop schema template t1;
+<<NULL;
+delete timeseries of schema template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset schema template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop schema template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
