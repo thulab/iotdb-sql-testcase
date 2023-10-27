@@ -1,21 +1,21 @@
--- [1]21:create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle)
+-- [1]34:create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle)
 STRICT{
 PASS
 }
--- [1]24:create timeseries root.sg.d2.s1 with datatype=float,encoding=rle
+-- [1]37:create timeseries root.sg.d2.s1 with datatype=float,encoding=rle
 STRICT{
 PASS
 }
--- [1]25:create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle
+-- [1]38:create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle
 STRICT{
 PASS
 }
--- [1]28:create schema template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+-- [1]41:create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
 STRICT{
 PASS
 }
 
--- [1]29:show schema templates
+-- [1]42:show device templates
 STRICT{
 TemplateName(TEXT)      |
 ------------------------
@@ -25,7 +25,7 @@ t1                      |
 
 Elapsed Time: 0.0.0
 
--- [1]30:show nodes in schema template t1
+-- [1]43:show nodes in device template t1
 STRICT{
 ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
 -------------------------------------------------------------------------------------
@@ -35,13 +35,13 @@ status                |BOOLEAN             |PLAIN               |LZ4            
 总数目：2
 }
 
-Elapsed Time: 0.0.1
--- [1]31:set schema template t1 to root.sg.aligned_template
+Elapsed Time: 0.0.0
+-- [1]44:set device template t1 to root.sg.aligned_template
 STRICT{
 PASS
 }
 
--- [1]32:show paths set schema template t1
+-- [1]45:show paths set device template t1
 STRICT{
 Paths(TEXT)      |
 -----------------
@@ -51,12 +51,12 @@ emplate          |
 }
 
 Elapsed Time: 0.0.1
--- [1]33:create timeseries using schema template on root.sg.aligned_template
+-- [1]46:create timeseries using device template on root.sg.aligned_template
 STRICT{
 PASS
 }
 
--- [1]34:show paths using schema template t1
+-- [1]47:show paths using device template t1
 STRICT{
 Paths(TEXT)      |
 -----------------
@@ -66,12 +66,12 @@ emplate          |
 }
 
 Elapsed Time: 0.0.2
--- [1]37:create schema template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+-- [1]50:create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
 STRICT{
 PASS
 }
 
--- [1]38:show schema templates
+-- [1]51:show device templates
 STRICT{
 TemplateName(TEXT)      |
 ------------------------
@@ -83,7 +83,7 @@ t2                      |
 
 Elapsed Time: 0.0.1
 
--- [1]39:show nodes in schema template t2
+-- [1]52:show nodes in device template t2
 STRICT{
 ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
 -------------------------------------------------------------------------------------
@@ -93,13 +93,13 @@ status                |BOOLEAN             |PLAIN               |LZ4            
 总数目：2
 }
 
-Elapsed Time: 0.0.0
--- [1]40:set schema template t2 to root.sg.nonaligned_template
+Elapsed Time: 0.0.1
+-- [1]53:set device template t2 to root.sg.nonaligned_template
 STRICT{
 PASS
 }
 
--- [1]41:show paths set schema template t2
+-- [1]54:show paths set device template t2
 STRICT{
 Paths(TEXT)      |
 -----------------
@@ -108,13 +108,13 @@ d_template       |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]42:create timeseries using schema template on root.sg.nonaligned_template
+Elapsed Time: 0.0.2
+-- [1]55:create timeseries using device template on root.sg.nonaligned_template
 STRICT{
 PASS
 }
 
--- [1]43:show paths using schema template t2
+-- [1]56:show paths using device template t2
 STRICT{
 Paths(TEXT)      |
 -----------------
@@ -123,17 +123,17 @@ d_template       |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]46:create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1
+Elapsed Time: 0.0.3
+-- [1]59:create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1
 STRICT{
 PASS
 }
--- [1]47:create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2
+-- [1]60:create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2
 STRICT{
 PASS
 }
 
--- [1]50:show databases
+-- [1]63:show databases
 STRICT{
 Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ root.sg             |null            |1                                   |1    
 
 Elapsed Time: 0.0.1
 
--- [1]51:show devices root.sg.**
+-- [1]64:show devices root.sg.**
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |
 ---------------------------------------
@@ -165,7 +165,7 @@ root.sg.d2        |false                |
 
 Elapsed Time: 0.0.2
 
--- [1]52:show timeseries root.sg.**
+-- [1]65:show timeseries root.sg.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -197,57 +197,65 @@ ation                 |                 |                    |                  
 总数目：10
 }
 
-Elapsed Time: 0.0.1
--- [1]55:insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+Elapsed Time: 0.0.3
+-- [1]68:insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
 STRICT{
 0
 }
 
-Elapsed Time: 0.1.262
--- [1]56:insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+Elapsed Time: 0.1.263
+-- [1]69:insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
 STRICT{
 0
 }
 
-Elapsed Time: 0.1.262
--- [1]57:insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false)
+Elapsed Time: 0.1.260
+-- [1]70:insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.4
--- [1]58:insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false)
+Elapsed Time: 0.0.5
+-- [1]71:insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false)
 STRICT{
 0
+}
+
+Elapsed Time: 0.0.6
+-- [1]75:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]76:CREATE USER user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]77:CREATE USER user03 'pass1234'
+STRICT{
+PASS
+}
+-- [1]78:CREATE USER user04 'pass1234'
+STRICT{
+PASS
+}
+-- [1]79:CREATE USER `USER` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]80:CREATE USER `null` 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]83:LIST PRIVILEGES OF USER `user01`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
 }
 
 Elapsed Time: 0.0.3
--- [1]62:CREATE USER user01 'pass1234'
-STRICT{
-PASS
-}
--- [1]63:CREATE USER user02 'pass1234'
-STRICT{
-PASS
-}
--- [1]64:CREATE USER user03 'pass1234'
-STRICT{
-PASS
-}
--- [1]65:CREATE USER user04 'pass1234'
-STRICT{
-PASS
-}
--- [1]66:CREATE USER `USER` 'pass1234'
-STRICT{
-PASS
-}
--- [1]67:CREATE USER `null` 'pass1234'
-STRICT{
-PASS
-}
 
--- [1]70:LIST PRIVILEGES OF USER `user01`
+-- [1]84:LIST PRIVILEGES OF USER `user02`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 总数目：0
@@ -255,7 +263,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.1
 
--- [1]71:LIST PRIVILEGES OF USER `user02`
+-- [1]85:LIST PRIVILEGES OF USER `user03`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 总数目：0
@@ -263,99 +271,91 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.0
 
--- [1]72:LIST PRIVILEGES OF USER `user03`
-STRICT{
-ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]73:LIST PRIVILEGES OF USER `user04`
-STRICT{
-ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]74:LIST PRIVILEGES OF USER `null`
-STRICT{
-ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
-
--- [1]75:LIST PRIVILEGES OF USER `USER`
+-- [1]86:LIST PRIVILEGES OF USER `user04`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.1
--- [1]78:GRANT READ ON root.** TO USER user01
+
+-- [1]87:LIST PRIVILEGES OF USER `null`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]88:LIST PRIVILEGES OF USER `USER`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]91:GRANT READ ON root.** TO USER user01
 STRICT{
 PASS
 }
--- [1]79:GRANT READ ON root.sg.d1.** TO USER user02 with grant option
+-- [1]92:GRANT READ ON root.sg.d1.** TO USER user02 with grant option
 STRICT{
 PASS
 }
--- [1]80:GRANT READ ON root.sg.aligned_template.temperature TO USER user03
+-- [1]93:GRANT READ ON root.sg.aligned_template.temperature TO USER user03
 STRICT{
 PASS
 }
--- [1]80:grant read on root.** to user `null`
+-- [1]93:grant read on root.** to user `null`
 STRICT{
 PASS
 }
--- [1]81:grant read on root.**  user `USER`
+-- [1]94:grant read on root.**  user `USER`
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:28 no viable alternative at input 'grant read on root.**  user `USER`'
 }
--- [1]83:grant read user `USER`
+-- [1]96:grant read user `USER`
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:11 no viable alternative at input 'grant read user'
 }
--- [1]85:grant read on root.** TO `USER`
+-- [1]98:grant read on root.** TO `USER`
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 no viable alternative at input 'grant read on root.** TO `USER`'
 }
--- [1]87:grant ALL on root.** TO user `USER`
+-- [1]100:grant ALL on root.** TO user `USER`
 STRICT{
 PASS
 }
--- [1]88:grant READ on root.** TO user `USER`
+-- [1]101:grant READ on root.** TO user `USER`
 STRICT{
 PASS
 }
--- [1]89:revoke read on root.** from user `USER`
+-- [1]102:revoke read on root.** from user `USER`
 STRICT{
 PASS
 }
--- [1]90:grant READ on root.** TO user `USER`
+-- [1]103:grant READ on root.** TO user `USER`
 STRICT{
 PASS
 }
--- [1]92:GRANT READ ON root.** TO USER staff
+-- [1]105:GRANT READ ON root.** TO USER staff
 STRICT{
 SQLSTATE : 804: No such user staff
 }
--- [1]94:GRANT READ ON root.** TO USER `root`
+-- [1]107:GRANT READ ON root.** TO USER `root`
 STRICT{
 SQLSTATE : 803: Cannot grant/revoke privileges of admin user
 }
--- [1]95:revoke read on root.** from user user1
+-- [1]108:revoke read on root.** from user user1
 STRICT{
 SQLSTATE : 804: No such user user1
 }
--- [1]97:revoke read on root.sg.** from user `null`
+-- [1]110:revoke read on root.sg.** from user `null`
 STRICT{
 SQLSTATE : 811: User null does not have READ_DATA on root.sg.**
 }
 
--- [1]102:LIST USER
+-- [1]115:LIST USER
 STRICT{
 user(TEXT)      |
 ----------------
@@ -377,7 +377,7 @@ user04          |
 
 Elapsed Time: 0.0.1
 
--- [1]103:LIST PRIVILEGES OF USER `user01`
+-- [1]116:LIST PRIVILEGES OF USER `user01`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -389,7 +389,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.1
 
--- [1]104:LIST PRIVILEGES OF USER `user02`
+-- [1]117:LIST PRIVILEGES OF USER `user02`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -399,9 +399,9 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.1
 
--- [1]105:LIST PRIVILEGES OF USER `user03`
+-- [1]118:LIST PRIVILEGES OF USER `user03`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.0
 
--- [1]106:LIST PRIVILEGES OF USER `null`
+-- [1]119:LIST PRIVILEGES OF USER `null`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -429,7 +429,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.1
 
--- [1]107:LIST PRIVILEGES OF USER `USER`
+-- [1]120:LIST PRIVILEGES OF USER `USER`
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -464,8 +464,12 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 }
 
 Elapsed Time: 0.0.0
+-- [1]124:show version
+STRICT{
+PASS
+}
 
--- [1]111:show databases
+-- [1]126:show databases
 STRICT{
 Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -475,7 +479,7 @@ root.sg             |null            |1                                   |1    
 
 Elapsed Time: 0.0.1
 
--- [1]112:count databases
+-- [1]127:count databases
 STRICT{
 count(INT32)      |
 ------------------
@@ -483,9 +487,9 @@ count(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]113:show child paths root.sg
+-- [1]128:show child paths root.sg
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 -------------------------------------------
@@ -505,9 +509,9 @@ root.sg.view_d2       |DEVICE               |
 总数目：6
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]114:show child nodes root.sg.*
+-- [1]129:show child nodes root.sg.*
 STRICT{
 ChildNodes(TEXT)      |
 ----------------------
@@ -525,9 +529,9 @@ calculation           |
 总数目：6
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
--- [1]115:count nodes root.sg.** LEVEL=2
+-- [1]130:count nodes root.sg.** LEVEL=2
 STRICT{
 count(nodes)(INT64)      |
 -------------------------
@@ -537,7 +541,7 @@ count(nodes)(INT64)      |
 
 Elapsed Time: 0.0.2
 
--- [1]116:show devices
+-- [1]131:show devices
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |
 ---------------------------------------
@@ -557,9 +561,9 @@ root.sg.d2        |false                |
 总数目：6
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]117:count devices
+-- [1]132:count devices
 STRICT{
 count(devices)(INT64)      |
 ---------------------------
@@ -567,9 +571,9 @@ count(devices)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]118:show timeseries
+-- [1]133:show timeseries
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -601,9 +605,9 @@ ation                 |                 |                    |                  
 总数目：10
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.7
 
--- [1]119:count timeseries
+-- [1]134:count timeseries
 STRICT{
 count(timeseries)(INT64)      |
 ------------------------------
@@ -611,9 +615,9 @@ count(timeseries)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]120:show view
+-- [1]135:show view
 STRICT{
 Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
 ------------------------------------------------------------------------------------------------------------------------------------------
@@ -625,9 +629,9 @@ ation                 |                    |                    |               
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]121:show all ttl
+-- [1]136:show all ttl
 STRICT{
 Database(TEXT)      |TTL(INT64)      |
 ------------------------------------
@@ -635,9 +639,9 @@ root.sg             |null            |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]122:select * from root.**
+-- [1]137:select * from root.**
 STRICT{
 Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.aligned_template.status(BOOLEAN)      |root.sg.nonaligned_template.temperature(FLOAT)      |root.sg.nonaligned_template.status(BOOLEAN)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |root.sg.d2.s1(FLOAT)      |root.sg.d2.s2(INT64)      |root.sg.view_d1.calculation(DOUBLE)      |root.sg.view_d2.calculation(DOUBLE)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -649,9 +653,9 @@ Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.align
 总数目：3
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.8
 
--- [1]123:select s1 from root.** where time=3
+-- [1]138:select s1 from root.** where time=3
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d2.s1(FLOAT)      |
 --------------------------------------------------------------------
@@ -659,9 +663,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d2.s1(FLOAT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.4
 
--- [1]124:select * from root.** where s1=3
+-- [1]139:select * from root.** where s1=3
 STRICT{
 Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.aligned_template.status(BOOLEAN)      |root.sg.nonaligned_template.temperature(FLOAT)      |root.sg.nonaligned_template.status(BOOLEAN)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |root.sg.d2.s1(FLOAT)      |root.sg.d2.s2(INT64)      |root.sg.view_d1.calculation(DOUBLE)      |root.sg.view_d2.calculation(DOUBLE)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -669,9 +673,9 @@ Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.align
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.11
 
--- [1]125:select count(*) from root.**
+-- [1]140:select count(*) from root.**
 STRICT{
 count(root.sg.aligned_template.temperature)(INT64)      |count(root.sg.aligned_template.status)(INT64)      |count(root.sg.nonaligned_template.temperature)(INT64)      |count(root.sg.nonaligned_template.status)(INT64)      |count(root.sg.d1.s1)(INT64)      |count(root.sg.d1.s2)(INT64)      |count(root.sg.d2.s1)(INT64)      |count(root.sg.d2.s2)(INT64)      |count(root.sg.view_d1.calculation)(INT64)      |count(root.sg.view_d2.calculation)(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -679,9 +683,9 @@ count(root.sg.aligned_template.temperature)(INT64)      |count(root.sg.aligned_t
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.6
 
--- [1]126:select count(*) from root.** group by level=1
+-- [1]141:select count(*) from root.** group by level=1
 STRICT{
 count(root.sg.*.*)(INT64)      |count(root.sg.view_d1.calculation)(INT64)      |count(root.sg.view_d2.calculation)(INT64)      |
 -----------------------------------------------------------------------------------------------------------------------------
@@ -689,9 +693,9 @@ count(root.sg.*.*)(INT64)      |count(root.sg.view_d1.calculation)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.6
 
--- [1]127:select last(*) from root.**
+-- [1]142:select last(*) from root.**
 STRICT{
 Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 ---------------------------------------------------------------------------
@@ -723,9 +727,9 @@ Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 总数目：10
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.5
 
--- [1]128:select sin((s1+s2)/2) from root.sg.**
+-- [1]143:select sin((s1+s2)/2) from root.sg.**
 STRICT{
 Time(TIME)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((root.sg.d1.s1 + root.sg.d2.s2) / 2)(DOUBLE)      |sin((root.sg.d2.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((root.sg.d2.s1 + root.sg.d2.s2) / 2)(DOUBLE)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -737,9 +741,9 @@ Time(TIME)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((roo
 总数目：3
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
 
--- [1]129:list privileges of user user01
+-- [1]144:list privileges of user user01
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -749,89 +753,93 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.0
--- [1]131:create timeseries root.sg.d1.s3 with datatype=boolean
+Elapsed Time: 0.0.1
+-- [1]146:create timeseries root.sg.d1.s3 with datatype=boolean
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
 }
--- [1]133:insert into root.sg.d1(time,s1,s2) values(4,4,4)
+-- [1]148:insert into root.sg.d1(time,s1,s2) values(4,4,4)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s1, root.sg.d1.s2]
 }
--- [1]135:select s1,s2 into root.db.d1(s1,s2) from root.sg.d1
+-- [1]150:select s1,s2 into root.db.d1(s1,s2) from root.sg.d1
 STRICT{
 SQLSTATE : 301: Error occurred while inserting tablets in SELECT INTO: No permissions for this operation, please add privilege WRITE_DATA on [root.db.d1.s1, root.db.d1.s2]
 }
--- [1]137:create view root.sg.view_d1.s1 as select s1 from root.sg.d1
+-- [1]152:create view root.sg.view_d1.s1 as select s1 from root.sg.d1
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.view_d1.s1]
 }
--- [1]139:alter view root.sg.view_d1.calculation upsert tags(tag1=v1,tag2=v2) attributes(attr1=D1,attr2=D2)
+-- [1]154:alter view root.sg.view_d1.calculation upsert tags(tag1=v1,tag2=v2) attributes(attr1=D1,attr2=D2)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
 }
--- [1]141:delete view root.sg.view_d1.calculation
+-- [1]156:delete view root.sg.view_d1.calculation
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.view_d1.calculation]
 }
--- [1]143:create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+-- [1]158:create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
 STRICT{
 SQLSTATE : 803: Only the admin user can perform this operation
 }
--- [1]145:create database root.db
+-- [1]160:create database root.db
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_DATABASE
 }
--- [1]147:delete database root.**
+-- [1]162:delete database root.**
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_DATABASE
 }
--- [1]149:delete from root.sg.d1.*
+-- [1]164:delete from root.sg.d1.*
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.*]
 }
--- [1]151:delete timeseries root.sg.d1.s1
+-- [1]166:delete timeseries root.sg.d1.s1
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d1.s1]
 }
--- [1]153:create user user05 'pass1234'
+-- [1]168:create user user05 'pass1234'
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_USER
 }
--- [1]155:list user
+-- [1]170:list user
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_USER
 }
--- [1]157:list role
+-- [1]172:list role
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_ROLE
 }
--- [1]159:list privileges of user user02
+-- [1]174:list privileges of user user02
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_USER
 }
--- [1]161:revoke read on root.** from user user01
+-- [1]176:revoke read on root.** from user user01
 STRICT{
 SQLSTATE : 817: Has no permission to executeREVOKE_USER, please ensure you have these privileges and the grant option is TRUE when granted
 }
--- [1]163:set system to readonly
+-- [1]178:set system to readonly
 STRICT{
 SQLSTATE : 803: Only the admin user can perform this operation
 }
--- [1]166:CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END
+-- [1]181:CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege USE_CQ
 }
--- [1]167:show functions
+-- [1]182:show functions
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
 }
--- [1]169:show variables
+-- [1]184:show variables
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege MAINTAIN
 }
+-- [1]190:show version
+STRICT{
+PASS
+}
 
--- [1]175:list privileges of user user02
+-- [1]192:list privileges of user user02
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -841,13 +849,13 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.1
--- [1]177:GRANT READ ON root.sg.d1.** TO USER user04
+Elapsed Time: 0.0.3
+-- [1]194:GRANT READ ON root.sg.d1.** TO USER user04
 STRICT{
 PASS
 }
 
--- [1]177:show databases
+-- [1]194:show databases
 STRICT{
 Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -857,7 +865,7 @@ root.sg             |null            |1                                   |1    
 
 Elapsed Time: 0.0.1
 
--- [1]178:count databases
+-- [1]195:count databases
 STRICT{
 count(INT32)      |
 ------------------
@@ -865,9 +873,9 @@ count(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]179:show child paths root
+-- [1]196:show child paths root
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 -------------------------------------------
@@ -875,9 +883,9 @@ root.sg               |DATABASE             |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]180:show child nodes root.sg.*
+-- [1]197:show child nodes root.sg.*
 STRICT{
 ChildNodes(TEXT)      |
 ----------------------
@@ -887,9 +895,9 @@ s2                    |
 总数目：2
 }
 
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.2
 
--- [1]181:count nodes root.sg.** LEVEL=2
+-- [1]198:count nodes root.sg.** LEVEL=2
 STRICT{
 count(nodes)(INT64)      |
 -------------------------
@@ -897,9 +905,9 @@ count(nodes)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]182:show devices
+-- [1]199:show devices
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |
 ---------------------------------------
@@ -907,9 +915,9 @@ root.sg.d1        |true                 |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]183:count devices
+-- [1]200:count devices
 STRICT{
 count(devices)(INT64)      |
 ---------------------------
@@ -919,7 +927,7 @@ count(devices)(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]184:show timeseries
+-- [1]201:show timeseries
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -929,9 +937,9 @@ root.sg.d1.s2         |null             |root.sg             |INT64             
 总数目：2
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]185:count timeseries
+-- [1]202:count timeseries
 STRICT{
 count(timeseries)(INT64)      |
 ------------------------------
@@ -939,9 +947,9 @@ count(timeseries)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]186:show view
+-- [1]203:show view
 STRICT{
 Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
 总数目：0
@@ -949,7 +957,7 @@ Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)     
 
 Elapsed Time: 0.0.1
 
--- [1]187:show all ttl
+-- [1]204:show all ttl
 STRICT{
 Database(TEXT)      |TTL(INT64)      |
 ------------------------------------
@@ -959,7 +967,7 @@ root.sg             |null            |
 
 Elapsed Time: 0.0.1
 
--- [1]188:select * from root.**
+-- [1]205:select * from root.**
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 --------------------------------------------------------------------
@@ -971,9 +979,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.5
 
--- [1]189:select s1 from root.sg.d1 where time=3
+-- [1]206:select s1 from root.sg.d1 where time=3
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |
 ------------------------------------------
@@ -981,9 +989,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]190:select * from root.** where s1=3
+-- [1]207:select * from root.** where s1=3
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 --------------------------------------------------------------------
@@ -991,9 +999,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
--- [1]191:select count(*) from root.**
+-- [1]208:select count(*) from root.**
 STRICT{
 count(root.sg.d1.s1)(INT64)      |count(root.sg.d1.s2)(INT64)      |
 ------------------------------------------------------------------
@@ -1001,9 +1009,9 @@ count(root.sg.d1.s1)(INT64)      |count(root.sg.d1.s2)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
--- [1]192:select count(*) from root.** group by level=1
+-- [1]209:select count(*) from root.** group by level=1
 STRICT{
 count(root.sg.*.*)(INT64)      |
 -------------------------------
@@ -1011,9 +1019,9 @@ count(root.sg.*.*)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.3
 
--- [1]193:select last(*) from root.**
+-- [1]210:select last(*) from root.**
 STRICT{
 Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 ---------------------------------------------------------------------------
@@ -1025,7 +1033,7 @@ Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 
 Elapsed Time: 0.0.2
 
--- [1]194:select sin((s1+s2)/2) from root.sg.**
+-- [1]211:select sin((s1+s2)/2) from root.sg.**
 STRICT{
 Time(TIME)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |
 ----------------------------------------------------------------------
@@ -1037,9 +1045,13 @@ Time(TIME)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.4
+-- [1]215:show version
+STRICT{
+PASS
+}
 
--- [1]198:list privileges of user user03
+-- [1]217:list privileges of user user03
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -1055,7 +1067,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 
 Elapsed Time: 0.0.1
 
--- [1]199:show databases
+-- [1]218:show databases
 STRICT{
 Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1065,7 +1077,7 @@ root.sg             |null            |1                                   |1    
 
 Elapsed Time: 0.0.1
 
--- [1]200:count databases
+-- [1]219:count databases
 STRICT{
 count(INT32)      |
 ------------------
@@ -1073,9 +1085,9 @@ count(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]201:show child paths root.sg.*
+-- [1]220:show child paths root.sg.*
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 总数目：0
@@ -1083,7 +1095,7 @@ ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 
 Elapsed Time: 0.0.1
 
--- [1]202:show child paths root.sg.**
+-- [1]221:show child paths root.sg.**
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 总数目：0
@@ -1091,7 +1103,7 @@ ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 
 Elapsed Time: 0.0.1
 
--- [1]203:show child nodes root.sg
+-- [1]222:show child nodes root.sg
 STRICT{
 ChildNodes(TEXT)      |
 ----------------------
@@ -1101,7 +1113,7 @@ aligned_template      |
 
 Elapsed Time: 0.0.1
 
--- [1]204:count nodes root.sg.** level=2
+-- [1]223:count nodes root.sg.** level=2
 STRICT{
 count(nodes)(INT64)      |
 -------------------------
@@ -1111,7 +1123,7 @@ count(nodes)(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]205:show devices root.sg.**
+-- [1]224:show devices root.sg.**
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |
 ---------------------------------------
@@ -1120,9 +1132,9 @@ mplate            |                     |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]206:count devices
+-- [1]225:count devices
 STRICT{
 count(devices)(INT64)      |
 ---------------------------
@@ -1130,9 +1142,9 @@ count(devices)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]207:show timeseries root.sg.**
+-- [1]226:show timeseries root.sg.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1143,7 +1155,7 @@ te.temperature        |                 |                    |                  
 
 Elapsed Time: 0.0.1
 
--- [1]208:count timeseries
+-- [1]227:count timeseries
 STRICT{
 count(timeseries)(INT64)      |
 ------------------------------
@@ -1153,7 +1165,7 @@ count(timeseries)(INT64)      |
 
 Elapsed Time: 0.0.1
 
--- [1]209:show view
+-- [1]228:show view
 STRICT{
 Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
 总数目：0
@@ -1161,7 +1173,7 @@ Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)     
 
 Elapsed Time: 0.0.1
 
--- [1]210:show all ttl
+-- [1]229:show all ttl
 STRICT{
 Database(TEXT)      |TTL(INT64)      |
 ------------------------------------
@@ -1169,9 +1181,9 @@ root.sg             |null            |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]211:select * from root.**
+-- [1]230:select * from root.**
 STRICT{
 Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |
 -----------------------------------------------------------------
@@ -1183,9 +1195,9 @@ Time(TIME)      |root.sg.aligned_template.temperature(FLOAT)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]212:select last(*) from root.**
+-- [1]231:select last(*) from root.**
 STRICT{
 Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 ---------------------------------------------------------------------------
@@ -1194,9 +1206,13 @@ Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
+-- [1]235:show version
+STRICT{
+PASS
+}
 
--- [1]216:list privileges of user user04
+-- [1]237:list privileges of user user04
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -1206,9 +1222,9 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.0
 
--- [1]217:show databases
+-- [1]238:show databases
 STRICT{
 Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1218,7 +1234,7 @@ root.sg             |null            |1                                   |1    
 
 Elapsed Time: 0.0.0
 
--- [1]218:count databases
+-- [1]239:count databases
 STRICT{
 count(INT32)      |
 ------------------
@@ -1228,7 +1244,7 @@ count(INT32)      |
 
 Elapsed Time: 0.0.1
 
--- [1]219:show child paths root.sg.*
+-- [1]240:show child paths root.sg.*
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 -------------------------------------------
@@ -1238,9 +1254,9 @@ root.sg.d1.s2         |TIMESERIES           |
 总数目：2
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
--- [1]220:show child paths root.sg.**
+-- [1]241:show child paths root.sg.**
 STRICT{
 ChildPaths(TEXT)      |NodeTypes(TEXT)      |
 -------------------------------------------
@@ -1252,7 +1268,7 @@ root.sg.d1.s2         |TIMESERIES           |
 
 Elapsed Time: 0.0.1
 
--- [1]221:show child nodes root.sg
+-- [1]242:show child nodes root.sg
 STRICT{
 ChildNodes(TEXT)      |
 ----------------------
@@ -1260,9 +1276,9 @@ d1                    |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]222:count nodes root.sg.** level=2
+-- [1]243:count nodes root.sg.** level=2
 STRICT{
 count(nodes)(INT64)      |
 -------------------------
@@ -1270,9 +1286,9 @@ count(nodes)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]223:show devices root.sg.**
+-- [1]244:show devices root.sg.**
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |
 ---------------------------------------
@@ -1280,9 +1296,9 @@ root.sg.d1        |true                 |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]224:count devices
+-- [1]245:count devices
 STRICT{
 count(devices)(INT64)      |
 ---------------------------
@@ -1290,9 +1306,9 @@ count(devices)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.2
 
--- [1]225:show timeseries root.sg.**
+-- [1]246:show timeseries root.sg.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1302,9 +1318,9 @@ root.sg.d1.s2         |null             |root.sg             |INT64             
 总数目：2
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]226:count timeseries
+-- [1]247:count timeseries
 STRICT{
 count(timeseries)(INT64)      |
 ------------------------------
@@ -1312,9 +1328,9 @@ count(timeseries)(INT64)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
--- [1]227:show view
+-- [1]248:show view
 STRICT{
 Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
 总数目：0
@@ -1322,7 +1338,7 @@ Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)     
 
 Elapsed Time: 0.0.1
 
--- [1]228:show all ttl
+-- [1]249:show all ttl
 STRICT{
 Database(TEXT)      |TTL(INT64)      |
 ------------------------------------
@@ -1332,7 +1348,7 @@ root.sg             |null            |
 
 Elapsed Time: 0.0.1
 
--- [1]229:select * from root.**
+-- [1]250:select * from root.**
 STRICT{
 Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 --------------------------------------------------------------------
@@ -1344,9 +1360,9 @@ Time(TIME)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
 总数目：3
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
--- [1]230:select last(*) from root.**
+-- [1]251:select last(*) from root.**
 STRICT{
 Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 ---------------------------------------------------------------------------
@@ -1356,4 +1372,4 @@ Time(TIME)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.3

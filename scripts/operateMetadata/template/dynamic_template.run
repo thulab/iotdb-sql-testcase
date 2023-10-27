@@ -1,13 +1,13 @@
 connect root/root;
 
 drop schema template alignedTemplate; <<NULL;
-drop schema template nonAlignedTemplate; <<NULL;
+drop device template nonAlignedTemplate; <<NULL;
 
 create database root.template.db1;
 create database root.template.db2;
 
 -- 创建对齐模版
-create schema template alignedTemplate aligned (s_boolean BOOLEAN encoding=RLE compression=ZSTD, s_int INT32 encoding=ZIGZAG compression=LZ4, s_long INT64 encoding=TS_2DIFF compression=ZSTD, s_float FLOAT encoding=Gorilla compression=GZIP, s_double double encoding=Gorilla compression=SNAPPY, s_txt text encoding=dictionary compression=UNCOMPRESSED);
+create device template alignedTemplate aligned (s_boolean BOOLEAN encoding=RLE compression=ZSTD, s_int INT32 encoding=ZIGZAG compression=LZ4, s_long INT64 encoding=TS_2DIFF compression=ZSTD, s_float FLOAT encoding=Gorilla compression=GZIP, s_double double encoding=Gorilla compression=SNAPPY, s_txt text encoding=dictionary compression=UNCOMPRESSED);
 -- 创建非对齐模版
 create schema template nonAlignedTemplate (s_boolean BOOLEAN encoding=PLAIN compression=ZSTD, s_int INT32 encoding=ZIGZAG compression=ZSTD, s_long INT64 encoding=TS_2DIFF compression=ZSTD, s_float FLOAT encoding=Gorilla compression=GZIP, s_double double encoding=rle compression=SNAPPY, s_txt text encoding=dictionary compression=UNCOMPRESSED);
 
@@ -21,18 +21,18 @@ create timeseries root.template.db1.db6.s_txt TEXT;
 
 -- 挂载
 set schema template alignedTemplate to root.template.db1.d1.g1;
-set schema template nonAlignedTemplate to root.template.db1.d1.g2;
+set device template nonAlignedTemplate to root.template.db1.d1.g2;
 set schema template alignedTemplate to root.template.db2.d_aligned.g1;
-set schema template nonAlignedTemplate to root.template.db2.d_nonAligned.g2;
+set device template nonAlignedTemplate to root.template.db2.d_nonAligned.g2;
 set schema template alignedTemplate to root.template.db1.d2.g1;
-set schema template nonAlignedTemplate to root.template.db1.d2.g2;
+set device template nonAlignedTemplate to root.template.db1.d2.g2;
 set schema template alignedTemplate to root.template.db1.d3.g1;
 
 -- 激活
-create timeseries of schema template on root.template.db1.d1.g1;
+create timeseries of device template on root.template.db1.d1.g1;
 create timeseries using schema template on root.template.db1.d1.g2;
-create timeseries of schema template on root.template.db2.d_aligned.g1;
-create timeseries using schema template on root.template.db2.d_nonAligned.g2;
+create timeseries of device template on root.template.db2.d_aligned.g1;
+create timeseries using device template on root.template.db2.d_nonAligned.g2;
 
 -- 插入数据
 insert into root.template.db1.d1.g1 (time, s_boolean,s_int, s_long, s_float, s_double, s_txt) aligned values (1684828987000, true, 12, 1684828987000, 13.4, 1684828987000.88, "BJ2034");
@@ -66,10 +66,10 @@ insert into root.template.db1.d5 (time, s_boolean,s_int, s_long, s_float, s_doub
 insert into root.template.db1.d6 (time, s_boolean,s_int, s_long, s_float, s_double, s_txt) values (1684828998000, false, 25, 1684828988000, 213.4, 1684828988000.88, "普通序列");
 
 -- 修改前查询
-show nodes in schema template alignedTemplate;
+show nodes in device template alignedTemplate;
 
 -- 修改
-alter schema template alignedTemplate add (s_speed FLOAT encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
+alter device template alignedTemplate add (s_speed FLOAT encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
 insert into  root.template.db1.d1.g1(time, s_speed, FLOAT) aligned values (1684828987000, 5.2, 3.1);
 insert into  root.template.db1.d1.g1(time, s_speed, FLOAT, s_boolean) aligned values (1684828988000, 15.2, 13.1, false);
 insert into root.template.db1.d2.g1 (time, s_boolean,s_int, s_long, s_float, s_double, s_txt, s_speed, FLOAT)  aligned values (1684828997000, true, 15, 1684828987000, 13.4, 1684828987000.88, "BJ3223", 4.4, 10.9);
@@ -82,9 +82,13 @@ insert into  root.template.db2.d_nonAligned.g2(time, s_speed, FLOAT) values (168
 
 -- 查询
 show schema templates;
+show device templates;
+
 -- 修改后查询
 show nodes in schema template alignedTemplate;
+show nodes in device template alignedTemplate;
 show nodes in schema template nonAlignedTemplate;
+show nodes in device template nonAlignedTemplate;
 
 select * from root.template.db2.d_aligned.g1;
 select * from root.template.db1.*.g1;
@@ -98,31 +102,35 @@ select count(*) from root.template.db1.d2.g1;
 select * from root.template.db1.d5;
 
 -- 检查是否使用了模版
-show child nodes  root.template.db1.d1.g2;
-show child nodes  root.template.db1.d1.g1;
+show child nodes root.template.db1.d1.g2;
+show child nodes root.template.db1.d1.g1;
 
 show paths set schema template alignedTemplate;
+show paths set device template alignedTemplate;
 show paths using schema template alignedTemplate;
+show paths using device template alignedTemplate;
 
 show paths set schema template nonAlignedTemplate;
+show paths set device template nonAlignedTemplate;
 show paths using schema template nonAlignedTemplate;
+show paths using device template nonAlignedTemplate;
 
 -- 解除
-deactivate schema template alignedTemplate from root.template.**;
+deactivate device template alignedTemplate from root.template.**;
 deactivate schema template nonAlignedTemplate from root.template.**;
 
 -- 卸载
-unset schema template alignedTemplate from root.template.db1.d1.g1;
-unset schema template nonAlignedTemplate from root.template.db1.d1.g2;
-unset schema template alignedTemplate from root.template.db2.d_aligned.g1;
-unset schema template nonAlignedTemplate from root.template.db2.d_nonAligned.g2;
-unset schema template alignedTemplate from root.template.db1.d2.g1;
-unset schema template nonAlignedTemplate from root.template.db1.d2.g2;
-unset schema template alignedTemplate from root.template.db1.d3.g1;
+unset device template alignedTemplate from root.template.db1.d1.g1;
+unset device template nonAlignedTemplate from root.template.db1.d1.g2;
+unset device template alignedTemplate from root.template.db2.d_aligned.g1;
+unset device template nonAlignedTemplate from root.template.db2.d_nonAligned.g2;
+unset device template alignedTemplate from root.template.db1.d2.g1;
+unset device template nonAlignedTemplate from root.template.db1.d2.g2;
+unset device template alignedTemplate from root.template.db1.d3.g1;
 
 -- 删除
 drop schema template alignedTemplate;
-drop schema template nonAlignedTemplate;
+drop device template nonAlignedTemplate;
 
 drop database root.template.db1;
 drop database root.template.db2;
