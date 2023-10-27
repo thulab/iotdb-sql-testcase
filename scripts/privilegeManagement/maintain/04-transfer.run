@@ -1,0 +1,102 @@
+connect root/root;
+// 4. 转授 权限
+
+DROP USER user_transfer;
+<<NULL;
+DROP USER user_02;
+<<NULL;
+
+-- 创建用户并授权
+CREATE USER user_transfer 'pass1234';
+-- 转授对象
+CREATE USER user_02 'pass1234';
+GRANT MAINTAIN, read ON root.** TO USER user_transfer WITH GRANT OPTION;
+LIST PRIVILEGES OF USER user_transfer;
+
+-- 换用户
+connect user_transfer/pass1234;
+
+-- 无需授权
+SHOW VERSION;
+<<CHECKCODE;
+
+-- 1. maintain
+show cluster;
+<<CHECKCODE;
+show cluster details;
+<<CHECKCODE;
+show variables;
+SHOW QUERY PROCESSLIST;
+<<CHECKCODE;
+kill all queries;
+
+-- 2.仅root用户拥有的权限: root 用户
+SHOW REGIONS;
+<<SQLSTATE;
+SHOW SCHEMA REGIONS;
+<<SQLSTATE;
+SHOW DATA REGIONS;
+<<SQLSTATE;
+FLUSH;
+<<SQLSTATE;
+CLEAR CACHE;
+<<SQLSTATE;
+MERGE;
+<<SQLSTATE;
+SET SYSTEM TO READONLY;
+<<SQLSTATE;
+SET SYSTEM TO RUNNING;
+<<SQLSTATE;
+LOAD CONFIGURATION;
+<<SQLSTATE;
+show confignodes;
+<<SQLSTATE;
+show datanodes;
+<<SQLSTATE;
+
+GRANT MAINTAIN ON root.** TO USER user_02;
+LIST PRIVILEGES OF USER user_02;
+<<SQLSTATE;
+
+-- 换用户2
+connect user_02/pass1234;
+
+-- 1. maintain
+SHOW CLUSTER;
+<<CHECKCODE;
+SHOW CLUSTER DETAILS;
+<<CHECKCODE;
+SHOW VARIABLES;
+SHOW QUERY PROCESSLIST;
+<<CHECKCODE;
+KILL ALL QUERIES;
+
+-- 2.仅root用户拥有的权限: root 用户
+SHOW REGIONS;
+<<SQLSTATE;
+SHOW SCHEMA REGIONS;
+<<SQLSTATE;
+SHOW DATA REGIONS;
+<<SQLSTATE;
+FLUSH;
+<<SQLSTATE;
+CLEAR CACHE;
+<<SQLSTATE;
+MERGE;
+<<SQLSTATE;
+SET SYSTEM TO READONLY;
+<<SQLSTATE;
+SET SYSTEM TO RUNNING;
+<<SQLSTATE;
+LOAD CONFIGURATION;
+<<SQLSTATE;
+show confignodes;
+<<SQLSTATE;
+show datanodes;
+<<SQLSTATE;
+
+-- 清理
+connect root/root;
+LIST PRIVILEGES OF USER user_02;
+DROP USER user_transfer;
+DROP USER user_02;

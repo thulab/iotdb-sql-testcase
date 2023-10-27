@@ -1,0 +1,252 @@
+connect root/root;
+// user_all_minus 拥有转授权限, 自己取消自己的授权
+// 1. all 权限
+// 2. revoke write_schema 权限
+// 3. revoke extend_template 权限
+// 4. revoke write_data 权限
+
+-- 清理
+drop database root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+DROP USER user_all_minus;
+<<NULL;
+
+-- prepare
+-- 创建用户并授权
+CREATE USER user_all_minus 'pass1234';
+GRANT all ON root.** TO USER user_all_minus WITH GRANT OPTION;
+LIST PRIVILEGES OF USER user_all_minus;
+
+-- 创建数据库
+create database root.sg;
+create database root.sg1;
+
+-- 创建模版
+create schema template t1 aligned (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+-- 挂载
+set schema template t1 to root.sg;
+set schema template t1 to root.sg1;
+-- 激活
+create timeseries of schema template on root.sg.d1;
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+
+
+// 1. all 权限
+connect user_all_minus/pass1234;
+
+-- 仅root拥有权限
+-- 查看所有模版
+show schema templates;
+<<SQLSTATE;
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+<<SQLSTATE;
+-- 查看挂载的节点
+show paths set schema template t1;
+<<SQLSTATE;
+-- 挂载
+set schema template t1 to root.sg1;
+<<SQLSTATE;
+-- 卸载
+unset schema template t1 from root.sg;
+<<SQLSTATE;
+-- 创建模版
+create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+-- 删除模版
+drop schema template t1;
+<<SQLSTATE;
+-- 修改模版
+alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
+<<SQLSTATE;
+
+
+-- write 权限
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+-- 激活
+create timeseries of schema template on root.sg1.d2;
+create timeseries using schema template on root.sg.d3;
+
+show timeseries;
+
+insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
+insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67);
+
+select * from root.** align by device;
+
+-- 解除
+deactivate schema template t1 from root.sg1.d2;
+deactivate schema template t1 from root.sg.d3;
+
+select * from root.**;
+show timeseries;
+
+
+-- extend template
+insert into root.sg.d1(time, s_lon2) values (1, 109.36);
+select * from root.**;
+
+-- read 权限
+-- 查看已激活的节点
+show paths using schema template t1;
+
+-- 判断节点是否使用了模版
+show child nodes root.sg.d1;
+select * from root.sg.** align by device;
+
+
+// 2. revoke write_schema 权限
+REVOKE write_schema ON root.** FROM USER user_all_minus;
+LIST PRIVILEGES OF USER user_all_minus;
+
+-- write_data 权限
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+
+show timeseries;
+
+-- write_schema 权限
+-- 写入激活： TIMECHODB-395
+insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
+<<SQLSTATE;
+insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67);
+<<SQLSTATE;
+-- 激活
+create timeseries of schema template on root.sg1.d2;
+<<SQLSTATE;
+create timeseries using schema template on root.sg.d3;
+<<SQLSTATE;
+
+select * from root.** align by device;
+
+-- 解除
+deactivate schema template t1 from root.sg1.d2;
+<<SQLSTATE;
+deactivate schema template t1 from root.sg.d3;
+<<SQLSTATE;
+
+select * from root.**;
+show timeseries;
+
+
+-- extend template
+insert into root.sg.d1(time, s_lon3) values (1, 309.36);
+select * from root.**;
+
+-- read_schema 权限
+-- 查看已激活的节点
+show paths using schema template t1;
+
+-- 判断节点是否使用了模版
+show child nodes root.sg.d1;
+select * from root.** align by device;
+
+
+
+// 3. revoke extend_template 权限
+REVOKE extend_template ON root.** FROM USER user_all_minus;
+LIST PRIVILEGES OF USER user_all_minus;
+
+-- write 权限
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'kuber', true, 1697167800000, 23.5, 635.67);
+-- 激活
+create timeseries of schema template on root.sg1.d2;
+<<SQLSTATE;
+create timeseries using schema template on root.sg.d3;
+<<SQLSTATE;
+
+show timeseries;
+-- 写入激活： TIMECHODB-395
+insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
+<<SQLSTATE;
+insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67);
+<<SQLSTATE;
+
+select * from root.** align by device;
+
+-- 解除
+deactivate schema template t1 from root.sg1.d2;
+<<SQLSTATE;
+deactivate schema template t1 from root.sg.d3;
+<<SQLSTATE;
+
+show timeseries;
+
+
+-- extend template
+insert into root.sg.d1(time, s_lon4) values (1, 409.36);
+<<SQLSTATE;
+select * from root.** align by device;
+
+
+-- read 权限
+-- 查看已激活的节点
+show paths using schema template t1;
+
+-- 判断节点是否使用了模版
+show child nodes root.sg.d1;
+show child nodes root.sg1.d2;
+select * from root.** align by device;
+
+
+
+
+// 4. revoke write_data 权限
+revoke write_data on root.** from user user_all_minus;
+LIST PRIVILEGES OF USER user_all_minus;
+
+-- write 权限
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+<<SQLSTATE;
+-- 激活
+create timeseries of schema template on root.sg1.d2;
+<<SQLSTATE;
+create timeseries using schema template on root.sg.d3;
+<<SQLSTATE;
+
+show timeseries;
+
+insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
+<<SQLSTATE;
+
+insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67);
+<<SQLSTATE;
+
+select * from root.** align by device;
+
+-- 解除
+deactivate schema template t1 from root.sg1.d2;
+<<SQLSTATE;
+deactivate schema template t1 from root.sg.d3;
+<<SQLSTATE;
+
+show timeseries;
+
+
+-- extend template
+insert into root.sg.d1(time, s_lon5) values (1, 509.36);
+<<SQLSTATE;
+
+-- read 权限
+-- 查看已激活的节点
+show paths using schema template t1;
+
+-- 判断节点是否使用了模版
+show child nodes root.sg.d1;
+select * from root.** align by device;
+
+show version;
+
+
+connect root/root;
+-- 清理
+drop database root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+DROP USER user_all_minus;
+<<NULL;
+
+

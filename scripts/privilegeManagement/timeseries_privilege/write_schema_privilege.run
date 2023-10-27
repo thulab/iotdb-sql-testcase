@@ -1,0 +1,327 @@
+//WRITE_SCHEMA：
+//允许获取授权路径下元数据树的详细信息。
+//允许在授权路径下对序列、模版、视图等进行创建、删除、修改操作。
+//在创建 view 的时候，会检查 view 路径的 WRITE_SCHEMA 权限、数据源的 READ_SCHEM 权限。
+//在对 view 进行查询、插入时，会检查 view 路径的 READ_DATA 权限、WRITE_DATA 权限。
+//允许在授权路径下设置、取消、查看TTL。
+//模板的创建是全局的，但只能对指定路径挂载或解除挂载模板，只能查看或删除挂载在自己路径下的模板或没有挂载的模板。
+
+connect root/root;
+
+--0.清理环境
+connect root/root;
+delete timeseries of device template t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+drop device template t3;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
+
+--1.创建数据库
+create database root.sg;
+create database root.data;
+
+--2.创建对齐时间序列
+create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle);
+
+--3.创建非对齐时间序列
+create timeseries root.sg.d2.s1 with datatype=float,encoding=rle;
+create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle;
+
+--4.分别创建、挂载、激活对齐序列的元数据模板
+--template:t1
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t1;
+set device template t1 to root.sg.aligned_template;
+show paths set device template t1;
+create timeseries using device template on root.sg.aligned_template;
+show paths using device template t1;
+
+--5.分别创建、挂载、激活非对齐序列的元数据模板
+--template:t2
+create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t2;
+set device template t2 to root.sg.nonaligned_template;
+show paths set device template t2;
+create timeseries using device template on root.sg.nonaligned_template;
+show paths using device template t2;
+--template:t3
+create device template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t3;
+set device template t3 to root.sg.common_template;
+show paths set device template t3;
+create timeseries using device template on root.sg.common_template;
+show paths using device template t3;
+
+--6.创建视图序列
+create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1;
+create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2;
+
+--7.分别查看数据库、设备、时间序列列表、视图（view）
+show databases;
+show devices root.**;
+show timeseries root.sg.**;
+show view;
+
+--8.插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3);
+insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3);
+insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false);
+insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false);
+
+--9.创建用户
+CREATE USER user01 'pass1234';
+CREATE USER user02 'pass1234';
+CREATE USER user03 'pass1234';
+CREATE USER user04 'pass1234';
+
+--10.列出用户列表
+list user;
+
+--11.检查用户是否有privilege存在（列出用户所有权限）
+LIST PRIVILEGES OF USER `user01`;
+LIST PRIVILEGES OF USER `user02`;
+LIST PRIVILEGES OF USER `user03`;
+LIST PRIVILEGES OF USER `user04`;
+
+--12.进行赋权
+GRANT WRITE_SCHEMA ON root.** TO USER user01;
+GRANT WRITE_SCHEMA ON root.sg.d1.** TO USER user02 with grant option;
+GRANT WRITE_SCHEMA ON root.sg.nonaligned_template.** TO USER user03;
+GRANT WRITE_SCHEMA ON root.sg.aligned_template.temperature TO USER user03;
+GRANT WRITE_SCHEMA ON root.**.status TO USER user03;
+<<SQLSTATE;
+GRANT WRITE_SCHEMA ON root.*.*.* TO USER user04;
+<<SQLSTATE;
+GRANT WRITE_SCHEMA ON root.data TO USER user04;
+
+--13.user01登录
+--13.1 WRITE_SCHEMA可支持的操作
+connect user01/pass1234;
+show version;
+<<CHECKCODE;
+create aligned timeseries root.sg.d1(s3 double encoding=rle, s4 int32 encoding=rle);
+create timeseries root.sg.d2.s3 with datatype=INT32;
+create timeseries root.sg.add_d1.s1 with datatype=float;
+create timeseries root.data.d1.s1 with datatype=float;
+show databases;
+count databases;
+show child paths root;
+show child paths root.*;
+show child paths root.**;
+show child paths root.sg;
+show child nodes root.sg.*;
+count nodes root.sg.** level=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+show paths using schema template t3;
+create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
+alter view root.sg.view_d1.s1 UPSERT TAGS(tag1=v1,tag2=v2) ATTRIBUTES(attr1=D1,attr2=D2);
+select * from root.**;
+select count(*) from root.sg.** align by device;
+delete timeseries of schema template t3 from root.sg.common_template;
+delete timeseries root.data.d1.s1;
+select s1,s2 into root.sg.cp_d1(s1,s2) from root.sg.d1;
+delete view root.sg.view_d1.s1;
+show view;
+--13.2 WRITE_SCHEMA不支持的操作
+show cluster details;
+<<SQLSTATE;
+show confignodes;
+<<SQLSTATE;
+show datanodes;
+<<SQLSTATE;
+show regions;
+<<SQLSTATE;
+show schema templates;
+<<SQLSTATE;
+create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+<<SQLSTATE;
+set schema template t2 to root.sg.d3;
+<<SQLSTATE;
+show nodes in schema template t2;
+<<SQLSTATE;
+show paths set schema template t2;
+<<SQLSTATE;
+unset schema template t2 from root.sg.nonaligned_template;
+<<SQLSTATE;
+drop schema template t2;
+<<SQLSTATE;
+insert into root.sg.d1(time,s3,s4) values(10,10,10);
+<<SQLSTATE;
+insert into root.db.d1(time,s1) values(1,1);
+<<SQLSTATE;
+revoke write_schema on root.** from user user01;
+<<SQLSTATE;
+delete from root.sg.d1.*;
+<<SQLSTATE;
+create database root.data;
+<<SQLSTATE;
+delete database root.**;
+<<SQLSTATE;
+
+--14.user02登录
+--14.1 WRITE_SCHEMA可支持的操作
+connect user02/pass1234;
+show version;
+<<CHECKCODE;
+GRANT WRITE_SCHEMA ON root.sg.d1.** TO USER user03;
+create aligned timeseries root.sg.d1(s5 double encoding=rle, s6 int32 encoding=rle);
+show databases;
+count databases;
+show child paths root;
+show child paths root.*;
+show child paths root.**;
+show child paths root.sg;
+show child nodes root.sg.*;
+count nodes root.sg.** level=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+create view root.sg.d1.view_s1 as select s1 from root.sg.d1;
+alter view root.sg.d1.view_s1 UPSERT TAGS(tag1=v1,tag2=v2) ATTRIBUTES(attr1=D1,attr2=D2);
+show view;
+select * from root.sg.d1;
+select count(*) from root.sg.d1;
+delete timeseries root.sg.d1.s2;
+--14.2 WRITE_SCHEMA不支持的操作
+GRANT WRITE_SCHEMA ON root.sg.d2.** TO USER user03;
+<<SQLSTATE;
+create timeseries root.sg.d2.s4 with datatype=INT32;
+<<SQLSTATE;
+create timeseries root.data.d2.s1 with datatype=float;
+<<SQLSTATE;
+insert into root.sg.d1(time,s5,s6) values(10,10,10);
+<<SQLSTATE;
+create view root.sg.view_d2.s1 as select s1 from root.sg.d1;
+<<SQLSTATE;
+delete from root.sg.d1.*;
+<<SQLSTATE;
+delete timeseries root.**;
+<<SQLSTATE;
+
+--15.user03登录
+--15.1 WRITE_SCHEMA可支持的操作
+connect user03/pass1234;
+show version;
+<<CHECKCODE;
+show databases;
+count databases;
+show child paths root;
+show child paths root.*;
+show child paths root.**;
+show child paths root.sg;
+show child nodes root.sg.*;
+count nodes root.sg.** level=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+select * from root.sg.**; 
+--15.2 WRITE_SCHEMA不支持的操作
+create timeseries root.sg.nonaligned_template.s1 with datatype=INT32;
+<<SQLSTATE;
+insert into root.sg.nonaligned_template(time,temperature,status) values(10,18.8,false);
+<<SQLSTATE;
+create view root.sg.view_d3.s1 as select temperature from root.sg.nonaligned_template;
+<<SQLSTATE;
+delete from root.sg.nonaligned_template.**;
+<<SQLSTATE;
+delete timeseries root.**;
+<<SQLSTATE;
+
+--16.user04登录
+--16.1 WRITE_SCHEMA可支持的操作
+connect user04/pass1234;
+show version;
+<<CHECKCODE;
+show databases;
+count databases;
+show child paths root;
+show child paths root.*;
+count nodes root.** level=1;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+select * from root.**; 
+--16.2 WRITE_SCHEMA不支持的操作
+create timeseries root.data.d1.s1 with datatype=FLOAT;
+<<SQLSTATE;
+delete timeseries root.**;
+<<SQLSTATE;
+delete database root.**;
+<<SQLSTATE;
+
+--17.root取消权限
+connect root/root;
+LIST PRIVILEGES OF USER `user01`;
+revoke write_schema on root.** from user user01;
+LIST PRIVILEGES OF USER `user01`;
+LIST PRIVILEGES OF USER `user03`;
+revoke write_schema on root.sg.nonaligned_template.** from user user03;
+LIST PRIVILEGES OF USER `user03`;
+revoke read_schema on root.sg.d1.** from user user02;
+<<SQLSTATE;
+revoke write_schema on root.sg.d1 from user user02;
+<<SQLSTATE;
+LIST PRIVILEGES OF USER `user02`;
+
+--18.清理环境
+connect root/root;
+delete timeseries of device template t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+drop device template t3;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;

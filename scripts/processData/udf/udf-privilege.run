@@ -22,8 +22,8 @@ drop function example;<<SQLSTATE;
 
 -- 授权create
 connect root/root;
-grant user lily_create_udf privileges CREATE_FUNCTION ;
-grant user lily_create_udf privileges READ_TIMESERIES on root.**;
+grant USE_UDF on root.** to user lily_create_udf; 
+grant read on root.** to user lily_create_udf;
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 
@@ -32,7 +32,6 @@ CREATE FUNCTION example AS 'Max';
 show functions;
 insert into root.sg1.dev0(time,s_1) values(1,100);<<SQLSTATE;
 select example(s_1) from root.sg1.dev0;
-drop function example;<<SQLSTATE;
 
 connect root/root;
 sleep 500;
@@ -42,16 +41,11 @@ insert into root.sg1.dev0(time,s_1) values(2,200);
 select s_1 from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 
-
 -- 查看使用UDF
 connect lily_create_udf/123456;
 select example(s_1) from root.sg1.dev0;
 
--- 授权drop
-connect root/root;
-grant user lily_create_udf privileges DROP_FUNCTION ;
-sleep 100;
-
+--普通用户卸载UDF
 connect lily_create_udf/123456;
 drop function example;
 show functions;
@@ -59,25 +53,19 @@ CREATE FUNCTION example AS 'Max';
 CREATE FUNCTION example2 AS 'Max';
 show functions;
 
--- 取消授权create
+-- 取消授权
 connect root/root;
-revoke user lily_create_udf  privileges create_function;
+revoke USE_UDF on root.** from user lily_create_udf; 
 
 connect lily_create_udf/123456;
 CREATE FUNCTION example3 AS 'Max';<<SQLSTATE;
 drop function example2;
-
--- 取消授权drop
-connect root/root;
-revoke user lily_create_udf  privileges drop_function;
-
-connect lily_create_udf/123456;
-drop function example;<<SQLSTATE;
+<<SQLSTATE;
 
 connect root/root;
 drop user lily_create_udf;
 drop function example;
-
+drop function example2;
 delete DATABASE root.**;
 
 // 3 ROLE
@@ -88,36 +76,33 @@ drop role role_function_status;<<NULL;
 
 create role role_function;
 create role role_function_status;
-grant role role_function privileges create_function;
-grant role role_function privileges READ_TIMESERIES on root.**;
--- show functions error
--- grant role role_function privileges READ_TIMESERIES on root.sg1.**;
+grant USE_UDF on root.** to role role_function; 
+grant read on root.** to role role_function;
 
-grant role role_function_status privileges drop_function;
-list privileges role role_function;
-list privileges role role_function_status;
+grant USE_UDF on root.** to role role_function_status;
+list privileges of role role_function;
+list privileges of role role_function_status;
 
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 create user lily_create_function '123456';
-list privileges user lily_create_function;
+list privileges of user lily_create_function;
 -- 授权create read_timeseries
-grant  role_function to lily_create_function;
-list privileges user lily_create_function;
-list privileges user lily_create_function on root.sg1.**;
+grant role role_function to lily_create_function;
+list privileges of user lily_create_function;
+--list privileges of user lily_create_function on root.sg1.**;(旧语法)
 
 connect lily_create_function/123456;
 CREATE FUNCTION example AS 'Max';
 show functions;
 select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
-drop function example;<<SQLSTATE;
 insert into root.sg1.dev0(time,s_1) values(1,300);<<SQLSTATE;
 
 -- 授权drop
 connect root/root;
-grant  role_function_status to lily_create_function;
-list privileges user lily_create_function;
+grant role role_function_status to lily_create_function;
+list privileges of user lily_create_function;
 insert into root.sg1.dev0(time,s_1) values(2,100);
 select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;

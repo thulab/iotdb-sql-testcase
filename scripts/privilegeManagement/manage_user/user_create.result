@@ -1,0 +1,143 @@
+-- [1]26:CREATE USER use 'pass1234'
+STRICT{
+SQLSTATE : 303: The length of name or password must be greater than or equal to 4
+}
+-- [1]28:CREATE USER use1 'pass1234'
+STRICT{
+PASS
+}
+-- [1]29:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]30:CREATE USER `qwertyuiop0123456789qwertyuiopAB` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]31:CREATE USER `qwertyuiop0123456789qwertyuiopABC` 'pass1234'
+STRICT{
+SQLSTATE : 303: The length of name or password must be less than or equal to 32
+}
+-- [1]35:CREATE USER `普通群众` 'pass1234'
+STRICT{
+SQLSTATE : 303: The name or password can only contain letters, numbers or !@#$%^*()_+-=
+}
+-- [1]39:CREATE USER `UserA` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]42:CREATE USER `0001` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]45:CREATE USER `!%$^user&*()_#@+-=!` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]48:CREATE USER %$^user_01#@ 'pass1234'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 extraneous input '%' expecting {ID, QUOTED_ID}
+}
+-- [1]50:CREATE USER '%$^user_02#@' 'pass1234'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input ''%$^user_02#@'' expecting {ID, QUOTED_ID}
+}
+-- [1]52:CREATE USER “%$^user_03#@” 'pass1234'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 token recognition error at: '“'
+}
+-- [1]54:CREATE USER `%$^user_&#@-01A` 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]57:LIST USER
+STRICT{
+user(TEXT)      |
+----------------
+!%$^user&*()_#@+|
+-=!             |
+----------------
+%$^user_&#@-01A |
+----------------
+0001            |
+----------------
+UserA           |
+----------------
+qwertyuiop012345|
+6789qwertyuiopA|
+B               |
+----------------
+root            |
+----------------
+use1            |
+----------------
+user01          |
+总数目：8
+}
+
+Elapsed Time: 0.0.0
+-- [1]91:CREATE USER user01 'pwd'
+STRICT{
+SQLSTATE : 303: The length of name or password must be greater than or equal to 4
+}
+-- [1]93:CREATE USER user01 'pass'
+STRICT{
+PASS
+}
+-- [1]94:CREATE USER user02 '12345678900123456789qwertyuiop12'
+STRICT{
+PASS
+}
+-- [1]95:CREATE USER user03 '12345678900123456789qwertyuiop123'
+STRICT{
+SQLSTATE : 303: The length of name or password must be less than or equal to 32
+}
+-- [1]99:CREATE USER user04 'qwertyuiopABC'
+STRICT{
+PASS
+}
+-- [1]102:CREATE USER user05 'pass1234'
+STRICT{
+PASS
+}
+-- [1]105:CREATE USER user06 '!@#$%^&*()_+-='
+STRICT{
+PASS
+}
+-- [1]106:CREATE USER user07 'pass wd'
+STRICT{
+SQLSTATE : 303: The name or password cannot contain spaces
+}
+-- [1]110:CREATE USER user08 pass1234
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:19 mismatched input 'pass1234' expecting STRING_LITERAL
+}
+
+-- [1]114:LIST USER
+STRICT{
+user(TEXT)      |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+----------------
+user04          |
+----------------
+user05          |
+----------------
+user06          |
+总数目：6
+}
+
+Elapsed Time: 0.0.1
+-- [1]135:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]138:CREATE USER user01 'passwd'
+STRICT{
+SQLSTATE : 805: User user01 already exists
+}

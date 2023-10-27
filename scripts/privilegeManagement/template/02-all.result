@@ -1,0 +1,308 @@
+-- [1]15:CREATE USER user_all 'pass1234'
+STRICT{
+PASS
+}
+-- [1]16:GRANT all ON root.** TO USER user_all
+STRICT{
+PASS
+}
+
+-- [1]17:LIST PRIVILEGES OF USER user_all
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                |MANAGE_USER           |false                      |
+---------------------------------------------------------------------------------
+                |                |MANAGE_ROLE           |false                      |
+---------------------------------------------------------------------------------
+                |                |USE_TRIGGER           |false                      |
+---------------------------------------------------------------------------------
+                |                |USE_UDF               |false                      |
+---------------------------------------------------------------------------------
+                |                |USE_CQ                |false                      |
+---------------------------------------------------------------------------------
+                |                |USE_PIPE              |false                      |
+---------------------------------------------------------------------------------
+                |                |EXTEND_TEMPLATE       |false                      |
+---------------------------------------------------------------------------------
+                |                |MANAGE_DATABASE       |false                      |
+---------------------------------------------------------------------------------
+                |                |MAINTAIN              |false                      |
+---------------------------------------------------------------------------------
+                |                |AUDIT                 |false                      |
+---------------------------------------------------------------------------------
+                |root.**         |READ_DATA             |false                      |
+---------------------------------------------------------------------------------
+                |root.**         |WRITE_DATA            |false                      |
+---------------------------------------------------------------------------------
+                |root.**         |READ_SCHEMA           |false                      |
+---------------------------------------------------------------------------------
+                |root.**         |WRITE_SCHEMA          |false                      |
+总数目：14
+}
+
+Elapsed Time: 0.0.1
+-- [1]20:create database root.sg
+STRICT{
+PASS
+}
+-- [1]21:create database root.sg1
+STRICT{
+PASS
+}
+-- [1]22:create database root.sg2
+STRICT{
+PASS
+}
+-- [1]25:create schema template t1 aligned (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
+STRICT{
+PASS
+}
+-- [1]27:set schema template t1 to root.sg
+STRICT{
+PASS
+}
+-- [1]28:set schema template t1 to root.sg1
+STRICT{
+PASS
+}
+-- [1]30:create timeseries of schema template on root.sg.d1
+STRICT{
+PASS
+}
+
+-- [1]32:show nodes in schema template t1
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+start_time            |INT64               |TS_2DIFF            |LZ4                    |
+-------------------------------------------------------------------------------------
+s_lat                 |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+s_status              |BOOLEAN             |RLE                 |LZ4                    |
+-------------------------------------------------------------------------------------
+s_name                |TEXT                |PLAIN               |LZ4                    |
+-------------------------------------------------------------------------------------
+s_lon                 |FLOAT               |GORILLA             |LZ4                    |
+总数目：5
+}
+
+Elapsed Time: 0.0.0
+-- [1]39:show schema templates
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]42:show nodes in schema template t1
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]45:show paths set schema template t1
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]48:set schema template t1 to root.sg1
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]50:set schema template t2 to root.sg1
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]53:unset schema template t1 from root.sg
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]55:unset schema template t1 from root.sg2
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]58:create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]60:create schema template t1 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]63:drop schema template t1
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]65:drop schema template t12
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]68:alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]70:alter schema template t12 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]75:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.262
+-- [1]77:create timeseries of schema template on root.sg1.d2
+STRICT{
+PASS
+}
+-- [1]78:create timeseries using schema template on root.sg.d3
+STRICT{
+PASS
+}
+-- [1]80:insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.261
+-- [1]83:delete timeseries root.sg1.d2.**
+STRICT{
+SQLSTATE : 508: Timeseries [root.sg1.d2.**] does not exist or is represented by schema template
+}
+-- [1]85:delete timeseries root.sg1.**
+STRICT{
+SQLSTATE : 508: Timeseries [root.sg1.**] does not exist or is represented by schema template
+}
+
+-- [1]87:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.start_time |null             |root.sg             |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_lat      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_status   |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_name     |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.start_time |null             |root.sg             |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_lat      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_status   |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_name     |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d3.start_time |null             |root.sg             |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d3.s_lat      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d3.s_status   |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d3.s_name     |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d3.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.start_time|null             |root.sg1            |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.s_lat     |null             |root.sg1            |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.s_status  |null             |root.sg1            |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.s_name    |null             |root.sg1            |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg1.d2.s_lon     |null             |root.sg1            |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：20
+}
+
+Elapsed Time: 0.0.2
+-- [1]91:deactivate schema template t1 from root.sg1.d2
+STRICT{
+PASS
+}
+-- [1]92:deactivate schema template t1 from root.sg.d3
+STRICT{
+PASS
+}
+-- [1]96:insert into root.sg.d1(time, s_lon2) values (1, 109.36)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]101:show paths using schema template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.d4       |
+-----------------
+root.sg.d1       |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]104:show child nodes root.sg.d1
+STRICT{
+ChildNodes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]106:select * from root.sg.** align by device
+STRICT{
+Time(TIME)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s_lon2(FLOAT)      |s_status(BOOLEAN)      |s_name(TEXT)      |s_lon(FLOAT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |root.sg.d1        |1697167800000          |3.5               |109.36             |true                   |arrow             |435.67            |
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+11              |root.sg.d4        |1697167800000          |3.5               |null               |true                   |d4                |435.67            |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]107:select * from root.**
+STRICT{
+Time(TIME)      |root.sg.d4.start_time(INT64)      |root.sg.d4.s_lat(FLOAT)      |root.sg.d4.s_lon2(FLOAT)      |root.sg.d4.s_status(BOOLEAN)      |root.sg.d4.s_name(TEXT)      |root.sg.d4.s_lon(FLOAT)      |root.sg.d1.start_time(INT64)      |root.sg.d1.s_lat(FLOAT)      |root.sg.d1.s_lon2(FLOAT)      |root.sg.d1.s_status(BOOLEAN)      |root.sg.d1.s_name(TEXT)      |root.sg.d1.s_lon(FLOAT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |null                              |null                         |null                          |null                              |null                         |null                         |1697167800000                     |3.5                          |109.36                        |true                              |arrow                        |435.67                       |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+11              |1697167800000                     |3.5                          |null                          |true                              |d4                           |435.67                       |null                              |null                         |null                          |null                              |null                         |null                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]108:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.start_time |null             |root.sg             |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_lat      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_lon2     |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_status   |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_name     |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d4.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.start_time |null             |root.sg             |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_lat      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_lon2     |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_status   |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_name     |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：12
+}
+
+Elapsed Time: 0.0.1
