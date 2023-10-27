@@ -4,21 +4,21 @@ PASS
 }
 -- [1]20:CREATE FUNCTION example as 'Max'
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_FUNCTION
+SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
 }
 -- [1]20:show functions
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege READ_TIMESERIES
+SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
 }
 -- [1]21:drop function example
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege DROP_FUNCTION
+SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
 }
--- [1]25:grant user lily_create_udf privileges CREATE_FUNCTION
+-- [1]25:grant USE_UDF on root.** to user lily_create_udf
 STRICT{
 PASS
 }
--- [1]26:grant user lily_create_udf privileges READ_TIMESERIES on root.**
+-- [1]26:grant read on root.** to user lily_create_udf
 STRICT{
 PASS
 }
@@ -236,6 +236,8 @@ MIN_TIME                |native                  |                          |
 --------------------------------------------------------------------------
 MODE                    |native                  |                          |
 --------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |
+--------------------------------------------------------------------------
 MIN_VALUE               |native                  |                          |
 --------------------------------------------------------------------------
 AVG                     |native                  |                          |
@@ -261,13 +263,13 @@ REPLACE                 |built-in scalar         |                          |
 DIFF                    |built-in scalar         |                          |
 --------------------------------------------------------------------------
 SUBSTRING               |built-in scalar         |                          |
-总数目：73
+总数目：74
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 -- [1]33:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg1.dev0.s_1]
 }
 
 -- [1]34:select example(s_1) from root.sg1.dev0
@@ -276,13 +278,9 @@ Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.12
--- [1]35:drop function example
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege DROP_FUNCTION
-}
+Elapsed Time: 0.0.3
 
--- [1]39:show timeseries root.**
+-- [1]38:show timeseries root.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -290,21 +288,21 @@ root.sg1.dev0.s_1     |null             |root.sg1            |INT32             
 总数目：1
 }
 
-Elapsed Time: 0.0.4
--- [1]40:insert into root.sg1.dev0(time,s_1) values(1,100)
+Elapsed Time: 0.0.2
+-- [1]39:insert into root.sg1.dev0(time,s_1) values(1,100)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.260
--- [1]41:insert into root.sg1.dev0(time,s_1) values(2,200)
+Elapsed Time: 0.1.262
+-- [1]40:insert into root.sg1.dev0(time,s_1) values(2,200)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]42:select s_1 from root.sg1.dev0
+-- [1]41:select s_1 from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 ----------------------------------------------
@@ -314,9 +312,9 @@ Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]43:select example(s_1) from root.sg1.dev0
+-- [1]42:select example(s_1) from root.sg1.dev0
 STRICT{
 Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 -------------------------------------------------------
@@ -324,9 +322,9 @@ Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.4
 
--- [1]48:select example(s_1) from root.sg1.dev0
+-- [1]46:select example(s_1) from root.sg1.dev0
 STRICT{
 Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 -------------------------------------------------------
@@ -334,17 +332,13 @@ Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.2
--- [1]52:grant user lily_create_udf privileges DROP_FUNCTION
-STRICT{
-PASS
-}
--- [1]56:drop function example
+Elapsed Time: 0.0.3
+-- [1]50:drop function example
 STRICT{
 PASS
 }
 
--- [1]57:show functions
+-- [1]51:show functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |
 --------------------------------------------------------------------------
@@ -543,6 +537,8 @@ MIN_TIME                |native                  |                          |
 --------------------------------------------------------------------------
 MODE                    |native                  |                          |
 --------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |
+--------------------------------------------------------------------------
 MIN_VALUE               |native                  |                          |
 --------------------------------------------------------------------------
 AVG                     |native                  |                          |
@@ -568,20 +564,20 @@ REPLACE                 |built-in scalar         |                          |
 DIFF                    |built-in scalar         |                          |
 --------------------------------------------------------------------------
 SUBSTRING               |built-in scalar         |                          |
-总数目：72
+总数目：73
 }
 
 Elapsed Time: 0.0.1
--- [1]59:CREATE FUNCTION example AS 'Max'
+-- [1]53:CREATE FUNCTION example AS 'Max'
 STRICT{
 PASS
 }
--- [1]60:CREATE FUNCTION example2 AS 'Max'
+-- [1]54:CREATE FUNCTION example2 AS 'Max'
 STRICT{
 PASS
 }
 
--- [1]60:show functions
+-- [1]54:show functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |
 --------------------------------------------------------------------------
@@ -784,6 +780,8 @@ MIN_TIME                |native                  |                          |
 --------------------------------------------------------------------------
 MODE                    |native                  |                          |
 --------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |
+--------------------------------------------------------------------------
 MIN_VALUE               |native                  |                          |
 --------------------------------------------------------------------------
 AVG                     |native                  |                          |
@@ -809,133 +807,129 @@ REPLACE                 |built-in scalar         |                          |
 DIFF                    |built-in scalar         |                          |
 --------------------------------------------------------------------------
 SUBSTRING               |built-in scalar         |                          |
-总数目：74
+总数目：75
 }
 
-Elapsed Time: 0.0.1
--- [1]64:revoke user lily_create_udf  privileges create_function
+Elapsed Time: 0.0.2
+-- [1]58:revoke USE_UDF on root.** from user lily_create_udf
 STRICT{
 PASS
 }
--- [1]68:CREATE FUNCTION example3 AS 'Max'
+-- [1]62:CREATE FUNCTION example3 AS 'Max'
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege CREATE_FUNCTION
+SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
+}
+-- [1]62:drop function example2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege USE_UDF
+}
+-- [1]66:drop user lily_create_udf
+STRICT{
+PASS
+}
+-- [1]67:drop function example
+STRICT{
+PASS
 }
 -- [1]68:drop function example2
 STRICT{
 PASS
 }
--- [1]72:revoke user lily_create_udf  privileges drop_function
+-- [1]69:delete DATABASE root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.754
+-- [1]77:create role role_function
 STRICT{
 PASS
 }
--- [1]75:drop function example
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege DROP_FUNCTION
-}
--- [1]78:drop user lily_create_udf
+-- [1]78:create role role_function_status
 STRICT{
 PASS
 }
--- [1]79:drop function example
+-- [1]79:grant USE_UDF on root.** to role role_function
 STRICT{
 PASS
 }
--- [1]81:delete DATABASE root.**
+-- [1]80:grant read on root.** to role role_function
 STRICT{
 PASS
 }
--- [1]89:create role role_function
-STRICT{
-PASS
-}
--- [1]90:create role role_function_status
-STRICT{
-PASS
-}
--- [1]91:grant role role_function privileges create_function
-STRICT{
-PASS
-}
--- [1]92:grant role role_function privileges READ_TIMESERIES on root.**
-STRICT{
-PASS
-}
--- [1]96:grant role role_function_status privileges drop_function
+-- [1]82:grant USE_UDF on root.** to role role_function_status
 STRICT{
 PASS
 }
 
--- [1]97:list privileges role role_function
+-- [1]83:list privileges of role role_function
 STRICT{
-privilege(TEXT)      |
----------------------
-root.** : CREATE_FUNC|
-TION READ_TIMESERIES |
-总数目：1
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role_function   |                |USE_UDF               |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_DATA             |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_SCHEMA           |false                      |
+总数目：3
 }
 
 Elapsed Time: 0.0.1
 
--- [1]98:list privileges role role_function_status
+-- [1]84:list privileges of role role_function_status
 STRICT{
-privilege(TEXT)      |
----------------------
-root.** : DROP_FUNCTI|
-ON                   |
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role_function_st|                |USE_UDF               |false                      |
+atus            |                |                      |                           |
 总数目：1
 }
 
 Elapsed Time: 0.0.1
--- [1]101:CREATE DATABASE root.sg1
+-- [1]87:CREATE DATABASE root.sg1
 STRICT{
 PASS
 }
--- [1]102:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+-- [1]88:CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
 STRICT{
 PASS
 }
--- [1]102:create user lily_create_function '123456'
+-- [1]88:create user lily_create_function '123456'
 STRICT{
 PASS
 }
 
--- [1]103:list privileges user lily_create_function
+-- [1]89:list privileges of user lily_create_function
 STRICT{
-role(TEXT)      |privilege(TEXT)      |
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.0
--- [1]105:grant  role_function to lily_create_function
+-- [1]91:grant role role_function to lily_create_function
 STRICT{
 PASS
 }
 
--- [1]106:list privileges user lily_create_function
+-- [1]92:list privileges of user lily_create_function
 STRICT{
-role(TEXT)      |privilege(TEXT)      |
--------------------------------------
-role_function   |root.** : CREATE_FUNC|
-                |TION READ_TIMESERIES |
-总数目：1
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role_function   |                |USE_UDF               |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_DATA             |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_SCHEMA           |false                      |
+总数目：3
 }
 
 Elapsed Time: 0.0.1
-
--- [1]107:list privileges user lily_create_function on root.sg1.**
-STRICT{
-role(TEXT)      |privilege(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.0
--- [1]111:CREATE FUNCTION example AS 'Max'
+-- [1]97:CREATE FUNCTION example AS 'Max'
 STRICT{
 PASS
 }
 
--- [1]111:show functions
+-- [1]97:show functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |
 --------------------------------------------------------------------------
@@ -1136,6 +1130,8 @@ MIN_TIME                |native                  |                          |
 --------------------------------------------------------------------------
 MODE                    |native                  |                          |
 --------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |
+--------------------------------------------------------------------------
 MIN_VALUE               |native                  |                          |
 --------------------------------------------------------------------------
 AVG                     |native                  |                          |
@@ -1161,12 +1157,12 @@ REPLACE                 |built-in scalar         |                          |
 DIFF                    |built-in scalar         |                          |
 --------------------------------------------------------------------------
 SUBSTRING               |built-in scalar         |                          |
-总数目：73
+总数目：74
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]112:select * from root.sg1.dev0
+-- [1]98:select * from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 总数目：0
@@ -1174,47 +1170,46 @@ Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 
 Elapsed Time: 0.0.2
 
--- [1]113:select example(s_1) from root.sg1.dev0
+-- [1]99:select example(s_1) from root.sg1.dev0
 STRICT{
 Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：0
 }
 
 Elapsed Time: 0.0.2
--- [1]114:drop function example
+-- [1]100:insert into root.sg1.dev0(time,s_1) values(1,300)
 STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege DROP_FUNCTION
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg1.dev0.s_1]
 }
--- [1]115:insert into root.sg1.dev0(time,s_1) values(1,300)
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege INSERT_TIMESERIES
-}
--- [1]119:grant  role_function_status to lily_create_function
+-- [1]104:grant role role_function_status to lily_create_function
 STRICT{
 PASS
 }
 
--- [1]120:list privileges user lily_create_function
+-- [1]105:list privileges of user lily_create_function
 STRICT{
-role(TEXT)      |privilege(TEXT)      |
--------------------------------------
-role_function   |root.** : CREATE_FUNC|
-                |TION READ_TIMESERIES |
--------------------------------------
-role_function_st|root.** : DROP_FUNCTI|
-atus            |ON                   |
-总数目：2
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role_function   |                |USE_UDF               |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_DATA             |false                      |
+---------------------------------------------------------------------------------
+role_function   |root.**         |READ_SCHEMA           |false                      |
+---------------------------------------------------------------------------------
+role_function_st|                |USE_UDF               |false                      |
+atus            |                |                      |                           |
+总数目：4
 }
 
-Elapsed Time: 0.0.0
--- [1]121:insert into root.sg1.dev0(time,s_1) values(2,100)
+Elapsed Time: 0.0.1
+-- [1]106:insert into root.sg1.dev0(time,s_1) values(2,100)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.257
+Elapsed Time: 0.1.262
 
--- [1]122:select * from root.sg1.dev0
+-- [1]107:select * from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 ----------------------------------------------
@@ -1222,9 +1217,9 @@ Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
--- [1]123:select example(s_1) from root.sg1.dev0
+-- [1]108:select example(s_1) from root.sg1.dev0
 STRICT{
 Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 -------------------------------------------------------
@@ -1232,9 +1227,9 @@ Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]127:select * from root.sg1.dev0
+-- [1]112:select * from root.sg1.dev0
 STRICT{
 Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 ----------------------------------------------
@@ -1244,7 +1239,7 @@ Time(TIME)      |root.sg1.dev0.s_1(INT32)      |
 
 Elapsed Time: 0.0.3
 
--- [1]128:select example(s_1) from root.sg1.dev0
+-- [1]113:select example(s_1) from root.sg1.dev0
 STRICT{
 Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 -------------------------------------------------------
@@ -1252,13 +1247,13 @@ Time(TIME)      |example(root.sg1.dev0.s_1)(INT32)      |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]129:drop function example
+Elapsed Time: 0.0.2
+-- [1]114:drop function example
 STRICT{
 PASS
 }
 
--- [1]130:show functions
+-- [1]115:show functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |
 --------------------------------------------------------------------------
@@ -1457,6 +1452,8 @@ MIN_TIME                |native                  |                          |
 --------------------------------------------------------------------------
 MODE                    |native                  |                          |
 --------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |
+--------------------------------------------------------------------------
 MIN_VALUE               |native                  |                          |
 --------------------------------------------------------------------------
 AVG                     |native                  |                          |
@@ -1482,30 +1479,30 @@ REPLACE                 |built-in scalar         |                          |
 DIFF                    |built-in scalar         |                          |
 --------------------------------------------------------------------------
 SUBSTRING               |built-in scalar         |                          |
-总数目：72
+总数目：73
 }
 
-Elapsed Time: 0.0.1
--- [1]131:select example(s_1) from root.sg1.dev0
+Elapsed Time: 0.0.2
+-- [1]116:select example(s_1) from root.sg1.dev0
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 java.lang.RuntimeException: Failed to reflect UDF instance, because UDF EXAMPLE has not been registered.
 }
--- [1]134:drop role role_function
+-- [1]119:drop role role_function
 STRICT{
 PASS
 }
--- [1]135:drop role role_function_status
+-- [1]120:drop role role_function_status
 STRICT{
 PASS
 }
--- [1]136:drop user lily_create_function
+-- [1]121:drop user lily_create_function
 STRICT{
 PASS
 }
--- [1]137:delete timeseries root.sg1.dev0.s_1
+-- [1]122:delete timeseries root.sg1.dev0.s_1
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.252
+Elapsed Time: 0.0.258

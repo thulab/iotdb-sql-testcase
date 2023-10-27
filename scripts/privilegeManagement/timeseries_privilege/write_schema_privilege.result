@@ -1,0 +1,1559 @@
+-- [1]39:create database root.sg
+STRICT{
+PASS
+}
+-- [1]40:create database root.data
+STRICT{
+PASS
+}
+-- [1]43:create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle)
+STRICT{
+PASS
+}
+-- [1]46:create timeseries root.sg.d2.s1 with datatype=float,encoding=rle
+STRICT{
+PASS
+}
+-- [1]47:create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle
+STRICT{
+PASS
+}
+-- [1]51:create schema template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]52:show schema templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]53:show nodes in schema template t1
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+-- [1]54:set schema template t1 to root.sg.aligned_template
+STRICT{
+PASS
+}
+
+-- [1]55:show paths set schema template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.aligned_t|
+emplate          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]56:create timeseries using schema template on root.sg.aligned_template
+STRICT{
+PASS
+}
+
+-- [1]57:show paths using schema template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.aligned_t|
+emplate          |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]61:create schema template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]62:show schema templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+------------------------
+t2                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]63:show nodes in schema template t2
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+-- [1]64:set schema template t2 to root.sg.nonaligned_template
+STRICT{
+PASS
+}
+
+-- [1]65:show paths set schema template t2
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.nonaligne|
+d_template       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]66:create timeseries using schema template on root.sg.nonaligned_template
+STRICT{
+PASS
+}
+
+-- [1]67:show paths using schema template t2
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.nonaligne|
+d_template       |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]69:create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]70:show schema templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+------------------------
+t2                      |
+------------------------
+t3                      |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]71:show nodes in schema template t3
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]72:set schema template t3 to root.sg.common_template
+STRICT{
+PASS
+}
+
+-- [1]73:show paths set schema template t3
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.common_te|
+mplate           |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]74:create timeseries using schema template on root.sg.common_template
+STRICT{
+PASS
+}
+
+-- [1]75:show paths using schema template t3
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.common_te|
+mplate           |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]78:create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1
+STRICT{
+PASS
+}
+-- [1]79:create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2
+STRICT{
+PASS
+}
+
+-- [1]82:show databases
+STRICT{
+Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |null            |1                                   |1                                 |604800000                         |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.data           |null            |1                                   |1                                 |604800000                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]83:show devices root.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg.aligned_te|true                 |
+mplate            |                     |
+---------------------------------------
+root.sg.view_d1   |null                 |
+---------------------------------------
+root.sg.common_tem|false                |
+plate             |                     |
+---------------------------------------
+root.sg.view_d2   |null                 |
+---------------------------------------
+root.sg.nonaligned|false                |
+_template         |                     |
+---------------------------------------
+root.sg.d1        |true                 |
+---------------------------------------
+root.sg.d2        |false                |
+总数目：7
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]84:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.status             |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.common_templat|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+e.temperature         |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.common_templat|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+e.status              |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.temperature     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.status          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：12
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]85:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |(root.sg.d1.s1 + r|
+ation                 |                    |                    |                |                      |                    |oot.sg.d1.s2) / 2 |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |sin(root.sg.d2.s1 |
+ation                 |                    |                    |                |                      |                    |* root.sg.d2.s2)  |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]88:insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.260
+-- [1]89:insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.261
+-- [1]90:insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]91:insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]95:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]96:CREATE USER user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]97:CREATE USER user03 'pass1234'
+STRICT{
+PASS
+}
+-- [1]98:CREATE USER user04 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]100:list user
+STRICT{
+user(TEXT)      |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+----------------
+user03          |
+----------------
+user04          |
+总数目：5
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]104:LIST PRIVILEGES OF USER `user01`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]105:LIST PRIVILEGES OF USER `user02`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]106:LIST PRIVILEGES OF USER `user03`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]107:LIST PRIVILEGES OF USER `user04`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]110:GRANT WRITE_SCHEMA ON root.** TO USER user01
+STRICT{
+PASS
+}
+-- [1]111:GRANT WRITE_SCHEMA ON root.sg.d1.** TO USER user02 with grant option
+STRICT{
+PASS
+}
+-- [1]112:GRANT WRITE_SCHEMA ON root.sg.nonaligned_template.** TO USER user03
+STRICT{
+PASS
+}
+-- [1]113:GRANT WRITE_SCHEMA ON root.sg.aligned_template.temperature TO USER user03
+STRICT{
+PASS
+}
+-- [1]114:GRANT WRITE_SCHEMA ON root.**.status TO USER user03
+STRICT{
+SQLSTATE : 303: Illegal pattern path: root.**.status, only pattern path that end with ** are supported.
+}
+-- [1]116:GRANT WRITE_SCHEMA ON root.*.*.* TO USER user04
+STRICT{
+SQLSTATE : 303: Illegal pattern path: root.*.*.*, only pattern path that end with ** are supported.
+}
+-- [1]118:GRANT WRITE_SCHEMA ON root.data TO USER user04
+STRICT{
+PASS
+}
+-- [1]122:show version
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]124:create aligned timeseries root.sg.d1(s3 double encoding=rle, s4 int32 encoding=rle)
+STRICT{
+PASS
+}
+-- [1]125:create timeseries root.sg.d2.s3 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]126:create timeseries root.sg.add_d1.s1 with datatype=float
+STRICT{
+PASS
+}
+-- [1]127:create timeseries root.data.d1.s1 with datatype=float
+STRICT{
+PASS
+}
+
+-- [1]128:show databases
+STRICT{
+Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |null            |1                                   |1                                 |604800000                         |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.data           |null            |1                                   |1                                 |604800000                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]129:count databases
+STRICT{
+count(INT32)      |
+------------------
+2                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]130:show child paths root
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.data             |DATABASE             |
+-------------------------------------------
+root.sg               |DATABASE             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]131:show child paths root.*
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.add_d1        |DEVICE               |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.common_templat|DEVICE               |
+e                     |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.d2            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+-------------------------------------------
+root.sg.view_d1       |DEVICE               |
+-------------------------------------------
+root.sg.view_d2       |DEVICE               |
+-------------------------------------------
+root.data.d1          |DEVICE               |
+总数目：9
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]132:show child paths root.**
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.add_d1        |DEVICE               |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.common_templat|DEVICE               |
+e                     |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.d2            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+-------------------------------------------
+root.sg.view_d1       |DEVICE               |
+-------------------------------------------
+root.sg.view_d2       |DEVICE               |
+-------------------------------------------
+root.sg.add_d1.s1     |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s1         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s2         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s3         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s4         |TIMESERIES           |
+-------------------------------------------
+root.sg.d2.s1         |TIMESERIES           |
+-------------------------------------------
+root.sg.d2.s2         |TIMESERIES           |
+-------------------------------------------
+root.sg.d2.s3         |TIMESERIES           |
+-------------------------------------------
+root.sg.view_d1.calcul|TIMESERIES           |
+ation                 |                     |
+-------------------------------------------
+root.sg.view_d2.calcul|TIMESERIES           |
+ation                 |                     |
+-------------------------------------------
+root.data.d1          |DEVICE               |
+-------------------------------------------
+root.data.d1.s1       |TIMESERIES           |
+总数目：20
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]133:show child paths root.sg
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.add_d1        |DEVICE               |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.common_templat|DEVICE               |
+e                     |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.d2            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+-------------------------------------------
+root.sg.view_d1       |DEVICE               |
+-------------------------------------------
+root.sg.view_d2       |DEVICE               |
+总数目：8
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]134:show child nodes root.sg.*
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+s4                    |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+calculation           |
+----------------------
+calculation           |
+总数目：10
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]135:count nodes root.sg.** level=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+8                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]136:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg.aligned_te|true                 |
+mplate            |                     |
+---------------------------------------
+root.sg.view_d1   |null                 |
+---------------------------------------
+root.sg.common_tem|false                |
+plate             |                     |
+---------------------------------------
+root.sg.view_d2   |null                 |
+---------------------------------------
+root.sg.nonaligned|false                |
+_template         |                     |
+---------------------------------------
+root.sg.d1        |true                 |
+---------------------------------------
+root.sg.add_d1    |false                |
+---------------------------------------
+root.sg.d2        |false                |
+---------------------------------------
+root.data.d1      |false                |
+总数目：9
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]137:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+9                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]138:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.status             |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.common_templat|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+e.temperature         |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.common_templat|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+e.status              |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.temperature     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.status          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.add_d1.s1     |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s3         |null             |root.sg             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.data.d1.s1       |null             |root.data           |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：17
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]139:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+17                            |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]140:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |(root.sg.d1.s1 + r|
+ation                 |                    |                    |                |                      |                    |oot.sg.d1.s2) / 2 |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |sin(root.sg.d2.s1 |
+ation                 |                    |                    |                |                      |                    |* root.sg.d2.s2)  |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]141:show all ttl
+STRICT{
+Database(TEXT)      |TTL(INT64)      |
+------------------------------------
+root.sg             |null            |
+------------------------------------
+root.data           |null            |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]142:show paths using schema template t3
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.common_te|
+mplate           |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]143:create view root.sg.view_d1.s1 as select s1 from root.sg.d1
+STRICT{
+PASS
+}
+-- [1]144:alter view root.sg.view_d1.s1 UPSERT TAGS(tag1=v1,tag2=v2) ATTRIBUTES(attr1=D1,attr2=D2)
+STRICT{
+PASS
+}
+
+-- [1]145:select * from root.**
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]146:select count(*) from root.sg.** align by device
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]147:delete timeseries of schema template t3 from root.sg.common_template
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255
+-- [1]148:delete timeseries root.data.d1.s1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+
+-- [1]149:select s1,s2 into root.sg.cp_d1(s1,s2) from root.sg.d1
+STRICT{
+SourceColumn(TEXT)      |TargetTimeseries(TEXT)      |Written(INT32)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]150:delete view root.sg.view_d1.s1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+
+-- [1]151:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |(root.sg.d1.s1 + r|
+ation                 |                    |                    |                |                      |                    |oot.sg.d1.s2) / 2 |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |sin(root.sg.d2.s1 |
+ation                 |                    |                    |                |                      |                    |* root.sg.d2.s2)  |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]153:show cluster details
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege MAINTAIN
+}
+-- [1]155:show confignodes
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]157:show datanodes
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]159:show regions
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]161:show schema templates
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]163:create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]165:set schema template t2 to root.sg.d3
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]167:show nodes in schema template t2
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]169:show paths set schema template t2
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]171:unset schema template t2 from root.sg.nonaligned_template
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]173:drop schema template t2
+STRICT{
+SQLSTATE : 803: Only the admin user can perform this operation
+}
+-- [1]175:insert into root.sg.d1(time,s3,s4) values(10,10,10)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s3, root.sg.d1.s4]
+}
+-- [1]177:insert into root.db.d1(time,s1) values(1,1)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.db.d1.s1]
+}
+-- [1]179:revoke write_schema on root.** from user user01
+STRICT{
+SQLSTATE : 817: Has no permission to executeREVOKE_USER, please ensure you have these privileges and the grant option is TRUE when granted
+}
+-- [1]181:delete from root.sg.d1.*
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.*]
+}
+-- [1]183:create database root.data
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_DATABASE
+}
+-- [1]185:delete database root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_DATABASE
+}
+-- [1]192:GRANT WRITE_SCHEMA ON root.sg.d1.** TO USER user03
+STRICT{
+PASS
+}
+-- [1]192:create aligned timeseries root.sg.d1(s5 double encoding=rle, s6 int32 encoding=rle)
+STRICT{
+PASS
+}
+
+-- [1]193:show databases
+STRICT{
+Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |null            |1                                   |1                                 |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]194:count databases
+STRICT{
+count(INT32)      |
+------------------
+1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]195:show child paths root
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg               |DATABASE             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]196:show child paths root.*
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]197:show child paths root.**
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.d1.s1         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s2         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s3         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s4         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s5         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s6         |TIMESERIES           |
+总数目：7
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]198:show child paths root.sg
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]199:show child nodes root.sg.*
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+s4                    |
+----------------------
+s5                    |
+----------------------
+s6                    |
+总数目：6
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]200:count nodes root.sg.** level=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]201:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg.d1        |true                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]202:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+1                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]203:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：6
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]204:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+6                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]205:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]206:show all ttl
+STRICT{
+Database(TEXT)      |TTL(INT64)      |
+------------------------------------
+root.sg             |null            |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]207:create view root.sg.d1.view_s1 as select s1 from root.sg.d1
+STRICT{
+PASS
+}
+-- [1]208:alter view root.sg.d1.view_s1 UPSERT TAGS(tag1=v1,tag2=v2) ATTRIBUTES(attr1=D1,attr2=D2)
+STRICT{
+PASS
+}
+
+-- [1]209:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.view_s1    |root.sg             |FLOAT               |{"tag1":"v1","ta|{"attr2":"D2","attr1":|VIEW                |root.sg.d1.s1     |
+                      |                    |                    |g2":"v2"}       |"D1"}                 |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]210:select * from root.sg.d1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]211:select count(*) from root.sg.d1
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]212:delete timeseries root.sg.d1.s2
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.270
+-- [1]215:GRANT WRITE_SCHEMA ON root.sg.d2.** TO USER user03
+STRICT{
+SQLSTATE : 817: Has no permission to executeGRANT_USER, please ensure you have these privileges and the grant option is TRUE when granted
+}
+-- [1]216:create timeseries root.sg.d2.s4 with datatype=INT32
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
+}
+-- [1]218:create timeseries root.data.d2.s1 with datatype=float
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
+}
+-- [1]220:insert into root.sg.d1(time,s5,s6) values(10,10,10)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s5, root.sg.d1.s6]
+}
+-- [1]222:create view root.sg.view_d2.s1 as select s1 from root.sg.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.view_d2.s1]
+}
+-- [1]224:delete from root.sg.d1.*
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.*]
+}
+-- [1]226:delete timeseries root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.**]
+}
+
+-- [1]232:show databases
+STRICT{
+Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |null            |1                                   |1                                 |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]233:count databases
+STRICT{
+count(INT32)      |
+------------------
+1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]234:show child paths root
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg               |DATABASE             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]235:show child paths root.*
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]236:show child paths root.**
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+-------------------------------------------
+root.sg.d1.s1         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s3         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s4         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s5         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.s6         |TIMESERIES           |
+-------------------------------------------
+root.sg.d1.view_s1    |TIMESERIES           |
+总数目：9
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]237:show child paths root.sg
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]238:show child nodes root.sg.*
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s3                    |
+----------------------
+s4                    |
+----------------------
+s5                    |
+----------------------
+s6                    |
+----------------------
+view_s1               |
+总数目：6
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]239:count nodes root.sg.** level=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+3                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]240:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.sg.aligned_te|true                 |
+mplate            |                     |
+---------------------------------------
+root.sg.nonaligned|false                |
+_template         |                     |
+---------------------------------------
+root.sg.d1        |true                 |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]241:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+3                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]242:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.temperature     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.status          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.view_s1    |null             |root.sg             |FLOAT               |null                |null                   |{"tag1":"v1","ta|{"attr2":"D2","attr1":|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |g2":"v2"}       |"D1"}                 |                    |                              |                    |
+总数目：9
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]243:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+9                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]244:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.view_s1    |root.sg             |FLOAT               |{"tag1":"v1","ta|{"attr2":"D2","attr1":|VIEW                |root.sg.d1.s1     |
+                      |                    |                    |g2":"v2"}       |"D1"}                 |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]245:show all ttl
+STRICT{
+Database(TEXT)      |TTL(INT64)      |
+------------------------------------
+root.sg             |null            |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]246:select * from root.sg.**
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]248:create timeseries root.sg.nonaligned_template.s1 with datatype=INT32
+STRICT{
+SQLSTATE : 516: Cannot create timeseries [root.sg.nonaligned_template.s1] since schema template [t2] already set on path [root.sg.nonaligned_template].
+}
+-- [1]250:insert into root.sg.nonaligned_template(time,temperature,status) values(10,18.8,false)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.nonaligned_template.temperature, root.sg.nonaligned_template.status]
+}
+-- [1]252:create view root.sg.view_d3.s1 as select temperature from root.sg.nonaligned_template
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.view_d3.s1]
+}
+-- [1]254:delete from root.sg.nonaligned_template.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.nonaligned_template.**]
+}
+-- [1]256:delete timeseries root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.**]
+}
+
+-- [1]262:show databases
+STRICT{
+Database(TEXT)      |TTL(INT64)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+--------------------------------------------------------------------------------------------------------------------------------------------
+root.data           |null            |1                                   |1                                 |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]263:count databases
+STRICT{
+count(INT32)      |
+------------------
+1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]264:show child paths root
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.data             |DATABASE             |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]265:show child paths root.*
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]266:count nodes root.** level=1
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]267:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]268:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+0                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]269:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]270:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+0                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]271:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]272:show all ttl
+STRICT{
+Database(TEXT)      |TTL(INT64)      |
+------------------------------------
+root.data           |null            |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]273:select * from root.**
+STRICT{
+Time(TIME)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]275:create timeseries root.data.d1.s1 with datatype=FLOAT
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
+}
+-- [1]277:delete timeseries root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.**]
+}
+-- [1]279:delete database root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege MANAGE_DATABASE
+}
+
+-- [1]285:LIST PRIVILEGES OF USER `user01`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**         |WRITE_SCHEMA          |false                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]285:revoke write_schema on root.** from user user01
+STRICT{
+PASS
+}
+
+-- [1]287:LIST PRIVILEGES OF USER `user01`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]288:LIST PRIVILEGES OF USER `user03`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.nonalign|WRITE_SCHEMA          |false                      |
+                |ed_template.**  |                      |                           |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_|WRITE_SCHEMA          |false                      |
+                |template.temper|                      |                           |
+                |ature           |                      |                           |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**   |WRITE_SCHEMA          |false                      |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]288:revoke write_schema on root.sg.nonaligned_template.** from user user03
+STRICT{
+PASS
+}
+
+-- [1]290:LIST PRIVILEGES OF USER `user03`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_|WRITE_SCHEMA          |false                      |
+                |template.temper|                      |                           |
+                |ature           |                      |                           |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**   |WRITE_SCHEMA          |false                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]290:revoke read_schema on root.sg.d1.** from user user02
+STRICT{
+SQLSTATE : 811: User user02 does not have READ_SCHEMA on root.sg.d1.**
+}
+-- [1]292:revoke write_schema on root.sg.d1 from user user02
+STRICT{
+SQLSTATE : 811: User user02 does not have WRITE_SCHEMA on root.sg.d1
+}
+
+-- [1]295:LIST PRIVILEGES OF USER `user02`
+STRICT{
+ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**   |WRITE_SCHEMA          |true                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1

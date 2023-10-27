@@ -33,8 +33,8 @@ WITH (
 
 -- 授权create
 connect root/root;
-grant user lily_create_trig privileges CREATE_TRIGGER on root.triggertest.**;
-grant user lily_create_trig privileges READ_TIMESERIES on root.**;
+grant USE_TRIGGER on root.triggertest.** to user lily_create_trig;
+grant read on root.** to user lily_create_trig;
 CREATE DATABASE root.sg2;<<NULL;
 CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
@@ -130,11 +130,11 @@ CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILL
 CREATE DATABASE root.sg2;<<NULL;
 CREATE TIMESERIES root.sg2.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-grant user lily_create_trig privileges CREATE_TRIGGER on root.**;
-grant user lily_create_trig privileges READ_TIMESERIES on root.**;
-list privileges user lily_create_trig on root.**;
-list privileges user lily_create_trig on root.triggertest.**;
-list privileges user lily_create_trig on root.sg2.**;
+grant USE_TRIGGER on root.** to user lily_create_trig;
+grant read on root.** to user lily_create_trig;
+list privileges of user lily_create_trig on root.**;
+list privileges of user lily_create_trig on root.triggertest.**;
+list privileges of user lily_create_trig on root.sg2.**;
 
 connect lily_create_trig/123456;
 
@@ -169,7 +169,7 @@ WITH (
 );
 show triggers;
 connect root/root;
-revoke user lily_create_trig  privileges create_trigger on root.**;
+revoke USE_TRIGGER on root.** from user lily_create_trig;
 drop trigger trig1; 
 drop trigger trig2; 
 drop trigger trig3;
@@ -285,18 +285,18 @@ drop role role_trigger;<<NULL;
 drop role role_trigger_status;<<NULL;
 create role role_trigger;
 create role role_trigger_status;
-grant role role_trigger privileges create_trigger on root.triggertest;
-grant role role_trigger privileges drop_trigger on root.triggertest;
-list privileges role role_trigger on root.triggertest.**;
-list privileges role role_trigger_status on root.triggertest.**;
+grant USE_TRIGGER on root.triggertest.** to role role_trigger privileges;
+grant USE_TRIGGER on root.triggertest.** to role role_trigger;
+list privileges of role role_trigger on root.triggertest.**;
+list privileges of role role_trigger_status on root.triggertest.**;
 CREATE DATABASE root.triggertest;<<NULL;
 CREATE TIMESERIES root.triggertest.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 create user lily_create_trigger '123456';
-list privileges user lily_create_trigger on root.triggertest.**;
-grant  role_trigger to lily_create_trigger;
-list privileges user lily_create_trigger on root.triggertest.**;
-grant user lily_create_trigger privileges create_trigger on root.triggertest.**;
-list privileges user lily_create_trigger on root.triggertest.**;
+list privileges of user lily_create_trigger on root.triggertest.**;
+grant role role_trigger to lily_create_trigger;
+list privileges of user lily_create_trigger on root.triggertest.**;
+grant USE_TRIGGER on root.triggertest.** to user lily_create_trigger;
+list privileges of user lily_create_trigger on root.triggertest.**;
 
 connect lily_create_trigger/123456;
 CREATE STATELESS TRIGGER trig1
@@ -321,7 +321,7 @@ drop trigger trig1;
 show triggers;
 drop role role_trigger;
 drop role role_trigger_status;
-list privileges user lily_create_trigger on root.triggertest.**;
+list privileges of user lily_create_trigger on root.triggertest.**;
 connect lily_create_trigger/123456;
 CREATE STATELESS TRIGGER trig1
 AFTER INSERT

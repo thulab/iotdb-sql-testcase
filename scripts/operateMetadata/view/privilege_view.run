@@ -14,15 +14,17 @@ insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02;
-LIST PRIVILEGES USER u_security;
-grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1;
-LIST PRIVILEGES USER u_security;
+LIST PRIVILEGES of USER u_security;
+--grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1;(旧语法)
+grant read_schema on root.view.v1.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 connect u_security/123456;
+--仅授予read_schema权限，查询数据为空列表
 select c1,c2 from root.view.v1;
-<<sqlstate;
 connect root/root;
-grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.*;
-LIST PRIVILEGES USER u_security;
+--grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.*;(旧语法)
+grant read_data on root.view.v1.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 connect u_security/123456;
 select c1,c2 from root.view.v1;
 insert into root.view.v1(time,c1) aligned values(5000,9999);
@@ -34,6 +36,7 @@ create view root.view.v1(c3) as select s02 from root.db.d1;
 drop database root.db;<<sqlstate;
 drop database root.view;<<sqlstate;
 drop user u_security;<<sqlstate;
+
 // tc2 has query view privilege,no have source series privilege ,query source series privilege
 connect root/root;
 drop database root.db;
@@ -50,17 +53,18 @@ insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02;
-grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1;
-grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1;
-<<sqlstate;
+--grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1;(旧语法)
+grant read_schema on root.view.v1.c1 to user u_security;
+--grant user u_security PRIVILEGES  READ_TIMESERIES on root.view.v1.c1;(旧语法)
+grant read_data on root.view.v1.c1 to user u_security;
 connect u_security/123456;
 select * from root.view.v1;
-<<sqlstate;
 select c1 from root.view.v1;
-select s01 from root.db.d1;<<sqlstate;
-select s02 from root.db.d1;<<sqlstate;
-LIST PRIVILEGES USER u_security;
-<<sqlstate;
+--返回空列表（未对具体路径root.db.d1.**进行授权操作）
+select s01 from root.db.d1;
+select s02 from root.db.d1;
+LIST PRIVILEGES OF USER u_security;
+
 // tc3 delete timeseries view 
 connect root/root;
 drop database root.db;
@@ -77,7 +81,8 @@ insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02;
-grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1;
+--grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1;(旧语法)
+grant write_schema on root.view.v1.c1 to user u_security;
 connect u_security/123456;
 delete timeseries root.db.d1.s01;
 <<sqlstate;
@@ -103,19 +108,21 @@ insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02;
-grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1;
+--grant user u_security PRIVILEGES  DELETE_TIMESERIES on root.view.v1.c1;(旧语法)
+grant write_schema on root.view.v1.c1 to user u_security;
 connect u_security/123456;
 delete timeseries root.db.d1.s01;
 <<sqlstate;
-drop view root.view.v1.c1; // Actual results
-<<sqlstate;
+show view;
+drop view root.view.v1.c1; // Actual results delete successful
+show view root.view.v1.c1;
 delete timeseries root.view.v1.c2;
 <<sqlstate;
 delete timeseries root.view.v1.c1;
-show view root.view.v1.c1;
 <<sqlstate;
 connect root/root;
 show view root.view.v1.*;
+
 // tc5 alter_timeseries
 drop database root.db;
 drop database root.view;
@@ -131,7 +138,8 @@ insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1,c2) as root.db.d1.s01,root.db.d2.s02;
-grant user u_security PRIVILEGES  ALTER_TIMESERIES on root.view.v1.c1;
+--grant user u_security PRIVILEGES  ALTER_TIMESERIES on root.view.v1.c1;(旧语法)
+grant write_schema on root.view.v1.c1 to user u_security;
 show view root.view.v1.*;
 connect u_security/123456;
 alter view root.view.v1.c1 as select s01 from root.db.d2; // Actual results
@@ -143,18 +151,21 @@ connect root/root;
 show view root.view.v1.*;
 select c1,c2 from root.view.v1;
 select c1,c2 from root.view.v1;
-grant user u_security PRIVILEGES  ALTER_view on root.view.v1.c1;
+--grant user u_security PRIVILEGES  ALTER_view on root.view.v1.c1;(旧语法)
+--new version about view privilege:write_schema
 connect u_security/123456;
 alter view root.view.v1.c1 upsert tags(city_region=changping, description='this is a beautiful region') attributes(speed=90, color=red);
 connect root/root;
 show view root.view.v1.*;
 select c1,c2 from root.view.v1;
 select c1,c2 from root.view.v1;
-LIST PRIVILEGES USER u_security;
-REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES;
+LIST PRIVILEGES OF USER u_security;
+--REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES;(旧语法)
+REVOKE WRITE_SCHEMA ON root.** FROM USER u_security;
+--REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES on root.view.v1.c1;（旧语法）
+REVOKE WRITE_SCHEMA on root.view.v1.c1 FROM USER u_security;
 <<sqlstate;
-REVOKE USER u_security PRIVILEGES ALTER_TIMESERIES on root.view.v1.c1;
-LIST PRIVILEGES USER u_security;
+LIST PRIVILEGES OF USER u_security;
 connect u_security/123456;
 alter timeseries root.view.v1.c1 upsert tags(city_region=huairou, description='this is a super beautiful region') attributes(speed=90, color=red);
 <<sqlstate;
@@ -162,7 +173,7 @@ connect root/root;
 show view root.view.v1.*;
 select c1,c2 from root.view.v1;
 select c1,c2 from root.view.v1;
-LIST PRIVILEGES USER u_security;
+LIST PRIVILEGES OF USER u_security;
 connect u_security/123456;
 alter view root.view.v1.c1 rename to root.view.v1.cici;
 <<sqlstate;
@@ -186,11 +197,15 @@ insert into root.db.d1(time,s01,s02)aligned values(1000,123,456);
 insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
 insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
-grant user u_security PRIVILEGES  CREATE_VIEW on root.view.v1.c1;
+--grant user u_security PRIVILEGES  CREATE_VIEW on root.view.v1.c1;(旧语法)
+grant write_schema on root.view.v1.c1 to user u_security;
+grant read_schema on root.db.** to user u_security;
 show view root.view.v1.*;
 connect u_security/123456;
-create view root.view.v1(c1) as select s01 from  root.db.d1;
-select s01 from  root.db.d1;<<sqlstate;
+create view root.view.v1(c1) as select s01 from root.db.d1;
+show view root.view.v1.c1;
+--查询数据为空列表
+select s01 from root.db.d1;
 connect root/root;
 show view root.view.v1.*;
 select * from root.view.v1;
@@ -203,6 +218,7 @@ connect root/root;
 drop database root.db;
 drop database root.view;
 drop user u_security;
+
 // tc7 insert_timeseries
 connect root/root;
 CREATE USER u_security '123456';
@@ -218,7 +234,8 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.view.v1;
-grant user u_security PRIVILEGES  insert_timeseries on root.view.v1.*;
+--grant user u_security PRIVILEGES  insert_timeseries on root.view.v1.*;(旧语法)
+grant write_data on root.view.v1.** to user u_security;
 connect u_security/123456;
 insert into root.view.v1(time,c1) aligned values(3000,7777);
 insert into root.view.v1(time,c1) aligned values(5000,9999);
@@ -247,8 +264,10 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.view.v1;
-grant user u_security PRIVILEGES  insert_timeseries on root.db.d1.s01;
-grant user u_security PRIVILEGES  insert_timeseries on root.db.d2.s02;
+--grant user u_security PRIVILEGES  insert_timeseries on root.db.d1.s01;（旧语法）
+grant write_data on root.db.d1.s01 to user u_security;
+--grant user u_security PRIVILEGES  insert_timeseries on root.db.d2.s02;(旧语法)
+grant write_data on root.db.d2.s02 to user u_security;
 connect u_security/123456;
 insert into root.view.v1(time,c1) aligned values(3000,7777);
 <<sqlstate;
@@ -265,6 +284,7 @@ select c1,c2 from root.view.v1;
 drop database root.db;
 drop database root.view;
 drop user u_security;
+
 // tc9 delete_timeseries 
 connect root/root;
 drop database root.db;<<null;
@@ -283,8 +303,10 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.view.v1;
-grant user u_security PRIVILEGES  delete_timeseries on root.view.**;
-LIST PRIVILEGES USER u_security;
+--grant user u_security PRIVILEGES  delete_timeseries on root.view.**;(旧语法)
+grant write_schema on root.view.** to user u_security;
+grant write_data on root.view.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 connect u_security/123456;
 delete from root.db.d1.s01;
 <<sqlstate;
@@ -304,6 +326,7 @@ select s01,s02 from root.db.d2;
 drop database root.db;
 drop database root.view;
 drop user u_security;
+
 // tc10 delete view
 connect root/root;
 drop database root.db;<<null;
@@ -322,8 +345,9 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v1(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.view.v1;
-grant user u_security PRIVILEGES  delete_view on root.view.**;
-LIST PRIVILEGES USER u_security;
+--grant user u_security PRIVILEGES  delete_view on root.view.**;(旧语法)
+grant write_schema on root.view.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
 connect u_security/123456;
@@ -362,8 +386,9 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.db.d1(c1) as select s01 from root.db.d1;
 create view root.db.d2(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.db.d1;
-grant user u_security PRIVILEGES  delete_view on root.db.**;
-LIST PRIVILEGES USER u_security;
+--grant user u_security PRIVILEGES  delete_view on root.db.**;(旧语法)
+grant write_schema on root.db.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
 show view root.db.**;
@@ -412,8 +437,9 @@ insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 create view root.db.d1(c1) as select s01 from root.db.d1;
 create view root.db.d2(c2) as select concat(s02,",beijing") from root.db.d2;
 select c1,c2 from root.db.d1;
-grant user u_security PRIVILEGES  delete_timeseries on root.db.**;
-LIST PRIVILEGES USER u_security;
+--grant user u_security PRIVILEGES  delete_timeseries on root.db.**;(旧语法)
+grant write on root.db.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
 show view root.db.**;
@@ -429,9 +455,10 @@ select s01,s02,c2 from root.db.d2;
 show view root.db.**;
 connect u_security/123456;
 drop view root.db.**;
-<<sqlstate;
 delete timeseries root.db.d1.c1;
+<<sqlstate;
 delete timeseries root.db.d2.c2;
+<<sqlstate;
 connect root/root;
 show view root.db.**;
 select s01,s02,c1 from root.db.d1;
@@ -442,7 +469,8 @@ select s01,s02,c2 from root.db.d2;
 drop database root.db;
 drop database root.view;
 drop user u_security;
-// tc12 role:CREATE_VIEW,ALTER_VIEW,DELETE_VIEW,READ_TIMESERIES
+
+// tc13 role:CREATE_VIEW,ALTER_VIEW,DELETE_VIEW,READ_TIMESERIES
 connect root/root;
 drop database root.db;<<null;
 drop database root.view;<<null;
@@ -461,27 +489,28 @@ insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
-LIST PRIVILEGES USER u_security;
-LIST PRIVILEGES role r_test;
-grant role r_test privileges create_view,alter_view,delete_view on root.view.**;
-LIST PRIVILEGES USER u_security;
-LIST PRIVILEGES role r_test;
+LIST PRIVILEGES OF USER u_security;
+LIST PRIVILEGES OF role r_test;
+--grant role r_test privileges create_view,alter_view,delete_view on root.view.**;(旧语法)
+grant write_schema on root.view.** to role r_test;
+grant read_schema on root.db.** to role r_test;
+LIST PRIVILEGES OF USER u_security;
+LIST PRIVILEGES OF role r_test;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
 show view root.db.**;
 connect u_security/123456;
 show view root.view.v1.*;
-<<sqlstate;
 create view root.view.v1(c1) as select s01 from root.db.d1;
 <<sqlstate;
 create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2;
 <<sqlstate;
 connect root/root;
-grant  u_security to  r_test;
+grant user u_security to r_test;
 <<sqlstate;
-grant  r_test to  u_security;
-LIST PRIVILEGES USER u_security;
-LIST PRIVILEGES role r_test;
+grant role r_test to u_security;
+LIST PRIVILEGES OF USER u_security;
+LIST PRIVILEGES OF role r_test;
 select s01,s02,c1 from root.db.d1;
 select s01,s02,c2 from root.db.d2;
 show view root.view.**;
@@ -489,7 +518,6 @@ connect u_security/123456;
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2;
 show view root.view.**;
-<<sqlstate;
 connect root/root;
 show view root.db.**;
 select c1,c2 from root.view.v1;
@@ -511,9 +539,10 @@ show view root.db.**;
 select c1,c2 from root.view.v1;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
-grant user u_security PRIVILEGES READ_TIMESERIES ON root.view.**;
-LIST PRIVILEGES USER u_security;
-LIST PRIVILEGES role r_test;
+--grant user u_security PRIVILEGES READ_TIMESERIES ON root.view.**;
+grant read_schema on root.view.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
+LIST PRIVILEGES OF role r_test;
 connect u_security/123456;
 show view root.view.**;
 drop view root.view.**;
@@ -526,7 +555,8 @@ drop database root.db;
 drop database root.view;
 drop user u_security;
 drop role r_test;
-// tc13 recreate schema ,test privilege
+
+// tc14 recreate schema ,test privilege
 connect root/root;
 drop database root.db;<<null;
 drop database root.view;<<null;
@@ -544,11 +574,12 @@ insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
 insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
-LIST PRIVILEGES USER u_security;
+LIST PRIVILEGES OF USER u_security;
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2;
-grant user u_security privileges read_timeseries,insert_timeseries,delete_view on root.view.**;
-LIST PRIVILEGES USER u_security;
+--grant user u_security privileges read_timeseries,insert_timeseries,delete_view on root.view.**;(旧语法)
+grant read, write on root.view.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
 show view root.view.**;
 select s01,s02 from root.db.d1;
 select s01,s02 from root.db.d2;
@@ -561,7 +592,7 @@ insert into root.view.v1(time,c1) values(4000,456);
 connect root/root;
 drop view root.view.**;
 show view root.view.**;
-LIST PRIVILEGES USER u_security;
+LIST PRIVILEGES OF USER u_security;
 create view root.view.v1(c1) as select s01 from root.db.d1;
 create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2;
 
