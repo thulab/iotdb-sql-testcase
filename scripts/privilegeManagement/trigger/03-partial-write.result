@@ -17,7 +17,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 -- [1]34:CREATE USER user_trigger 'pass1234'
 STRICT{
 PASS
@@ -55,25 +55,23 @@ PASS
 STRICT{
 ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)      |
 ---------------------------------------------------------------------------------
-                |                |MANAGE_USER           |false                      |
+                |root.**         |MANAGE_USER           |false                      |
 ---------------------------------------------------------------------------------
-                |                |MANAGE_ROLE           |false                      |
+                |root.**         |MANAGE_ROLE           |false                      |
 ---------------------------------------------------------------------------------
-                |                |USE_TRIGGER           |false                      |
+                |root.**         |USE_TRIGGER           |false                      |
 ---------------------------------------------------------------------------------
-                |                |USE_UDF               |false                      |
+                |root.**         |USE_UDF               |false                      |
 ---------------------------------------------------------------------------------
-                |                |USE_CQ                |false                      |
+                |root.**         |USE_CQ                |false                      |
 ---------------------------------------------------------------------------------
-                |                |USE_PIPE              |false                      |
+                |root.**         |USE_PIPE              |false                      |
 ---------------------------------------------------------------------------------
-                |                |EXTEND_TEMPLATE       |false                      |
+                |root.**         |EXTEND_TEMPLATE       |false                      |
 ---------------------------------------------------------------------------------
-                |                |MANAGE_DATABASE       |false                      |
+                |root.**         |MANAGE_DATABASE       |false                      |
 ---------------------------------------------------------------------------------
-                |                |MAINTAIN              |false                      |
----------------------------------------------------------------------------------
-                |                |AUDIT                 |false                      |
+                |root.**         |MAINTAIN              |false                      |
 ---------------------------------------------------------------------------------
                 |root.**         |READ_DATA             |false                      |
 ---------------------------------------------------------------------------------
@@ -82,10 +80,10 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
                 |root.**         |READ_SCHEMA           |false                      |
 ---------------------------------------------------------------------------------
                 |root.**         |WRITE_SCHEMA          |false                      |
-总数目：14
+总数目：13
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 -- [1]61:CREATE STATELESS TRIGGER `stateless01` AFTER INSERT ON root.triggertest.*.s1 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass1234',   'lo' = '30',   'hi' = '45.5' )
 STRICT{
 PASS
@@ -107,7 +105,7 @@ stateless01            |AFTER_INSERT     |STATELESS       |ACTIVE           |roo
 总数目：2
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.12
 
 -- [1]78:LIST PRIVILEGES OF USER user_02
 STRICT{
@@ -121,7 +119,7 @@ ROLE(TEXT)      |PATH(TEXT)      |PRIVILEGES(TEXT)      |GRANT OPTION(BOOLEAN)  
 总数目：2
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 -- [1]80:insert into root.triggertest.d1(time, s1) values (1, 24),(2,33)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.triggertest.d1.s1]
@@ -131,7 +129,7 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.4.781
+Elapsed Time: 0.3.878
 
 -- [1]87:select * from root.triggertest.d1
 STRICT{
@@ -143,7 +141,7 @@ Time(TIME)      |root.triggertest.d1.s2(DOUBLE)      |
 总数目：2
 }
 
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.4
 
 -- [1]92:LIST PRIVILEGES OF USER user_01
 STRICT{
@@ -165,7 +163,7 @@ count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.7
 -- [1]98:insert into root.triggertest.d1(time, s1, s2) values (21, 40, 15),(22,39,8),(23,9,13),(24,8,9),(25,113,217)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.triggertest.d1.s1, root.triggertest.d1.s2]
@@ -233,7 +231,7 @@ count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_
 总数目：1
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]126:LIST PRIVILEGES OF USER user_02
 STRICT{
@@ -269,7 +267,7 @@ count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_
 总数目：1
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.5
 -- [1]138:revoke write ON root.ln.** from USER user_01
 STRICT{
 PASS
@@ -313,7 +311,7 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.13
 
 -- [1]150:select * from root.triggertest.d1
 STRICT{
@@ -329,7 +327,7 @@ Time(TIME)      |root.triggertest.d1.s2(DOUBLE)      |
 总数目：4
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]159:select count(*) from root.ln.alerting
 STRICT{
@@ -337,18 +335,6 @@ count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_
 -------------------------------------------------------------------------------------------------
 2                                                 |2                                              |
 总数目：1
-}
-
-Elapsed Time: 0.0.3
-
--- [1]161:select * from root.ln.alerting
-STRICT{
-Time(TIME)      |root.ln.alerting.alert_content(TEXT)      |root.ln.alerting.table_name(TEXT)      |
--------------------------------------------------------------------------------------------------
-1698138079625   |[1] WARN [s2]: 13.0 greater then 10.0     |root.triggertest.d1                    |
--------------------------------------------------------------------------------------------------
-1698138084695   |[32] CRITICAL [s2]: 32.0 greater then 15.5|root.triggertest.d1                    |
-总数目：2
 }
 
 Elapsed Time: 0.0.3
