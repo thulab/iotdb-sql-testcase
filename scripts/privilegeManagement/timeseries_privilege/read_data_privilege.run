@@ -3,17 +3,17 @@
 
 --0.清理环境
 connect root/root;
-delete timeseries of schema template t1 from root.sg.aligned_template;
+delete timeseries of device template t1 from root.sg.aligned_template;
 <<NULL;
-unset schema template t1 from root.sg.aligned_template;
+unset device template t1 from root.sg.aligned_template;
 <<NULL;
-drop schema template t1;
+drop device template t1;
 <<NULL;
-delete timeseries of schema template t2 from root.sg.nonaligned_template;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
 <<NULL;
-unset schema template t2 from root.sg.nonaligned_template;
+unset device template t2 from root.sg.nonaligned_template;
 <<NULL;
-drop schema template t2;
+drop device template t2;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
@@ -32,22 +32,22 @@ create timeseries root.sg.d2.s1 with datatype=float,encoding=rle;
 create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle;
 
 --3.分别创建、挂载、激活对齐序列的元数据模板
-create schema template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
-show schema templates;
-show nodes in schema template t1;
-set schema template t1 to root.sg.aligned_template;
-show paths set schema template t1;
-create timeseries using schema template on root.sg.aligned_template;
-show paths using schema template t1;
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t1;
+set device template t1 to root.sg.aligned_template;
+show paths set device template t1;
+create timeseries using device template on root.sg.aligned_template;
+show paths using device template t1;
 
 --4.分别创建、挂载、激活非对齐序列的元数据模板
-create schema template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
-show schema templates;
-show nodes in schema template t2;
-set schema template t2 to root.sg.nonaligned_template;
-show paths set schema template t2;
-create timeseries using schema template on root.sg.nonaligned_template;
-show paths using schema template t2;
+create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t2;
+set device template t2 to root.sg.nonaligned_template;
+show paths set device template t2;
+create timeseries using device template on root.sg.nonaligned_template;
+show paths using device template t2;
 
 --5.创建视图序列
 create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1;
@@ -87,7 +87,7 @@ GRANT READ_DATA ON root.sg.* TO USER user03;
 --11.1read_data可支持的操作
 connect user01/pass1234;
 show version;
-<<SQLSTATE;
+<<CHECKCODE;
 show databases;
 count databases;
 show child paths root;
@@ -119,8 +119,6 @@ select * from root.** limit 6 offset 2;
 --11.2 read_data不支持的操作
 show cluster details;
 <<SQLSTATE;
-show version;
-<<SQLSTATE;
 show regions;
 <<SQLSTATE;
 create timeseries root.sg.d1.s3 with datatype=boolean;
@@ -149,12 +147,14 @@ alter view root.sg.view_d1.calculation upsert tags(tag1=v1,tag2=v2) attributes(a
 <<SQLSTATE;
 delete view root.sg.view_d1.calculation;
 <<SQLSTATE;
-create schema template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+create device template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
 <<SQLSTATE;
 
 --12.user02登录
 --12.1 read_data可支持的操作
 connect user02/pass1234;
+show version;
+<<CHECKCODE;
 GRANT READ_DATA ON root.sg.d1.** TO USER user03;
 show databases;
 count databases;
@@ -195,6 +195,8 @@ create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
 --13.user03登录
 --13.1 read_data可支持的操作
 connect user03/pass1234;
+show version;
+<<CHECKCODE;
 show databases;
 count databases;
 show child paths root;
@@ -224,17 +226,17 @@ delete database root.**;
 
 --14.清理环境
 connect root/root;
-delete timeseries of schema template t1 from root.sg.aligned_template;
+delete timeseries of device template t1 from root.sg.aligned_template;
 <<NULL;
-unset schema template t1 from root.sg.aligned_template;
+unset device template t1 from root.sg.aligned_template;
 <<NULL;
-drop schema template t1;
+drop device template t1;
 <<NULL;
-delete timeseries of schema template t2 from root.sg.nonaligned_template;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
 <<NULL;
-unset schema template t2 from root.sg.nonaligned_template;
+unset device template t2 from root.sg.nonaligned_template;
 <<NULL;
-drop schema template t2;
+drop device template t2;
 <<NULL;
 DELETE DATABASE root.**;
 <<NULL;
