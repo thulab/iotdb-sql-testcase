@@ -44,7 +44,8 @@ create pipe `test-name` with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.
 create pipe `` with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
 create pipe normalPipe with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
 create pipe test_name with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
--- 1.1 重复创建
+
+-- 1.3 重复创建
 --create pipe test_name with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
 --<<SQLSTATE;
 
@@ -66,11 +67,16 @@ show pipe test*;
 <<SQLSTATE;
 
 -- 2.2 正常情况
---show pipes;
---show pipe ``;
---show pipe `test-name`;
---show pipe normalPipe;
---show pipe test_name;
+show pipes;
+<<CHECKCODE;
+show pipe ``;
+<<CHECKCODE;
+show pipe `test-name`;
+<<CHECKCODE;
+show pipe normalPipe;
+<<CHECKCODE;
+show pipe test_name;
+<<CHECKCODE;
 
 
 -- 3. start 名称校验
@@ -225,19 +231,19 @@ with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668'
 create pipe sink_no_quote
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with processor ('processor'='do-nothing-processor')
-with sink (sink=iotdb-thrift-sink, sink.ip=127.0.0.1, sink.port=6667);
+with sink (sink=iotdb-thrift-sink, sink.ip=127.0.0.1, sink.port=6668);
 <<SQLSTATE;
 
 create pipe port_no_quote
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with processor ('processor'='do-nothing-processor')
-with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'=6667);
+with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'=6668);
 <<SQLSTATE;
 
 create pipe port_double_quote
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with processor ('processor'='do-nothing-processor')
-with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'="6667");
+with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'="6668");
 --show pipe port_double_quote;
 drop pipe port_double_quote;
 
@@ -245,8 +251,9 @@ drop pipe port_double_quote;
 create pipe class_double_quote
 with source ('source'="iotdb-source", 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with processor ('processor'='do-nothing-processor')
-with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'="6667");
---show pipe class_double_quote;
+with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'="6668");
+show pipe class_double_quote;
+<<CHECKCODE;
 drop pipe class_double_quote;
 
 
@@ -375,65 +382,75 @@ drop pipe source_endGTstart;
 create pipe source_realtime_0
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='0')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_realtime_0;
 
 create pipe source_realtime_1
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='1')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_realtime_1;
 
 create pipe source_realtime_abc
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='abc')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_realtime_abc;
 
 create pipe source_realtime_null
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='null')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_realtime_null;
 
 create pipe source_realtime_empty
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_realtime_empty;
 
-drop pipe source_realtime_0;
-drop pipe source_realtime_1;
-drop pipe source_realtime_abc;
-drop pipe source_realtime_null;
-drop pipe source_realtime_empty;
+--drop pipe source_realtime_0;
+--drop pipe source_realtime_1;
+--drop pipe source_realtime_abc;
+--drop pipe source_realtime_null;
+--drop pipe source_realtime_empty;
 
 
 create pipe source_history_0
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='0')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_history_0; 
 
 create pipe source_history_1
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='1')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_history_1;
 
 create pipe source_history_abc
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='abc')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_history_abc;
 
 create pipe source_history_null
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='null')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_history_null;
 
 create pipe source_history_empty
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='6668');
+<<SQLSTATE;
 --show pipe source_history_empty;
 
-drop pipe source_history_0;
-drop pipe source_history_1;
-drop pipe source_history_abc;
-drop pipe source_history_null;
-drop pipe source_history_empty;
+--drop pipe source_history_0;
+--drop pipe source_history_1;
+--drop pipe source_history_abc;
+--drop pipe source_history_null;
+--drop pipe source_history_empty;
 
 
 --create pipe sink_class_empty1
@@ -482,6 +499,7 @@ with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='-1');
 create pipe sink_port_invalid2
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='');
+<<SQLSTATE;
 --show pipe sink_port_invalid2;
 
 create pipe sink_port_invalid3
@@ -492,11 +510,12 @@ with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='76667
 create pipe sink_port_invalid4
 with source ('source'='iotdb-source', 'source.pattern'='root.aligned','source.history.enable'='false','source.realtime.enable'='true')
 with sink ('sink'='iotdb-thrift-sink', 'sink.ip'='127.0.0.1', 'sink.port'='null');
+<<SQLSTATE;
 --show pipe sink_port_invalid4;
 
 drop pipe sink_port_invalid1;
-drop pipe sink_port_invalid2;
+--drop pipe sink_port_invalid2;
 drop pipe sink_port_invalid3;
-drop pipe sink_port_invalid4;
+--drop pipe sink_port_invalid4;
 
 --show pipes;

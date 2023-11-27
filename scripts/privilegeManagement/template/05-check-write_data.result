@@ -45,7 +45,7 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.1.261
+Elapsed Time: 0.1.263
 
 -- [1]26:show nodes in schema template t1
 STRICT{
@@ -65,7 +65,7 @@ s_lon                 |FLOAT               |GORILLA             |LZ4            
 
 Elapsed Time: 0.0.1
 
--- [1]27:select * from root.sg.** align by device
+-- [1]27:select start_time,s_lat,s_status,s_name,s_lon from root.sg.** align by device
 STRICT{
 Time(TIME)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s_status(BOOLEAN)      |s_name(TEXT)      |s_lon(FLOAT)      |
 --------------------------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ Time(TIME)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s
 总数目：1
 }
 
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.7
 
 -- [1]32:LIST PRIVILEGES OF USER user_01
 STRICT{
@@ -114,7 +114,7 @@ SQLSTATE : 803: Only the admin user can perform this operation
 }
 -- [1]56:alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
 STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
+SQLSTATE : 803: No permissions for this operation, please add privilege EXTEND_TEMPLATE
 }
 -- [1]62:create timeseries of schema template on root.sg.d2
 STRICT{
@@ -130,15 +130,14 @@ SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SC
 }
 -- [1]70:insert into root.sg.d4(time, s_name, s_status, s_lat, s_lon) values (11, 'brown', true, 23.5, 1435.11)
 STRICT{
-PASS
-EXPECT:FAIL
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d4.start_time, root.sg.d4.s_lat, root.sg.d4.s_status, root.sg.d4.s_name, root.sg.d4.s_lon]
 }
 -- [1]75:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (12, 'kuber', true, 1697167800000, 23.5, 22.67)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.1
 -- [1]78:insert into root.sg.d1(time, s_lon2) values (1, 109.36)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege EXTEND_TEMPLATE
@@ -154,7 +153,7 @@ ChildNodes(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]87:show paths using schema template t1
 STRICT{
@@ -162,37 +161,33 @@ Paths(TEXT)      |
 总数目：0
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
--- [1]90:select * from root.sg.** align by device
+-- [1]90:select start_time,s_lat,s_status,s_name,s_lon from root.sg.**
+STRICT{
+Time(TIME)      |root.sg.d1.start_time(INT64)      |root.sg.d1.s_lat(FLOAT)      |root.sg.d1.s_status(BOOLEAN)      |root.sg.d1.s_name(TEXT)      |root.sg.d1.s_lon(FLOAT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |1697167800000                     |3.5                          |true                              |arrow                        |435.67                       |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+12              |1697167800000                     |23.5                         |true                              |kuber                        |22.67                        |
+总数目：2
+}
+
+Elapsed Time: 0.0.10
+
+-- [1]91:select start_time,s_lat,s_status,s_name,s_lon from root.sg.** align by device
 STRICT{
 Time(TIME)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s_status(BOOLEAN)      |s_name(TEXT)      |s_lon(FLOAT)      |
 --------------------------------------------------------------------------------------------------------------------------------------
 1               |root.sg.d1        |1697167800000          |3.5               |true                   |arrow             |435.67            |
 --------------------------------------------------------------------------------------------------------------------------------------
 12              |root.sg.d1        |1697167800000          |23.5              |true                   |kuber             |22.67             |
---------------------------------------------------------------------------------------------------------------------------------------
-11              |root.sg.d4        |null                   |23.5              |true                   |brown             |1435.11           |
-总数目：3
+总数目：2
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.9
 
--- [1]91:select * from root.sg.**
-STRICT{
-Time(TIME)      |root.sg.d4.start_time(INT64)      |root.sg.d4.s_lat(FLOAT)      |root.sg.d4.s_status(BOOLEAN)      |root.sg.d4.s_name(TEXT)      |root.sg.d4.s_lon(FLOAT)      |root.sg.d1.start_time(INT64)      |root.sg.d1.s_lat(FLOAT)      |root.sg.d1.s_status(BOOLEAN)      |root.sg.d1.s_name(TEXT)      |root.sg.d1.s_lon(FLOAT)      |
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1               |null                              |null                         |null                              |null                         |null                         |1697167800000                     |3.5                          |true                              |arrow                        |435.67                       |
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-11              |null                              |23.5                         |true                              |brown                        |1435.11                      |null                              |null                         |null                              |null                         |null                         |
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-12              |null                              |null                         |null                              |null                         |null                         |1697167800000                     |23.5                         |true                              |kuber                        |22.67                        |
-总数目：3
-}
-
-Elapsed Time: 0.0.4
-
--- [1]97:show nodes in schema template t1
+-- [1]98:show nodes in schema template t1
 STRICT{
 ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
 -------------------------------------------------------------------------------------
@@ -210,16 +205,14 @@ s_lon                 |FLOAT               |GORILLA             |LZ4            
 
 Elapsed Time: 0.0.1
 
--- [1]98:select * from root.sg.** align by device
+-- [1]99:select * from root.sg.** align by device
 STRICT{
 Time(TIME)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s_status(BOOLEAN)      |s_name(TEXT)      |s_lon(FLOAT)      |
 --------------------------------------------------------------------------------------------------------------------------------------
 1               |root.sg.d1        |1697167800000          |3.5               |true                   |arrow             |435.67            |
 --------------------------------------------------------------------------------------------------------------------------------------
 12              |root.sg.d1        |1697167800000          |23.5              |true                   |kuber             |22.67             |
---------------------------------------------------------------------------------------------------------------------------------------
-11              |root.sg.d4        |null                   |23.5              |true                   |brown             |1435.11           |
-总数目：3
+总数目：2
 }
 
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.6
