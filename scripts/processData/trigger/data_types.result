@@ -1,0 +1,470 @@
+-- [1]23:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]24:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]25:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_3 WITH DATATYPE=float, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]26:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_4 WITH DATATYPE=double, ENCODING=TS_2DIFF
+STRICT{
+PASS
+}
+-- [1]27:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_5 WITH DATATYPE=text, ENCODING=DICTIONARY
+STRICT{
+PASS
+}
+-- [1]28:CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]39:CREATE STATELESS TRIGGER `datatype_int-s1` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_int-s1' )
+STRICT{
+PASS
+}
+-- [1]49:CREATE STATELESS TRIGGER `datatype_long-s2` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_long-s2' )
+STRICT{
+PASS
+}
+-- [1]50:insert into root.triggertest.nonaligned_dev1(time,s_1,s_2) values(1,100,200)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.510
+-- [1]51:insert into root.triggertest.nonaligned_dev1(time,s_1,s_2) values(2,null,450)
+STRICT{
+0
+}
+
+Elapsed Time: 0.3.517
+-- [1]52:insert into root.triggertest.nonaligned_dev1(time,s_1,s_2) values(3,1300,1400)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]55:select * from root.triggertest.nonaligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.nonaligned_dev1.s_1(INT32)      |root.triggertest.nonaligned_dev1.s_3(FLOAT)      |root.triggertest.nonaligned_dev1.s_2(INT64)      |root.triggertest.nonaligned_dev1.s_5(TEXT)      |root.triggertest.nonaligned_dev1.s_4(DOUBLE)      |root.triggertest.nonaligned_dev1.s_6(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                              |null                                             |200                                              |null                                            |null                                              |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |null                                             |null                                             |450                                              |null                                            |null                                              |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |1300                                             |null                                             |1400                                             |null                                            |null                                              |null                                               |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]57:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                                                 |3                                               |3                                             |3                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]68:CREATE STATELESS TRIGGER `datatype_float-s3` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_3 AS 'TriggerTest' WITH (   'ts_type' = 'float',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_float-s3' )
+STRICT{
+PASS
+}
+-- [1]78:CREATE STATELESS TRIGGER `datatype_double-s4` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_4 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_double-s4' )
+STRICT{
+PASS
+}
+-- [1]87:CREATE STATELESS TRIGGER `datatype_text-s5` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_5 AS 'TriggerTest' WITH (   'ts_type' = 'text',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_text-s5' )
+STRICT{
+PASS
+}
+-- [1]96:CREATE STATELESS TRIGGER `datatype_boolean-s6` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_6 AS 'TriggerTest' WITH (   'ts_type' = 'boolean',   'remote_ip' = '127.0.0.1',   'trig_name'='datatype_boolean-s6' )
+STRICT{
+PASS
+}
+-- [1]96:insert into root.triggertest.nonaligned_dev1 (time, s_1,s_2,s_3,s_4,s_5,s_6) values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,null,100.45,200.55,'non trig',false),(7000,320,260,null,200.55,'non trig',true),(8000,430,270,100.45,null,'',true),(9000,340,280,100.45,200.55,null,null),(10000,650,600,800.45,900.55,'this statement is too long to process',0)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.19
+-- [1]98:flush
+STRICT{
+PASS
+}
+
+-- [1]103:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |
+---------------------------------------
+root.triggertest.n|false                |
+onaligned_dev1    |                     |
+---------------------------------------
+root.target.alerti|true                 |
+ng                |                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]105:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |INT32               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_1        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_3        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |INT64               |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_2        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |TEXT                |DICTIONARY          |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_5        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |DOUBLE              |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_4        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.triggertest.nonal|null             |root.triggertest    |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+igned_dev1.s_6        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.t|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+rig_name              |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.t|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+s_type                |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.d|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+evice                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.v|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+alue                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：10
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]108:select * from root.triggertest.nonaligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.nonaligned_dev1.s_1(INT32)      |root.triggertest.nonaligned_dev1.s_3(FLOAT)      |root.triggertest.nonaligned_dev1.s_2(INT64)      |root.triggertest.nonaligned_dev1.s_5(TEXT)      |root.triggertest.nonaligned_dev1.s_4(DOUBLE)      |root.triggertest.nonaligned_dev1.s_6(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                              |null                                             |200                                              |null                                            |null                                              |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |null                                             |null                                             |450                                              |null                                            |null                                              |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |1300                                             |null                                             |1400                                             |null                                            |null                                              |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000            |1000                                             |100.45                                           |200                                              |non trig                                        |200.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000            |150                                              |100.45                                           |2100                                             |non trig                                        |200.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000            |200                                              |400.45                                           |220                                              |non trig                                        |200.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4000            |250                                              |100.45                                           |230                                              |non trig                                        |500.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5000            |410                                              |100.45                                           |240                                              |single monitor is good enough                   |200.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6000            |310                                              |100.45                                           |null                                             |non trig                                        |200.55                                            |false                                              |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7000            |320                                              |null                                             |260                                              |non trig                                        |200.55                                            |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+8000            |430                                              |100.45                                           |270                                              |                                                |null                                              |true                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9000            |340                                              |100.45                                           |280                                              |null                                            |200.55                                            |null                                               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10000           |650                                              |800.45                                           |600                                              |this statement is too long to process           |900.55                                            |false                                              |
+总数目：13
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]110:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+17                                                |17                                              |17                                            |17                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]113:delete from root.triggertest.nonaligned_dev1.*
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.734
+
+-- [1]115:select * from root.triggertest.nonaligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.nonaligned_dev1.s_1(INT32)      |root.triggertest.nonaligned_dev1.s_3(FLOAT)      |root.triggertest.nonaligned_dev1.s_2(INT64)      |root.triggertest.nonaligned_dev1.s_5(TEXT)      |root.triggertest.nonaligned_dev1.s_4(DOUBLE)      |root.triggertest.nonaligned_dev1.s_6(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]117:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+17                                                |17                                              |17                                            |17                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]119:delete timeseries root.triggertest.nonaligned_dev1.s_1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.255
+
+-- [1]121:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+17                                                |17                                              |17                                            |17                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]123:drop trigger `datatype_int-s1`
+STRICT{
+PASS
+}
+-- [1]124:drop trigger `datatype_long-s2`
+STRICT{
+PASS
+}
+-- [1]125:drop trigger `datatype_float-s3`
+STRICT{
+PASS
+}
+-- [1]126:drop trigger `datatype_double-s4`
+STRICT{
+PASS
+}
+-- [1]127:drop trigger `datatype_text-s5`
+STRICT{
+PASS
+}
+-- [1]128:drop trigger `datatype_boolean-s6`
+STRICT{
+PASS
+}
+
+-- [1]130:SHOW TRIGGERS
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]145:CREATE ALIGNED TIMESERIES root.triggertest.aligned_dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN)
+STRICT{
+PASS
+}
+-- [1]157:CREATE STATELESS TRIGGER `aligned_int_s1` AFTER INSERT ON root.triggertest.aligned_dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_int_s1' )
+STRICT{
+PASS
+}
+-- [1]167:CREATE STATELESS TRIGGER `aligned_long_s2` AFTER INSERT ON root.triggertest.aligned_dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_long_s2' )
+STRICT{
+PASS
+}
+-- [1]168:insert into root.triggertest.aligned_dev1(time,s_1,s_2) aligned values(1,100,200)
+STRICT{
+0
+}
+
+Elapsed Time: 0.6.13
+-- [1]169:insert into root.triggertest.aligned_dev1(time,s_1,s_2) aligned values(2,300,450)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+-- [1]170:insert into root.triggertest.aligned_dev1(time,s_1,s_2) aligned values(3,1300,1400)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]173:select * from root.triggertest.aligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.aligned_dev1.s_1(INT32)      |root.triggertest.aligned_dev1.s_3(FLOAT)      |root.triggertest.aligned_dev1.s_2(INT64)      |root.triggertest.aligned_dev1.s_5(TEXT)      |root.triggertest.aligned_dev1.s_4(DOUBLE)      |root.triggertest.aligned_dev1.s_6(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                           |null                                          |200                                           |null                                         |null                                           |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                                           |null                                          |450                                           |null                                         |null                                           |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |1300                                          |null                                          |1400                                          |null                                         |null                                           |null                                            |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]175:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                                                 |3                                               |3                                             |3                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]186:CREATE STATELESS TRIGGER `aligned_float_s3` AFTER INSERT ON root.triggertest.aligned_dev1.s_3 AS 'TriggerTest' WITH (   'ts_type' = 'float',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_float_s3' )
+STRICT{
+PASS
+}
+-- [1]196:CREATE STATELESS TRIGGER `aligned_double_s4` AFTER INSERT ON root.triggertest.aligned_dev1.s_4 AS 'TriggerTest' WITH (   'ts_type' = 'double',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_double_s4' )
+STRICT{
+PASS
+}
+-- [1]205:CREATE STATELESS TRIGGER `aligned_text_s5` AFTER INSERT ON root.triggertest.aligned_dev1.s_5 AS 'TriggerTest' WITH (   'ts_type' = 'text',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_text_s5' )
+STRICT{
+PASS
+}
+-- [1]214:CREATE STATELESS TRIGGER `aligned_boolean_s6` AFTER INSERT ON root.triggertest.aligned_dev1.s_6 AS 'TriggerTest' WITH (   'ts_type' = 'boolean',   'remote_ip' = '127.0.0.1',   'trig_name'='aligned_boolean_s6' )
+STRICT{
+PASS
+}
+-- [1]214:insert into root.triggertest.aligned_dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,null,100.45,200.55,'non trig',false),(7000,320,260,null,200.55,'non trig',true),(8000,430,270,100.45,null,'',true),(9000,340,280,100.45,200.55,null,null),(10000,650,600,800.45,900.55,'this statement is too long to process',0)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.17
+-- [1]215:flush
+STRICT{
+PASS
+}
+
+-- [1]218:select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.aligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.aligned_dev1.s_1(INT32)      |root.triggertest.aligned_dev1.s_2(INT64)      |root.triggertest.aligned_dev1.s_3(FLOAT)      |root.triggertest.aligned_dev1.s_4(DOUBLE)      |root.triggertest.aligned_dev1.s_5(TEXT)      |root.triggertest.aligned_dev1.s_6(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                           |200                                           |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                                           |450                                           |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |1300                                          |1400                                          |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000            |1000                                          |200                                           |100.45                                        |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000            |150                                           |2100                                          |100.45                                        |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000            |200                                           |220                                           |400.45                                        |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4000            |250                                           |230                                           |100.45                                        |500.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5000            |410                                           |240                                           |100.45                                        |200.55                                         |single monitor is good enough                |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6000            |310                                           |null                                          |100.45                                        |200.55                                         |non trig                                     |false                                           |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7000            |320                                           |260                                           |null                                          |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+8000            |430                                           |270                                           |100.45                                        |null                                           |                                             |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9000            |340                                           |280                                           |100.45                                        |200.55                                         |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10000           |650                                           |600                                           |800.45                                        |900.55                                         |this statement is too long to process        |false                                           |
+总数目：13
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]220:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+17                                                |17                                              |17                                            |17                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]222:insert into root.triggertest.aligned_dev1(time,s_1,s_2,s_3,s_4,s_5,s_6) aligned values (1000,100,200,500.45,200.55,'non trig',true),(2000,1150,1210,1100.45,1200.55,'non trig',false)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.16
+-- [1]224:flush
+STRICT{
+PASS
+}
+
+-- [1]226:select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.aligned_dev1
+STRICT{
+Time(TIME)      |root.triggertest.aligned_dev1.s_1(INT32)      |root.triggertest.aligned_dev1.s_2(INT64)      |root.triggertest.aligned_dev1.s_3(FLOAT)      |root.triggertest.aligned_dev1.s_4(DOUBLE)      |root.triggertest.aligned_dev1.s_5(TEXT)      |root.triggertest.aligned_dev1.s_6(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1               |100                                           |200                                           |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2               |300                                           |450                                           |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3               |1300                                          |1400                                          |null                                          |null                                           |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000            |100                                           |200                                           |500.45                                        |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000            |1150                                          |1210                                          |1100.45                                       |1200.55                                        |non trig                                     |false                                           |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000            |200                                           |220                                           |400.45                                        |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4000            |250                                           |230                                           |100.45                                        |500.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5000            |410                                           |240                                           |100.45                                        |200.55                                         |single monitor is good enough                |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6000            |310                                           |null                                          |100.45                                        |200.55                                         |non trig                                     |false                                           |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+7000            |320                                           |260                                           |null                                          |200.55                                         |non trig                                     |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+8000            |430                                           |270                                           |100.45                                        |null                                           |                                             |true                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9000            |340                                           |280                                           |100.45                                        |200.55                                         |null                                         |null                                            |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+10000           |650                                           |600                                           |800.45                                        |900.55                                         |this statement is too long to process        |false                                           |
+总数目：13
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]228:select count(*) from root.target.alerting
+STRICT{
+count(root.target.alerting.trig_name)(INT64)      |count(root.target.alerting.ts_type)(INT64)      |count(root.target.alerting.value)(INT64)      |count(root.target.alerting.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+23                                                |23                                              |23                                            |23                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]231:drop trigger `aligned_int_s1`
+STRICT{
+PASS
+}
+-- [1]232:drop trigger `aligned_long_s2`
+STRICT{
+PASS
+}
+-- [1]233:drop trigger `aligned_float_s3`
+STRICT{
+PASS
+}
+-- [1]234:drop trigger `aligned_double_s4`
+STRICT{
+PASS
+}
+-- [1]235:drop trigger `aligned_text_s5`
+STRICT{
+PASS
+}
+-- [1]236:drop trigger `aligned_boolean_s6`
+STRICT{
+PASS
+}
