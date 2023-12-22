@@ -850,3 +850,31 @@ select count(s2),first_value(s1) from root.sg.d1 group by count(s2,2),level=2;
 connect root/root;
 delete database root.**;
 <<NULL;
+
+
+//十三、月份分段聚合【GROUP BY MONTH】
+
+--0. 清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 准备数据
+insert into root.sg.d1(time,s1,s2) values(1640995200000,11,11);
+insert into root.sg.d1(time,s1,s2) values(1641340800000,12,12);
+insert into root.sg.d1(time,s1,s2) values(1643846400000,13,13);
+insert into root.sg.d1(time,s1,s2) values(1649116800000,14,14);
+insert into root.sg.d1(time,s1,s2) values(1651708800000,15,15);
+insert into root.sg.d1(time,s1,s2) values(1657152000000,17,17);
+insert into root.sg.d1(time,s1,s2) values(1661990400000,22,23);
+
+--2. group by month查询
+select s1, s2 from root.sg.d1;
+select sum(*) from root.sg.d1 group by([1646006400000,1672444800000),7w,2mo);
+select __endTime,avg(*) from root.sg.d1 group by([1640995200000,1672444800000),3mo);
+select count(*) from root.sg.d1 group by([1640995200000,1672444800000),3mo) limit 2 offset 1;
+select count(*) from root.sg.d1 group by([1640995200000,1672444800000),1mo,3mo) limit 2 offset 2 slimit 1 soffset 1;
+
+--3.清理环境
+delete database root.**;
+<<NULL;
