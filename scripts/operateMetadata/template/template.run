@@ -460,16 +460,20 @@ show timeseries;
 --5. 插入数据
 --5.1 根据模板创建的时间序列，插入数据并数据查询
 insert into root.sg1.d1(time, temperature, status) values(1, 1, 1);
-insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1);
+insert into root.sg1.d1(time, temperature, status) values(3, 2, 0), (5, 3, 1);
 select * from root.sg1.d1;
 insert into root.sg1.d2(time, lat, lon) aligned values(1, 1, 1);
-insert into root.sg1.d2(time, lat, lon) aligned values(2, 2, 0), (3, 3, 1);
+insert into root.sg1.d2(time, lat, lon) aligned values(2, 2, 0), (4, 3, 1);
 select * from root.sg1.d2;
 --5.2 目标路径已挂载模板，在该路径上创建时间序列校验
 create timeseries root.sg1.d1.ver WITH DATATYPE=TEXT,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED;
 <<SQLSTATE;
 create timeseries root.sg1.d2.others.ver WITH DATATYPE=TEXT,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED;
 <<SQLSTATE;
+--5.3 模板序列，删除部分数据后查询
+select * from root.sg1.**;
+delete from root.sg1.** where time > 4; 
+select * from root.sg1.**;
 
 --6. 清理环境
 delete database root.**;
