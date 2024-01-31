@@ -165,3 +165,73 @@ select count(cc12),count(cc2),count(cc4),count(c4) from root.** group by level=5
 drop database root.dacoo;
 drop database root.viewdb;
 
+# https://jira.infra.timecho.com:8443/browse/TIMECHODB-556
+drop database root.dacoo;<<null;
+drop database root.viewdb;<<null;
+
+CREATE ALIGNED TIMESERIES root.dacoo.deviceS12417( c0 INT32 encoding=PLAIN compressor=SNAPPY, c1 DOUBLE encoding=PLAIN compressor=SNAPPY, c2 INT32 encoding=PLAIN compressor=SNAPPY, c3 INT32 encoding=PLAIN compressor=SNAPPY, c4 BOOLEAN encoding=RLE compressor=SNAPPY, c5 FLOAT encoding=RLE compressor=SNAPPY,c6 FLOAT encoding=RLE compressor=SNAPPY,c11 INT32 encoding=PLAIN compressor=SNAPPY, c12 TEXT encoding=PLAIN compressor=SNAPPY );
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(1,1,2.2,1,1,true,1,1.2,1,"hello1");
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(2,2,22.2,21,21,false,2,2.2,2,"hello2");
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(2000,2000,202.2,201,201,false,203,203.2,203,"hello3");
+flush;
+create view root.viewdb.${2}(${3}) as select * from root.dacoo.*;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.dacoo.deviceS12417 order by time desc limit 2 offset 0 align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.viewdb.deviceS12417 order by time desc limit 2 offset 0 align by device;
+drop database root.dacoo;
+drop database root.viewdb;
+
+drop database root.dacoo;<<null;
+drop database root.viewdb;<<null;
+
+CREATE ALIGNED TIMESERIES root.dacoo.deviceS12417( c0 INT32 encoding=PLAIN compressor=SNAPPY, c1 DOUBLE encoding=PLAIN compressor=SNAPPY, c2 INT32 encoding=PLAIN compressor=SNAPPY, c3 INT32 encoding=PLAIN compressor=SNAPPY, c4 BOOLEAN encoding=RLE compressor=SNAPPY, c5 FLOAT encoding=RLE compressor=SNAPPY,c6 FLOAT encoding=RLE compressor=SNAPPY,c11 INT32 encoding=PLAIN compressor=SNAPPY, c12 TEXT encoding=PLAIN compressor=SNAPPY );
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(1,1,2.2,1,1,true,1,1.2,1,"hello1");
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(2,2,22.2,21,21,false,2,2.2,2,"hello2");
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(2000,2000,202.2,201,201,false,203,203.2,203,"hello3");
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(129000,22000,3202.2,4201,51201,false,6203,7203.2,8203,"hello-four");
+flush;
+create view root.viewdb.${2}(${3}) as select * from root.dacoo.*;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.dacoo.deviceS12417  where time>2 and time < 200000 order by time desc limit 2 offset 0 align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.viewdb.deviceS12417  where time>2 and time < 200000 order by time desc limit 2 offset 0 align by device;
+
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.dacoo.deviceS12417  where time between 2 and 200000 order by time asc limit 2 offset 0 align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.viewdb.deviceS12417  where time between 2 and 200000 order by time desc limit 2 offset 0 align by device;
+
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.dacoo.deviceS12417  where ( time between 2 and 200000) and c0>2000 order by time asc limit 2 offset 0 align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12 from root.viewdb.deviceS12417  where ( time between 2 and 200000) and c0>2000 order by time desc limit 2 offset 0 align by device;
+select c0,c1,c0 from root.** where ( time between 2 and 200000) and c0>2000 order by time desc limit 6 offset 0 align by device;
+select c0,c1,c0+1 from root.** where ( time between 2 and 200000) and (c0-1)>2000 order by time desc  limit 6 offset 0 align by device;
+select c0,c1,c0 as cc from root.** where ( time between 2 and 200000) and (c0-1)>2000 order by time desc  limit 6 offset 0 align by device;
+
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,avg(c0),max_time(c0) from root.** where ( time between 2 and 200000) and (c0-1)>2000 order by time desc  limit 6 offset 0 align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0) from root.** where ( time between 2 and 200000) and (c0-1)>2000 order by time desc  limit 6 offset 0 align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.** where ( time between -1 and 2200000) or (c0-1)>2000 group by([0,200000),100000ms) order by time desc  limit 6 offset 0 align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.** where ( time between -1 and 2200000) or (c0-1)>2000 group by([0,200000),100000ms) order by time desc  limit 6 offset 2 align by device;
+select c0,c1,c0 as cc from root.**;
+<<sqlstate;
+
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.** where ( time between -1 and 2200000) or (c0-1)>2000 group by([0,200000),100000ms) having count(c0)<3 order by time desc  limit 6 offset 2 align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.** where ( time between -1 and 2200000) or (c0-1)>2000 group by([0,200000),100000ms) having count(c0)=3 order by time desc  limit 6 offset 0 align by device;
+select last count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.** where ( time between -1 and 2200000) or (c0-1)>2000 group by([0,200000),100000ms) having count(c0)=3 order by time desc  limit 6 offset 0 ;
+<<sqlstate;
+select last c0 ,c0  from root.** where ( time between -1 and 2200000) or (c0-1)>2000 order by time desc  limit 6 offset 0;
+<<sqlstate;
+select last c0 ,c0 as cc from root.** where ( time between -1 and 2200000) order by time desc  limit 6 offset 0;
+select last c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) order by time asc  limit 100 offset 0;
+insert into root.dacoo.deviceS12417(time,c0,c1,c2,c3,c4,c5,c6,c11,c12) values(229000,922000,null,94201,null,false,96203,97203.2,98203,"hello-null");
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and c1 is not null order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and c1 is null order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and c1 is null and c1 is not null order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and (c12 like '%null' is null)  order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and (c12 like '%null' is not null)  order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and c12 like '%null' is not null  order by time asc  limit 100 offset 0 align by device;
+select  c0,c1,c2,c3,c4,c5,c6,c11,c12 as cc from root.** where ( time between -1 and 2200000) and c12 like 'hello-four'   order by time asc  limit 100 offset 0 align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.**   group by((0,229000],1000ms,230000ms) order by time asc align by device;
+select count(c0) ,max_value(c0),min_value(c0) as min_c0,sin(avg(c0)/avg(c0))/sin(avg(c0)/avg(c0)) as avg_sin,max_time(c0),min_time(c0) from root.**   group by((0,229000],1000ms,1000ms) having count(c0)>0 order by time asc align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12  from root.**   fill(previous) order by time asc align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12  from root.**    where c3 is null fill('hello') order by time asc align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12  from root.**    where c3 is null fill(1) order by time asc align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12  from root.**     fill(LINEAR) order by time asc align by device;
+select c0,c1,c2,c3,c4,c5,c6,c11,c12  from root.**    where c3 is null fill(previous) order by time asc align by device;
+drop database root.dacoo;
+drop database root.viewdb;
+
