@@ -82,6 +82,7 @@ delete database root.**;
 
 --1. 创建存储组和时间序列
 create database root.ln;
+create database root.db;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
 create timeseries root.ln.wf01.wt01.ID with datatype=INT64,encoding=RLE;
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
@@ -113,6 +114,10 @@ insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(154117
 insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1541433600000,26,TRUE,25.99,'V001');
 insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1572883200000,null,TRUE,19.99,'V001');
 insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1573056000000,28,TRUE,24.19,'V002');
+
+insert into root.db.d1(time,s1) values(0,0.0),(8,8.0);
+insert into root.db.d2(time,s1) values(2,20.0),(8,80.0);
+
 
 --4. linear补空值
 --4.1 原始查询
@@ -150,7 +155,23 @@ select extreme(temperature) from root.ln.wf01.wt01 group by([1509525000000,15095
 select sum(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
 select avg(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
 
---6. 清理环境
+--6. FILL(LINEAR) + align by device
+select * from root.db.** align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) align by device;
+--6.1 降采样查询 order by device
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by device align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by device align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by device desc align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by device desc align by device;
+--6.2 降采样查询 order by time
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by time align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by time align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by time desc align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by time desc align by device;
+
+
+--7. 清理环境
 connect root/root;
 delete database root.**;
 <<NULL;
@@ -225,7 +246,7 @@ select first_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1
 select extreme(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(111111);
 select sum(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(1);
 select avg(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(100.11);
---查询的聚合函数与对应的填充值不匹配时，查询不填充空值
+--5.3 查询的聚合函数与对应的填充值不匹配时，查询不填充空值
 select min_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill('test');
 select max_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(false);
 
