@@ -11,20 +11,23 @@ create TIMESERIES root.sg.d0.s_boolean boolean;
 create TIMESERIES root.sg.d0.s_text text;
 insert into root.sg.d0(time,s_boolean,s_text) values (-100,true,'first'),(-90,true,'second'),(-50,true,'third'),(-30,true,'fourth'),(-10,false,'fifth'),(0,false,'six'),(10,false,'seven'),(20,true,'eight'),(30,true,'nine'),(50,true,'ten');
 
+select * from root.sg.d0;
+
+// show functions;
 
 -- local path
 create function local_path_func as "CustomUDAFText" using uri "file:///data/nginx/udaf-normal-1.0-SNAPSHOT.jar";
+-- show functions;
 select local_path_func(s_text) from root.sg.d0;
-
 
 -- http
 create function http_upload_func as "com.timecho.udaf.test.CustomUDAFBoolean" using uri "http://127.0.0.1:8085/udaf-upload-1.0-SNAPSHOT.jar";
+-- show functions;
 select http_upload_func(s_boolean) from root.sg.d0;
 
 
 drop function local_path_func;
 drop function http_upload_func;
-
 drop timeseries root.sg.d0.**; <<NULL;
-
+drop database root.sg;<<NULL;
 
