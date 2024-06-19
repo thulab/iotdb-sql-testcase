@@ -125,14 +125,16 @@ show version;
 <<CHECKCODE;
 show variables;
 show databases;
+show databases details;
 count databases;
 show child paths root.sg;
 show child nodes root.sg.*;
 count nodes root.sg.** LEVEL=2;
 show devices;
-count devices;
-show timeseries;
-count timeseries;
+show devices where time < 10;
+count devices where time=2;
+show timeseries where time < 3;
+count timeseries where time >= 1;
 show view;
 show all ttl;
 select * from root.**;
@@ -181,8 +183,6 @@ set system to readonly;
 CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END;
 <<SQLSTATE;
 show functions;
-<<SQLSTATE;
-show variables;
 <<SQLSTATE;
 
 --13.user02登录
@@ -251,7 +251,23 @@ show all ttl;
 select * from root.**;
 select last(*) from root.**;
 
---16.清理环境
+--16.无READ权限的用户`USER`登录
+connect 'USER'/pass1234;
+list privileges of user `USER`;
+show version;
+<<CHECKCODE;
+show variables;
+<<CHECKCODE;
+show current_timestamp;
+<<CHECKCODE;
+show devices where time < 10;
+count devices where time = 2;
+show timeseries where time > 1;
+count timeseries where time < 5;
+
+
+
+--17.清理环境
 connect root/root;
 delete timeseries of device template t1 from root.sg.aligned_template;
 <<NULL;
