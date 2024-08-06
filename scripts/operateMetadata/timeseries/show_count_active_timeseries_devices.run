@@ -70,18 +70,57 @@ count devices root.sg.d1 where time < 1500;
 show devices;
 show devices root.sg.**;
 show devices root.db.**;
-show devices where time <= 5000;
-show devices root.sg.** where time = 100;
+show devices root.sg.d1 where time <= 5000;
+show devices root.sg.d2 where time <= 5000;
+show devices root.sg.d_template where time <= 5000;
+show devices root.db.d1 where time <= 5000;
+show devices root.db.d2 where time <= 5000;
+show devices root.sg.aligned_template where time <= 5000;
+show devices root.sg.d1 where time = 100;
+show devices root.sg.d2 where time = 100;
+show devices root.sg.aligned_template where time = 100;
 
 --7.3 timeseries 支持时间过滤查询
 count timeseries;
 count timeseries where time >= 1 and time < 1200;
+
 show timeseries;
 show timeseries root.sg.**;
 show timeseries root.db.**;
-show timeseries where time >=200 and time < 1200;
-show latest timeseries where time < 1000;
-show timeseries where time <2000 limit 10;
+show timeseries root.sg.d1.s1 where time >=200 and time < 1200;
+show timeseries root.sg.d1.s2 where time >=200 and time < 1200;
+show timeseries root.db.d1.s1 where time >=200 and time < 1200;
+show timeseries root.db.d1.s2 where time >=200 and time < 1200;
+show timeseries root.db.d2.s1 where time >=200 and time < 1200;
+show timeseries root.db.d2.s2 where time >=200 and time < 1200;
+show timeseries root.sg.d_template.temperature where time >=200 and time < 1200;
+show timeseries root.sg.d_template.status where time >=200 and time < 1200;
+show timeseries root.sg.aligned_template.temperature where time >=200 and time < 1200;
+show timeseries root.sg.aligned_template.status where time >=200 and time < 1200;
+
+show latest timeseries root.sg.d1.s1 where time < 1000;
+show latest timeseries root.sg.d1.s2 where time < 1000;
+show latest timeseries root.sg.d2.s1 where time < 1000;
+show latest timeseries root.sg.d2.s2 where time < 1000;
+show latest timeseries root.db.d1.s1 where time < 1000;
+show latest timeseries root.db.d1.s2 where time < 1000;
+show latest timeseries root.db.d2.s1 where time < 1000;
+show latest timeseries root.db.d2.s2 where time < 1000;
+show latest timeseries root.sg.d_template.temperature where time < 1000;
+show latest timeseries root.sg.d_template.status where time < 1000;
+show latest timeseries root.sg.aligned_template.temperature where time < 1000;
+show latest timeseries root.sg.aligned_template.status where time < 1000;
+
+show timeseries root.sg.d1.s1 where time <2000 limit 10;
+show timeseries root.sg.d1.s2 where time <2000 limit 10;
+show timeseries root.sg.d2.s1 where time <2000 limit 10;
+show timeseries root.sg.d2.s2 where time <2000 limit 10;
+show timeseries root.db.d1.s1 where time <2000 limit 10;
+show timeseries root.db.d1.s2 where time <2000 limit 10;
+show timeseries root.db.d2.s1 where time <2000 limit 10;
+show timeseries root.db.d2.s2 where time <2000 limit 10;
+show timeseries root.sg.d_template.temperature where time <2000 limit 10;
+show timeseries root.sg.d_template.status where time <2000 limit 10;
 
 --7.4 模板序列
 show devices root.sg.*template;
@@ -120,28 +159,46 @@ show devices root.sg.** where template is null where time < 1000;
 <<SQLSTATE;
 
 --7.8 删除部分数据，时间序列
-show timeseries root.db.**;
+show timeseries root.db.d1.s1;
+show timeseries root.db.d1.s2;
+show timeseries root.db.d2.s1;
+show timeseries root.db.d2.s2;
+show timeseries root.db.d1.s1 where time <= 1000;
+show timeseries root.db.d1.s2 where time <= 1000;
+show timeseries root.db.d2.s1 where time <= 1000;
+show timeseries root.db.d2.s2 where time <= 1000;
+
 show devices root.db.**;
-show timeseries root.db.** where time <= 1000;
-show devices root.db.** where time <= 1000;
+show devices root.db.d1 where time <= 1000;
+show devices root.db.d2 where time <= 1000;
+
 delete timeseries root.db.d1.s1;
-show timeseries root.db.** where time <= 1000;
+show timeseries root.db.d1.s2 where time <= 1000;
+show timeseries root.db.d2.s1 where time <= 1000;
+show timeseries root.db.d2.s2 where time <= 1000;
+
 delete timeseries root.db.d1.*;
 show timeseries root.db.** where time <= 1000;
 show devices root.db.** where time <= 1000;
 
 --7.9 设置TTL后，活跃序列统计
 insert into root.db.d3(time, s1, s2) aligned values(100, 1.1, false),(500, 2.2, true),(1000, 3.3, false);
-show devices root.db.**;
+show devices root.db.d2;
+show devices root.db.d3;
 select count(s1), count(s2) from root.db.** align by device;
 set ttl to root.db.d2 60000;
 show ttl on root.db.d2;
 select count(s1), count(s2) from root.db.** align by device;
-show devices root.db.**;
+show devices root.db.d2;
+show devices root.db.d3;
 show devices root.db.** where time < 1500;
-show timeseries root.db.**;
-show timeseries root.db.** where time <= 2000;
 
+show timeseries root.db.d2.s1;
+show timeseries root.db.d2.s2;
+show timeseries root.db.d3.s1;
+show timeseries root.db.d3.s2;
+show timeseries root.db.d3.s1 where time <= 2000;
+show timeseries root.db.d3.s2 where time <= 2000;
 
 --清理环境
 delete DATABASE root.**;
