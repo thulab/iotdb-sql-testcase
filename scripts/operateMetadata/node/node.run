@@ -2,14 +2,28 @@ connect root/root;
 
 //节点管理
 --0.清理环境
-delete DATABASE root.**;
+connect root/root;
+delete timeseries of device t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
 <<NULL;
 
 --1.创建数据库
 CREATE DATABASE root.ln;
 CREATE DATABASE root.sgcc;
+CREATE DATABASE root.sg;
 
---2.创建时间序列
+--2.创建普通时间序列
 create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT,encoding=RLE;
 create timeseries root.ln.wf02.wt02.hardware with datatype=TEXT,encoding=PLAIN;
@@ -17,34 +31,85 @@ create timeseries root.ln.wf02.wt02.status with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.sgcc.wf03.wt01.status with datatype=BOOLEAN,encoding=PLAIN;
 create timeseries root.sgcc.wf03.wt01.temperature with datatype=FLOAT,encoding=RLE;
 
---3.查看子路径
+--3.分别创建、挂载、激活对齐序列的元数据模板
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t1;
+set device template t1 to root.sg.aligned_template;
+show paths set device template t1;
+create timeseries using device template on root.sg.aligned_template;
+show paths using device template t1;
+
+--4.分别创建、挂载、激活非对齐序列的元数据模板
+create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t2;
+set device template t2 to root.sg.nonaligned_template;
+show paths set device template t2;
+create timeseries using device template on root.sg.nonaligned_template;
+show paths using device template t2;
+
+--5.查看子路径
 SHOW CHILD PATHS root;
-show child paths root.ln;
+show child paths root.*;
+show child paths root.**;
 show child paths root.*.*;
+show child paths root.ln;
+show child paths root.ln.wf01;
+show child paths root.ln.wf02;
+show child paths root.ln.wf01.wt01;
+show child paths root.ln.wf02.wt02;
+show child paths root.ln.wf02.**;
+show child paths root.ln.wf01.*;
+show child paths root.sg.**;
+show child paths root.sg;
+show child paths root.sg.aligned_template;
 
---4.查看子节点
+--6.查看子节点
 show child nodes root;
+show child nodes root.*;
+show child nodes root.**;
 show child nodes root.ln;
+show child nodes root.ln.wf01;
+show child nodes root.ln.wf01.wt01;
+show child nodes root.ln.wf02;
+show child nodes root.ln.wf02.wt02;
 
---5.统计节点数
+show child nodes root.sg;
+show child nodes root.sg.aligned_template;
+
+--7.统计节点数
 COUNT NODES root.** LEVEL=2;
 COUNT NODES root.ln.** LEVEL=2;
 COUNT NODES root.ln.wf01.* LEVEL=3;
 COUNT NODES root.**.temperature LEVEL=3;
 
---6.查看设备
+--8.查看设备
 show devices;
 show devices root.**;
 show devices root.ln.**;
 show devices with DATABASE;
 show devices root.ln.** with DATABASE;
 
---7.统计设备数量
+--9.统计设备数量
 count devices;
 count devices root.ln.**;
 count devices root.sgcc.**;
 
---8.清理环境
-delete DATABASE root.**;
+--10.清理环境
+connect root/root;
+delete timeseries of device t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
 <<NULL;
 
