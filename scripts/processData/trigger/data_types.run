@@ -93,6 +93,7 @@ WITH (
   'remote_ip' = '127.0.0.1',
   'trig_name'='datatype_boolean-s6'
 );
+
 insert into root.triggertest.nonaligned_dev1 (time, s_1,s_2,s_3,s_4,s_5,s_6) values (1000,1000,200,100.45,200.55,'non trig',true),(2000,150,2100,100.45,200.55,'non trig',true),(3000,200,220,400.45,200.55,'non trig',true),(4000,250,230,100.45,500.55,'non trig',TRUE),(5000,410,240,100.45,200.55,'single monitor is good enough',1),(6000,310,null,100.45,200.55,'non trig',false),(7000,320,260,null,200.55,'non trig',true),(8000,430,270,100.45,null,'',true),(9000,340,280,100.45,200.55,null,null),(10000,650,600,800.45,900.55,'this statement is too long to process',0);
 
 flush;
@@ -120,12 +121,39 @@ delete timeseries root.triggertest.nonaligned_dev1.s_1;
 //-- 17
 select count(*) from root.target.alerting;
 
+-- new dataType
+-- CREATE STATELESS TRIGGER `datatype_date-s_date` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_date AS 'TriggerTest' WITH ('ts_type' = 'date','remote_ip' = '127.0.0.1','trig_name'='datatype_date-s_date');
+CREATE STATELESS TRIGGER `datatype_timestamp-s_timestamp` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_timestamp AS 'TriggerTest' WITH ('ts_type' = 'timestamp','remote_ip' = '127.0.0.1','trig_name'='datatype_timestamp-s_timestamp');
+CREATE STATELESS TRIGGER `datatype_string-s_string` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_string AS 'TriggerTest' WITH ('ts_type' = 'string','remote_ip' = '127.0.0.1','trig_name'='datatype_string-s_string');
+CREATE STATELESS TRIGGER `datatype_blob-s_blob` AFTER INSERT ON root.triggertest.nonaligned_dev1.s_blob AS 'TriggerTest' WITH ('ts_type' = 'blob','remote_ip' = '127.0.0.1','trig_name'='datatype_blob-s_blob');
+
+CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_date WITH DATATYPE=date, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_timestamp WITH DATATYPE=timestamp, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_string WITH DATATYPE=string, ENCODING=PLAIN;
+CREATE TIMESERIES root.triggertest.nonaligned_dev1.s_blob WITH DATATYPE=blob, ENCODING=PLAIN;
+
+insert into root.triggertest.nonaligned_dev1(time,s_date,s_timestamp,s_string,s_blob) values (1000,'1919-01-01',-1609459200000,'19190101 string type',X'7468697320697320626c6f62207479706520737472696e67'),(2000,'1970-01-01',null,null,null),(3000,null,3000,'3000string',X'74686973'),(4000,'1999-01-01',915148800000,'19990101',X'3139393930313031');
+
+insert into root.triggertest.nonaligned_dev1(time,s_date,s_timestamp,s_string,s_blob) values (5000,2000-12-31,978220800000,'2000-12-31string',X'735f737472696e675f626c6f62');
+<<SQLSTATE;
+select * from root.triggertest.nonaligned_dev1;
+
+//-- 24 --no date
+select count(*) from root.target.alerting;
+
+
 drop trigger `datatype_int-s1`;
 drop trigger `datatype_long-s2`;
 drop trigger `datatype_float-s3`;
 drop trigger `datatype_double-s4`;
 drop trigger `datatype_text-s5`;
 drop trigger `datatype_boolean-s6`;
+
+-- drop trigger `datatype_date-s_date`;
+drop trigger `datatype_timestamp-s_timestamp`;
+drop trigger `datatype_string-s_string`;
+drop trigger `datatype_blob-s_blob`;
+
 SHOW TRIGGERS;
 delete timeseries root.**;<<NULL;
 sleep 1000;
@@ -141,7 +169,7 @@ drop trigger `aligned_text_s5`;<<NULL;
 drop trigger `aligned_boolean_s6`;<<NULL;
 
 CREATE DATABASE root.triggertest;<<NULL;
-CREATE ALIGNED TIMESERIES root.triggertest.aligned_dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN);
+CREATE ALIGNED TIMESERIES root.triggertest.aligned_dev1 (s_1 DATATYPE=INT32 ENCODING=GORILLA, s_2 DATATYPE=INT64 ENCODING=PLAIN, s_3 DATATYPE=float ENCODING=RLE, s_4 DATATYPE=double ENCODING=TS_2DIFF, s_5 DATATYPE=text ENCODING=DICTIONARY, s_6 DATATYPE=boolean ENCODING=PLAIN,s_date date,s_timestamp timestamp,s_string string,s_blob blob);
 
 sleep 500;
 
@@ -227,6 +255,46 @@ select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.aligned_dev1;
 -- 23
 select count(*) from root.target.alerting;
 
+-- new data type
+-- CREATE STATELESS TRIGGER `aligned_date-s_date` AFTER INSERT ON root.triggertest.aligned_dev1.s_date AS 'TriggerTest' WITH ('ts_type' = 'date','remote_ip' = '127.0.0.1','trig_name'='aligned_date-s_date');
+
+CREATE STATELESS TRIGGER `aligned_timestamp-s_timestamp`
+AFTER INSERT
+ON root.triggertest.aligned_dev1.s_timestamp
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'timestamp',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='aligned_timestamp-s_timestamp'
+);
+CREATE STATELESS TRIGGER `aligned_string-s_string`
+AFTER INSERT
+ON root.triggertest.aligned_dev1.s_string
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'string',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='aligned_string-s_string'
+);
+CREATE STATELESS TRIGGER `aligned_blob-s_blob`
+AFTER INSERT
+ON root.triggertest.aligned_dev1.s_blob
+AS 'TriggerTest'
+WITH (
+  'ts_type' = 'blob',
+  'remote_ip' = '127.0.0.1',
+  'trig_name'='aligned_blob-s_blob'
+);
+
+insert into root.triggertest.aligned_dev1(time,s_date,s_timestamp,s_string,s_blob) values (1000,'1919-01-01',-1609459200000,'19190101 string type',X'7468697320697320626c6f62207479706520737472696e67'),(2000,'1970-01-01',null,null,null),(3000,null,3000,'3000string',X'74686973'),(4000,'1999-01-01',915148800000,'19990101',X'3139393930313031');
+insert into root.triggertest.nonaligned_dev1(time,s_date,s_timestamp,s_string,s_blob) values (5000,2000-12-31,978220800000,'2000-12-31string',X'735f737472696e675f626c6f62');
+<<SQLSTATE;
+select * from root.triggertest.nonaligned_dev1;
+
+//-- 31 --no date
+select count(*) from root.target.alerting;
+
+
 drop database root.**;<<NULL;
 drop trigger `aligned_int_s1`;
 drop trigger `aligned_long_s2`;
@@ -234,6 +302,8 @@ drop trigger `aligned_float_s3`;
 drop trigger `aligned_double_s4`;
 drop trigger `aligned_text_s5`;
 drop trigger `aligned_boolean_s6`;
-
-
+drop trigger `aligned_date-s_date`;
+drop trigger `aligned_timestamp-s_timestamp`;
+drop trigger `aligned_string-s_string`;
+drop trigger `aligned_blob-s_blob`;
 
