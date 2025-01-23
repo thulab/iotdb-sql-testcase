@@ -7,120 +7,174 @@ STRICT{
 0
 }
 
-Elapsed Time: 0.3.612
--- [1]23:create function StateDeSerializeException as "com.timecho.udaf.test.exception.StateDeSerializeException"
+Elapsed Time: 0.0.71
+-- [1]21:create TIMESERIES root.sg.d1.s0 float
 STRICT{
 PASS
 }
--- [1]24:select StateDeSerializeException(s0) from root.sg.d0
+-- [1]22:insert into root.sg.d1(time,s0) values (-100,-100),(-90,-90),(-50,-50),(-30,-30),(-10,-10),(0,0),(10,10),(20,20),(30,30),(50,50)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.88
+-- [1]25:create function StateDeSerializeException as "com.timecho.udaf.test.exception.StateDeSerializeException"
+STRICT{
+PASS
+}
+-- [1]26:select StateDeSerializeException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 305: [INTERNAL_SERVER_ERROR(305)] Exception occurred: "select StateDeSerializeException(s0) from root.sg.d0". executeStatement failed. Expression is not analyzed: statedeserializeexception(root.sg.d0.s0)
 }
--- [1]27:create function StateDestroyStateException as "com.timecho.udaf.test.exception.StateDestroyStateException"
+-- [1]29:create function StateDestroyStateException as "com.timecho.udaf.test.exception.StateDestroyStateException"
 STRICT{
 PASS
 }
--- [1]28:select StateDestroyStateException(s0) from root.sg.d0
+-- [1]30:select StateDestroyStateException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 java.lang.RuntimeException: ##### beforeDestroy #####
 }
--- [1]31:create function StateResetException as "com.timecho.udaf.test.exception.StateResetException"
+-- [1]33:create function StateResetException as "com.timecho.udaf.test.exception.StateResetException"
 STRICT{
 PASS
 }
--- [1]32:select StateResetException(s0) from root.sg.d0
+-- [1]34:select StateResetException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 305: [INTERNAL_SERVER_ERROR(305)] Exception occurred: "select StateResetException(s0) from root.sg.d0". executeStatement failed. Expression is not analyzed: stateresetexception(root.sg.d0.s0)
 }
--- [1]35:create function StateSerializeException as "com.timecho.udaf.test.exception.StateSerializeException"
+-- [1]37:create function StateSerializeException as "com.timecho.udaf.test.exception.StateSerializeException"
 STRICT{
 PASS
 }
--- [1]36:select StateSerializeException(s0) from root.sg.d0
+-- [1]38:select StateSerializeException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 305: [INTERNAL_SERVER_ERROR(305)] Exception occurred: "select StateSerializeException(s0) from root.sg.d0". executeStatement failed. Expression is not analyzed: stateserializeexception(root.sg.d0.s0)
 }
--- [1]41:create function UDAFAddInputException as "com.timecho.udaf.test.exception.UDAFAddInputException"
+-- [1]43:create function UDAFAddInputException as "com.timecho.udaf.test.exception.UDAFAddInputException"
 STRICT{
 PASS
 }
--- [1]42:select UDAFAddInputException(s0) from root.sg.d0
+-- [1]44:select UDAFAddInputException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: FLOAT. actual: INT32.
 }
--- [1]45:create function UDAFBeforeStartException as "com.timecho.udaf.test.exception.UDAFBeforeStartException"
+-- [1]47:create function UDAFBeforeStartException as "com.timecho.udaf.test.exception.UDAFBeforeStartException"
 STRICT{
 PASS
 }
--- [1]46:select UDAFBeforeStartException(s0) from root.sg.d0
+-- [1]48:select UDAFBeforeStartException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: FLOAT. actual: INT32.
 }
--- [1]50:create function UDAFCombineStateException as "com.timecho.udaf.test.exception.UDAFCombineStateException"
+-- [1]52:create function UDAFCombineStateException as "com.timecho.udaf.test.exception.UDAFCombineStateException"
 STRICT{
 PASS
 }
--- [1]51:select UDAFCombineStateException(s0) from root.sg.d0
+-- [1]53:select UDAFCombineStateException(s0) from root.sg.d* group by level=1
 STRICT{
-SQLSTATE : 301: org.apache.tsfile.read.common.block.column.IntColumn
+SQLSTATE : 301: ######## UDAFCombineStateException # combineState ########
 }
--- [1]53:select UDAFCombineStateException(s0) from root.sg.d0 group by ([-100,100),10ms)
+
+-- [1]55:select UDAFCombineStateException(s0) from root.sg.d0 group by ([-100,100),10ms)
 STRICT{
-SQLSTATE : 301: org.apache.tsfile.read.common.block.column.IntColumn
+Time(TIMESTAMP)      |UDAFCombineStateException(root.sg.d0.s0)(DOUBLE)      |
+---------------------------------------------------------------------------
+-100                 |10000.0                                               |
+---------------------------------------------------------------------------
+-90                  |8100.0                                                |
+---------------------------------------------------------------------------
+-80                  |null                                                  |
+---------------------------------------------------------------------------
+-70                  |null                                                  |
+---------------------------------------------------------------------------
+-60                  |null                                                  |
+---------------------------------------------------------------------------
+-50                  |2500.0                                                |
+---------------------------------------------------------------------------
+-40                  |null                                                  |
+---------------------------------------------------------------------------
+-30                  |900.0                                                 |
+---------------------------------------------------------------------------
+-20                  |null                                                  |
+---------------------------------------------------------------------------
+-10                  |100.0                                                 |
+---------------------------------------------------------------------------
+0                    |0.0                                                   |
+---------------------------------------------------------------------------
+10                   |100.0                                                 |
+---------------------------------------------------------------------------
+20                   |400.0                                                 |
+---------------------------------------------------------------------------
+30                   |900.0                                                 |
+---------------------------------------------------------------------------
+40                   |null                                                  |
+---------------------------------------------------------------------------
+50                   |2500.0                                                |
+---------------------------------------------------------------------------
+60                   |null                                                  |
+---------------------------------------------------------------------------
+70                   |null                                                  |
+---------------------------------------------------------------------------
+80                   |null                                                  |
+---------------------------------------------------------------------------
+90                   |null                                                  |
+总数目：20
 }
--- [1]57:create function UDAFCreateStateException as "com.timecho.udaf.test.exception.UDAFCreateStateException"
+
+Elapsed Time: 0.0.18
+-- [1]59:create function UDAFCreateStateException as "com.timecho.udaf.test.exception.UDAFCreateStateException"
 STRICT{
 PASS
 }
--- [1]58:select UDAFCreateStateException(s0) from root.sg.d0
+-- [1]60:select UDAFCreateStateException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 301: ######## UDAFCreateStateException # createState ########
 }
--- [1]61:create function UDAFOutputFinalException as "com.timecho.udaf.test.exception.UDAFOutputFinalException"
+-- [1]63:create function UDAFOutputFinalException as "com.timecho.udaf.test.exception.UDAFOutputFinalException"
 STRICT{
 PASS
 }
--- [1]62:select UDAFOutputFinalException(s0) from root.sg.d0
+-- [1]64:select UDAFOutputFinalException(s0) from root.sg.d0
 STRICT{
 SQLSTATE : 701: Error occurred during inferring UDF data type: 
 org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: FLOAT. actual: INT32.
 }
--- [1]69:drop function StateDeSerializeException
+-- [1]71:drop function StateDeSerializeException
 STRICT{
 PASS
 }
--- [1]70:drop function StateDestroyStateException
+-- [1]72:drop function StateDestroyStateException
 STRICT{
 PASS
 }
--- [1]71:drop function StateResetException
+-- [1]73:drop function StateResetException
 STRICT{
 PASS
 }
--- [1]72:drop function StateSerializeException
+-- [1]74:drop function StateSerializeException
 STRICT{
 PASS
 }
--- [1]73:drop function UDAFAddInputException
+-- [1]75:drop function UDAFAddInputException
 STRICT{
 PASS
 }
--- [1]74:drop function UDAFBeforeStartException
+-- [1]76:drop function UDAFBeforeStartException
 STRICT{
 PASS
 }
--- [1]75:drop function UDAFCombineStateException
+-- [1]77:drop function UDAFCombineStateException
 STRICT{
 PASS
 }
--- [1]76:drop function UDAFCreateStateException
+-- [1]78:drop function UDAFCreateStateException
 STRICT{
 PASS
 }
--- [1]77:drop function UDAFOutputFinalException
+-- [1]79:drop function UDAFOutputFinalException
 STRICT{
 PASS
 }

@@ -18,6 +18,8 @@ drop database root.**;<<NULL;
 create TIMESERIES root.sg.d0.s0 int32;
 insert into root.sg.d0(time,s0) values (-100,-100),(-90,-90),(-50,-50),(-30,-30),(-10,-10),(0,0),(10,10),(20,20),(30,30),(50,50);
 
+create TIMESERIES root.sg.d1.s0 float;
+insert into root.sg.d1(time,s0) values (-100,-100),(-90,-90),(-50,-50),(-30,-30),(-10,-10),(0,0),(10,10),(20,20),(30,30),(50,50);
 
 -- exception
 create function StateDeSerializeException as "com.timecho.udaf.test.exception.StateDeSerializeException";
@@ -46,12 +48,12 @@ create function UDAFBeforeStartException as "com.timecho.udaf.test.exception.UDA
 select UDAFBeforeStartException(s0) from root.sg.d0;
 <<SQLSTATE;
 
--- 为什么不报错
+-- combine state 在多个 Aggregator-0: UDAF, PARTIAL 时起作用
 create function UDAFCombineStateException as "com.timecho.udaf.test.exception.UDAFCombineStateException";
-select UDAFCombineStateException(s0) from root.sg.d0;
+select UDAFCombineStateException(s0) from root.sg.d* group by level=1;
 <<SQLSTATE;
 select UDAFCombineStateException(s0) from root.sg.d0 group by ([-100,100),10ms);
-<<SQLSTATE;
+
 
 
 create function UDAFCreateStateException as "com.timecho.udaf.test.exception.UDAFCreateStateException";
