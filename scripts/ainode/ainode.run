@@ -1,0 +1,72 @@
+connect root/root;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+-- show xxxx
+show cluster;
+<<CHECKCODE;
+show cluster details;
+<<CHECKCODE;
+show models;
+show models _STLForecaster;
+show models _NaiveForecaster;
+show models _ARIMA;
+show models _ExponentialSmoothing;
+show models _GaussianHMM;
+show models _GMMHMM;
+show models _Stray;
+
+
+-- create models
+create model dlinear_example using uri "file:///root/data/ainode/models/dlinear";
+sleep 3000;
+show models;
+show models dlinear_example;
+create model timer using uri "file:///root/data/ainode/models/timer";
+sleep 3000;
+show models;
+show models timer;
+-- -- err case
+create model bbbexists using uri "file:///bbbexists";
+sleep 1000;
+show models;
+show models bbbexists;
+
+
+-- load tsfile for query 
+load "/data/root/ainode/ai-data.tsfile" onSuccess=None;
+
+
+-- query call interface
+-- -- 内置 预测，BUILT_IN_FORECAST
+call inference(_STLForecaster, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(_NaiveForecaster, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(_ARIMA, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(_ExponentialSmoothing, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+-- -- 内置 正常检测，BUILT_IN_ANOMALY_DETECTION 
+call inference(_GaussianHMM, "select s_0 from root.test.g_0.d_0 limit 10");
+call inference(_GMMHMM, "select s_0 from root.test.g_0.d_0 limit 10");
+call inference(_Stray, "select s_22 from root.test.g_0.d_0 limit 10", k=2);
+-- -- USER_DEFINED
+call inference(dlinear_example,"select s_11,s_12,s_13,s_14,s_15,s_16,s_17 from root.test.g_0.d_0 limit 96");
+call inference(timer,"select s_11 from root.test.g_0.d_0 limit 1440");
+<<CHECKCODE;
+
+
+-- drop models
+drop model bbbexists;
+show models bbbexists;
+drop model bbbexists;
+<<SQLSTATE;
+drop model dlinear_example;
+show models;
+drop model timer;
+show models;
+drop model _GMMHMM;
+<<SQLSTATE;
+
+-- finally
+delete DATABASE root.**;
+<<NULL;
