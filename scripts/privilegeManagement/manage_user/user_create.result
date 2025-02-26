@@ -76,7 +76,7 @@ user01          |
 总数目：8
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 -- [1]91:CREATE USER user01 'pwd'
 STRICT{
 SQLSTATE : 303: The length of name or password must be greater than or equal to 4
@@ -132,7 +132,7 @@ user06          |
 总数目：6
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 -- [1]135:CREATE USER user01 'pass1234'
 STRICT{
 PASS
@@ -141,3 +141,43 @@ PASS
 STRICT{
 SQLSTATE : 805: User user01 already exists
 }
+-- [1]155:create user "abcd" 'pass1234'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input '"abcd"' expecting {ID, QUOTED_ID}
+}
+-- [1]157:create user 'abcd' 'pass1234'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input ''abcd'' expecting {ID, QUOTED_ID}
+}
+-- [1]159:create user `abcd` 'pass1234'
+STRICT{
+PASS
+}
+-- [1]160:create user user01 `pass1234`
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:19 mismatched input '`pass1234`' expecting STRING_LITERAL
+}
+-- [1]162:create user user01 "pass1234"
+STRICT{
+PASS
+}
+-- [1]163:create user user02 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]166:list user
+STRICT{
+User(TEXT)      |
+----------------
+abcd            |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
