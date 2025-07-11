@@ -84,7 +84,7 @@ python == 3.11 (建议)
 
 ```
 
-5. 将 \timer_xl 模型包解压后放入 `data/ainode/models/weights/` 目录
+5. 将 timer_xl 模型包解压后放入 `data/ainode/models/weights/` 目录
 
 ```shell
 cd <ainode_home>
@@ -95,9 +95,9 @@ mv timerxl/model.safetensors data/ainode/models/weights/timerxl
 data
 └── ainode
     └── models
-       └── weights
-           └── timerxl
-               └── model.safetensors
+          └── weights
+                └── timerxl
+                     └── model.safetensors
 ```
 
 6. 拉取 & 编译 & 启动 sql-test 测试工具（`sqldialect=tree` & `mode=test`）
