@@ -1,0 +1,107 @@
+connect root/root;
+drop database test_udtf;
+<<NULL;
+
+--1.准备数据
+create database test_udtf;
+use test_udtf;
+create table test_hop(t1 STRING TAG,s1 INT64 FIELD);
+INSERT INTO test_hop(time,t1,s1) values(1, 'tag1', 1);
+INSERT INTO test_hop(time,t1,s1) values(2, 'tag1', 2);
+INSERT INTO test_hop(time,t1,s1) values(3, 'tag1', 3);
+INSERT INTO test_hop(time,t1,s1) values(4, 'tag1', 4);
+INSERT INTO test_hop(time,t1,s1) values(5, 'tag1', 5);
+INSERT INTO test_hop(time,t1,s1) values(6, 'tag1', 6);
+INSERT INTO test_hop(time,t1,s1) values(7, 'tag1', 7);
+INSERT INTO test_hop(time,t1,s1) values(8, 'tag1', 8);
+INSERT INTO test_hop(time,t1,s1) values(9, 'tag1', 9);
+INSERT INTO test_hop(time,t1,s1) values(10, 'tag1', 10);
+create table test_session(t1 STRING TAG,s1 INT64 FIELD);
+insert into test_session(time, t1, s1) values(5, 'AAPL', 100);
+insert into test_session(time, t1, s1) values(6, 'TESL', 200);
+insert into test_session(time, t1, s1) values(7, 'AAPL', 103);
+insert into test_session(time, t1, s1) values(7, 'TESL', 202);
+insert into test_session(time, t1, s1) values(9, 'AAPL', 102);
+insert into test_session(time, t1, s1) values(15, 'TESL', 195);
+create table test_variation(t1 STRING TAG,s1 INT64 FIELD);
+insert into test_variation(time, t1, s1) values(5, 'AAPL', 100);
+insert into test_variation(time, t1, s1) values(6, 'TESL', 200);
+insert into test_variation(time, t1, s1) values(7, 'AAPL', 103);
+insert into test_variation(time, t1, s1) values(7, 'TESL', 202);
+insert into test_variation(time, t1, s1) values(9, 'AAPL', 102);
+insert into test_variation(time, t1, s1) values(15, 'TESL', 195);
+create table test_capacity(t1 STRING TAG,s1 INT64 FIELD);
+insert into test_capacity(time, t1, s1) values(5, 'AAPL', 100);
+insert into test_capacity(time, t1, s1) values(6, 'TESL', 200);
+insert into test_capacity(time, t1, s1) values(7, 'AAPL', 103);
+insert into test_capacity(time, t1, s1) values(7, 'TESL', 202);
+insert into test_capacity(time, t1, s1) values(9, 'AAPL', 102);
+insert into test_capacity(time, t1, s1) values(15, 'TESL', 195);
+
+--2.HOP
+// 1、按位置传递，不使用ORIGIN参数
+select * from hop(test_hop,'time',5ms,2ms);
+select * from hop(test_hop,'time',2ms,2ms);
+select * from hop(test_hop,'time',2ms,5ms);
+// 2、按位置传递，使用ORIGIN参数
+select * from hop(test_hop,'time',2ms,2ms,5);
+select * from hop(test_hop,'time',2ms,5ms,5);
+select * from hop(test_hop,'time',5ms,2ms,5);
+// 3、按名传递，不使用ORIGIN参数
+select * from hop(DATA => test_hop, TIMECOL => 'time', SIZE => 2ms, SLIDE => 2ms);
+select * from hop(TIMECOL => 'time', DATA => test_hop, SLIDE => 2ms, SIZE => 2ms);
+// 4、按名传递，使用ORIGIN参数
+select * from hop(DATA => test_hop, TIMECOL => 'time', SIZE => 2ms, SLIDE => 2ms, origin => 5);
+select * from hop(origin => 5, TIMECOL => 'time', DATA => test_hop, SLIDE => 2ms, SIZE => 2ms);
+
+--3.SESSION
+// 1、按位置传递，使用TIMECOL参数
+SELECT * FROM SESSION(test_session ORDER BY time ,'time', 2ms);
+// 2、按名传递，使用TIMECOL参数
+SELECT * FROM SESSION(DATA => test_session  ORDER BY time , TIMECOL => 'time', GAP => 2ms);
+SELECT * FROM SESSION(GAP => 2ms, DATA => test_session  ORDER BY time, TIMECOL => 'time');
+SELECT window_start, window_end, t1, avg(s1) as avg FROM SESSION(DATA => test_session  ORDER BY time , TIMECOL => 'time', GAP => 2ms) GROUP BY window_start, window_end, t1;
+// 3、按名传递，不使用TIMECOL参数
+SELECT * FROM SESSION(DATA => test_session  ORDER BY time , GAP => 2ms);
+SELECT * FROM SESSION(GAP => 2ms, DATA => test_session  ORDER BY time);
+
+--4.VARIATION
+// 1、按位置传递
+SELECT * FROM VARIATION(TEST_variation ORDER BY time, 'S1', 2.0);
+// 2、按名传递
+SELECT * FROM VARIATION(DATA => test_variation  ORDER BY time, COL => 's1', DELTA => 2.0);
+SELECT * FROM VARIATION(DELTA => 2.0, DATA => TEST_variation  ORDER BY time, COL => 'S1');
+SELECT first(time) as window_start, last(time) as window_end, t1, avg(s1) as avg FROM VARIATION(DATA => test_variation  ORDER BY time, COL => 's1', DELTA => 2.0)GROUP BY window_index, t1;
+
+
+--5.CAPACITY
+// 1、按位置传递
+SELECT * FROM CAPACITY(test_capacity ORDER BY time, 2);
+// 2、按名传递
+SELECT * FROM CAPACITY(DATA => test_capacity  ORDER BY time, SIZE => 2);
+SELECT * FROM CAPACITY(SIZE => 2, DATA => test_capacity  ORDER BY time);
+SELECT first(time) as start_time, last(time) as end_time, t1, avg(s1) as avg FROM CAPACITY(DATA => test_capacity  ORDER BY time, SIZE => 2) GROUP BY window_index, t1;
+
+--6.错误情况
+// 1、多种传递方式
+select * from hop(DATA => test_hop, TIMECOL => 'time', SIZE => 2ms, SLIDE => 2ms, 5);
+<<SQLSTATE;
+SELECT * FROM CAPACITY(test_capacity  ORDER BY time, SIZE => 2);
+<<SQLSTATE;
+// 2、缺少必须的参数
+SELECT * FROM CAPACITY(SIZE => 2, DATA => );
+<<SQLSTATE;
+SELECT * FROM CAPACITY(test_capacity ORDER BY time);
+<<SQLSTATE;
+// 3、要求的参数类型与填写的不一致（按位置和按参数名）
+SELECT * FROM SESSION(test_session ORDER BY time , 1, 2ms);
+<<SQLSTATE;
+SELECT * FROM SESSION(DATA => test_session  ORDER BY time , TIMECOL => 2, GAP => 2ms);
+<<SQLSTATE;
+// 4、按参数名字传递，填写错误的参数名
+SELECT * FROM VARIATION(DATA => test_variation  ORDER BY time, C => 's1', DELTA => 2.0);
+<<SQLSTATE;
+
+--7.清理环境
+connect root/root;
+drop database test_udtf;

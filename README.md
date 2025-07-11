@@ -1,6 +1,19 @@
 # iotdb-sql-testcase
 
-### 一、环境依赖
+### 一、项目介绍
+
+```markdown
+├── ainode_table                // AINode表模型测试目录
+├── ainode_tree                 // AINode树模型测试目录
+├── lib                         // 存放jar包的目录
+├── table                       // 表模型测试目录
+├── tree                        // 树模型测试目录
+│   ├── CONFIG                  
+│       └── otf_new.properties  // SQL覆盖工具配置文件
+│   ├── scripts                 // 存放测试用例的目录
+│   ├── README.md               // 测试目录说明文档
+├── README.md                   // 项目说明文档
+```
 
 IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作，目的是为了防止功能更新造成的功能BUG或兼容性BUG。
 

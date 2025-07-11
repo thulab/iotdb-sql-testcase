@@ -1,0 +1,122 @@
+// MANAGE_USER
+// 允许用户创建用户
+// 允许用户删除用户
+// 允许用户修改用户密码
+// 允许用户查看用户的权限信息
+// 允许用户列出所有用户
+// create/drop/alter/list user
+
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user testuser0;
+<<NULL;
+drop user testuser1;
+<<NULL;
+drop user testuser2;
+<<NULL;
+
+--1. root创建普通用户并查看所有用户列表
+create user user01 'pass1234';
+create user user02 'pass1234';
+
+list user;
+
+--2. 未授予任何权限的普通用户user01操作用户管理
+connect user01/pass1234;
+list privileges of user user01;
+
+--2.1 user01创建用户testuser
+create user testuser0 '1234';
+<<SQLSTATE;
+
+--2.2 user01修改用户密码
+alter user user02 set password '1234';
+<<SQLSTATE;
+
+--2.3 user01查看所有用户列表
+list user;
+<<SQLSTATE;
+
+--2.4 删除其他用户
+drop user user02;
+<<SQLSTATE;
+
+--3. 授予user01关于【MANAGE_USER】权限，执行用户管理
+connect root/root;
+
+--3.1 root授予user01权限
+grant manage_user to user user01;
+
+--3.2 user01列出自己拥有的权限列表
+connect user01/pass1234;
+list privileges of user user01;
+
+--3.3 user01创建一个普通用户testuser1 ：
+create user testuser1 'passwd';
+
+--3.4 testuser1访问数据库：
+connect testuser1/passwd;
+list privileges of user testuser1;
+
+--3.5 user01修改testuser1密码
+connect user01/pass1234;
+alter user testuser1 set password 'pass1234';
+
+--3.6 testuser访问数据库：
+connect testuser1/pass1234;
+list privileges of user testuser1;
+
+--3.7user01查看所有用户列表
+connect user01/pass1234;
+list user;
+
+--3.8 user01 删除其他用户（管理员root不能被删除）
+drop user testuser1;
+list user;
+drop user root;
+<<SQLSTATE;
+
+--4. root对user01取消授权【MANAGE_USER】权限
+connect root/root;
+revoke manage_user from user user01;
+
+--5. 被取消授权的user01执行用户管理功能
+connect user01/pass1234;
+
+--5.1 user01列出自己拥有的权限列表
+list privileges of user user01;
+
+--5.2 user01创建用户testuser2:
+create user testuser2 'pass1234';
+<<SQLSTATE;
+
+--5.3 user01再次列出所有用户列表
+list user;
+<<SQLSTATE;
+
+--5.4 user01修改用户密码：
+alter user user02 set password '1234';
+<<SQLSTATE;
+
+--5.5 user01删除用户
+drop user user02;
+<<SQLSTATE;
+
+--6. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user testuser0;
+<<NULL;
+drop user testuser1;
+<<NULL;
+drop user testuser2;
+<<NULL;

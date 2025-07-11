@@ -1,0 +1,204 @@
+-- [1]21:CREATE USER user_01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]23:CREATE USER `user_with_grant` 'user_with_grant'
+STRICT{
+PASS
+}
+-- [1]23:grant write_data on root.ln.** to user user_with_grant with grant option
+STRICT{
+PASS
+}
+-- [1]24:grant write, use_trigger on root.** to user user_with_grant with grant option
+STRICT{
+PASS
+}
+-- [1]27:create database root.triggertest
+STRICT{
+PASS
+}
+-- [1]28:create database root.ln
+STRICT{
+PASS
+}
+
+-- [1]33:LIST PRIVILEGES OF USER user_with_grant
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |USE_TRIGGER           |true                      |
+---------------------------------------------------------------------------------
+                |root.ln.**       |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |true                      |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]35:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=LZ4
+STRICT{
+PASS
+}
+-- [1]36:CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=snappy
+STRICT{
+PASS
+}
+-- [1]37:create aligned timeseries root.ln.alerting(alert_content text, table_name text)
+STRICT{
+PASS
+}
+-- [1]39:grant use_trigger on root.** to user user_01 with grant option
+STRICT{
+PASS
+}
+-- [1]40:grant write_data on root.ln.** to user user_01 with grant option
+STRICT{
+PASS
+}
+-- [1]41:grant write on root.** to user user_01 with grant option
+STRICT{
+PASS
+}
+
+-- [1]47:LIST PRIVILEGES OF USER user_01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |USE_TRIGGER           |true                      |
+---------------------------------------------------------------------------------
+                |root.ln.**       |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |true                      |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]61:CREATE STATELESS TRIGGER `stateless01` AFTER INSERT ON root.triggertest.*.s1 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass1234',   'lo' = '30',   'hi' = '45.5' )
+STRICT{
+PASS
+}
+-- [1]73:CREATE STATEful TRIGGER `stateful-02` BEFORE INSERT ON root.triggertest.*.s2 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass1234',   'lo' = '10',   'hi' = '15.5' )
+STRICT{
+PASS
+}
+
+-- [1]74:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+stateful-02            |BEFORE_INSERT    |STATEFUL        |ACTIVE           |root.triggertest.*.s2  |org.example.DoubleVal|1                 |
+                       |                 |                |                 |                       |ueMonitor            |                  |
+---------------------------------------------------------------------------------------------------------------------------------------
+stateless01            |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.*.s1  |org.example.DoubleVal|ALL               |
+                       |                 |                |                 |                       |ueMonitor            |                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]79:insert into root.triggertest.d1(time, s1) values (1, 24),(2,40)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.525
+-- [1]81:insert into root.triggertest.d1(time, s2) values (1, 13),(2,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+-- [1]83:insert into root.triggertest.d1(time,s1,s2) values (3,null,4),(4,14,null),(5,55,45)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]87:select count(*) from root.ln.alerting
+STRICT{
+count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_name)(INT64)      |
+-------------------------------------------------------------------------------------------------
+4                                                 |4                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]88:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |root.triggertest.d1.s2(DOUBLE)      |
+---------------------------------------------------------------------------------------------
+1                    |24.0                                |13.0                                |
+---------------------------------------------------------------------------------------------
+2                    |40.0                                |1.0                                 |
+---------------------------------------------------------------------------------------------
+3                    |null                                |4.0                                 |
+---------------------------------------------------------------------------------------------
+4                    |14.0                                |null                                |
+---------------------------------------------------------------------------------------------
+5                    |55.0                                |45.0                                |
+总数目：5
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]93:select s1,s2 into root.triggertest.new_d1(s1,s2) from root.triggertest.d1
+STRICT{
+SourceColumn(TEXT)      |TargetTimeseries(TEXT)      |Written(INT32)      |
+------------------------------------------------------------------------
+root.triggertest.d1.s1  |root.triggertest.new_d1.s1  |4                   |
+------------------------------------------------------------------------
+root.triggertest.d1.s2  |root.triggertest.new_d1.s2  |4                   |
+总数目：2
+}
+
+Elapsed Time: 0.1.274
+
+-- [1]99:select count(*) from root.ln.alerting
+STRICT{
+count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_name)(INT64)      |
+-------------------------------------------------------------------------------------------------
+8                                                 |8                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]100:select * from root.triggertest.new_d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.new_d1.s1(DOUBLE)      |root.triggertest.new_d1.s2(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------
+1                    |24.0                                    |13.0                                    |
+-----------------------------------------------------------------------------------------------------
+2                    |40.0                                    |1.0                                     |
+-----------------------------------------------------------------------------------------------------
+3                    |null                                    |4.0                                     |
+-----------------------------------------------------------------------------------------------------
+4                    |14.0                                    |null                                    |
+-----------------------------------------------------------------------------------------------------
+5                    |55.0                                    |45.0                                    |
+总数目：5
+}
+
+Elapsed Time: 0.0.4
+-- [1]103:drop trigger stateless01
+STRICT{
+PASS
+}
+-- [1]104:drop trigger `stateful-02`
+STRICT{
+PASS
+}
+
+-- [1]106:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1

@@ -1,0 +1,234 @@
+connect root/root;
+// tc1 https://jira.infra.timecho.com:8443/browse/TIMECHODB-164
+drop database root.db;<<null;
+drop database root.view;<<null;
+create database root.db;
+create database root.view;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
+create timeseries root.db.d2.s01 with datatype=INT32;
+create timeseries root.db.d2.s02 with datatype=TEXT;
+create view root.view.v1(col1,col2) as root.db.d1.s01,root.db.d2.s01 ;
+
+insert into root.db.d1(time,s01,s02)aligned values(100,200,300);
+insert into root.db.d1(time,s01,s02)aligned values(200,300,400);
+insert into root.db.d2(time,s01,s02) values(300,300,400);
+insert into root.db.d2(time,s01,s02) values(400,300,400);
+
+select * from root.view.v1;
+delete from root.view.v1.*;
+select * from root.view.v1;
+delete from root.db.d1.*;
+select * from root.view.v1;
+select count(col1),count(col2) from root.view.v1;
+drop database root.db;
+drop database root.view;
+// tc2 TIMECHODB-230
+drop database root.db;<<null;
+create timeseries root.db.d1.s01 with datatype=INT32;
+create timeseries root.db.d1.s02 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02) values(1000,123,"row1");
+insert into root.db.d1(time,s01,s02) values(2000,456,"row2");
+select s01,s02 from  root.db.d1 having count(s01)>0;
+<<sqlstate;
+drop database root.db;
+// tc3 TIMECHODB-239
+drop database root.db;<<null;
+drop database root.view;<<null;
+create database root.db;
+create database root.view;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
+create timeseries root.db.d2.s01 with datatype=INT32;
+create timeseries root.db.d2.s02 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02)aligned values(1000,123,456);
+insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
+insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
+insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
+select s01,s02 from root.db.d1;
+select s01,s02 from root.db.d2;
+
+create view root.view.v1(c1) as select s01 from root.db.d1;
+alter view root.view.v1.c1 rename to root.view.v1.c2;
+<<sqlstate;
+drop database root.db;
+drop database root.view;
+
+// tc4 TIMECHODB-228 
+drop database root.db;<<null;
+drop database root.view;<<null;
+drop user u_security;<<null;
+CREATE USER u_security '123456';
+create database root.db;
+create database root.view;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
+create timeseries root.db.d2.s01 with datatype=INT32;
+create timeseries root.db.d2.s02 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02)aligned values(1000,123,456);
+insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444);
+insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
+insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day");
+select s01,s02 from root.db.d1;
+select s01,s02 from root.db.d2;
+LIST PRIVILEGES OF USER u_security;
+grant write on root.view.** to user u_security;
+grant read on root.** to user u_security;
+LIST PRIVILEGES OF USER u_security;
+
+// u_security用户连接cli执行：
+
+connect u_security/123456;
+show view root.view.**;
+create view root.view.v1(c1) as select s01 from root.db.d1;
+create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2;
+show view root.view.**;
+alter view root.view.v1.c1 upsert tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+show view root.view.**;
+connect root/root;
+show view root.view.**;
+drop database root.db;
+drop database root.view;
+drop user u_security;
+
+// tc5 TIMECHODB-225 
+drop database root.db;<<null;
+create database root.db;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
+show timeseries root.db.d1.*;
+alter view root.db.d1.s01 add tags unit=c;
+<<sqlstate;
+show timeseries root.db.d1.*;
+show view root.db.**;
+drop database root.db;
+
+// tc6 TIMECHODB-187
+drop database root.db;<<null;
+drop database root.view;<<null;
+create database root.db;
+create database root.view;
+create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text);
+create timeseries root.db.d2.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red);
+create timeseries root.db.d2.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue);
+create timeseries root.db.d2.s03 with datatype=boolean;
+create timeseries root.db.d2.s04 with datatype=float;
+create timeseries root.db.d2.s05 with datatype=double;
+create timeseries root.db.d2.s06 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(1000,123,456,true,1.2,1.3,"one day");
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06)aligned values(2000,222,444,false,2.3,4.5,"two days");
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(2000,789,456,true,1.2,1.3,"hello");
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(3000,789,444,false,2.3,4.5,"hello");
+create view root.view.v1(c1,c2) as select s01,s02 from root.db.d1;
+create view root.view.v2(c1,c2) as select s01,s02 from root.db.d2;
+select c1,c2 from root.view.v1;
+select c1,c2 from root.view.v2;
+show view root.view.**;
+show view root.db.**;
+show timeseries root.db.**;
+alter view root.view.v1.c1 upsert tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+alter view root.view.v1.c2 upsert tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+alter view root.view.v2.c1 upsert tags(city_region=haidian, description='this is a region') attributes(speed=90, color=red);
+alter view root.view.v2.c2 upsert tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue);
+show view root.view.**;
+show latest timeseries root.db.**;
+show latest timeseries root.view.**;
+drop database root.db;
+drop database root.view;
+
+// tc7 TIMECHODB-167
+drop database root.db;<<null;
+drop database root.view;<<null;
+create database root.db;
+create database root.view;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
+create timeseries root.db.d2.s01 with datatype=INT32;
+create timeseries root.db.d2.s02 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02)aligned values(1000,123,456);
+insert into root.db.d2(time,s01,s02) values(2000,789,"hello");
+create view root.view.v1(c1,c2) as select s01,s02 from  root.db.d2;
+show view root.view.v1.*;
+alter view root.view.v1(c1) as select s02||",world" from root.db.d2;<<sqlstate;
+show view root.view.v1.*;
+select c1,c2 from root.view.v1;
+drop database root.db;
+drop database root.view;
+// tc8 TIMECHODB-135
+drop database root.test.g_0 ;<<null;
+drop database root.test;<<null;
+drop schema template t1 ;<<null;
+create database root.test.g_0;
+create schema template t1(s_0 DOUBLE compressor=SNAPPY ,s_1  DOUBLE ENCODING=RLE compressor=LZ4 ,s_2  DOUBLE ENCODING=TS_2DIFF compressor=GZIP,s_3 DOUBLE ENCODING=GORILLA compressor=ZSTD,s_4 DOUBLE compressor=ZSTD,s_5 DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,s_6 DOUBLE compressor=LZ4,s_7 DOUBLE compressor=GZIP,s_8 DOUBLE compressor=ZSTD,s_9 DOUBLE compressor=ZSTD,s_10 DOUBLE compressor=SNAPPY,s_11 DOUBLE compressor=UNCOMPRESSED) ;
+set schema template t1 to root.test.g_0;
+insert into root.test.g_0.d_0(time,s_0) values(1,1.1);
+ALTER timeseries root.test.g_0.d_0.s_0 UPSERT  tags(s0_tag1=s0_tag1, s0_tag2=s0_tag2) attributes(s0_attr1=s0_attr1, s0_attr2=s0_attr2);
+<<sqlstate;
+ALTER timeseries root.test.g_0.d_0.s_0 UPSERT ALIAS=s0Alias ; 
+<<sqlstate;
+drop schema template t1 ;<<sqlstate;
+drop database root.test.g_0 ;
+drop schema template t1 ;
+
+// tc9 TIMECHODB-125
+drop schema template 0MO;<<null;
+create schema template 0MO(0MO int32 compressor=SNAPPY,0mo int64 ENCODING=RLE compressor=LZ4,0MO int32 compressor=SNAPPY);
+<<sqlstate;
+show nodes in schema template 0MO;
+<<sqlstate;
+
+// tc10 TIMECHODB-78 
+drop database root.test.g_0;<<null;
+drop database root.test;<<null;
+ create timeseries root.test.g_0.tab1.s_4 with datatype=int32;
+ create timeseries root.test.g_0.tab2.col1 with datatype=int32;
+ insert into root.test.g_0.tab1(time,s_4) values(1,1);
+ insert into root.test.g_0.tab2(time,col1) values(1,2);
+ select s_4,col1 from root.test.g_0.tab1,root.test.g_0.tab2;
+ select s_4 as salary,col1 from root.test.g_0.tab1,root.test.g_0.tab2; 
+drop database root.test;<<null;
+drop database root.test.g_0;<<null;
+
+// tc11 TIMECHODB-74
+drop database root.test.g_0;<<null;
+drop database root.test;<<null;
+ create timeseries root.test.g_0.tab1.s_4 with datatype=int32;
+ create timeseries root.test.g_0.tab2.col1 with datatype=int32;
+ insert into root.test.g_0.tab1(time,s_4) values(1,1);
+ insert into root.test.g_0.tab2(time,col1) values(1,2);
+ select s_4,col1 from root.test.g_0.tab1,root.test.g_0.tab2;
+ select s_4 as salary,col1 from root.test.g_0.tab1,root.test.g_0.tab2; 
+ insert into root.test.g_0.tab2(time,s_4) values(1,2);
+ ALTER timeseries root.test.g_0.tab1.s_4 ADD TAGS city=beijing_1,workshop=computer;
+ select s_4 from root.test.g_0.** where time=1535587210000 group by tags(workshop,city);
+<<sqlstate;
+drop database root.test.g_0;<<null;
+drop database root.test;<<null;
+
+// tc12 TIMECHODB-73 
+drop database root.test.g_0;<<null;
+drop database root.test;<<null;
+ create timeseries root.test.g_0.tab1.s_0 with datatype=int32;
+ create timeseries root.test.g_0.tab1.s_1 with datatype=int32;
+ 
+ insert into root.test.g_0.tab1(time,s_0,s_1) values (1,1,1);
+ alter timeseries root.test.g_0.tab1.s_0 add tags city=beijing;
+ select count(s_0) ,count(s_1) from root.test.g_0.tab1 group by tags(city);
+ drop database root.test.g_0;<<null;
+drop database root.test;<<null;
+
+// tc13 IOTDB-5740 
+drop database root.db1;<<null;
+drop database root.db2;<<null;
+drop schema template t1;<<null;
+create schema template t1 (s_0 FLOAT);
+create database root.db1;
+set schema template t1 to root.db1;
+create timeseries of schema template on root.db1.t1;
+create database root.db2;
+set schema template t1 to root.db2;
+insert into root.db2.t1(time,s_0) aligned values(1,1); 
+drop database root.db2;
+create database root.db2;
+create aligned timeseries root.db2.t1(s_0 FLOAT );
+insert into root.db2.t1(time,s_0) values (1,99.8);
+select s_0 from root.db2.t1;
+show devices root.db2.t1;
+drop database root.db1;<<null;
+drop database root.db2;<<null;
+drop schema template t1;<<null;

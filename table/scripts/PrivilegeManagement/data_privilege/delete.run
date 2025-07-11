@@ -1,0 +1,430 @@
+// DELETE : 删除权限
+// 范围： ANY/数据库/table
+// 允许用户删除指定范围数据的权限
+
+
+--0. 准备环境
+connect root/root;
+drop database if exists db1;
+drop database if exists db2;
+
+drop user user01;
+<<NULL;
+drop role role01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role02;
+<<NULL;
+
+
+-- 1-1. 范围：any，授权：用户
+connect root/root;
+drop database if exists db1;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+
+create user user01 'pass1234';
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+
+connect root/root;
+grant delete on ANY to user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+delete devices from db1.t1 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t1;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on any from user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+
+-- 1-2. 范围：any，授权：角色
+connect root/root;
+drop database if exists db1;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+
+create user user01 'pass1234';
+create role role01;
+
+grant role role01 to user01;
+list user of role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+
+connect root/root;
+grant delete on ANY to role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=2;
+delete devices from db1.t1 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t1;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on any from role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+drop role role01;
+
+
+-- 2-1. 范围：db，授权：用户
+connect root/root;
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+create database db2;
+create table db2.t1(id tag, s1 int32);
+insert into db2.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+select time,s1 from db2.t1 order by time;
+
+create user user01 'pass1234';
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+grant delete on database db1 to user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+delete devices from db1.t1 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t1;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on database db1 from user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+
+-- 2-2. 范围：db，授权：角色
+connect root/root;
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+create database db2;
+create table db2.t1(id tag, s1 int32);
+insert into db2.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+select time,s1 from db2.t1 order by time;
+
+create user user01 'pass1234';
+create role role01;
+
+grant role role01 to user01;
+list user of role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+grant delete on database db1 to role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+delete devices from db1.t1 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t1;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on database db1 from role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+drop role role01;
+
+
+
+-- 3-1. 范围：table，授权：用户
+connect root/root;
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+create table db1.t2(id tag, s1 int32);
+insert into db1.t2(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+select time,s1 from db1.t2 order by time;
+create database db2;
+create table db2.t1(id tag, s1 int32);
+insert into db2.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db2.t1 order by time;
+
+create user user01 'pass1234';
+
+grant delete on table db1.t1 to user user01;
+use db1;
+grant delete on table t2 to user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+delete devices from db1.t1 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t1;
+delete from db1.t2 where time=1;
+delete devices from db1.t2 where id='i';
+connect root/root;
+select time,s1 from db1.t1 order by time;
+connect user01/pass1234;
+delete from db1.t2;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+insert into db1.t2(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on table db1.t1 from user user01;
+use db1;
+revoke delete on table t2 from user user01;
+
+connect user01/pass1234;
+list privileges of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db1.t2 where time=1;
+<<SQLSTATE;
+delete devices from db1.t2 where id='i';
+<<SQLSTATE;
+delete from db1.t2;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+
+
+-- 3-2. 范围：table，授权：角色
+connect root/root;
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create table db1.t1(id tag, s1 int32);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+create table db1.t2(id tag, s1 int32);
+insert into db1.t2(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db1.t1 order by time;
+select time,s1 from db1.t2 order by time;
+create database db2;
+create table db2.t1(id tag, s1 int32);
+insert into db2.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+select time,s1 from db2.t1 order by time;
+
+create user user01 'pass1234';
+create role role01;
+
+grant role role01 to user01;
+list user of role role01;
+
+grant delete on table db1.t1 to role role01;
+use db1;
+grant delete on table t2 to role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+delete from db1.t1;
+delete from db1.t2 where time=1;
+delete from db1.t2;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+insert into db1.t1(time,id,s1) values(1,'a',1),(2,'b',2),(3,'c',3),(4,'d',4),(5,'e',5),(6,'f',6),(7,'g',7),(8,'h',8),(9,'i',9);
+revoke delete on table db1.t1 from role role01;
+use db1;
+revoke delete on table t1 from role role01;
+
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+delete from db1.t1 where time=1;
+<<SQLSTATE;
+delete devices from db1.t1 where id='i';
+<<SQLSTATE;
+delete from db1.t1;
+<<SQLSTATE;
+delete from db2.t1 where time=1;
+<<SQLSTATE;
+delete devices from db2.t1 where id='i';
+<<SQLSTATE;
+delete from db2.t1;
+<<SQLSTATE;
+
+connect root/root;
+select time,s1 from db1.t1 order by time;
+drop user user01;
+
+
+-- 4. end
+drop database if exists db1;
+drop database if exists db2;
+
+drop user user01;
+<<NULL;
+drop role role01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role02;
+<<NULL;

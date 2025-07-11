@@ -1,0 +1,110 @@
+// approx_distinct_count：返回不同输入值的近似个数
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 查看数据库
+show databases;
+
+--3. 指定使用数据库
+use test_db;
+
+--4. 创建表
+create table table_1
+(
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+--5. 查看表
+show tables;
+
+--6. 展示表结构信息
+desc table_1;
+
+--7. 写入数据
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(1, 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 0, 1000, 1.1, 111.11);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(2, 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 16839200, X'3b', 111, 453, 11.1, 102.2);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(3, 'd3', 'V3', true, 'text2', 'string2', '2021-12-20', 116839200000, X'6728', 1, 123, 5.2, 333.3);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(4, 'd4', 'V4', false, 'text3', 'string3', '2022-06-11', 86700000, X'4b98', 2, 239, null, 666.66);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(5, 'd5', 'V3', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 653, -1.1, 1111.2);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(6, 'd6', 'V2', true, 'text3', 'string3', null, 1378230000000, X'00010000', 1, 653, 0.1, 1221.2);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(7, 'd5', 'V3', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'FFD8FFE0', 2, null, 555.5, 1111.2);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(8, 'd3', 'V5', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 653, 13.13, null);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(9, 'd3', 'V6', true, 'text4', null, '2023-12-15', null, X'49460001', 10, null, 2.1, 155.5);
+
+insert into table_1(
+time, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(10, 'd4', 'V2', false, 'text5', 'string3', '2024-01-15', 18392378000, null, 1, null, -11.1, 11.2);
+
+--8. 数据查询
+select * from table_1 order by time;
+
+--9. APPROX_COUNT_DISTINCT查询
+select count(DISTINCT time) as origin, APPROX_COUNT_DISTINCT(time) as  approx from table_1;
+select count(DISTINCT device_id) as origin, APPROX_COUNT_DISTINCT(device_id) as  approx from table_1;
+select count(DISTINCT model_id) as origin, APPROX_COUNT_DISTINCT(model_id) as  approx from table_1;
+select count(DISTINCT boolean) as origin, APPROX_COUNT_DISTINCT(boolean) as approx from table_1;
+select count(DISTINCT text) as origin, APPROX_COUNT_DISTINCT(text) as approx from table_1;
+select count(DISTINCT string) as origin, APPROX_COUNT_DISTINCT(string) as approx from table_1;
+select count(DISTINCT date) as origin, APPROX_COUNT_DISTINCT(date) as approx from table_1;
+select count(DISTINCT timestamp) as origin, APPROX_COUNT_DISTINCT(timestamp) as approx from table_1;
+select count(DISTINCT blob) as origin, APPROX_COUNT_DISTINCT(blob) as approx from table_1;
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32) as approx from table_1;
+select count(DISTINCT int64) as origin, APPROX_COUNT_DISTINCT(int64) as approx from table_1;
+select count(DISTINCT float) as origin, APPROX_COUNT_DISTINCT(float) as approx from table_1;
+select count(DISTINCT double) as origin, APPROX_COUNT_DISTINCT(double) as approx from table_1;
+
+--10. 指定误差
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32, 0.023) as approx from table_1;
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32, 0.25) as approx from table_1;
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32, 0.0040625) as approx from table_1;
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32, 0.26000) as approx from table_1;
+select count(DISTINCT int32) as origin, APPROX_COUNT_DISTINCT(int32, 0.27) as approx from table_1;
+<<SQLSTATE;
+
+--清理环境
+drop database test_db;
+<<NULL;

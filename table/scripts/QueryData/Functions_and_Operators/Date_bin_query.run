@@ -1,0 +1,118 @@
+// 支持date_bin函数
+// 一个时间戳列的数据全部规整到对应时间分段的起点并返回
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 1704874210000, X'11F8d7', 1, 1000, 1.1, 111.11
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 1706698230000, X'3b', 2, 453, 11.1, 102.2
+);
+insert into table_1(time, timestamp) values(-132340800000, -132340800000);
+insert into table_1(time,timestamp) values(-6953400000,-6953400000);
+insert into table_1(time, timestamp) values(1000, 1719754343000);
+insert into table_1(time,timestamp) values(300000,1719844882000);
+insert into table_1(time,timestamp) values(1704874210000,1727276981000);
+insert into table_1(time,timestamp) values(1706698230000, null);
+insert into table_1(time,timestamp) values(1708868070000, 1000000);
+insert into table_1(time,timestamp) values(1711437332000, 358923922);
+insert into table_1(time,timestamp) values(1719754343000, 5000);
+insert into table_1(time,timestamp) values(1719844882000, 2500);
+insert into table_1(time,timestamp) values(1727276981000, null);
+insert into table_1(time,timestamp) values(1727283600000, 12494500);
+insert into table_1(time,timestamp) values(1727285125000, 1238993233);
+insert into table_1(time,timestamp) values(1729344210000, -1000);
+insert into table_1(time,timestamp) values(1729345200000, -30000);
+insert into table_1(time,timestamp) values(1729382400000, 0);
+
+
+--7. 原始数据查询
+select * from table_1 order by time;
+
+--8. date_bin数据查询
+select date_bin() from table_1; <<SQLSTATE;
+select date_bin(10m) from table_1; <<SQLSTATE;
+select date_bim(1y1d,time,2022-10-12 12:00:00) from table_1; <<SQLSTATE;
+select time, date_bin(1h,time) as date_bin_result1, timestamp, date_bin(2d,timestamp) as date_bin_result2 from table_1 order by time;
+select time, date_bin(1Day,time,1970-01-01 00:00:00) as date_bin_result from table_1 order by time;
+select timestamp, date_bin(1h, timestamp) as date_bin_result, count(timestamp) as timestamp_count from table_1 group by timestamp order by date_bin_result;
+select time, date_bin(3week,time,2022-12-01 00:00:00) as date_bin_result1, timestamp, date_bin(24h,timestamp,2022-12-01 00:00:00) as date_bin_result2 from table_1 order by time offset 2 limit 5;
+select time, date_bin(3w,time,2022-12-01 00:00:00) as date_bin_result1, timestamp, date_bin(3600m,timestamp,2022-12-01 00:00:00) as date_bin_result2 from table_1 order by time offset 1 limit 1;
+select date_bin(5ms, time) as time, region_id, int32, int64, avg(float) as avg_value from table_1 where time >= 2 and time < 1 GROUP BY 1,2,3,4;
+
+--8.1 不支持的数据类型
+select date_bin(1ms, region_id) from table_1; <<SQLSTATE;
+select date_bin(1ms, device_id) from table_1; <<SQLSTATE;
+select date_bin(1ms, model_id) from table_1; <<SQLSTATE;
+select date_bin(1ms, boolean) from table_1; <<SQLSTATE;
+select date_bin(1ms, text) from table_1; <<SQLSTATE;
+select date_bin(1ms, string) from table_1; <<SQLSTATE;
+select date_bin(1ms, blob) from table_1; <<SQLSTATE;
+select date_bin(1ms, int32) from table_1; <<SQLSTATE;
+select date_bin(1ms, int64) from table_1; <<SQLSTATE;
+select date_bin(1ms, float) from table_1; <<SQLSTATE;
+select date_bin(1ms, double) from table_1; <<SQLSTATE;
+select date_bin(1ms, date) from table_1; <<SQLSTATE;
+
+--8.2 timstamp 数据类型支持
+--8.2.1 origin校验
+select time, date_bin(2ms,time) as date_bin_result from table_1 order by time;
+select time, timestamp, date_bin(1mo,timestamp,2024-06-30 00:00:00) as date_bin_result from table_1 order by time;
+select time, timestamp, date_bin(2mo,timestamp,-1000) as date_bin_result from table_1 order by time;
+select time, date_bin(1y,time,1969-12-31 00:00:00.000) as time_bin from table_1 order by time;
+
+--8.2.2  interval时间校验(负数|0|正数 | 时间单位)
+select time, date_bin(-3ms,time,1970-01-01T08:00:00.002) as date_bin_result from table_1 order by time; <<SQLSTATE;
+select time, date_bin(0ms,time,1970-01-01T08:00:00.002) as date_bin_result from table_1 order by time;
+select time, date_bin(2,timestamp,2024-01-10T00:00:00) as date_bin_result from table_1; <<SQLSTATE;
+select time, date_bin(3ms,time,1970-01-01T08:00:00.002) as date_bin_result from table_1 order by time;
+select time, timestamp, date_bin(3600d,timestamp,2000-01-01 00:00:00) as date_bin_result from table_1 order by time;
+
+--8.2.3 source中含有null值时，返回null
+select time, date_bin(5ms,1970-01-01T08:00:00.002) as date_bin_result from table_1; <<SQLSTATE;
+select time, date_bin(1h,null) as date_bin_result from table_1 order by time; <<SQLSTATE;
+select time, timestamp, date_bin(5ms,timestamp,1970-01-01T08:00:00.002) as date_bin_result from table_1 order by time;
+
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

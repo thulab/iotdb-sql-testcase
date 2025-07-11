@@ -1,0 +1,46 @@
+//在V2-RC3发现的问题:
+//update attribute之后，再insert into t1(time,device_id) values(1,'d1');最后查询结果集记录仅1条记录
+//V2-RC5无此问题
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table t1
+(
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	int64 INT64 FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc t1;
+
+--6. 插入数据，然后查询数据
+insert into t1(time,model_id,boolean,int64) values(1,'m1',false,11);
+select * from t1 order by time;
+
+--7. 更新属性值
+update t1 set model_id='model_01';
+
+--8. 查询数据，然后插入ID数值，最后查询数据
+select * from t1 order by time;
+insert into t1(time,device_id,boolean) values(1,'d1',true);
+select * from t1 order by device_id;
+select * from t1 where device_id is null order by time; 
+
+--清理数据：
+drop database test_db;
+<<NULL;

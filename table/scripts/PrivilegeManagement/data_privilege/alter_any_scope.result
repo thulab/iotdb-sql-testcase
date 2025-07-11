@@ -1,0 +1,542 @@
+-- [1]27:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]28:create user user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]29:create user user03 'pass1234'
+STRICT{
+PASS
+}
+-- [1]30:create user user04 'pass1234'
+STRICT{
+PASS
+}
+-- [1]32:create role role01
+STRICT{
+PASS
+}
+-- [1]33:grant role role01 to user02
+STRICT{
+PASS
+}
+-- [1]34:create role role02
+STRICT{
+PASS
+}
+-- [1]35:grant role role02 to user04
+STRICT{
+PASS
+}
+
+-- [1]37:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+----------------
+user03          |
+----------------
+user04          |
+总数目：5
+}
+
+Elapsed Time: 0.0.46
+
+-- [1]38:list role
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+----------------
+role02          |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]39:list user of role role01
+STRICT{
+User(TEXT)      |
+----------------
+user02          |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]40:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]41:list user of role role02
+STRICT{
+User(TEXT)      |
+----------------
+user04          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]42:list role of user user04
+STRICT{
+Role(TEXT)      |
+----------------
+role02          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]44:create database db1 with(TTL=86400000,SCHEMA_REGION_GROUP_NUM=1, DATA_REGION_GROUP_NUM=2)
+STRICT{
+PASS
+}
+
+-- [1]45:show databases details
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |SchemaRegionGroupNum(INT32)      |DataRegionGroupNum(INT32)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |86400000           |1                                   |1                                 |604800000                         |0                                |0                              |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |null                             |null                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.18
+-- [1]46:create table db1.t1(ID TAG, status BOOLEAN)
+STRICT{
+PASS
+}
+
+-- [1]47:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |86400000           |
+总数目：1
+}
+
+Elapsed Time: 0.0.23
+
+-- [1]48:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.17
+-- [1]50:create database db2
+STRICT{
+PASS
+}
+
+-- [1]51:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |86400000           |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]52:create table db2.t1(ID TAG, status BOOLEAN)
+STRICT{
+PASS
+}
+
+-- [1]53:show tables from db2
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]54:desc db2.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]58:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.8
+-- [1]59:alter database db1 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON DB:db1
+}
+-- [1]64:grant alter on any to user user01
+STRICT{
+PASS
+}
+
+-- [1]68:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |*.*              |ALTER                 |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]69:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |86400000           |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+-- [1]70:alter database db1 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+PASS
+}
+
+-- [1]71:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]72:alter database dba1 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+SQLSTATE : 500: Database dba1 doesn't exist
+}
+-- [1]74:alter database information_schema set properties TTL=86400000
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]79:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]80:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]81:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]82:alter database db2 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON DB:db2
+}
+-- [1]87:grant ALTER on any to role role01
+STRICT{
+PASS
+}
+
+-- [1]91:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |*.*              |ALTER                 |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]92:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]93:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+-- [1]94:alter database db2 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+PASS
+}
+
+-- [1]95:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]96:alter database dba1 set properties TTL=3600000,SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=4
+STRICT{
+SQLSTATE : 500: Database dba1 doesn't exist
+}
+-- [1]98:alter database information_schema set properties TTL=86400000
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]103:list privileges of user user03
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]104:alter table db1.t1 add column int32 int32
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON db1.t1
+}
+-- [1]109:grant alter on any to user user03
+STRICT{
+PASS
+}
+
+-- [1]113:list privileges of user user03
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |*.*              |ALTER                 |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]114:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]115:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |86400000           |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]116:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]117:alter table db1.t1 add column int32 int32
+STRICT{
+PASS
+}
+
+-- [1]118:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]122:list privileges of user user04
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]123:list role of user user04
+STRICT{
+Role(TEXT)      |
+----------------
+role02          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]124:alter table db2.t1 add column int32 int32
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON db2.t1
+}
+-- [1]129:grant ALTER on any to role role02
+STRICT{
+PASS
+}
+
+-- [1]133:list privileges of user user04
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role02          |*.*              |ALTER                 |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]134:list role of user user04
+STRICT{
+Role(TEXT)      |
+----------------
+role02          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]135:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |3600000            |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]136:show tables from db2
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.14
+
+-- [1]137:desc db2.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]138:alter table db2.t1 add column int32 int32
+STRICT{
+PASS
+}
+
+-- [1]139:desc db2.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2

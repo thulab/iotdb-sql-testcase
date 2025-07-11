@@ -1,0 +1,317 @@
+-- [1]17:create user user_1 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]18:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+user_1          |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]19:grant manage_user to user user_1
+STRICT{
+PASS
+}
+
+-- [1]20:list privileges of user user_1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_USER           |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]22:create user u001 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]23:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+u001            |
+----------------
+user_1          |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]24:list privileges of user u001
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]28:alter user u001 set password '1234'
+STRICT{
+PASS
+}
+
+-- [1]32:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+u001            |
+----------------
+user_1          |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]35:drop user u001
+STRICT{
+PASS
+}
+
+-- [1]36:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+user_1          |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]39:create role role_1
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege MANAGE_ROLE
+}
+
+-- [1]42:list role of user user_1
+STRICT{
+Role(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]43:create role role_1
+STRICT{
+PASS
+}
+-- [1]46:list role
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege MANAGE_ROLE
+}
+-- [1]50:drop role role_1
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege MANAGE_ROLE
+}
+-- [1]53:drop role role_1
+STRICT{
+PASS
+}
+-- [1]56:show queries
+STRICT{
+PASS
+}
+-- [1]58:kill all queries
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+-- [1]61:show variables
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+-- [1]64:show version
+STRICT{
+PASS
+}
+-- [1]67:create database dba2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON DB:dba2
+}
+-- [1]70:create database dba2
+STRICT{
+PASS
+}
+
+-- [1]71:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+dba2                |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]73:create database dba1
+STRICT{
+PASS
+}
+-- [1]75:create table dba1.table1(ID TAG, int32 INT32 FIELD)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON dba1.table1
+}
+
+-- [1]78:show tables from dba1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]81:drop database dba2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege DROP ON DB:dba2
+}
+-- [1]84:drop database dba2
+STRICT{
+PASS
+}
+-- [1]87:alter database dba1 set properties ttl=3600000
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON DB:dba1
+}
+
+-- [1]90:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+dba1                |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]92:create table dba1.t1(ID TAG, int32 INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]93:show tables from dba1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]94:desc dba1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]96:alter table dba1.t1 add column boolean BOOLEAN
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON dba1.t1
+}
+-- [1]98:alter table dba1.t1 drop column int32
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON dba1.t1
+}
+-- [1]100:alter table dba1.t1 set properties TTL='INF'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON dba1.t1
+}
+
+-- [1]103:show tables from dba1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]104:desc dba1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]107:insert into dba1.t1 values(1000,'d1',1)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON dba1.t1
+}
+-- [1]110:insert into dba1.t1 values(1000,'d1',1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.794
+
+-- [1]111:select * from dba1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |int32(INT32)      |
+-------------------------------------------------------
+1970-01-01T08:00:01.0|d1              |1                 |
+00+08:00             |                |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.16
+-- [1]113:insert into dba1.t1 values(1000,'d2',2)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON dba1.t1
+}
+
+-- [1]116:select * from dba1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |int32(INT32)      |
+-------------------------------------------------------
+1970-01-01T08:00:01.0|d1              |1                 |
+00+08:00             |                |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.12
+-- [1]119:select * from dba1.t1 order by time
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SELECT ON dba1.t1
+}
+-- [1]122:delete from dba1.t1
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege DELETE ON dba1.t1
+}
+-- [1]124:drop table dba1.t1
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege DROP ON dba1.t1
+}
+
+-- [1]127:select * from dba1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |int32(INT32)      |
+-------------------------------------------------------
+1970-01-01T08:00:01.0|d1              |1                 |
+00+08:00             |                |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.9

@@ -1,0 +1,66 @@
+// DELETE DEVICES + WHERE条件
+
+connect root/root;
+
+--0. 清理环境
+drop database db1;
+<<NULL;
+
+--1. 创建数据库
+create database db1;
+
+--2. 指定数据库
+use db1;
+
+--3. 创建表
+create table t1(device_id TAG, attr ATTRIBUTE, status BOOLEAN);
+create table t2(device_id TAG, attr ATTRIBUTE, temperature FLOAT);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc t1;
+desc t2;
+
+--6. 插入数据
+insert into t1(time, device_id, attr, status) values(1000, 'd1', 'attr_1', false);
+insert into t1(time, device_id, attr, status) values(3000, 'd2', 'attr_2', true);
+insert into t1(time, device_id, attr, status) values(5000, 'd3', 'attr_3', false);
+insert into t1(time, device_id, attr, status) values(7000, 'd4', 'attr_4', false);
+insert into t1(time, device_id, attr, status) values(10000, 'd5', 'attr_5', true);
+insert into t1(time, device_id, attr, status) values(20000, 'd6', 'attr_6', true);
+
+insert into t2(time, device_id, attr, temperature) values(1, 'd1', 'attr_1', 22.2),(2, 'd2', 'attr_2', 21.1);
+
+--7. 查询数据
+select * from t1 order by time;
+select * from t2 order by time;
+
+--8. delete devices + show devices
+show devices from t1;
+delete devices from t1 where device_id = 'd6';
+show devices from t1;
+delete devices from t1 where device_id = 'd1' and device_id = 'd2';
+show devices from t1;
+delete devices from t1 where device_id = 'd1' or device_id = 'd2';
+show devices from t1;
+delete devices from t1;
+show devices from t1;
+
+--9. delete devices + 不支持的条件
+delete devices from t2 where device_id in ('d1','d2');
+<<SQLSTATE;
+delete devices from t1 where time = 10000;
+<<SQLSTATE;
+delete devices from t1 where attr = 'attr_4';
+<<SQLSTATE;
+
+--10. 数据查询
+select * from t1 order by time;
+select * from t2 order by time;
+
+
+--清理环境
+drop database db1;
+<<NULL;
