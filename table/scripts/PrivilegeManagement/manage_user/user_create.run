@@ -1,0 +1,197 @@
+//用户名限制：4~32个字符，支持使用英文大小写字母、数字、特殊字符（!@#$%^&*()_+-=）
+//用户无法创建和管理员用户同名的用户
+//密码：4~32个字符，支持使用英文大小写字母、数字、特殊字符（!@#$%^&*()_+-=）
+
+connect root/root;
+
+//一、创建用户：用户名校验
+
+--0.清理环境
+DROP USER usea;
+<<NULL;
+DROP USER qwertyuiop1234567890qwertyuiop12;
+<<NULL;
+DROP USER USERA;
+<<NULL;
+DROP USER userb;
+<<NULL;
+DROP USER "1234";
+<<NULL;
+DROP USER "!@#$%^&*()_+-=";
+<<NULL;
+DROP USER USEab;
+<<NULL;
+DROP USER USEab1;
+<<NULL;
+DROP USER "USEab01!@#$%^&*()_+-=";
+<<NULL;
+DROP USER "User!@#$%^&*()_001+-=";
+<<NULL;
+
+--1. 用户名字符长度校验【4~32个字符】
+create user use 'pass1234';
+<<SQLSTATE;
+create user qwertyuiop1234567890qwertyuiop123 'pass1234';
+<<SQLSTATE;
+create user usea 'pass1234';
+create user qwertyuiop1234567890qwertyuiop12 'pass1234';
+
+--2. 用户名支持英文大小写字母、数字、特殊字符（!@#$%^&*()_+-=）
+create user USERA 'pass1234';
+create user userb 'pass1234';
+create user "1234" 'pass1234';
+create user "!@#$%^&*()_+-=" 'pass1234';
+create user USEab 'pass1234';
+create user USEab1 'pass1234';
+create user "USEab01!@#$%^&*()_+-=" 'pass1234';
+
+--3. 用户名不支持包含中文
+create user "普通用户" 'pass1234';
+<<SQLSTATE;
+
+--4. 用户名使用反引号、单引号、双引号以及不使用符号包裹
+CREATE USER User!@#$%^&*()_001+-= 'pass1234';
+<<SQLSTATE;
+CREATE USER 'User!@#$%^&*()_001+-=' 'pass1234';
+<<SQLSTATE;
+CREATE USER `User!@#$%^&*()_001+-=` 'pass1234';
+<<SQLSTATE;
+CREATE USER "User!@#$%^&*()_001+-=" 'pass1234';
+
+--5. 查看已存在的用户列表
+list user;
+
+--6. 清理环境
+DROP USER usea;
+<<NULL;
+DROP USER qwertyuiop1234567890qwertyuiop12;
+<<NULL;
+DROP USER USERA;
+<<NULL;
+DROP USER userb;
+<<NULL;
+DROP USER "1234";
+<<NULL;
+DROP USER "!@#$%^&*()_+-=";
+<<NULL;
+DROP USER USEab;
+<<NULL;
+DROP USER USEab1;
+<<NULL;
+DROP USER "USEab01!@#$%^&*()_+-=";
+<<NULL;
+DROP USER "User!@#$%^&*()_001+-=";
+<<NULL;
+
+
+//二、创建用户：密码校验
+
+--0.清理环境
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
+DROP USER user05;
+<<NULL;
+DROP USER user06;
+<<NULL;
+DROP USER user07;
+<<NULL;
+
+--1. 密码字符长度为4~32个字符
+CREATE USER user01 'pwd';
+<<SQLSTATE;
+CREATE USER user02 '12345678900123456789qwertyuiop123';
+<<SQLSTATE;
+CREATE USER user01 'pass';
+CREATE USER user02 '12345678900123456789qwertyuiop12';
+
+--2. 密码支持使用英文大小写字母、数字、特殊字符（!@#$%^&*()_+-=）
+CREATE USER user03 'QWERTYUIOP';
+CREATE USER user04 'qwertyuiop';
+CREATE USER user05 '1234567890';
+CREATE USER user06 '!@#$%^&*()_+-=';
+CREATE USER user07 'PASSword!@#$%^&*()_1234+-=';
+
+--3. 密码中间含有空格
+CREATE USER user08 'pass wd';
+<<SQLSTATE;
+
+--4. 密码不用引号引起来
+CREATE USER user09 pass1234;
+<<SQLSTATE;
+
+--5.查看创建的用户列表
+LIST USER;
+
+--6.清理环境
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER user04;
+<<NULL;
+DROP USER user05;
+<<NULL;
+DROP USER user06;
+<<NULL;
+DROP USER user07;
+<<NULL;
+
+
+//三、 用户无法创建和管理员用户同名的用户
+--0.清理环境
+DROP USER user01;
+<<NULL;
+
+--1. 创建用户
+CREATE USER user01 'pass1234';
+
+--2. 创建同名用户
+CREATE USER user01 'passwd';
+<<SQLSTATE;
+
+--3. 创建与管理员同名的用户
+CREATE USER root 'pass1234';
+<<SQLSTATE;
+
+--3.清理环境
+DROP USER user01;
+<<NULL;
+
+//四、双引号、单引号、反引号使用
+
+--0. 清理环境
+DROP USER "abcd";
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+
+--1. 创建用户
+create user 'abcd' 'pass1234';
+<<SQLSTATE;
+create user `abcd` 'pass1234';
+<<SQLSTATE;
+create user "abcd" 'pass1234';
+create user user01 `pass1234`;
+<<SQLSTATE;
+create user user01 "pass1234";
+<<SQLSTATE;
+create user user01 'pass1234';
+
+--2. 查看用户列表：
+list user;
+
+--3. 清理环境
+DROP USER "abcd";
+<<NULL;
+DROP USER user01;
+<<NULL;

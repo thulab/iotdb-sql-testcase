@@ -1,0 +1,169 @@
+--0.连接数据库清理环境
+connect root/root;
+drop database ainode_table_test;
+<<NULL;
+
+--1.准备数据（1万行，全部数据类型，简单数据值，其中timer_xl 至少要 96 行输入数据，sundial 至少要 16 行输入数据）
+load '/data/atmos/zk_test/AINode/data/ainode_table.tsfile' with ('database-name'='ainode_table_test');
+use ainode_table_test;
+
+--2.input + model_id
+//SELECT * FROM forecast (input => (select time,s2 from t1) PARTITION BY tag1, model_id => 'sundial', PREDICATED_COLUMNS => 's2');
+//1、支持的数据类型（默认的内置模型）
+SELECT * FROM FORECAST (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s3 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s4 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s5 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s3 from t1) PARTITION BY tag1, model_id => 'timer_xl');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s4 from t1) PARTITION BY tag1, model_id => 'timer_xl');
+<<CHECKCODE;
+SELECT * FROM FORECAST (input => (select time, tag1,s5 from t1) PARTITION BY tag1, model_id => 'timer_xl');
+<<CHECKCODE;
+//2、查询结果集
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl');
+<<CHECKCODE;
+//3、填写方式（按名填写和按位置填写）
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 10, output_start_time => 6, output_interval => 10, timecol => 'time', preserve_input => true, model_options => '');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 10, output_start_time => 6, output_interval => 10, timecol => 'time', preserve_input => true, model_options => '');
+<<CHECKCODE;
+SELECT * FROM forecast ((select time, tag1,s2 from t1) PARTITION BY tag1, 'sundial', 10, 6, 10, '', 'time', true);
+<<CHECKCODE;
+SELECT * FROM forecast ((select time, tag1,s2 from t1) PARTITION BY tag1, 'timer_xl', 10, 6, 10, '', 'time', true);
+<<CHECKCODE;
+//3、多列（暂且开发不确定是否需要支持）
+
+--3.input + model_id + output_length
+SELECT * FROM FORECAST (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 1);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s3 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 16);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s4 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 96);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s5 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 720);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 1440);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s3 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 2880);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s4 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 1);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s5 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 16);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 96);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s3 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 720);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s4 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 1440);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s5 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 2880);
+<<CHECKCODE;
+
+--4.input + model_id + output_length + output_start_time
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_start_time => 0);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_start_time => -100);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_start_time => 100);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_start_time => 9223372036854775807);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_start_time => -9223372036854775808);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_start_time => 0);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_start_time => -100);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_start_time => 100);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_start_time => 9223372036854775807);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_start_time => -9223372036854775808);
+<<CHECKCODE;
+
+--5.input + model_id + output_length + output_interval
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_interval => 0);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_interval => 10);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_interval => -10);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_interval => 0);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_interval => 10);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_interval => -10);
+<<CHECKCODE;
+
+
+--6.input + model_id + output_length + timecol
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', timecol => 'time');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', timecol => 'TIME');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', timecol => 'time');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', timecol => 'TIME');
+<<CHECKCODE;
+
+--7.input + model_id + output_length + preserve_input
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', preserve_input => true);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', preserve_input => false);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', preserve_input => true);
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', preserve_input => false);
+<<CHECKCODE;
+
+--8.input + model_id + output_length + model_options（未提供可选项测试）
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', model_options => '');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', model_options => '');
+<<CHECKCODE;
+
+--9.全部参数（大小写）
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial', output_length => 10, output_start_time => 6, output_interval => 10, timecol => 'time', preserve_input => true, model_options => '');
+<<CHECKCODE;
+SELECT * FROM forecast (INPUT => (select time, tag1,s2 from t1) PARTITION BY tag1, MODEL_ID => 'sundial', OUTPUT_LENGTH => 10, OUTPUT_START_TIME => 6, OUTPUT_INTERVAL => 10, TIMECOL => 'time', preserve_input => true, MODEL_OPTIONS => '');
+<<CHECKCODE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'timer_xl', output_length => 10, output_start_time => 6, output_interval => 10, timecol => 'time', preserve_input => true, model_options => '');
+<<CHECKCODE;
+SELECT * FROM forecast (INPUT => (select time, tag1,s2 from t1) PARTITION BY tag1, MODEL_ID => 'timer_xl', OUTPUT_LENGTH => 10, OUTPUT_START_TIME => 6, OUTPUT_INTERVAL => 10, TIMECOL => 'time', preserve_input => true, MODEL_OPTIONS => '');
+<<CHECKCODE;
+
+--10.异常处理
+SELECT * FROM forecast (model_id => 'sundial');
+<<SQLSTATE;
+SELECT * FROM forecast (input => t1);
+<<SQLSTATE;
+SELECT * FROM forecast (input => t1, model_id => '');
+<<SQLSTATE;
+SELECT * FROM forecast (input => t1, model_id => 'no');
+<<SQLSTATE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial',output_length => -10);
+<<SQLSTATE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial',timecol => '');
+<<SQLSTATE;
+SELECT * FROM forecast (input => (select time, tag1,s2 from t1) PARTITION BY tag1, model_id => 'sundial',timecol => 'tag1');
+<<SQLSTATE;
+SELECT * FROM forecast (input => (select time,tag1,s2 from t10) PARTITION BY tag1, model_id => 'sundial',timecol => 'timstamp');
+<<SQLSTATE;
+SELECT * FROM forecast (input => (select time,tag1 from t1) PARTITION BY tag1, model_id => 'sundial');
+<<SQLSTATE;
+SELECT * FROM FORECAST (input => (select time, tag1,s2 from t1 limit 95) PARTITION BY tag1, model_id => 'timer_xl');
+<<SQLSTATE;
+SELECT * FROM FORECAST (input => (select time, tag1,s2 from t1 limit 15) PARTITION BY tag1, model_id => 'sundial');
+<<SQLSTATE;
+
+drop database ainode_table_test;
+

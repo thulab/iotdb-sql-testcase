@@ -1,0 +1,69 @@
+// LIST PRIVILEGES OF ROLE <roleName>
+// 列出指定角色下所有权限
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NUll;
+
+
+-- 1. root创建用户和角色
+create user user01 'pass1234';
+create user user02 'pass1234';
+create role role01;
+
+--2. root列出用户列表和角色
+list user;
+list role;
+
+--3. 将权限赋予给角色
+grant manage_role to role role01;
+grant manage_user to role role01;
+
+--4. root 列出指定角色下所有权限列表
+list privileges of role role01;
+
+--5. root将角色role01赋予给普通用户user01
+grant role role01 to user01;
+
+--6. 未授权的普通用户，列出相关列表信息
+connect user02/pass1234;
+list privileges of user user02;
+list privileges of user user01;
+<<SQLSTATE;
+list privileges of role role01;
+<<SQLSTATE;
+
+--7. 已授权的管理角色的普通用户，列出权限
+connect user01/pass1234;
+list privileges of user user01;
+list privileges of user user02;
+list privileges of role role01;
+
+--8.root取消角色权限
+connect root/root;
+revoke manage_role from role role01;
+revoke manage_user from role role01;
+list privileges of role role01;
+
+--9. 取消授权的角色关联的普通用户,列出用户拥有的权限列表
+connect user01/pass1234;
+list privileges of user user01;
+list privileges of user user02;
+<<SQLSTATE;
+list privileges of role role01;
+
+
+-- 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NUll;

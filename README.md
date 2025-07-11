@@ -1,6 +1,19 @@
 # iotdb-sql-testcase
 
-### 一、环境依赖
+## 一、项目介绍
+
+```markdown
+├── ainode_table                // AINode表模型测试目录
+├── ainode_tree                 // AINode树模型测试目录
+├── lib                         // 存放jar包的目录
+├── table                       // 表模型测试目录
+├── tree                        // 树模型测试目录
+│   ├── CONFIG                  
+│       └── otf_new.properties  // SQL覆盖工具配置文件
+│   ├── scripts                 // 存放测试用例的目录
+│   ├── README.md               // 测试目录说明文档
+├── README.md                   // 项目说明文档
+```
 
 IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作，目的是为了防止功能更新造成的功能BUG或兼容性BUG。
 
@@ -25,8 +38,9 @@ reference:
 - 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnMcsLTDUnYV95XBkjiddqAg
 - 测试java工程: https://github.com/changxue2022/user-guide-trigger
 
+----------
 
-###  二、操作步骤
+##  二、操作步骤
 
 #### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.14.0）
 执行trigger/udf 测试用例：
@@ -84,62 +98,109 @@ waitTime           20
 
 #### （五）当前环境下，测试用例不变的情况下，每次运行自动化工具，仅需参考（一）、（二）、（三）步骤即可。
 
-### 三、SQL-自动化工具目录结构描述
+----------
 
-```markdown
-├── Readme.md                    // help
+## 三、SQL-自动化工具目录结构描述
+
+这是一个用于测试IoTDB的SQL语句的自动化工具，IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作，目的是为了防止功能更新造成的功能BUG或兼容性BUG。
+
+#### 1、总体目录结构
+
+```
+├── assert                      // 存放静态资源的目录
 ├── bin                         // class文件目录
-├── lib
-|   ├── jdom.jar                //jar包存放目录
-├── result.xml                  //脚本级汇总结果
-├── src                         //工具源码
-├── test.sh                     //运行测试
-├── tools                       //当前benchmark工具存放路径
+├── lib						  
+|   ├── jdom.jar                // jar包存放目录
+├── src                         // 工具源码（执行测试的源码）
+├── tools                       // 存放工具的目录
+│   ├── benchmark               // benchmark工具
 ├── user                        // 数据库jdbc驱动/配置文件/用例
-│   ├── CONFIG                  //配置
-│   ├── driver                  // iotdb的lib目录下全部的jar包
-│   ├── result                  // 结果索引
-│       └──ResultIndex.out
-│   ├── scripts                 // 用例执行脚本
+│   ├── CONFIG                  // 放配置文件的目录
+│       ├── otf_new.properties  // iotdb-sql配置文件（连接数据库信息）
+│   ├── driver                  // 放目标设备jar的目录
+│       ├── iotdb               // 存放目标iotdb的lib目录下全部的jar包的目录（数据库jdbc驱动）
+│       ├── POI                 // 资源依赖
+│   ├── result                  // 结果索引（运行结果汇总）
+│       └──ResultIndex.out	    // test模式下执行后的结果文件（用例级）
+│   ├── scripts                 // 用例脚本目录(用于保存脚本文件夹)
+├── compile.sh                  // 编译源码(Linux环境)
+├── compile.bat                 // 编译源码(Windows环境)
+├── README.md                   // 帮助文档
+├── result.xml                  // 脚本级汇总结果（test模式下执行后的结果文件（脚本级））
+├── test.sh                     // 启动工具进行用例测试的脚本(Linux环境)
+├── test.bat                    // 启动工具进行用例测试的脚本(Windows环境)
 ```
 
-### 四、当前测试用例涵盖模块
+#### 2、重要文件目录介绍
 
-| 序号 |      覆盖功能模块       |                             备注                             |
-| :--: | :---------------------: | :----------------------------------------------------------: |
-|  1   |         元数据          | 如存储组，节点，时间序列，元数据模板，TTL，自动创建元数据等操作- |
-|  2   |        数据查询         | 如选择表达式查询，过滤条件查询，结果分页查询，结果对齐格式查询，聚合查询，最新点查询，空值查询，空值过滤，性能追踪，*和**通用符查询 |
-|  3   |        运维命令         |                如FLUSH，MERGE，CLEAR CACHE等                 |
-|  4   |         元数据          | 如存储组，节点，时间序列，元数据模板，TTL，自动创建元数据等操作 |
-|  5   | 查询写回（select into） |                              -                               |
-|  6   |    触发器（Trigger）    |                              -                               |
-|  7   |  用户自定义函数（UDF）  |                              -                               |
-|  8   |        权限管理         |   角色，用户，权限，用户与角色，角色与权限，用户与权限等-    |
+（1）otf_new.properties ：iotdb-sql-test 工具配置文件
+·	位置：`iotdb-sql/user/CONFIG` 。
+·	介绍：用于配置数据库信息和测试模式。
 
-### 五、后续补充
+```
+DBtype             IOTDB							    // 数据库类型
+iotdbURL           jdbc:iotdb://127.0.0.1:6667/		      // 树模型数据库url地址（默认地址127.0.0.1，端口：6667）
+//iotdbURL         jdbc:iotdb://127.0.0.1:6667?version=V_1_0&sql_dialect=table  // 表模型数据库url地址
+iotdbDriver        org.apache.iotdb.jdbc.IoTDBDriver      // 驱动程序的全限定类名
+iotdbUser          root								   // 数据库用户名
+iotdbPasswd        root								   // 数据库密码
+interval           11000							   // 时间间隔
+maxCircle          1
+user_ip            127.0.0.1                              // 测试用户标识（一般与ip地址一致）
+mode               setup 							   // setup测试模式：根据.run文件生成.result参考文档
+//mode             test                                   // test测试模式：用于根据.result参考文档生成.out测试结果文件）
+displayRow         10000
+OVERTIME           1000
+EndByMail          off
+maxConnection      127
+waitTime           20
+```
 
-可参照run文件规则编写测试用例，本地运行生成result文件，然后将`.run`文件和`.result`文件统一放到测试工具scripts文件目录下。
 
-#### 已知问题处理
 
-trigger/privilege_trig.run
-问题说明：
-给普通用户在root.**路径的CREATE_TRIGGER权限，脚本中的第128，129行：
-128 list privileges user lily_create_trig on root.sg1;
-129 list privileges user lily_create_trig on root.sg2;
-root.sg1,root.sg2路径看不到CREATE_TRIGGER权限，此bug已记录到IOTDB-2797。
-现在的处理方式是，按照现有iotdb的表现（错误表现），来标记SQL语句结果类型，比如
-128，129行的list privileges应该不为空（现在.result中为空）。
-133，145，155行的create trigger应该成功（现在标记<<SQLSTATE）。
-143，165的show triggers应该有对应结果（现在.result中为空）。
-168，169，170的drop trigger应该成功（现在标记<<SQLSTATE）
+#### 3、使用步骤-Linux环境
 
-权限模块：
-1. 赋予用户角色操作权限（GRANT_USER_ROLE）和撤销用户角色操作权限（REVOKE_USER_ROLE）功能异常，关于这块的测试用例采取注释处理，后续bug修复再启动测试。
-2. 删除存储组权限（DELETE_STORAGE_GROUP）功能丢失，相关用例采取注释处理，后续bug修复再启动测试。
+~ 步骤一：部署IoTDB并启动iotdb
 
-数据处理模块：
-Select into 创建出非法时间序列：select temperature into h1 from root.sg1.**;
-创建出时间序列 root.sg1.**.h1
+使用git拉取项目将iotdb-sql文件夹放一个合适的地方。【注意：使用Windows拉取再放到Linux中可能存在Windows符号在Linux中识别不了导致报错，故建议在什么环境使用就在该环境拉取】
 
-对应bug修复后，test会失败，到时分析结果，修改.run脚本，重新生成.result即可。
+~ 步骤二：导入目标数据库的jar包并编译源码
+
+需将`目标数据库的lib目录`下所有的jar包全部拷贝到`项目/user/driver/iotdb`目录下，然后执行`complie.sh`文件编译源码。
+
+~ 步骤三：修改配置文件
+
+在`项目/user/CONFIG/otf_new.properties`中修改配置（已初配置文件信息为例）
+·	修改iotdbURL参数：将ip和端口修改成自己数据库的ip和端口；
+·	修改iotdbUser和iotdbPasswd参数：将用户名和密码修改成自己数据库的；
+·	修改mode参数：首次启动SQL自动化工具，需将mode置为setup模式，接下来将mode更改为test模式，后续每次执行test.sh均为该模式；
+
+#### 4、编写SQL执行脚本文件
+
+在`项目/user/script`目录下先创建一个文件夹，在文件夹中编写 .run 的测试用例。
+
+```
+//.run文件编写规则
+connect root/root;   //连接用户
+create/show/select/count/list...  //数据库相关的增删改成操作
+<<NULL;              // 不记录测试结果（一般用于无关紧要的的用例）
+<<SQLSTATE;          // 校验异常（预期会报错的，一般用于错误情况的用例）
+<<CHECKCODE;         // 不检查结果是否一致（一般用于每次会变化的查询）
+sleep 1000;          // 休眠1000毫秒
+分号的单独处理：单个分号为每句SQL的结束符，需要在字符串中使用分号需要对其添加转义字符反斜杠("\")，反斜杠只单独对分号进行转义，结合其他字符则无效果
+
+```
+
+#### 5、启动工具
+
+在主目录下执行`test.sh`程序，生成基准文件 .result 。
+
+#### 6、更改配置文件模式
+
+在生成基准文件后修改配置文件模式为test
+
+#### 7、再次启动工具
+
+再在项目目录下执行`test.sh`程序，生成结果文件 .out 。
+
+

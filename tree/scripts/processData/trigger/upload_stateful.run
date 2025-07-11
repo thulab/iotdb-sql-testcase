@@ -1,0 +1,63 @@
+
+connect root/root;
+-- 1. 有状态trigger,before insert, 指定本地jarfile
+-- 2. 有状态trigger,after insert,指定http uri
+
+set configuration "trusted_uri_pattern"='.*';
+
+-- 1. 有状态trigger,before insert, 指定本地jarfile
+drop database root.**;<<NULL;
+sleep 2000;
+drop trigger `stateful-beforeInsert`;<<NULL;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
+
+CREATE STATEful TRIGGER `stateful-beforeInsert` before INSERT ON root.triggertest.d1.s1 AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='127.0.0.1', 'data_type'='double', 'standard_value'=100, 'trig_name'='stateful-beforeInsert');
+
+sleep 200;
+insert into root.triggertest.d1(time, s1) values (1, 10),(2,30);
+flush;
+select * from root.triggertest.d1;
+-- 0
+select count(*) from root.target.alerting.stateful;
+
+insert into root.triggertest.d1(time, s1) values (3,80),(4,100),(5,20),(6,33),(7,109),(8,120),(9,85),(10,90);
+flush;
+-- 10
+select * from root.triggertest.d1;
+-- 2
+select count(*) from root.target.alerting.stateful;
+
+drop trigger `stateful-beforeInsert`;
+delete timeseries root.**;
+
+
+
+-- 2. 有状态trigger,after insert
+delete timeseries root.**;<<NULL;
+drop trigger `stateful-afterInsert`;<<NULL;
+CREATE DATABASE root.triggertest;<<NULL;
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
+
+CREATE STATEful TRIGGER `stateful-afterInsert`
+after INSERT
+ON root.triggertest.d1.s1
+AS 'org.stateful.test.http.StatefulTriggerTest'
+Using uri 'http://127.0.0.1:8085/stateful-test-for-http-0.14-SNAPSHOT.jar'
+WITH (
+  'HOST'= '127.0.0.1',
+  'data_type'= 'boolean',
+  'standard_value' = 1,
+  'trig_name' = 'stateful-afterInsert'
+);
+
+insert into root.triggertest.d1(time, s1) values (1, 1),(2,1),(3,0),(4,1),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0),(11,1),(12,0),(13,0);
+flush;
+
+select * from root.triggertest.d1;
+-- 2
+select count(*) from root.target.alerting.stateful;
+
+drop trigger `stateful-afterInsert`;
+drop database root.**;<<NULL;
+

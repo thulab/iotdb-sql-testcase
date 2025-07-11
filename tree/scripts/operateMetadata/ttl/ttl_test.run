@@ -1,0 +1,60 @@
+connect root/root;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//创建、查看、取消TTL
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--测试操作
+CREATE DATABASE root.sg_ttl;
+create timeseries root.sg_ttl.dev.status with datatype=double,encoding=PLAIN ;
+set ttl to root.sg_ttl 5000;
+
+SHOW TTL ON root.sg_ttl;
+show all ttl;
+unset ttl to root.sg_ttl;
+
+SHOW TTL ON root.sg_ttl;
+show all ttl;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//创建、验证TTL；取消、验证TTL
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--测试操作
+CREATE DATABASE root.sg_ttl;
+create timeseries root.sg_ttl.dev.status with datatype=double,encoding=PLAIN ;
+insert into root.sg_ttl.dev(time,status) values(now(),2.3);
+select count(*) from root.sg_ttl.dev;
+set ttl to root.sg_ttl 5000;
+flush;
+select count(*) from root.sg_ttl.dev;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+
+SHOW TTL ON root.sg_ttl;
+show all ttl;
+unset ttl to root.sg_ttl;
+insert into root.sg_ttl.dev(time,status) values(1000,2.3);
+flush;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;

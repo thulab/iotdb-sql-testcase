@@ -1,0 +1,49 @@
+// Explain Analyze语句： 在Explain语句基础上增加性能分析，完整执行SQL并展示查询执行过程中的时间和资源消耗。
+// VERBOSE为打印详细分析结果，不填写将会省略部分信息
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+    device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+    float FLOAT FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(time, device_id, model_id, float) values(1,'d1','m1',1.1);
+insert into table_1(time, device_id, model_id, float) values(2,'d1','m1',2.2);
+insert into table_1(time, device_id, model_id, float) values(3,'d2','m2',3.3);
+
+--7. 数据查询
+select * from table_1 order by time;
+
+--8. explain analyze [VERBOSE]执行查询计划
+explain analyze select * from table_1 order by time;
+<<CHECKCODE;
+explain analyze select float from table_1 limit 1 offset 1;
+<<CHECKCODE;
+explain analyze select count(*) from table_1 group by device_id;
+<<CHECKCODE;
+explain analyze verbose select time,device_id, model_id, float from table_1 order by time desc limit 1 offset 1;
+<<CHECKCODE;
+
+-- 清理数据：
+drop database test_db;
+<<NULL

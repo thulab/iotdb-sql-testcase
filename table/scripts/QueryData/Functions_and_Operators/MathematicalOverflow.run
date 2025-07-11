@@ -1,0 +1,287 @@
+// 部分数据类型进行数学运行，溢出校验
+
+connect root/root;
+--0.清理数据: 删除数据库 
+drop database test_db;
+<<NULL;
+
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_add
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_sub
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_mul
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_div
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_negation
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+	"timestamp" TIMESTAMP
+);
+
+--4. 写入数据
+INSERT INTO table_add
+(
+time,device,type,int32,int64,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'),
+(2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26');
+
+INSERT INTO table_sub
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31');
+
+INSERT INTO table_mul
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000);
+
+INSERT INTO table_div
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0),
+(2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0),
+(3,'d3','t13',0,-0,-0,0,-0.0,0.0);
+
+INSERT INTO table_negation
+(
+time,device,type,int32,int64,double,float,timestamp) values
+(1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807),
+(2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808),
+(3,'d3','t13',0,-0,-0.0,0.0,0);
+
+
+
+--特殊情况（时间精度为ns:DATE + INT32 | DATE + INT64)有溢出现象
+--insert into table_add(time,int32,date) values(3,2147483647,'2286-11-21');
+--select cast(date as TIMESTAMP) + int32 from table_add where time = 3;
+
+--5.0 Addition 加法运算，溢出Check
+select * from table_add order by time;
+
+--5.1 INT32 (Addition:+)
+select int32 + int32 from table_add where time = 1; <<SQLSTATE;
+select int32 + int32 from table_add where time = 2; <<SQLSTATE;
+select int64 + int32 from table_add where time = 1; <<SQLSTATE;
+select int64 + int32 from table_add where time = 2;<<SQLSTATE;
+select int32 + int64 from table_add where time = 1; <<SQLSTATE;
+select int32 + int64 from table_add where time = 2; <<SQLSTATE;
+select date + int32 from table_add order by time;
+<<SQLSTATE;
+select int32 + date from table_add order by time;
+<<SQLSTATE;
+select timestamp + int32 from table_add where time = 1; <<SQLSTATE;
+select timestamp + int32 from table_add where time = 2; <<SQLSTATE;
+select int32 + timestamp from table_add where time = 1; <<SQLSTATE;
+select int32 + timestamp from table_add where time = 2; <<SQLSTATE;
+
+
+--5.2 INT64 (Addition:+)
+select int64 + int64 from table_add where time =1; <<SQLSTATE;
+select int64 + int64 from table_add where time =2; <<SQLSTATE;
+select date + int64 from table_add where time =1; <<SQLSTATE;
+select date + int64 from table_add where time =2; <<SQLSTATE;
+select int64 + date from table_add where time =1; <<SQLSTATE;
+select int64 + date from table_add where time =2; <<SQLSTATE;
+select timestamp + int64 from table_add where time =1; <<SQLSTATE;
+select timestamp + int64 from table_add where time =2; <<SQLSTATE;
+select int64 + timestamp from table_add where time =1; <<SQLSTATE;
+select int64 + timestamp from table_add where time =2; <<SQLSTATE;
+
+
+--6.0 Subtraction 减法运算，溢出Check
+select * from table_sub order by time;
+
+--6.1 INT32 (Subtraction:-)
+select int32 - int32_1 from table_sub where time =1; <<SQLSTATE;
+select int32 - int32_1 from table_sub where time =2; <<SQLSTATE;
+select int32_1 - int32 from table_sub where time =1; <<SQLSTATE;
+select int32_1 - int32 from table_sub where time =2; <<SQLSTATE;
+select int64 - int32_1 from table_sub where time =1; <<SQLSTATE;
+select int64 - int32_1 from table_sub where time =2; <<SQLSTATE;
+select int32_1 - int64 from table_sub where time =1; <<SQLSTATE;
+select int32_1 - int64 from table_sub where time =2; <<SQLSTATE;
+select date - int32_1 from table_sub order by time;
+select timestamp - int32_1 from table_sub order by time;
+select float - int32_1 from table_sub order by time;
+select double - int32_1 from table_sub order by time;
+
+--6.2 INT64 (Subtraction:-)
+select int64_1 - int64 from table_sub where time =1; <<SQLSTATE;
+select int64_1 - int64 from table_sub where time =2; <<SQLSTATE;
+select int64 - int64_1 from table_sub where time =1; <<SQLSTATE;
+select int64 - int64_1 from table_sub where time =2;<<SQLSTATE;
+select cast(date as TIMESTAMP) - int64 from table_sub where time =1; <<SQLSTATE;
+select cast(date as TIMESTAMP) - int64 from table_sub where time =2; <<SQLSTATE;
+select int64 - cast(date as TIMESTAMP) from table_sub where time =1; <<SQLSTATE;
+select int64 - cast(date as TIMESTAMP) from table_sub where time =2; <<SQLSTATE;
+select timestamp - int64 from table_sub where time =1; <<SQLSTATE; 
+select timestamp - int64 from table_sub where time =2; <<SQLSTATE;
+
+
+--7.0 Multiplication 乘法运算，溢出Check
+select * from table_mul order by time;
+
+--7.1 INT32 (Multiplication: X)
+select int32 * int32 from table_mul where time =1; <<SQLSTATE;
+select int32 * int32 from table_mul where time =2;<<SQLSTATE;
+select int32_1 * int32 from table_mul where time =1; <<SQLSTATE; 
+select int32_1 * int32 from table_mul where time =2; <<SQLSTATE;
+select int32 * int32_1 from table_mul where time =1; <<SQLSTATE;
+select int32 * int32_1 from table_mul where time =2; <<SQLSTATE;
+select int64 * int32 from table_mul where time =1; <<SQLSTATE;
+select int64 * int32 from table_mul where time =2; <<SQLSTATE;
+select int32 * int64 from table_mul where time =1; <<SQLSTATE;
+select int32 * int64 from table_mul where time =2; <<SQLSTATE;
+select int64_1 * int32 from table_mul where time =1; <<SQLSTATE;
+select int64_1 * int32 from table_mul where time =2; <<SQLSTATE;
+
+
+--7.2 INT64 (Multiplication: X)
+select int32_1 * int64 from table_mul where time =1; <<SQLSTATE;
+select int32_1 * int64 from table_mul where time =2; <<SQLSTATE;
+select int64 * int64 from table_mul where time =1; <<SQLSTATE;
+select int64 * int64 from table_mul where time =2; <<SQLSTATE;
+select int64_1 * int64 from table_mul where time =1; <<SQLSTATE;
+select int64_1 * int64 from table_mul where time =2; <<SQLSTATE;
+
+
+--8.0 Division 除法运算，溢出Check
+select * from table_div order by time;
+
+--8.1 INT32 (Division: / )
+select int32_1 / int32 from table_div where time = 2;
+<<SQLSTATE;
+select int32 / int32_1 from table_div where time = 2;
+select int64 / int32 from table_div where time=2 order by time;
+<<SQLSTATE;
+select int32 / int64 from table_div where time=2 order by time;
+
+--8.2 INT64 (Division: / )
+select int64 / int64_1 from table_div where time =2;
+<<SQLSTATE;
+select int64_1 / int64 from table_div where time =2;
+
+--8.3 特殊场景：结果为infinity | 0.0 | -0.0 | NaN
+select float / int32 from table_div where time=1 order by time;
+select float / int32 from table_div where time=3 order by time;
+select double / int32 from table_div where time=1 order by time;
+select double / int32 from table_div where time=3 order by time;
+select float / int64 from table_div where time=1 order by time;
+select float / int64 from table_div where time=3 order by time;
+select double / int64 from table_div where time=1 order by time;
+select double / int64 from table_div where time=3 order by time;
+select int32 / float from table_div where time=1 order by time;
+select int32 / float from table_div where time=3 order by time;
+select int32 / double from table_div where time =1;
+select int32 / double from table_div where time =3;
+select int64 / float from table_div where time =1;
+select int64 / float from table_div where time =3;
+select int64 / double from table_div where time =1;
+select int64 / double from table_div where time =3;
+
+--8.4 除数不能为0
+select int32_1 / int32 from table_div where time=3 order by time;
+<<SQLSTATE;
+select int64 / int32 from table_div where time=3 order by time;
+<<SQLSTATE;
+select int64 / int64_1 from table_div where time =3;
+<<SQLSTATE;
+
+
+--9.0 NEGATION 取反运算，溢出Check
+select * from table_div order by time;
+
+--9.1 INT32 (NEGATION: - )
+select int32, -int32 as nega_result from table_negation where time =1;
+select -int32 from table_negation where time =2;
+<<SQLSTATE;
+select int32, -int32 as nega_result from table_negation where time =3;
+
+--9.2 INT64 (NEGATION: - )
+select int64, -int64 as nega_result from table_negation where time =1;
+select -int64 from table_negation where time =2;
+<<SQLSTATE;
+select int64, -int64 as nega_result from table_negation where time =3;
+
+--9.3 DOUBLE (NEGATION: - )
+select double, -double as nega_result from table_negation where time =1;
+select double, -double as nega_result from table_negation where time =2;
+select double, -double as nega_result from table_negation where time =3;
+
+--9.4 FLOAT (NEGATION: - )
+select float, -float as nega_result from table_negation where time =1;
+select float, -float as nega_result from table_negation where time =2;
+select float, -float as nega_result from table_negation where time =3;
+
+--9.5 TIMESTAMP (NEGATION: - )
+select timestamp, -timestamp as nega_result from table_negation where time =1;
+select -timestamp from table_negation where time =2;
+<<SQLSTATE;
+select timestamp, -timestamp as nega_result from table_negation where time =3;
+
+--10. 清理数据: 删除数据库 
+drop database test_db;
+<<NULL;

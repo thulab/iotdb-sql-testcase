@@ -1,0 +1,66 @@
+//数据库DB级别修改TTL
+//如果数据库级别的TTL被修改，不会直接影响到已经存在的表的TTL设置
+//后续db ttl 默认值改了，只会影响后续新建的表，不会影响之前已创建的表
+
+connect root/root;
+
+--0. 清理数据
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库带TTL数值
+create database test_db with (TTL=5000);
+
+--2. 查看数据库信息
+show databases;
+
+--3. 指定数据库
+use test_db;
+
+--4. 创建表
+create table t1(ID TAG,int32 INT32);
+
+--5. 查看表
+show tables;
+
+--6. 列出表信息
+desc t1;
+
+--7. 插入数据
+insert into t1(time,ID,int32) values(now(),'d1',1);
+
+--8. 聚合查询数据
+select count(*) as count_result from t1;
+sleep 5000;
+
+--9. 再次聚合查询数据
+select count(*) as count_result from t1;
+
+--10. 修改DB级别的TTL
+alter database test_db set properties ttl='INF';
+
+--11. 查看数据库信息
+show databases details;
+
+--12. 查看表信息
+show tables;
+
+--13. 插入数据
+insert into t1(time,ID,int32) values(now(),'d1',2);
+
+--14. 聚合查询数据
+select count(*) as count_result from t1;
+sleep 5000;
+
+--15. 再次聚合查询数据
+select count(*) as count_result from t1;
+
+--16. 创建新表t2 
+create table t2(ID TAG,boolean BOOLEAN);
+
+--17. 查看新表t2
+show tables;
+
+--18. 清理数据
+drop database test_db;
+<<NULL;

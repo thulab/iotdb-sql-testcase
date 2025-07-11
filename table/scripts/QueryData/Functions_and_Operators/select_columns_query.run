@@ -1,0 +1,146 @@
+// SELECT子句使用COLUMN函数筛选想要的列
+// COLUMNS 函数：匹配所有列表
+// COLUMNS(*)
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库、表
+create database test_db;
+show databases;
+use test_db;
+create table t1(
+   	id STRING TAG,
+    region STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+show tables;
+desc t1;
+
+--2. 插入数据
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(1, 'd1', 'Beijing', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 0, 1000, 1.1, 111.11);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(2, 'd2', 'Shanghai', true, 'text2', 'string2', '2020-02-20', 16839200, X'3b', 111, 453, 11.1, 102.2);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(3, 'd3', 'Guangzhou', true, 'text2', 'string2', '2021-12-20', 116839200000, X'6728', 1, 123, 5.2, 333.3);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(4, 'd1', 'Beijing', false, 'text3', 'string3', '2022-06-11', 86700000, X'4b98', 2, 250, null, 666.66);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(5, 'd1', 'Beijing', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 16, -1.1, 1111.2);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(6, 'd2', 'Shanghai', true, 'text3', 'string3', null, 1378230000000, X'00010000', 1, 653, 0.1, 1221.2);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(7, 'd3', 'Guangzhou', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'FFD8FFE0', 2, null, 555.5, 1111.2);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(8, 'd2', 'Shanghai', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 110, 13.13, null);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(9, 'd4', 'Sichuan', true, 'text4', null, '2023-12-15', null, X'49460001', 10, null, 2.1, 155.5);
+
+insert into t1(time, id, region, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values
+(10, 'd4', 'Sichuan', false, 'text5', 'string3', '2024-01-15', 18392378000, null, 1, null, -11.1, 11.2);
+
+--3. 原始数据全量查询
+select * from t1 order by time;
+
+--4. 列匹配查询
+--4.1 匹配所有列
+select columns(*) from t1 order by time;
+
+--4.2 查询列名义“i”开头的列的数据
+select time, columns('^i.*') from t1 order by time;
+
+--4.3 查询列名“e”结尾的列的数据
+select columns('^.*e') from t1 order by time;
+
+--4.4 查询列名“o”中间的列的数据
+select time, columns('^.*o.*$') from t1 order by time;
+
+--4.5 列名以“K”开头的列，未匹配到任何列，抛出异常
+select columns('^K.*') from t1;
+<<SQLSTATE;
+
+--4.6 使用AS重命名使用
+--4.6.1匹配所有列，重命名
+select columns(*) as result from t1 order by time;
+
+--4.6.2 查询列名以 'b' 开头的列的数据，并重命名以 'series' 开头
+-- 使用引用组对匹配到的列进行重命名
+select time, columns('^b(.*)') as "series$1" from t1 order by time;
+
+--4.6.3 regex中没有捕获组，仍使用引用组对匹配到的列进行重命名
+select columns('^b.*') as "series$1" from t1;
+<<SQLSTATE;
+
+--4.6.4 AS 后面跟的是字符串常量而不是identifier
+select time, columns('^b(.*)') as 'series$1' from t1 order by time;
+<<SQLSTATE;
+
+--4.7 结合表达式使用
+--4.7.1 单个COLUMN函数
+select min(columns(*)) from t1;
+select count(columns(*)) from t1;
+
+--4.7.2 多个COLUMN函数
+--出现在同一表达式(多个COLUMN函数的参数要完全相同)
+select min(columns('^in.*')) + max(columns('^in.*')) from t1;
+
+--4.7.3 多个COLUMNS函数出现在同一表达式，且函数的参数不完全相同
+select min(columns('^in.*')) + max(columns('^da.*')) from t1;
+<<SQLSTATE;
+
+--4.7.4 出现在不同表达式
+select min(columns('^d.*')), max(columns('^d.*')), last(columns('^r.*')), last_by(COLUMNS(*), time) from t1;
+
+--4.7.5 查询每列的第一个非null值，以及对应的time
+select first(columns(*)), first_by(time,columns(*)) from t1;
+
+--4.7.6 在where子句中使用
+--查询数据，所有 'in' 开头列的数据必须要大于 100
+select * from t1 where columns('^in.*') > 100;
+
+--匹配不到任何列，抛出异常
+select * from t1 where columns('^h.*') > 1000;
+<<SQLSTATE;
+
+--4.8 columns()为空时校验
+select columns() from t1;
+<<SQLSTATE;
+
+--4.9 输入的 Regex 串是非法的
+select columns('*b') from t1;
+<<SQLSTATE;
+
+--4.10 对没有列名的列使用了COLUMNS
+select columns(*) from (select int32, int32+1 from t1);
+<<SQLSTATE;
+select columns('int64') from (select int64, int64-1 from t1);
+<<SQLSTATE;
+
+--4.11 HAVING子句使用COLUMNS
+select id, count(float) from t1 having columns('id') > 1;
+<<SQLSTATE;
+
+--清理环境
+drop database test_db;
+<<NULL;

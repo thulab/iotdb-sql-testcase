@@ -1,0 +1,208 @@
+// Quantified Comparison 允许将一个值与一组值进行比较，而不仅仅是与单个值
+// Comparison Operator: <, >, =, <=, >=, !=
+// ALL: 所有元素
+// ANY | SOME ：任意元素
+
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    name TEXT FIELD,
+	employee_id STRING FIELD,
+    Gender TEXT FIELD,
+	salary DOUBLE FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    department_name TEXT FIELD,
+	department_location STRING FIELD,
+	dep_member INT32 FIELD
+);
+
+
+create table salarys 
+(
+    department_id STRING TAG,
+	employee_id STRING FIELD,
+	salary DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+desc salarys;
+
+--6. 数据写入
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1704874210000, 'D001', 'Mary', '100011223', 'Female',6500.22);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1706698230000, 'D001', 'John', '100230012', 'Male', 8822);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1708868070000, 'D002', 'Nancy','120010112', 'Female', 10002);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1711437332000, 'D002', 'Jack', '102320120', 'Male', 7610);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1719754343000, 'D001', 'Linda','231102121', 'Female', 5600);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748736000000, 'D002', 'Jack', '242320120', 'Male', 7880);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748822400000, 'D001', 'Linda','243102121', 'Female', 8600);
+
+
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1704874210000, 'D001', '销售部', 'Beijing', 10223);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1706698230000, 'D002', '行政人事部', 'Shanghai', 1012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1708868070000, 'D002', '行政人事部', 'Beijing', 1112);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1711437332000, 'D001', '销售部', 'Hebei', 12012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1719754343000, 'D001', '销售部', 'Tianjin', 5511);
+
+
+insert into salarys(time, department_id, employee_id, salary) values(1748822400000, 'D001', '110011223', 6782);
+insert into salarys(time, department_id, employee_id, salary) values(1749036000000, 'D002', '243102121', 8600);
+insert into salarys(time, department_id, employee_id, salary) values(1759036000000, 'D001', '231102121', 5600);
+insert into salarys(time, department_id, employee_id, salary) values(1759122400000, 'D001', '230122121', 9910);
+insert into salarys(time, department_id, employee_id, salary) values(1759236000000, 'D002', '201102121', 5400);
+insert into salarys(time, department_id, employee_id, salary) values(1759536000000, 'D001', '221102121', 3600);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+select * from salarys order by time;
+
+--8. 比较量词查询
+--8.1 WHERE 子句中
+--8.1.1 ALL
+select e1.employee_id, e1.salary from employees e1
+	where e1.salary <= ALL (
+		select e2.salary from employees e2
+			where e2.employee_id = e1.employee_id
+) order by employee_id, salary;
+
+
+select salary from employees e
+	where department_id = 'D001' and salary >= all(
+		select salary from salarys s where e.salary = s.salary)
+order by salary;
+	
+	
+select e.name, e.salary from employees e
+	where e.salary > ALL (
+		select AVG(s.salary) from salarys s
+) order by name, salary;
+
+
+--8.1. 2 ANY | SOME
+select salary from employees e where department_id = 'D001' and
+	salary >= any(select salary from salarys s where e.salary = s.salary)
+order by salary;
+	
+	
+select employee_id as emp_id from employees e where department_id = 'D001' and
+	employee_id >= any(select employee_id from salarys s where e.employee_id = s.employee_id)
+order by emp_id;
+	
+	
+select employee_id as emp_id from employees where department_id = 'D002' and
+	employee_id > some(select employee_id from salarys)
+order by emp_id;
+
+
+select e.name, e.salary from employees e
+	where e.salary > any(
+		select s.salary from salarys s
+) order by name, salary;
+
+
+select e.name, e.salary from employees e
+	where e.salary > ANY (
+		select s.salary from salarys s
+			where s.department_id = e.department_id
+) order by name,salary;
+
+	
+--8.2 Having子句
+--8.2.1 ALL
+select e.department_id, round(AVG(e.salary),2) AS avg_salary from employees e
+	GROUP BY e.department_id
+		HAVING AVG(e.salary) > ALL (
+			select AVG(s.salary) from salarys s
+				GROUP BY s.department_id
+) order by department_id, avg_salary;
+
+
+--8.2.2 ANY | SOME
+select e.department_id, round(AVG(e.salary),2) AS avg_salary from employees e
+	GROUP BY e.department_id
+		HAVING AVG(e.salary) > ANY (
+			select s.salary from salarys s
+				where s.department_id = e.department_id
+) order by department_id, avg_salary;
+
+
+select e.department_id, MAX(e.salary) AS max_salary from employees e
+	GROUP BY e.department_id
+		HAVING MAX(e.salary) >= ANY (
+			select MAX(e2.salary) from employees e2
+				GROUP BY e2.department_id
+					HAVING e2.department_id = e.department_id
+) order by department_id, max_salary;
+
+
+select e.department_id, round(AVG(e.salary),2) AS avg_salary from employees e
+	GROUP BY e.department_id
+		HAVING AVG(e.salary) <= SOME (
+			select s.salary from salarys s
+				where s.department_id = e.department_id
+) order by department_id, avg_salary;
+
+
+select e.department_id, round(AVG(e.salary),2) AS avg_salary from employees e
+	GROUP BY e.department_id
+		HAVING AVG(e.salary) <= ANY (
+			select AVG(e2.salary) from employees e2
+				GROUP BY e2.department_id
+					HAVING e2.department_id = e.department_id
+) order by department_id, avg_salary;
+
+
+--8.3 Select 子句中
+--8.3.1 ALL
+select salary >= all(
+	select salary from salarys s where department_id = 'D001' and e.salary = s.salary)
+from employees e where department_id = 'D001';
+
+
+--8.3.2 ANY | SOME
+select salary <= any(
+	select salary from salarys s where department_id = 'D001' and e.salary = s.salary)
+from employees e where department_id = 'D001';
+
+
+select employee_id < some(
+	select employee_id from salarys s where department_id = 'D002')
+from employees where department_id = 'D002';
+
+ 
+--9. 不支持的查询
+select e.department_id, MAX(e.salary) AS max_salary from employees e
+	GROUP BY e.department_id
+		HAVING MAX(e.salary) > ANY (
+			select MAX(e2.salary) from employees e2
+				GROUP BY e2.department_id
+					HAVING e2.department_id != e.department_id);
+<<SQLSTATE;
+
+
+--清理环境
+drop database test_db;
+<<NULL;

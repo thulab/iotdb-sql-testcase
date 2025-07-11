@@ -1,0 +1,70 @@
+//创建普通用户
+//创建角色
+//赋予用户权限(角色不授予任何权限)
+//赋予用户角色
+//执行权限操作
+//撤销用户权限
+
+--0. 清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+
+--1. 分别创建用户和角色
+CREATE USER user01 'pass1234';
+CREATE ROLE manager;
+
+--2. 列出用户和列出角色
+list user;
+list role;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出角色所有权限 | 列出用户所有角色）
+LIST PRIVILEGES OF ROLE manager;
+LIST PRIVILEGES OF USER user01;
+
+--4. 赋予用户权限
+GRANT WRITE_DATA ON root.** TO USER user01;
+
+--5. 列出用户下所有角色
+LIST ROLE OF USER user01;
+
+--6.赋予用户角色
+GRANT ROLE manager TO user01;
+
+--7.列出用户所有权限
+LIST PRIVILEGES OF USER user01;
+
+--8.列出角色拥有的权限
+LIST PRIVILEGES OF ROLE manager;
+
+--9.创建时间序列
+create timeseries root.sg.d1.s1 with datatype=INT32;
+
+--10. user01登录，执行权限操作
+connect user01/pass1234;
+LIST PRIVILEGES OF USER user01;
+insert into root.sg.d1(time,s1) values(1,1);
+select * from root.sg.d1;
+
+--11. root登录，撤销普通用户write_data权限
+connect root/root;
+REVOKE WRITE_DATA ON root.** FROM USER user01;
+LIST PRIVILEGES OF USER user01;
+
+--11. user01登录，执行权限操作
+connect user01/pass1234;
+insert into root.sg.d1(time,s1) values(2,2);
+<<SQLSTATE;
+
+--12.清理环境
+connect root/root;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;

@@ -1,0 +1,93 @@
+// LIST ROLE OF USER <userName>
+// 列出指定用户下所有角色
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+
+-- 1. root创建角色和用户
+create role teacher;
+create role student;
+create user user01 'pass1234';
+create user user02 'pass1234';
+
+--2. root列出角色列表和用户
+list role;
+list user;
+
+--3. 将角色赋予普通用户
+grant role teacher to user01;
+grant role student to user02;
+list role of user user01;
+list role of user user02;
+
+--4. 未授权的普通用户user01，列出相关列表信息
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+list role of user user02;
+<<SQLSTATE;
+list user of role teacher;
+<<SQLSTATE;
+list user of role student;
+<<SQLSTATE;
+list user;
+<<SQLSTATE;
+list role;
+<<SQLSTATE;
+
+--5. root用户授予普通用户user01关于【MANAGE_ROLE】权限
+connect root/root;
+grant manage_role to user user01;
+
+--6. 已授权的普通用户user01，列出用户列表
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+list role of user user02;
+list user of role teacher;
+<<SQLSTATE;
+list user of role student;
+<<SQLSTATE;
+list user;
+<<SQLSTATE;
+list role;
+
+--7. root取消普通用户关于【MANAGE_ROLE】权限
+connect root/root;
+revoke manage_role from user user01;
+
+--8. 取消授权的普通用户user01，列出用户相关信息
+connect user01/pass1234;
+list privileges of user user01;
+list role of user user01;
+list role of user user02;
+<<SQLSTATE;
+list user of role teacher;
+<<SQLSTATE;
+list user of role student;
+<<SQLSTATE;
+list user;
+<<SQLSTATE;
+list role;
+<<SQLSTATE;
+
+
+-- 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;

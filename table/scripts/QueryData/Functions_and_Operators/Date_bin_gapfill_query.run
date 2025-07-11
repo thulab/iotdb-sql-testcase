@@ -1,0 +1,134 @@
+// date_bin_gapfill 函数
+// 将内部没有数据的时间区间展示出来
+
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 1, 1000, 1.1, 111.11
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 1727740800000, X'3b', 10, 453, 11.1, 102.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+3, '003', 'd3', 'V3', true, 'text2', 'string2', '2021-12-20', 1727746200000, X'6728', 1, 123, 5.2, 333.3
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+4, '004', 'd4', 'V4', false, 'text3', 'string3', '2022-06-11', 1727751600000, X'4b98', 2, 239, null, 666.66
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+5, '005', 'd1', 'V3', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 653, -1.1, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+6, null, 'd1', 'V2', true, 'text3', 'string3', null, 1378230000000, X'34', 1, 653, 0.1, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+7, '005', 'd2', 'V3', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'34', 2, null, 555.5, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+8, '002', 'd3', 'V1', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 653, 13.13, null
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+9, '003', 'd3', 'V1', true, 'text4', null, '2023-12-15', 1727758800000, X'34', 10, null, 2.1, 155.5
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+10, '004', 'd4', 'V2', false, 'text5', 'string3', '2023-12-15', 1727768700000, null, 1, null, -1.1, 11.2
+);
+
+--7. 原始数据查询
+select * from table_1 order by time;
+
+--8. date_bin_gapfill查询
+--8.1 不与group fil 结合使用，不会报错
+select date_bin_gapfill(2ms,time) as fill_result,date from table_1 where time > 1 and time < 10 order by time desc offset 2 limit 5;
+select time,date_bin_gapfill(2ms,time) as result from table_1 where time > 1 and time < 10 order by time;
+
+--8.2 仅与group by 搭配使用，才会有gapfill 功能
+select date_bin_gapfill(2ms,time) as result from (select * from table_1 order by time) where time > 1 and time < 10 group by 1;
+select date_bin_gapfill(2h,timestamp) as result from table_1 where timestamp between 1727740800000 and 1727769600000 group by 1;
+
+select date_bin_gapfill(3ms, time) AS ms_time, avg(int32) AS avg_int32
+  from table_1
+  where (time >= 1 AND time <10 )
+         AND device_id = 'd1'
+  GROUP BY 1;
+
+select time, region_id, device_id, date_bin_gapfill(2h, timestamp) AS hour_time, (max(double) + min(float)) AS total_result
+  from table_1
+  where (timestamp >= 1727740800000 AND timestamp < 1727769600000)
+         AND device_id = 'd3' and region_id='003'
+  GROUP BY 1,2,3,4
+  HAVING avg(int32) IS NOT NULL;
+
+select date_bin_gapfill(3h, timestamp) AS hour_time, region_id, avg(int64-int32+2) AS avg_result
+  from table_1
+  where timestamp >= 1727740800000 AND timestamp < 1727769600000 and boolean=false
+  group by 1, region_id;
+  
+--8.3 每个 group by clause 中只允许出现至多一个 date_bin_gapfill 函数 
+select date_bin_gapfill(2ms,time), date_bin_gapfill(2h,timestamp), count(text) from table_1
+	where time > 2 and time <= 10 
+		group by 1,2;
+<<SQLSTATE;
+
+--8.4 where子句出现其他过滤条件
+select date_bin_gapfill(2ms,time) from table_1 where device_id='d3' group by 1;
+<<SQLSTATE;
+
+--清理数据：
+drop database test_db;
+<<NULL;

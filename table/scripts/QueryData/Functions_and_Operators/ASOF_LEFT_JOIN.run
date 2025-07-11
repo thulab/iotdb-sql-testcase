@@ -1,0 +1,195 @@
+// ASOF LEFT JOIN 
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table quotes(id TAG, sys ATTRIBUTE, price DOUBLE);
+create table trades(id TAG, sys ATTRIBUTE, quanty INT64);
+
+--4.查看表
+show tables;
+
+--5.展示表结构信息
+desc quotes;
+desc trades;
+
+--6. 数据写入
+insert into quotes(time,id,sys,price) values(1000,'1001','AAPL',10.6);
+insert into quotes(time,id,sys,price) values(10000,'1001','AAPL',10.7);
+insert into quotes(time,id,sys,price) values(50000,'1001','AAPL',10.9);
+insert into quotes(time,id,sys,price) values(10000,'2021','MSFT',20.6);
+insert into quotes(time,id,sys,price) values(20000,'2021','MSFT',20.8);
+insert into quotes(time,id,sys,price) values(86400000,'2021','MSFT',21.2);
+insert into quotes(time,id,sys,price) values(604800000,'2021','MSFT',22.2);
+insert into quotes(time,id,sys,price) values(1209600000,'2021','MSFT',23.2);
+
+insert into trades(time,id,sys,quanty) values(2000,'1001','AAPL',10);
+insert into trades(time,id,sys,quanty) values(15000,'1001','AAPL',5);
+insert into trades(time,id,sys,quanty) values(55000,'1001','AAPL',9);
+insert into trades(time,id,sys,quanty) values(11000,'2021','MSFT',20);
+insert into trades(time,id,sys,quanty) values(21000,'2021','MSFT',25);
+
+--7. 数据查询
+select * from quotes order by time,id,sys,price;
+select * from trades order by time,id,sys,quanty;
+
+--7.1 当前仅支持ASOF LEFT JOIN
+select 
+       t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1, 
+       t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1 
+from 
+       quotes t1 
+         ASOF LEFT JOIN 
+       trades t2
+on
+       t1.time>=t2.time
+order by time1,id1,sys1,price1;
+
+--7.2 ASOF LEFT JOIN 不支持使用Tolerance参数：容差	   
+select 
+       t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1, 
+       t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1  
+from 
+       quotes t1 
+           ASOF(tolerance 5s) LEFT JOIN 
+       trades t2
+on
+       t1.time >= t2.time;
+<<SQLSTATE;
+
+
+--7.3 多个条件进行比较
+select
+        t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from
+        quotes t1
+            ASOF LEFT JOIN
+        trades t2
+ON
+		t1.id=t2.id AND t1.time < t2.time
+order by time1,id1,sys1,price1;
+
+select 
+		t1.time as time1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.sys as sys2, t2.quanty as quanty1
+from 
+	quotes t1 ASOF LEFT JOIN trades t2
+ON
+t1.sys=t2.sys AND t1.time > t2.time
+order by time1,sys1,price1;
+
+select
+        t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from
+        quotes t1
+            ASOF LEFT JOIN
+        trades t2
+ON
+		t1.id=t2.id AND t1.sys=t2.sys AND t1.time <= t2.time
+order by time1,id1,sys1,price1;
+
+select
+    t1.time AS time1, t1.price AS price1,
+    t2.time AS time2, t2.quanty AS quanty1
+from
+    quotes t1
+    ASOF LEFT JOIN
+    trades t2
+ON
+    t1.id = t2.id AND t1.sys = t2.sys AND t1.time > t2.time
+WHERE
+    t1.price > 20
+ORDER BY time1;
+
+
+--7.4 聚合查询
+select
+    t1.sys, 
+    COUNT(*) AS trade_count, 
+    round(AVG(t1.price),2) AS average_price
+from
+    quotes t1
+    ASOF LEFT JOIN
+    trades t2
+ON
+    t1.id = t2.id AND t1.sys = t2.sys AND t1.time < t2.time
+GROUP BY t1.sys
+ORDER BY trade_count DESC;
+
+
+--7.5 子查询
+select
+    t1.time AS time1, t1.id AS id1, t1.sys AS sys1, t1.price AS price1,
+    t2.time AS time2, t2.id AS id2, t2.sys AS sys2, t2.quanty AS quanty1
+from
+    (SELECT * FROM quotes WHERE price > 20) t1
+    ASOF LEFT JOIN
+    (SELECT * FROM trades WHERE quanty > 10) t2
+ON
+    t1.id = t2.id AND t1.sys = t2.sys AND t1.time < t2.time
+ORDER BY time1;
+
+
+select *
+from 
+    (select time as time1,
+         id as id1,
+         sys as sys1
+    from quotes
+    ) AS t1
+ASOF LEFT JOIN 
+    (select time as time2,
+         id as id2,
+         sys as sys2
+    from trades
+    ) AS t2 
+ON t1.time1 > date_bin(10s, t2.time2);
+
+
+--8. ASOF LEFT JOIN 中time不应该为等于号”=“,不等于号”<>“
+select 
+		t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from 
+	quotes t1 ASOF LEFT JOIN trades t2
+ON
+t1.sys=t2.sys AND t1.time=t2.time;
+<<SQLSTATE;
+
+select 
+		t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from 
+	quotes t1 ASOF LEFT JOIN trades t2
+ON
+t1.sys=t2.sys AND t1.time<>t2.time;
+<<SQLSTATE;
+
+
+--9. ASOF JOIN 不支持使用USING语法
+select 
+		t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+        t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from 
+	quotes t1 ASOF LEFT JOIN trades t2
+ON
+USING(id) where t1.time < t2.time;
+<<SQLSTATE;
+
+
+
+--清理环境
+drop database test_db;
+<<NULL;

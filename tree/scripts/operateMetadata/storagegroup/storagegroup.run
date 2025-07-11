@@ -1,0 +1,228 @@
+connect root/root;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//一、创建和查看数据库
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sgcc;
+
+--2.结果验证：查看数据库
+SHOW DATABASES;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//二、数据库名称字符校验，如字符类型及字符长度
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+
+--1.1数据库节点名只支持中英文字符、数字和下划线的组合
+CREATE DATABASE root.sgcc.1W_测试_1;
+CREATE DATABASE root.123;
+<<SQLSTATE;
+CREATE DATABASE root.win&one;
+<<SQLSTATE;
+CREATE DATABASE root.123w.24h;
+SHOW DATABASES;
+
+--1.2数据库名称总字符数不能超过64（含64），包括路径开头的root.这5个字符
+create database root.`qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuio`;
+create database root.`qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuiop`;
+<<SQLSTATE;
+SHOW DATABASES;
+
+--1.3数据库名称为保留字符：root
+create database root;
+<<SQLSTATE;
+create database root.;
+<<SQLSTATE;
+create database root.root;
+<<SQLSTATE;
+
+
+--1.4数据库名称中包含不合规的字符：【-,.,"",'',/】
+CREATE DATABASE root.sgcc.w-s1;
+<<SQLSTATE;
+CREATE DATABASE root.sg.;
+<<SQLSTATE;
+CREATE DATABASE root.;
+<<SQLSTATE;
+CREATE DATABASE root."sg";
+<<SQLSTATE;
+CREATE DATABASE root.'';
+<<SQLSTATE;
+CREATE DATABASE root.sg/;
+<<SQLSTATE;
+SHOW DATABASES;
+
+--2.结果验证：查看数据库
+SHOW DATABASES;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//三、父路径已经创建数据库，在使用子路径创建数据库会报错。 
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sgcc;
+SHOW DATABASES;
+
+--2.在已有的路径上创建数据库，进行校验
+CREATE DATABASE root.ln.wf01;
+<<SQLSTATE;
+
+--3.结果验证：查看数据库
+SHOW DATABASES;
+SHOW DATABASES root.**;
+
+--4.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//四、删除数据库
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sgcc;
+--2.查看数据库并删除具体的数据库
+SHOW DATABASES;
+DELETE DATABASE root.ln;
+SHOW DATABASES;
+DELETE DATABASE root.sgcc;
+SHOW DATABASES;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//五、使用通配符删除所有存储组
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sgcc;
+
+--2.查看并删除数据库
+SHOW DATABASES;
+DELETE DATABASE root.**;
+SHOW DATABASES;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//六、删除不存在的存储组
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.sgcc.test;
+
+--2.查看数据库并删除不存在的数据校验
+SHOW DATABASES;
+DELETE DATABASE root.test;
+<<SQLSTATE;
+SHOW DATABASES;
+DELETE DATABASE root.sgcc;
+<<SQLSTATE;
+SHOW DATABASES;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//七、删除已经create时间序列和insert数据的存储组
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+
+--2.创建时间序列
+create aligned timeseries root.ln.d1(s1 INT32, s2 DOUBLE);
+
+--3.查看设备和时间序列
+show devices;
+show timeseries;
+
+--4.插入数据
+insert into root.ln.d1(time, s1, s2) aligned values(1, 1, 1);
+insert into root.ln.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+
+--5.查询数据
+select * from root.ln.d1;
+
+--6.删除数据库
+delete DATABASE root.**;
+
+--7.查询设备和时间序列，查询数据
+show devices;
+show timeseries;
+select * from root.ln.d1;
+
+--8.再次创建数据库，时间序列
+CREATE DATABASE root.ln;
+create aligned timeseries root.ln.d1(s1 INT32, s2 DOUBLE);
+
+--9.查看设备，时间序列，查询数据
+show timeseries;
+show devices;
+select * from root.ln.d1;
+
+--10.结果验证：查看数据库
+SHOW DATABASES;
+
+--11.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//八、统计数据库数量
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE root.ln;
+CREATE DATABASE root.sg;
+CREATE DATABASE root.test.g_0;
+CREATE DATABASE root.test.db_g_1;
+CREATE DATABASE root.test.001_db_g_1.Qa_t1;
+
+--2.统计数据库数量：count
+count databases root.sg;
+count databases root.test.**;
+count databases root.**;
+
+--3.清理环境
+delete DATABASE root.**;
+<<NULL;

@@ -1,0 +1,40 @@
+-- [1]11:create database test_db
+STRICT{
+PASS
+}
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+-- [1]17:create table table1(device string tag, value int32 field)
+STRICT{
+PASS
+}
+-- [1]18:insert into table1(time,device,value) values(1577808001000,'d1',1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.673
+
+-- [1]24:select * from ( select date_bin(1ms,time) as date,count(*)from table1 group by date_bin(1ms,time)) t0 join ( select date_bin(1ms,time) as date,count(*)from table1 group by date_bin(1ms,time)) t1  on t0.date = t1.date
+STRICT{
+date(TIMESTAMP)      |_col1(INT64)      |date(TIMESTAMP)      |_col3(INT64)      |
+------------------------------------------------------------------------------
+2020-01-01T00:00:01.0|1                 |2020-01-01T00:00:01.0|1                 |
+00+08:00             |                  |00+08:00             |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.364
+
+-- [1]29:select * from table1 t1 full join table1 using (time) full join table1 using (time)
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |value(INT32)      |device(STRING)      |value(INT32)      |device(STRING)      |value(INT32)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+2020-01-01T00:00:01.0|d1                  |1                 |d1                  |1                 |d1                  |1                 |
+00+08:00             |                    |                  |                    |                  |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.77

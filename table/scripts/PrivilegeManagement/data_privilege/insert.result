@@ -1,0 +1,1516 @@
+-- [1]8:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]9:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]23:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]24:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]25:create database db1
+STRICT{
+PASS
+}
+-- [1]26:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]27:create database db2
+STRICT{
+PASS
+}
+-- [1]28:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]30:create user user01 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]33:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.13
+-- [1]34:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]36:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]40:grant insert on ANY to user user01
+STRICT{
+PASS
+}
+
+-- [1]43:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |*.*              |INSERT                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]44:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]45:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]46:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]47:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.754
+-- [1]48:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.73
+
+-- [1]49:show tables from db2
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]50:desc db2.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]51:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.216
+-- [1]52:update db2.t1 set region = 'Shanghai'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]55:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.159
+
+-- [1]56:select * from db2.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.22
+-- [1]57:revoke insert on any from user user01
+STRICT{
+PASS
+}
+
+-- [1]60:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]61:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]63:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]67:drop user user01
+STRICT{
+PASS
+}
+-- [1]68:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]69:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]74:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]75:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]76:create database db1
+STRICT{
+PASS
+}
+-- [1]77:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]78:create database db2
+STRICT{
+PASS
+}
+-- [1]79:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]81:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]82:create role role01
+STRICT{
+PASS
+}
+-- [1]84:grant role role01 to user01
+STRICT{
+PASS
+}
+
+-- [1]85:list user of role role01
+STRICT{
+User(TEXT)      |
+----------------
+user01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]88:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]89:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]90:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]92:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]96:grant insert on ANY to role role01
+STRICT{
+PASS
+}
+
+-- [1]99:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |*.*              |INSERT                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]100:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]101:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]102:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]103:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]104:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.668
+-- [1]105:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]106:show tables from db2
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]107:desc db2.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]108:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.297
+-- [1]109:update db2.t1 set region = 'Shanghai'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]112:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.17
+
+-- [1]113:select * from db2.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Shanghai            |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.15
+-- [1]114:revoke insert on any from role role01
+STRICT{
+PASS
+}
+
+-- [1]117:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]118:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]119:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]121:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]125:drop user user01
+STRICT{
+PASS
+}
+-- [1]126:drop role role01
+STRICT{
+PASS
+}
+-- [1]127:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]128:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]133:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]134:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]135:create database db1
+STRICT{
+PASS
+}
+-- [1]136:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]137:create database db2
+STRICT{
+PASS
+}
+-- [1]138:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]140:create user user01 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]143:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]144:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]146:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]150:grant insert on database db1 to user user01
+STRICT{
+PASS
+}
+
+-- [1]153:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |db1.*            |INSERT                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]154:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]155:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]156:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]157:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.652
+-- [1]158:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]159:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+
+-- [1]163:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.14
+-- [1]164:revoke insert on database db1 from user user01
+STRICT{
+PASS
+}
+
+-- [1]167:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]168:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]172:drop user user01
+STRICT{
+PASS
+}
+-- [1]173:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]174:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]179:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]180:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]181:create database db1
+STRICT{
+PASS
+}
+-- [1]182:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]183:create database db2
+STRICT{
+PASS
+}
+-- [1]184:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]186:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]187:create role role01
+STRICT{
+PASS
+}
+-- [1]189:grant role role01 to user01
+STRICT{
+PASS
+}
+
+-- [1]190:list user of role role01
+STRICT{
+User(TEXT)      |
+----------------
+user01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]193:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]194:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]195:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]197:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]201:grant insert on database db1 to role role01
+STRICT{
+PASS
+}
+
+-- [1]204:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |db1.*            |INSERT                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]205:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]206:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]207:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]208:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]209:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.916
+-- [1]210:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]211:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+
+-- [1]215:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.16
+-- [1]216:revoke insert on database db1 from role role01
+STRICT{
+PASS
+}
+
+-- [1]219:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]220:list role of user user01
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]221:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]225:drop user user01
+STRICT{
+PASS
+}
+-- [1]226:drop role role01
+STRICT{
+PASS
+}
+-- [1]227:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]228:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]233:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]234:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]235:create database db1
+STRICT{
+PASS
+}
+-- [1]236:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]237:create table db1.t2(id tag, s1 int32)
+STRICT{
+PASS
+}
+-- [1]238:create database db2
+STRICT{
+PASS
+}
+-- [1]239:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]240:create table db2.t2(id tag, s1 int32)
+STRICT{
+PASS
+}
+-- [1]242:create user user01 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]245:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]246:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]248:insert into db1.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t2
+}
+-- [1]250:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]252:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t2
+}
+-- [1]256:grant insert on table db1.t1 to user user01
+STRICT{
+PASS
+}
+-- [1]257:use db2
+STRICT{
+PASS
+}
+-- [1]258:grant insert on table t2 to user user01
+STRICT{
+PASS
+}
+
+-- [1]261:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |db2.t2           |INSERT                |false                     |
+---------------------------------------------------------------------------------
+                |db1.t1           |INSERT                |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]262:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]263:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]264:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]265:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.168
+-- [1]266:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]267:insert into db1.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t2
+}
+-- [1]269:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.233
+-- [1]270:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]272:update db2.t1 set region = 'Shanghai'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+
+-- [1]276:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.14
+-- [1]277:revoke insert on table db1.t1 from user user01
+STRICT{
+PASS
+}
+-- [1]278:use db2
+STRICT{
+PASS
+}
+
+-- [1]279:select * from t2 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |s1(INT32)      |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |1              |
+01+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |2              |
+02+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |3              |
+03+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |4              |
+04+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |5              |
+05+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |6              |
+06+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |7              |
+07+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |8              |
+08+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |9              |
+09+08:00             |                |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.14
+-- [1]280:revoke insert on table t2 from user user01
+STRICT{
+PASS
+}
+
+-- [1]283:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]284:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]286:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t2
+}
+-- [1]290:drop user user01
+STRICT{
+PASS
+}
+-- [1]291:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]292:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]297:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]298:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]299:create database db1
+STRICT{
+PASS
+}
+-- [1]300:create table db1.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]301:create table db1.t2(id tag, s1 int32)
+STRICT{
+PASS
+}
+-- [1]302:create database db2
+STRICT{
+PASS
+}
+-- [1]303:create table db2.t1(id tag, region attribute, s1 int32)
+STRICT{
+PASS
+}
+-- [1]304:create table db2.t2(id tag, s1 int32)
+STRICT{
+PASS
+}
+-- [1]306:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]307:create role role01
+STRICT{
+PASS
+}
+-- [1]309:grant role role01 to user01
+STRICT{
+PASS
+}
+
+-- [1]310:list user of role role01
+STRICT{
+User(TEXT)      |
+----------------
+user01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]313:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]314:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]316:insert into db1.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t2
+}
+-- [1]318:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]320:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t2
+}
+-- [1]324:grant insert on table db1.t1 to role role01
+STRICT{
+PASS
+}
+-- [1]325:use db2
+STRICT{
+PASS
+}
+-- [1]326:grant insert on table t2 to role role01
+STRICT{
+PASS
+}
+
+-- [1]329:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |db2.t2           |INSERT                |false                     |
+---------------------------------------------------------------------------------
+role01          |db1.t1           |INSERT                |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]330:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db1                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+db2                 |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]331:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]332:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]333:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.725
+-- [1]334:update db1.t1 set region = 'Beijing'
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.7
+-- [1]335:insert into db1.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t2
+}
+-- [1]337:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.196
+-- [1]338:insert into db2.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+-- [1]340:update db2.t1 set region = 'Shanghai'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t1
+}
+
+-- [1]345:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |s1(INT32)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |1              |
+01+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |2              |
+02+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |3              |
+03+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |4              |
+04+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |5              |
+05+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |6              |
+06+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |7              |
+07+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |8              |
+08+08:00             |                |                    |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|a               |Beijing             |9              |
+09+08:00             |                |                    |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.19
+-- [1]346:revoke insert on table db1.t1 from role role01
+STRICT{
+PASS
+}
+-- [1]347:use db2
+STRICT{
+PASS
+}
+
+-- [1]348:select * from t2 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |s1(INT32)      |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |1              |
+01+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |2              |
+02+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |3              |
+03+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |4              |
+04+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |5              |
+05+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |6              |
+06+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |7              |
+07+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |8              |
+08+08:00             |                |               |
+----------------------------------------------------
+1970-01-01T08:00:00.0|a               |9              |
+09+08:00             |                |               |
+总数目：9
+}
+
+Elapsed Time: 0.0.12
+-- [1]349:revoke insert on table t2 from role role01
+STRICT{
+PASS
+}
+
+-- [1]352:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]353:insert into db1.t1(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db1.t1
+}
+-- [1]355:insert into db2.t2(time,id,s1) values(1,'a',1),(2,'a',2),(3,'a',3),(4,'a',4),(5,'a',5),(6,'a',6),(7,'a',7),(8,'a',8),(9,'a',9)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege INSERT ON db2.t2
+}
+-- [1]359:drop user user01
+STRICT{
+PASS
+}
+-- [1]360:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]361:drop database if exists db2
+STRICT{
+PASS
+}
+-- [1]365:drop database if exists db1
+STRICT{
+PASS
+}
+-- [1]366:drop database if exists db2
+STRICT{
+PASS
+}

@@ -1,0 +1,70 @@
+// LIST PRIVILEGES OF USER <userName>
+// 列出指定用户下所有权限
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+
+
+-- 1. root创建用户
+create user user01 'pass1234';
+create user user02 'pass1234';
+
+--2. root列出用户列表
+list user;
+
+--3. 将权限赋予给普通用户
+grant manage_user to user user01;
+grant manage_role to user user01;
+list privileges of user user01;
+list privileges of user root;
+
+--4. 未授权的普通用户，列出相关列表信息
+connect user02/pass1234;
+list privileges of user user02;
+list privileges of user user01;
+<<SQLSTATE;
+
+--5. 已授权的普通用户，列出权限
+connect user01/pass1234;
+list privileges of user user01;
+list privileges of user user02;
+
+--6. root用户授予普通用户user02权限
+connect root/root;
+grant manage_role to user user02;
+grant manage_user to user user02;
+
+--7. 已授权的普通用户user02，列出用户拥有的权限列表
+connect user02/pass1234;
+list privileges of user user02;
+list privileges of user user01;
+
+--8. root取消普通用户权限
+connect root/root;
+revoke manage_role from user user01;
+revoke manage_user from user user01;
+revoke manage_role from user user02;
+revoke manage_user from user user02;
+
+--9. 取消授权的普通用户,列出用户拥有的权限列表
+connect user01/pass1234;
+list privileges of user user01;
+list privileges of user user02;
+<<SQLSTATE;
+
+connect user02/pass1234;
+list privileges of user user02;
+list privileges of user user01;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;

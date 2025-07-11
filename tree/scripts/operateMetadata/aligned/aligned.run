@@ -1,0 +1,150 @@
+connect root/root;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+CREATE ALIGNED TIMESERIES root.ln.wf01.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
+show timeseries;
+show devices;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 添加指定tag、attribute、alias
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+CREATE ALIGNED TIMESERIES root.ln.wf01.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
+show timeseries;
+show devices;
+ALTER timeseries root.ln.wf01.GPS.latitude UPSERT ALIAS=newAlias TAGS(tag2=newV2, tag3=v3) ATTRIBUTES(attr3=v3, attr4=v4);
+show timeseries;
+show devices;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 - 添加aligned 关键字
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.alignsg1.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.alignsg1.d1(time, s1, s2) aligned values(1, 1, 1);
+insert into root.alignsg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+select * from root.alignsg1.d1;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 - 未添加aligned 关键字
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.alignsg1.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.alignsg1.d1(time, s1, s2) values(1, 1, 1);
+insert into root.alignsg1.d1(time, s1, s2) values(2, 2, 2), (3, 3, 3);
+select * from root.alignsg1.d1;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 - 添加aligned 关键字 数据类型错误
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.alignsg1.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.alignsg1.d1(time, s1, s2) aligned values(1, '1', 1);
+<<SQLSTATE;
+insert into root.alignsg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, '3');
+<<SQLSTATE;
+select * from root.alignsg1.d1;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 - 未添加aligned 关键字 数据类型错误
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.alignsg1.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.alignsg1.d1(time, s1, s2) values(1, 1, '1');
+<<SQLSTATE;
+insert into root.alignsg1.d1(time, s1, s2) values(2, '2', 2), (3, 3, 3);
+<<SQLSTATE;
+select * from root.alignsg1.d1;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//对齐时间序列 - delete其中的1个序列的数据，查询
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+create aligned timeseries root.alignsg1.d1(s1 INT32, s2 DOUBLE);
+show timeseries;
+show devices;
+insert into root.alignsg1.d1(time, s1, s2) aligned values(1, 1, 1);
+insert into root.alignsg1.d1(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+delete from root.alignsg1.d1.s2;
+select * from root.alignsg1.d1;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//在对齐时序所属设备下创建非对齐时序
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+--测试操作
+CREATE ALIGNED TIMESERIES root.ln.wf01.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
+show timeseries;
+show devices;
+create timeseries root.ln.wf01.GPS.status with datatype=BOOLEAN,encoding=PLAIN;
+<<SQLSTATE;
+create timeseries root.ln.wf01.status with datatype=BOOLEAN,encoding=PLAIN;
+insert into root.ln.wf01.GPS(time, latitude, longitude) aligned values(1, 1, 1);
+insert into root.ln.wf01.GPS(time, latitude, longitude) aligned values(2, 2, 2), (3, 3, 3);
+insert into root.ln.wf01(time, status) values(1, true),(2, false), (3, true);
+select ** from root.ln.wf01;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+

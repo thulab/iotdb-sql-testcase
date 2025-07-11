@@ -1,0 +1,253 @@
+connect root/root;
+// 语法测试
+drop device template t1;<<NULL;
+drop device template null;<<NULL;
+drop device template t2;<<NULL;
+drop device template t22;<<NULL;
+create database root.template.syntax;
+create database root.template.syntax_1;
+create database root.template.syntax_2;
+
+-- 创建模版
+-- 正常
+create device template t1 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create device template null aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create device template t2 aligned (null FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+create device template t22 (null FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+-- 异常
+create device template t0 aligned (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create device template t12 aligned (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create template t3 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema  t4 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t5 aligned ( FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t6 aligned (s_lat  encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template null (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t32 (s_lat null encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t42 (s_lat FLOAT encoding=null, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create template t13 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema  t14 (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t15 ( FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+create schema template t16 (s_lat  encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+
+
+-- 修改模版
+alter schema template t1 add (s_speed FLOAT encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
+alter schema template nonExistTemplate add (s_speed FLOAT encoding=RLE);
+<<SQLSTATE;
+alter schema template null add (s_speed FLOAT encoding=RLE);
+alter schema template add (s_speed FLOAT encoding=RLE);
+<<SQLSTATE;
+alter schema template t1 add (null FLOAT encoding=RLE);
+alter schema template t1 add (ss_speed null encoding=RLE);
+<<SQLSTATE;
+alter schema template t1 add (sss_speed FLOAT encoding=null);
+<<SQLSTATE;
+alter schema template t1 add (ssss_speed FLOAT encoding=);
+<<SQLSTATE;
+alter schema template t1 add ( FLOAT);
+<<SQLSTATE;
+alter schema template t1 add (s_speed );
+<<SQLSTATE;
+alter  template t1 add (s_speed FLOAT);
+<<SQLSTATE;
+
+
+-- 查看所有模版
+show schema templates;
+show schema template;
+<<SQLSTATE;
+show templates;
+<<SQLSTATE;
+
+
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+show nodes in schema template t2;
+show nodes in schema template null;
+show nodes in schema template nonExistTemplate;
+<<SQLSTATE;
+show nodes in schema template ;
+<<SQLSTATE;
+show nodes in template t1;
+<<SQLSTATE;
+show child nodes in schema template t1;
+<<SQLSTATE;
+
+
+-- 未挂载
+-- 激活
+create timeseries using schema template on root.template.syntax.d2;
+<<SQLSTATE;
+-- 解除
+deactivate schema template t1 from root.template.syntax.*;
+<<SQLSTATE;
+deactivate schema template t1 from root.template.syntax.d2;
+<<SQLSTATE;
+-- 卸载
+unset schema template t1 from root.template.syntax.d1;
+<<SQLSTATE;
+
+
+
+-- 挂载
+set schema template t1 to root.template.syntax;
+set schema template nonExistTemplate to root.template.syntax;
+<<SQLSTATE;
+set schema template null to root.template.syntax_1;
+set schema template t2 to root.template.syntax_2;
+set schema template to root.template.syntax;
+<<SQLSTATE;
+set schema template t1 to root.nonExist.syntax;
+<<SQLSTATE;
+set schema template t1 to null;
+<<SQLSTATE;
+set schema template t1 to ;
+<<SQLSTATE;
+set schema template t1 to path123;
+<<SQLSTATE;
+
+-- 有挂载节点，删除模版
+drop schema template t1;
+<<SQLSTATE;
+
+
+-- 判断节点是否使用了模版
+show child nodes root.sg1.nonExist;
+show child nodes null;
+<<SQLSTATE;
+show child root.template.syntax;
+<<SQLSTATE;
+
+
+-- 查看挂载的节点
+show paths set device template t1;
+show paths set device template t2;
+show paths set device template null;
+show paths set device template nonExistTemplate;
+<<SQLSTATE;
+show paths set device template;
+<<SQLSTATE;
+
+
+-- 查看已激活的节点
+show paths using device template t1;
+show paths using device template nonExistTemplate;
+show paths using device template null;
+show paths using device template t2;
+show paths using device template;
+<<SQLSTATE;
+show paths device template t1;
+<<SQLSTATE;
+show paths of device template t1;
+<<SQLSTATE;
+
+
+-- 激活
+create timeseries of device template on root.template.syntax.d1;
+create timeserie of device template on root.template.syntax.d1;
+<<SQLSTATE;
+create timeseries of device template on null;
+<<SQLSTATE;
+create timeseries of device template on ;
+<<SQLSTATE;
+create timeseries of device template on "";
+<<SQLSTATE;
+create timeseries of device template on root.nonExist.d1;
+<<SQLSTATE;
+create timeseries using device template on root.template.syntax.d2;
+create timeseries using device template on root.nonExist.d2;
+<<SQLSTATE;
+create timeseries using device template on null;
+<<SQLSTATE;
+create timeseries using device template on ;
+<<SQLSTATE;
+create timeseries using device template on path123;
+<<SQLSTATE;
+create timeseries device template on root.template.syntax.d2;
+<<SQLSTATE;
+-- 卸载
+unset device template t1 from root.template.syntax.d1;
+<<SQLSTATE;
+-- 删除模版
+drop device template t1;
+<<SQLSTATE;
+
+
+
+-- 解除
+deactivate device template t1 from root.template.syntax.*;
+deactivate device template t1 from root.template.syntax.d1;
+<<SQLSTATE;
+deactivate device template t1 from root.nonExist.d1;
+<<SQLSTATE;
+deactivate device template t1 from null;
+<<SQLSTATE;
+deactivate device template t1 from ;
+<<SQLSTATE;
+deactivate device template null from root.template.syntax.d1;
+<<SQLSTATE;
+deactivate device template from root.template.syntax.d1;
+<<SQLSTATE;
+deactivate device template nonExistTemplate from root.template.syntax.d1;
+<<SQLSTATE;
+
+-- 删除模版
+drop device template t1;
+<<SQLSTATE;
+
+
+-- 卸载
+unset device template t1 from root.template.syntax;
+unset device template null from root.template.syntax_1;
+unset device template t2 from root.template.syntax_2;
+unset device template t1 from root.nonExist.syntax.d1;
+<<SQLSTATE;
+unset device template t1 from root.template.syntax.d2;
+<<SQLSTATE;
+unset device template t1 from null;
+<<SQLSTATE;
+unset device template t1 from ;
+<<SQLSTATE;
+unset device template nonExistTemplate from root.template.syntax.d1;
+<<SQLSTATE;
+unset device template null from root.template.syntax.d1;
+<<SQLSTATE;
+unset device template  from root.template.syntax.d1;
+<<SQLSTATE;
+unset  template  t1 from root.template.syntax.d1;
+<<SQLSTATE;
+
+
+
+-- 删除模版
+drop device template t1;
+drop device template null;
+drop device template t2;
+drop device template t22;
+drop device template nonExistTemplate;
+<<SQLSTATE;
+drop device template null;
+<<SQLSTATE;
+drop schema template ;
+<<SQLSTATE;
+drop template t1;
+<<SQLSTATE;
+
+
+drop database root.template.syntax;
+drop database root.template.syntax_1;
+drop database root.template.syntax_2;
+

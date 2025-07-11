@@ -1,0 +1,77 @@
+// 属性列值更新
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_attr
+(
+    "城市" STRING TAG,
+    "区县" STRING TAG,
+    "工厂" STRING TAG,
+    "型号" STRING ATTRIBUTE,
+    "维修周期" STRING ATTRIBUTE,
+    temperature FLOAT FIELD,
+    status BOOLEAN FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_attr;
+
+--6. 数据写入（只针对与标识符和属性进行写入）
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(1, 'beijing', 'haidian','B1020A','1000','10',18.8,false);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(2, 'tianjin', 'hexi','T1020A','2000','20',19.8,false);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(3, 'shanghai', 'pudong','S294v','3000','5',19.9,true);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(4, 'beijing', 'chaoyang','B13028','1200','8',20.1,true);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(5, 'beijing', 'haidian','B8dj9387','1001','25',22.1,false);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(6, 'shanghai', 'huangpu','S9883','3001','15',22.2,false);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(7, 'beijing', 'haidian','B999','1020','3',20.2,false);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(8, 'tianjin', 'hexi','T982','2002','5',19.5,true);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(9, 'shanghai', 'pudong','Snji983','3010','15',18.5,true);
+INSERT INTO table_attr(time, "城市", "区县","工厂", "型号", "维修周期", temperature, status) values(10, 'shanghai', 'huangpu','S8773','3022','2',17.5,false);
+
+--7. 查看表中设备信息
+show devices from table_attr;
+
+--8. 更新属性列
+--8.1 更新不存在的表
+update table01 set "城市" = 'shenzhen'; <<SQLSTATE;
+--8.2 更新表中不存在的属性列名
+update table_attr set "地区" = 'shenzhen'; <<SQLSTATE;
+--8.3 更新表中非属性列值
+update table_attr set "城市" = 'guangzhou'; <<SQLSTATE;
+--8.4 更新表中属性:指定多个属性（只能指定属性1次）
+update table_attr set "型号" = 'AA8738',"型号" = 'AA12445'; <<SQLSTATE;
+update table_attr set "型号" = 'AA818'，AA819'; <<SQLSTATE;
+--8.5 将所有型号更新为同一值
+update table_attr set "型号" = '110';
+show devices from table_attr;
+update table_attr set "维修周期" = '16' where "城市" = 'tianjin';
+show devices from table_attr where "城市" = 'tianjin';
+update table_attr set "型号" = '2332' where "城市" = 'shanghai' and "工厂" = 'S8773';
+show devices from table_attr where "城市" = 'shanghai' and "工厂" = 'S9883';
+update table_attr set "型号" = substring("工厂",1,3) where "城市" = 'tianjin';
+show devices from table_attr where "城市" = 'tianjin';
+update table_attr set "型号" = "工厂" where "城市" = 'beijing' and substring("工厂",1,4) like '%';
+show devices from table_attr where "城市" = 'beijing';
+update table_attr set "维修周期" = substring("型号", 1, 2) where "维修周期" <> substring("型号", 1, 1) and "城市" = 'shanghai';
+show devices from table_attr where "城市" = 'shanghai';
+update table_attr set "维修周期" = cast("型号" as int32) where "城市" = 'shanghai' and "区县" = 'huangpu'; <<SQLSTATE;
+update table_attr set "维修周期" = '90' where "工厂" = 'S294v';
+show devices from table_attr where  "工厂" = 'S294v';
+
+--清理数据：
+drop database test_db;
+<<NULL;
+

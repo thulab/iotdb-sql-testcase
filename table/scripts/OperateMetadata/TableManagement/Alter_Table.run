@@ -1,0 +1,80 @@
+-- 连接数据库
+connect root/root;
+-- 清除数据库
+drop database test;
+<<NULL;
+
+-- 创建数据库和表
+create database test1;
+create database test2;
+use test2;
+create table table_1(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD);
+create table table_2(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD) with (TTL=DEFAULT);
+use test1;
+create table table_1(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD);
+create table table_2(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD) with (TTL='INF');
+create table table_3(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD) with (TTL=DEFAULT);
+create table table_4(id1 STRING TAG, attr1 STRING ATTRIBUTE, m1 INT32 FIELD) with (TTL=360000);
+
+// add column
+-- 添加各种列
+alter table table_1 add column m2 FLOAT FIELD;
+desc table_1;
+alter table table_1 add column attr2 STRING ATTRIBUTE;
+desc table_1;
+alter table table_1 add column id2 STRING TAG;
+desc table_1;
+-- 各种数据类型的物理量列
+alter table table_1 add column m3 BOOLEAN FIELD;
+alter table table_1 add column m4 INT32 FIELD;
+alter table table_1 add column m5 INT64 FIELD;
+alter table table_1 add column m6 DOUBLE FIELD;
+alter table table_1 add column m7 DATE FIELD;
+alter table table_1 add column m8 TEXT FIELD;
+alter table table_1 add column m9 STRING FIELD;
+alter table table_1 add column m10 BLOB FIELD;
+alter table table_1 add column m11 TIMESTAMP FIELD;
+desc table_1;
+-- 对其他库的表添加列
+alter table test2.table_1 add column m2 FLOAT FIELD;
+alter table test2.table_1 add column attr2 ATTRIBUTE;
+alter table test2.table_1 add column id2 TAG;
+desc test2.table_1;
+-- 使用 if not exists语句，并对已存在的列重复添加
+alter table table_1 add column if not exists m12 FLOAT FIELD;
+alter table table_1 add column if not exists m12 FLOAT FIELD;
+alter table table_1 add column if not exists attr3 ATTRIBUTE;
+alter table table_1 add column if not exists attr3 ATTRIBUTE;
+alter table table_1 add column if not exists id4 TAG;
+alter table table_1 add column if not exists id4 TAG;
+desc table_1;
+-- 大小写
+ALTER table TABLE_1 ADD COLUMN M13 float FIELD;
+-- 各种命名
+alter table table_1 add column "1234567890" BOOLEAN FIELD;
+alter table table_1 add column "123456789" ATTRIBUTE;
+alter table table_1 add column "123456780" TAG;
+alter table table_1 add column "没问" INT32 FIELD;
+alter table table_1 add column "没题" ATTRIBUTE;
+alter table table_1 add column "没问题" TAG;
+alter table table_1 add column "table" INT64 FIELD;
+alter table table_1 add column "add" DOUBLE FIELD;
+alter table table_1 add column timestamp DATE FIELD;
+-- 异常情况
+alter table table_1 add column attr2 TEXT ATTRIBUTE;
+<<SQLSTATE;
+alter table table_1 add column id2 INT32 TAG;
+<<SQLSTATE;
+alter table table_1 add column 123 TEXT FIELD;
+<<SQLSTATE;
+alter table table_1 add column 没问题 STRING FIELD;
+<<SQLSTATE;
+alter table table_1 add column create DOUBLE FIELD;
+<<SQLSTATE;
+alter table table_1 add column m13 FIELD;
+<<SQLSTATE;
+alter table table_1 add column m2 BLOB FIELD;
+<<SQLSTATE;
+
+drop database test1;
+drop database test2;

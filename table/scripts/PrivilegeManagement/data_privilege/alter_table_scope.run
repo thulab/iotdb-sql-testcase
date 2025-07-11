@@ -1,0 +1,97 @@
+// ALTER : 修改权限
+// 范围： 单个表范围内
+// 允许用户修改表的定义
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop database db1;
+<<NULL;
+drop database db2;
+<<NULL;
+
+
+--1. root 创建普通用户和角色
+create user user01 'pass1234';
+create user user02 'pass1234';
+
+create role role01;
+grant role role01 to user02;
+
+list user;
+list role;
+list user of role role01;
+list role of user user02;
+
+create database db1 with(TTL=86400000,SCHEMA_REGION_GROUP_NUM=1, DATA_REGION_GROUP_NUM=2);
+show databases details;
+create table db1.t1(ID TAG, status BOOLEAN);
+show tables from db1;
+desc db1.t1;
+
+create database db2;
+show databases;
+create table db2.t1(ID TAG, status BOOLEAN);
+show tables from db2;
+desc db2.t1;
+
+--2. 普通用户user01未授予【ALTER】权限，修改表属性
+connect user01/pass1234;
+list privileges of user user01;
+alter table db1.t1 add column int32 int32;
+<<SQLSTATE;
+
+--3. root赋予user01关于TABLE范围【ALTER】权限
+connect root/root;
+grant alter on table db1.t1 to user user01;
+
+--4. 被授予【ALTER】权限的user01,修改表属性
+connect user01/pass1234;
+list privileges of user user01;
+show databases;
+show tables from db1;
+desc db1.t1;
+alter table db1.t1 add column int32 int32;
+desc db1.t1;
+alter table db2.t1 add column int32 int32;
+<<SQLSTATE;
+
+--5. 角色role01未授予【ALTER】权限，关联角色role01的普通用户user02,修改表属性
+connect user02/pass1234;
+list privileges of user user02;
+list role of user user02;
+alter table db2.t1 add column int32 int32;
+<<SQLSTATE;
+
+--6. root赋予role01关于TABLE范围【ALTER】权限
+connect root/root;
+grant ALTER on table db2.t1 to role role01;
+
+--7. 被授予【ALTER】权限的角色role01，关联角色role01的普通用户user02修改表属性
+connect user02/pass1234;
+list privileges of user user02;
+list role of user user02;
+show databases;
+show tables from db2;
+desc db2.t1;
+alter table db2.t1 add column int32 int32;
+desc db2.t1;
+
+--清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop database db1;
+<<NULL;
+drop database db2;
+<<NULL;

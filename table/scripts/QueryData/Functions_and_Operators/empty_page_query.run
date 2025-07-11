@@ -1,0 +1,61 @@
+// 参考issue：https://timechor.feishu.cn/docx/QjfjdAj00oXpKyxlr5jc4RQOn3g
+
+// 查询 1：select avg(s1) from table1 where s1 + 1 < 1 group by device_id,s1;
+// 执行时出现异常‘301: Invalid position -1 and length 1 in block with 0 positions’
+
+// 查询 2：select avg(s1) from table1 where s1 + 1 < 1 group by device_id;
+// 查询 2：空数据时查询结果不正确 ，应该为空
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表，并插入数据
+CREATE TABLE table1(
+	province STRING FIELD, city STRING FIELD, region STRING FIELD, device_id STRING TAG,
+	color STRING ATTRIBUTE, type STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD,
+	s4 DOUBLE FIELD, s5 BOOLEAN FIELD, s6 TEXT FIELD, s7 STRING FIELD, s8 BLOB FIELD, s9 TIMESTAMP FIELD, s10 DATE FIELD);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s3,s6,s8,s9) values (1727129730000,'shanghai','shanghai','huangpu','d01','red','A',30,30.0,'shanghai_huangpu_red_A_d01_30', X'cafebabe30',2024-09-24T06:15:30.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s2,s3,s4,s6,s7,s9,s10) values (1727129735000,'shanghai','shanghai','huangpu','d01','red','A',35000,35.0,35.0,'shanghai_huangpu_red_A_d01_35','shanghai_huangpu_red_A_d01_35',2024-09-24T06:15:35.000+00:00,'2024-09-24');
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s3,s5,s7,s9) values (1727129740000,'shanghai','shanghai','huangpu','d01','red','A',40,40.0,true,'shanghai_huangpu_red_A_d01_40',2024-09-24T06:15:40.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s2,s5,s9,s10) values (1727129750000,'shanghai','shanghai','huangpu','d01','red','A',50000,false,2024-09-24T06:15:50.000+00:00,'2024-09-24');
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s4,s8,s9) values (1727129755000,'shanghai','shanghai','huangpu','d01','red','A',55,55.0,X'cafebabe55',2024-09-24T06:15:55.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s5,s6,s7,s9) values (1727129736000,'shanghai','shanghai','huangpu','d02','red','BBBBBBBBBBBBBBBB',36,true,'shanghai_huangpu_red_B_d02_36','shanghai_huangpu_red_B_d02_36',2024-09-24T06:15:36.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s4,s7,s9,s10) values (1727129740000,'shanghai','shanghai','huangpu','d02','red','BBBBBBBBBBBBBBBB',40,40.0,'shanghai_huangpu_red_B_d02_40',2024-09-24T06:15:40.000+00:00,'2024-09-24');
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s2,s7,s8,s9) values (1727129750000,'shanghai','shanghai','huangpu','d02','red','BBBBBBBBBBBBBBBB',50000,'shanghai_huangpu_red_B_d02_50',X'cafebabe50',2024-09-24T06:15:50.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s2,s8,s9) values (1727129731000,'shanghai','shanghai','huangpu','d03','yellow','A',31000,X'cafebabe31',2024-09-24T06:15:31.000+00:00);
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s4,s7,s9,s10) values (1727129736000,'shanghai','shanghai','huangpu','d03','yellow','A',36,36.0,'shanghai_huangpu_yellow_A_d03_36',2024-09-24T06:15:36.000+00:00,'2024-09-24');
+
+INSERT INTO table1(time,province,city,region,device_id,color,type,s1,s3,s5,s6,s8,s9) values (1727129741000,'shanghai','shanghai','huangpu','d03','yellow','A',41,41.0,false,'shanghai_huangpu_yellow_A_d03_41',X'cafebabe41',2024-09-24T06:15:41.000+00:00);
+
+
+FLUSH;
+
+--4. 聚合查询
+--4.1 查询 1：之前返回301异常，正确结果返回空列表
+select avg(s1) from table1 where s1 + 1 < 1 group by device_id,s1;
+
+--4.2 查询 2：之前返回不正确结果，显示null，正确结果返回空列表
+select avg(s1) from table1 where s1 + 1 < 1 group by device_id;
+
+--清理环境
+drop database test_db;
+<<NULL;

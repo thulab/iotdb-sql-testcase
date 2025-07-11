@@ -1,0 +1,175 @@
+// 关联Exists Predicate
+// SQL用于判断子查询是否返回至少一行结果的关键字
+// 返回布尔值： TRUE | FALSE
+// 只要子查询返回至少一行，即为TRUE，否则为FALSE
+
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    name TEXT FIELD,
+	employee_id STRING FIELD,
+    Gender TEXT FIELD,
+	salary DOUBLE FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    department_name TEXT FIELD,
+	department_location STRING FIELD,
+	dep_member INT32 FIELD
+);
+
+
+create table salarys 
+(
+    department_id STRING TAG,
+	employee_id STRING FIELD,
+	salary DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+desc salarys;
+
+--6. 数据写入
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1704874210000, 'D001', 'Mary', '100011223', 'Female',6500.22);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1706698230000, 'D001', 'John', '100230012', 'Male', 8822);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1708868070000, 'D002', 'Nancy','120010112', 'Female', 10002);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1711437332000, 'D002', 'Jack', '102320120', 'Male', 7610);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1719754343000, 'D001', 'Linda','231102121', 'Female', 5600);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748736000000, 'D002', 'Jack', '242320120', 'Male', 7880);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748822400000, 'D001', 'Linda','243102121', 'Female', 8600);
+
+
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1704874210000, 'D001', '销售部', 'Beijing', 10223);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1706698230000, 'D002', '行政人事部', 'Shanghai', 1012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1708868070000, 'D002', '行政人事部', 'Beijing', 1112);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1711437332000, 'D001', '销售部', 'Hebei', 12012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1719754343000, 'D001', '销售部', 'Tianjin', 5511);
+
+
+insert into salarys(time, department_id, employee_id, salary) values(1748822400000, 'D001', '110011223', 6782);
+insert into salarys(time, department_id, employee_id, salary) values(1749036000000, 'D002', '243102121', 8600);
+insert into salarys(time, department_id, employee_id, salary) values(1759036000000, 'D001', '231102121', 5600);
+insert into salarys(time, department_id, employee_id, salary) values(1759122400000, 'D001', '230122121', 9910);
+insert into salarys(time, department_id, employee_id, salary) values(1759236000000, 'D002', '201102121', 5400);
+insert into salarys(time, department_id, employee_id, salary) values(1759536000000, 'D001', '221102121', 3600);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+select * from salarys order by time;
+
+--8. Exists查询
+--8.1 where子句
+select salary from employees e where exists(select salary from salarys s where e.salary = s.salary) order by salary;
+
+
+select salary from employees e where department_id = 'D001' and
+	exists(select salary from salarys s where department_id = 'D001' and  e.salary = s.salary);
+	
+
+select distinct cast(employee_id AS INT32) as emp_id from employees e 
+	where exists(select employee_id from salarys s where department_id = 'D001' and e.employee_id = s.employee_id);
+	
+
+select salary from employees e where exists(select avg(salary) from salarys s where department_id = 'D001' and e.salary = s.salary) order by salary;
+
+	
+select e.name, e.salary, d.department_name from employees e
+	JOIN departments d ON e.department_id = d.department_id
+where EXISTS (
+			select 1 from salarys s
+				where s.department_id = e.department_id AND s.salary > 7000
+) order by name, salary, department_name;
+
+
+select e.name, e.salary from employees e
+	where e.department_id = 'D002' and EXISTS (
+			select 1 from salarys s
+				where s.department_id = e.department_id AND s.salary > 6000
+) order by name, salary;
+
+
+select e.name, e.salary from employees e
+	where e.department_id = 'D001' and EXISTS (
+		select 1 from salarys s
+			where s.department_id = e.department_id AND s.salary > 8000
+) order by name, salary;
+
+
+select e.name, e.salary, d.department_name from employees e
+	JOIN departments d ON e.department_id = d.department_id
+		where EXISTS (
+			select 1 from salarys s
+				where s.department_id = d.department_id AND s.salary < 4000
+) order by name, salary, department_name;
+
+
+--8.2 having子句
+select department_id, count(*) as count_result from departments d group by department_id 
+	having exists(select 1 from salarys s where s.department_id = d.department_id) order by department_id, count_result;
+
+
+select distinct(d.department_name) from departments d
+	where EXISTS(
+		select 1 from employees e
+			JOIN salarys s ON e.employee_id = s.employee_id
+				where e.department_id = d.department_id GROUP BY e.department_id
+					HAVING COUNT(*) > 0 AND MAX(s.salary) > 5000
+);
+
+
+--8.3 select子句
+select exists(select salary from employees e where e.salary = s.salary) from salarys s; 
+
+
+--8.4 NOT EXISTS子句
+select e.name, e.department_id from employees e
+	where NOT EXISTS (
+		select 1 from salarys s
+		 where s.employee_id = e.employee_id
+) order by name, department_id;
+
+
+select e.name from employees e
+	where NOT EXISTS (
+		select 1 from departments d
+			where d.department_id = e.department_id
+				AND d.department_name = 'Sales'
+) order by name;
+
+--9. 不支持的查询
+select e.name, e.salary, d.department_name from employees e
+	JOIN departments d ON e.department_id = d.department_id
+		where EXISTS (
+			select 1 from salarys s
+				where s.department_id = e.department_id GROUP BY s.department_id
+					HAVING MAX(s.salary) > (
+						select AVG(salary) from salarys 
+							where department_id = e.department_id)
+);
+<<SQLSTATE;
+
+
+--清理环境
+drop database test_db;
+<<NULL;

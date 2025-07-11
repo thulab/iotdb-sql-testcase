@@ -1,0 +1,1163 @@
+// MATCH_RECOGNIZE：行模式识别
+
+connect root/root;
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table orders(
+customer_id TAG,
+region ATTRIBUTE,
+order_date DATE,
+product TEXT,
+status BOOLEAN,
+number INT64,
+totalprice DOUBLE);
+
+--4. 查看表
+show tables;
+
+--5.展示表结构信息
+desc orders;
+
+--6. 插入数据
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736000000, '100', 'beijing', '2025-06-01', 'table', true, 100, 55000.5
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736600000, '100', 'beijing', '2025-06-01', 'table', true, 255, 13200.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737200000, '100', 'beijing', '2025-06-01', 'table', true, 888, 12400
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737800000, '100', 'beijing', '2025-06-01', 'table', true, 55, 9998.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748739600000, '100', 'beijing', '2025-06-01', 'table', true, 666, 9998.3
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748822400000, '101', 'shanghai', '2025-06-02', 'door', false, 608, 12350.5
+					);			
+
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748826000000, '101', 'shanghai', '2025-06-02', 'door', true, 1000, 667849.9
+					);					
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748831400000, '101', 'shanghai', '2025-06-02', 'door', true, 360, 33920.5
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748835000000, '101', 'shanghai', '2025-06-02', 'door', true, 150, 33920.5
+					);	
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923200000, '100', 'beijing', '2025-06-03', 'table', true, 150, 11230.4
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923300000, '101', 'beijing', '2025-06-04', 'table', true, 50, 55000.00
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748924300000, '102', 'beijing', '2025-06-05', 'table', true, 50, 65000.00
+					);
+
+
+--7. 原始数据查询
+select * from orders order by time;		
+
+
+--8. 行模式识别
+--8.1 DEFINE 子句：定义行模式的基本模式变量，每个变量都需与一个布尔条件绑定
+-- + ：一次或多次重复
+select * from orders
+	MATCH_RECOGNIZE(
+		partition by customer_id
+		order by number
+		measures
+			MATCH_NUMBER() AS match,
+			CLASSIFIER() AS label
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE
+			A AS true
+	) AS m
+order by customer_id,number;
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		measures
+			totalprice as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m
+order by time, price;
+
+	
+-- RPR_LAST	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice, 0) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RUNNING RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_LAST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+
+--RPR_FIRST	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice, 0) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RUNNING RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_FIRST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+	
+--PREV	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice, 1) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+	
+--NEXT
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+		
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(totalprice, 1) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+	order by time
+		measures
+			NEXT(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+	
+--混合
+select * from orders
+	MATCH_RECOGNIZE(
+		partition by customer_id
+		order by time
+		measures 
+			MATCH_NUMBER() AS match,
+			RPR_FIRST(A.time) AS event_start,
+			RPR_LAST(A.time) AS event_end,
+			RPR_LAST(A.totalprice) AS last_totalprice
+	ONE ROW PER MATCH
+	PATTERN (A+)
+	DEFINE A AS A.totalprice > 10000
+	)
+	as m
+ORDER BY customer_id, match, last_totalprice;
+
+select * from
+	(
+	select time, customer_id, region, totalprice from orders
+		where region = 'beijing' and time >= 1748736600000 and time < 1748923200000
+	)
+	MATCH_RECOGNIZE(
+		partition by region
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RPR_FIRST(A.time) AS event_start,
+			RPR_LAST(A.time) AS event_end,
+			RPR_LAST(A.totalprice) AS last_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE
+			A AS A.totalprice > 100000
+	) AS m;
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice, 2)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice, 2), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+		
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice, 1)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+	order by time
+		measures
+			NEXT(RPR_FIRST(totalprice, 1)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice, 1), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+		
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+	
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice, 2)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice, 2), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+
+-- * ：零次或多次重复
+select m.match, m.num, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(number) AS num,
+			CLASSIFIER() AS label
+		ONE ROW PER MATCH
+		PATTERN (B*)
+		DEFINE
+			B AS B.number < PREV(B.number)
+	) AS m
+order by match, num, label;
+
+	
+--8.2 SUBSET子句：定义联合模式变量，用于将多个基本模式变量所匹配的行合并为一个逻辑集合
+--模式连接：A B+ C+ D+
+--量词 + ：一次或多次重复
+--量词 ？：零次或一次重复
+--量词{m,n}：重复次数在m到n之间（m、n为非负整整）
+select * from orders
+	MATCH_RECOGNIZE(
+	order by time,customer_id
+	measures
+		MATCH_NUMBER() AS match,
+		RUNNING RPR_LAST(totalprice) AS price,
+		CLASSIFIER() as label
+	ALL ROWS PER MATCH
+	PATTERN (A B+ C+ D?)
+	SUBSET U = (C, D)
+	DEFINE
+		B AS B.totalprice < PREV (B.totalprice),
+		C AS C.totalprice > PREV (C.totalprice),
+		D as false
+	)
+	as m
+order by time, customer_id, match, price;
+
+
+--模式选择：A | B | C
+select m.time, m.match, m.price, m.label, m.prev_label, m.next_label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES 
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label,
+            PREV(CLASSIFIER()) AS prev_label,
+            NEXT(CLASSIFIER()) AS next_label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN ((L | H) A) 
+		DEFINE
+			A AS A.totalprice = 55000,
+			L AS L.totalprice < 55000,
+			H AS H.totalprice > 55000
+    ) AS m;
+	
+
+-- ^A表示匹配以A为分区开始的模式	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time 
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (^A)
+		DEFINE A AS true
+    ) AS m;
+	
+
+--当PATTERN子句的取值为^A^ 或 A^的时候，输出结果均为空	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A^)
+		DEFINE A AS true
+    ) AS m;
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (^A^)
+		DEFINE A AS true
+    ) AS m;
+	
+--A$ 表示匹配以A为分区结束的模式	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A$)
+		DEFINE A AS true
+    ) AS m;
+	
+
+--当PATTERN子句的取值为 $A 或 $A$ 的时候，输出结果均为空
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN ($A)
+		DEFINE A AS true
+    ) AS m;	
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN ($A$)
+		DEFINE A AS true
+    ) AS m;
+	
+
+--模式分组	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A B C)
+		DEFINE
+			B AS B.totalprice < PREV (B.totalprice),
+			C AS C.totalprice = PREV (C.totalprice)
+    ) AS m
+order by time, match, price, label;
+	
+
+--模式选择	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (B | C | A)
+		DEFINE
+			B AS B.totalprice < PREV (B.totalprice),
+			C AS C.totalprice <= PREV (C.totalprice)
+    ) AS m
+order by time, match, price, label;
+	
+
+--模式排列	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (PERMUTE(B, C))
+		DEFINE
+			B AS B.totalprice < PREV (B.totalprice),
+			C AS C.totalprice < PREV (C.totalprice)
+    ) AS m
+order by time, match, price, label;	
+
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		MEASURES
+			MATCH_NUMBER() AS match,
+            RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (((A) (B (C))))
+		DEFINE
+			B AS B.totalprice < PREV (B.totalprice),
+			C AS C.totalprice = PREV (C.totalprice)
+    ) AS m
+order by time, match, price, label;	
+
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B*)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price, label;	
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B*?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match;	
+	
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B+)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;	
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B+?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;	
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price, label;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+	order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B??)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{,})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price,label;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{,}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1,})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1,}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{2,})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{2,}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{,1})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{,1}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match;
+	
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1,1})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1,1}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1})
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+	
+	
+--9. 异常场景用例
+--9.1 LAST 应该为RPR_LAST
+select * from orders 
+	MATCH_RECOGNIZE(
+		partition by region
+		order by order_date
+		measures
+              A.totalprice AS starting_price,
+              LAST(B.totalprice) AS bottom_price,
+              LAST(D.totalprice) AS top_price
+     ONE ROW PER MATCH
+     AFTER MATCH SKIP PAST LAST ROW
+     PATTERN (A B+ C+ D+)
+     DEFINE
+              B AS totalprice < PREV(totalprice),
+              C AS totalprice > PREV(totalprice) AND totalprice <= A.totalprice,
+              D AS totalprice > PREV(totalprice)
+);
+<<SQLSTATE;
+
+--9.2 FIRST 应该为RPR_FIRST
+select m.time, m.region, m.product, m.lower_or_higher, m.label from orders
+	MATCH_RECOGNIZE (
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RUNNING FIRST(totalprice) AS price,
+			CLASSIFIER(U) AS lower_or_higher,
+			CLASSIFIER(W) AS label
+		ALL ROWS PER MATCH
+		PATTERN ((L | H) A)
+		SUBSET 
+			U = (L, H),
+			W = (A, L, H)
+		DEFINE 
+			A AS A.number = 666,
+			L AS L.number < 666,
+			H AS H.number > 666
+	) AS m;
+
+--9.3 {m, n}：重复次数在 m 到 n 之间（m、n 为非负整数）
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{0,0}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+<<SQLSTATE;
+
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1.1,1}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+<<SQLSTATE;
+
+	
+--清理环境
+drop database test_db;
+<<NULL;

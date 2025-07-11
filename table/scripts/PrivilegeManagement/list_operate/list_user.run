@@ -1,0 +1,60 @@
+// LIST USER
+// 列出所有用户列表
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+
+-- 1. root创建用户
+create user user01 'pass1234';
+create user user02 'pass1234';
+create user user03 'pass1234';
+create user user04 'pass1234';
+
+--2. root列出所有用户列表
+list user;
+
+--3. 未授权的普通用户user01,列出用户列表
+connect user01/pass1234;
+list privileges of user user01;
+list user;
+<<SQLSTATE;
+
+--4. root用户授予普通用户user01关于【MANAGE_USER】权限
+connect root/root;
+grant manage_user to user user01;
+
+--5. 已授权的普通用户user01，列出用户列表
+connect user01/pass1234;
+list privileges of user user01;
+list user;
+
+--6. root取消普通用户关于【MANAGE_USER】权限
+connect root/root;
+revoke manage_user from user user01;
+
+--7. 取消授权的普通用户user01，列出用户列表
+connect user01/pass1234;
+list privileges of user user01;
+list user;
+<<SQLSTATE;
+
+
+-- 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;

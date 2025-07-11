@@ -1,0 +1,134 @@
+//授权语法验证
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop role role03;
+<<NULL;
+drop database test_db;
+<<NULL;
+
+
+--1. 准备测试数据
+create user user01 'pass1234';
+create user user02 'pass1234';
+create user user03 'pass1234';
+create user user04 'pass1234';
+create user user05 'pass1234';
+create role role01;
+create role role02;
+create role role03;
+
+create database test_db;
+use test_db;
+create table t1(ID TAG, int32 INT32);
+show databases;
+show tables;
+desc t1;
+insert into t1(time, ID, int32) values(1, 'd1', 1);
+select * from t1 order by time;
+
+--2. 授权语句：全大写、全小写、大小写混合使用
+GRANT MANAGE_USER TO USER user01;
+grant manage_role to role role01;
+GRANT Manage_User TO user user02 With Grant Option;
+
+--3. root分别查询用户权限以及角色权限
+list privileges of user user01;
+list privileges of role role01;
+list privileges of user user02;
+
+--4. 缺少授权语句字段
+--4.1 缺少具体权限
+grant to user user03 with grant option;
+<<SQLSTATE;
+grant to role role02 with grant option;
+<<SQLSTATE;
+
+--4.2 privileges 不在表模型权限列表中
+grant write to role role03;
+<<SQLSTATE;
+
+--4.3 授予数据权限，指定数据库范围，但缺少关键字database
+grant create on test_db to user03;
+<<SQLSTATE;
+
+--4.4 授予数据权限，指定数据库范围，但数据库名不存在
+grant create on database db1 to user user04;
+list privileges of user user04;
+
+--4.5 授予数据权限，指定表范围，但缺少关键字table
+grant select on test_db.t1 to user user04;
+list privileges of user user04;
+
+--4.6 授予数据权限，指定表范围，但表名不存在
+grant delete on test_db.t2 to user user05;
+list privileges of user user05;
+
+--4.7 授予用户权限，缺少关键字user
+grant manage_user to user03;
+<<SQLSTATE;
+
+--4.8 授予用户权限，用户名不存在
+grant manage_role to user testuser01;
+<<SQLSTATE;
+
+--4.9 授予角色权限，缺少关键字role
+grant manage_user to role02;
+<<SQLSTATE;
+
+--4.10 授予角色权限，角色名不存在
+grant manage_user to role testrole01;
+<<SQLSTATE;
+
+--4.11 授予权限，指定数据库或表范围，丢失关键字ON
+grant create database test_db to user user04;
+<<SQLSTATE;
+grant alter table test_db.t1 to user user04;
+<<SQLSTATE;
+grant delete any to user user04;
+<<SQLSTATE;
+
+--4.12 授权时，缺少关键字TO
+grant create on database test_db user user01;
+<<SQLSTATE;
+grant create on table test_db.t1 role role01;
+<<SQLSTATE;
+grant create on any user user01;
+<<SQLSTATE;
+
+
+--清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop role role03;
+<<NULL;
+drop database test_db;
+<<NULL;

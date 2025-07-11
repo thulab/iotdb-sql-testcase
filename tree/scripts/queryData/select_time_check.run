@@ -1,0 +1,30 @@
+// 查询：select time from root.stock.Legacy.0700HK where L1_BidPrice > 0出现Socket is closed by peer。
+// 不带where条件 select time from root.stock.Legacy.0700HK则不会异常
+
+
+connect root/root;
+
+--0. 清理数据
+drop database root.**;
+<<NULL;
+
+--1. 准备数据
+insert into root.ln.wf01.wt01(time,status,temperature) values(1,false,11.5);
+insert into root.ln.wf01.wt01(time,status,temperature) values(2,false,17.6);
+insert into root.ln.wf01.wt01(time,status,temperature) values(3,true,18.8);
+insert into root.ln.wf01.wt01(time,status,temperature) values(4,true,19.8);
+insert into root.ln.wf01.wt01(time,status,temperature) values(5,true,20.1);
+
+--2.全量查询数据
+select * from root.ln.**;
+
+
+--3. time列查询
+select time from root.ln.wf01.wt01;
+<<SQLSTATE;
+select time from root.ln.wf01.wt01 where temperature > 19;
+<<SQLSTATE;
+
+--4. 清理数据
+drop database root.**;
+<<NULL;

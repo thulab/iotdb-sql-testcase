@@ -1,0 +1,129 @@
+// 聚合函数：count_if
+// 计算满足条件的数据点数
+// 允许的输入类型为：BOOLEAN
+// 输入类型为：INT64
+
+connect root/root;
+
+--0.清理环境
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库、表
+create database test_db;
+show databases;
+use test_db;
+
+create table t1(
+id TAG,
+region attribute,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+boolean BOOLEAN,
+text TEXT,
+string STRING,
+date DATE,
+timestamp TIMESTAMP,
+blob BLOB
+);
+show tables;
+desc t1;
+
+--2. 插入表数据
+insert into t1 values(1,'d1','Beijing',1,1,1.1,1.1,false,'text1','string1','2020-01-10',1577836800000,'89504E470');
+insert into t1 values(2,null,'Beijing',1,null,2.2,2.2,false,'text1','string2','2020-01-10',null,'89504E470');
+insert into t1 values(3,'d2',null,null,3,null,3.3,true,null,'string2','2020-02-10',1581292800000,null);
+insert into t1 values(4,'d1','Beijing',4,3,4.4,null,true,'text4',null,'2020-11-10',null,'89504E470');
+insert into t1 values(5,null,'shanghai',5,5,5.5,5.5,null,'text1','string3',null,1581292800000,null);
+insert into t1 values(6,'d2','shanghai',6,6,5.5,6.6,true,'text6','string2','2022-01-10',1633046400000,'89504E470');
+insert into t1 values(7,'d1','Beijing',777,0,155.5,555.5,false,'text6','string3','2022-11-11',1635552000000,'89504E470');
+insert into t1 values(8,'d2','shanghai',8888,100,55.5,0.1,true,'text5','string1','2023-11-10',1635724800000,'89504E470');
+
+--3. 查询数据
+select * from t1 order by time;
+
+--4. count_if 聚合查询
+select count_if(id is not null) as count_if_result from t1;
+select id, count_if(id is not null) as count_if_result from t1 group by id order by id;
+select id, count_if(id is null) as count_if_result from t1 group by id order by id;
+
+select count_if(region is not null) as count_if_result from t1;
+select region, count_if(region is not null) as count_if_result from t1 group by region order by region;
+select region, count_if(region is null) as count_if_result from t1 group by region order by region;
+
+select count_if(region is not null) as count_if_result from t1;
+select region, count_if(region is not null) as count_if_result from t1 group by region order by region;
+select region, count_if(region is null) as count_if_result from t1 group by region order by region;
+
+select count_if(int32 is not null) as count_if_result from t1;
+select int32, count_if(int32 is not null) as count_if_result from t1 group by int32 order by int32;
+select int32, count_if(int32 is null) as count_if_result from t1 group by int32 order by int32;
+select int32, count_if(int32*2 > 10) as count_if_result from t1 group by int32 order by int32;
+
+select count_if(int64 is not null) as count_if_result from t1;
+select int64, count_if(int64 is not null) as count_if_result from t1 group by int64 order by int64;
+select int64, count_if(int64 is null) as count_if_result from t1 group by int64 order by int64;
+select int64, count_if(int64+int32 < 100) as count_if_result from t1 group by int64 order by int64;
+
+select count_if(float is not null) as count_if_result from t1;
+select float, count_if(float is not null) as count_if_result from t1 group by float order by float;
+select float, count_if(float is null) as count_if_result from t1 group by float order by float;
+select float, count_if(float <= 10) as count_if_result from t1 group by float order by float;
+
+select count_if(double is not null) as count_if_result from t1;
+select double, count_if(double is not null) as count_if_result from t1 group by double order by double;
+select double, count_if(double is null) as count_if_result from t1 group by double order by double;
+select count_if(int32+int64-float+double > 1000) as count_if_result from t1;
+
+select count_if(boolean is not null) as count_if_result from t1;
+select boolean, count_if(boolean is not null) as count_if_result from t1 group by boolean order by boolean;
+select boolean, count_if(boolean is null) as count_if_result from t1 group by boolean order by boolean;
+select count_if(boolean != false) as count_if_result from t1;
+select count_if(boolean <> true) as count_if_result from t1;
+
+select count_if(text is not null) as count_if_result from t1;
+select text, count_if(text is not null) as count_if_result from t1 group by text order by text;
+select text, count_if(text is null) as count_if_result from t1 group by text order by text;
+select count_if(text != 'text6') as count_if_result from t1;
+
+select count_if(string is not null) as count_if_result from t1;
+select string, count_if(string is not null) as count_if_result from t1 group by string order by string;
+select string, count_if(string is null) as count_if_result from t1 group by string order by string;
+select count_if(string != 'string1') as count_if_result from t1;
+
+select count_if(date is not null) as count_if_result from t1;
+select date, count_if(date is not null) as count_if_result from t1 group by date order by date;
+select date, count_if(date is null) as count_if_result from t1 group by date order by date;
+select count_if(date != cast('2023-11-10' as DATE)) as count_if_result from t1;
+
+select count_if(timestamp is not null) as count_if_result from t1;
+select timestamp, count_if(timestamp is not null) as count_if_result from t1 group by timestamp order by timestamp;
+select timestamp, count_if(timestamp is null) as count_if_result from t1 group by timestamp order by timestamp;
+select count_if(timestamp != 1635724800000) as count_if_result from t1;
+
+select count_if(blob is not null) as count_if_result from t1;
+select blob, count_if(blob is not null) as count_if_result from t1 group by blob order by blob;
+select blob, count_if(blob is null) as count_if_result from t1 group by blob order by blob;
+
+
+select count_if() from t1;
+<<SQLSTATE;
+select count_if(id) from t1;
+<<SQLSTATE;
+select count_if(id is 'd1') as count_if_result from t1;
+<<SQLSTATE;
+select count_if(boolean is not false) as count_if_result from t1;
+<<SQLSTATE;
+select text, count_if(text != 'text6') as count_if_result from t1;
+<<SQLSTATE;
+select count_if(date != '2023-11-10') as count_if_result from t1;
+<<SQLSTATE;
+select count_if(int32, id != 'd1') from t1;
+<<SQLSTATE;
+
+
+-- 清理环境
+drop database test_db;
+<<NULL;

@@ -1,0 +1,175 @@
+// DISTINCT：集合量词，用于数据集合的描述，仅保留结果集中的非重复行。
+// select distinct 与 order by 共同使用时，order by 的表达式必须出现在select中
+
+connect root/root;
+
+--0. 清理数据
+drop database test_db;
+<<NULl;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定使用数据库
+use test_db;
+
+--3. 创建表
+create table t1(
+ID TAG,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+text TEXT,
+boolean BOOLEAN,
+string STRING,
+blob BLOB,
+timestamp TIMESTAMP,
+date DATE);
+
+--4. 查看表
+show tables;
+
+--5. 列出表信息
+desc t1;
+
+--6. 插入数据
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(1,'D001',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(2,'D002',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(3,'D003',2,10,1.1,22.2,'RC2',false,'cat',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(4,'D004',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(5,'D005',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(6,'D006',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+
+--7. 全量数据查询
+select * from t1 order by time;
+
+--8. distinct去重查询
+--8.1 单个数据类型对应的数值去重
+select distinct time from t1 order by time;
+select distinct id from t1 order by id;
+select distinct int32 from t1 order by int32;
+select distinct int64 from t1 order by int64;
+select distinct float from t1 order by float;
+select distinct double from t1 order by double;
+select distinct text from t1 order by text;
+select distinct boolean from t1 order by boolean;
+select distinct string from t1 order by string;
+select distinct blob from t1 order by blob;
+select distinct timestamp from t1 order by timestamp;
+select distinct date from t1 order by date;
+
+--8.2 等价于group by 
+select time from t1 group by time order by time;
+select id from t1 group by id order by id;
+select int32 from t1 group by int32 order by int32;
+select int64 from t1 group by int64 order by int64;
+select float from t1 group by float order by float;
+select double from t1 group by double order by double;
+select text from t1 group by text order by text;
+select boolean from t1 group by boolean order by boolean;
+select string from t1 group by string order by string;
+select blob from t1 group by blob order by blob;
+select timestamp from t1 group by timestamp order by timestamp;
+select date from t1 group by date order by date;
+
+--8.3 SELECT DISTINCT 的 ORDER BY 列必须出现在 SELECT 列表中
+select distinct ID from t1 order by time;
+<<SQLSTATE;
+
+--8.4 聚合函数去重
+select id, count(distinct int32) as count_distin_result from t1 group by 1 order by 1;
+
+select time,id,date,count(distinct float), avg(distinct float) from t1 group by 1,2,3 order by 1,2,3;
+
+select id, int64, double, timestamp, round(VAR_POP(distinct int64),1), round(VAR_POP(distinct double),1), round(VAR_POP(distinct int32),1), round(VAR_POP(distinct float),1) from t1 group by 1,2,3,4 order by 1,2,3,4;
+
+select time, count(distinct time), count(distinct id), count(distinct int32), count(distinct int64), count(distinct float), count(distinct double), count(distinct text), count(distinct boolean), count(distinct string), count(distinct blob), count(distinct timestamp), count(distinct date) from t1 group by 1 order by 1;
+
+select id, sum(distinct int32), sum(distinct int64), sum(distinct float), sum(distinct double) from t1 group by 1 order by 1;
+
+select id, avg(distinct int32), avg(distinct int64), avg(distinct float), avg(distinct double) from t1 group by 1 order by 1;
+
+select time, max(distinct time),max(distinct id), max(distinct int32), max(distinct int64), max(distinct float), max(distinct double), max(distinct text), max(distinct boolean), max(distinct string), max(distinct blob), max(distinct timestamp), max(distinct date) from t1 group by 1 order by 1;
+
+select time, min(distinct time),min(distinct id), min(distinct int32), min(distinct int64), min(distinct float), min(distinct double), min(distinct text), min(distinct boolean), min(distinct string), min(distinct blob), min(distinct timestamp), min(distinct date) from t1 group by 1 order by 1;
+
+select time,first(distinct time), first(distinct id), first(distinct int32), first(distinct int64), first(distinct float), first(distinct double), first(distinct text), first(distinct boolean), first(distinct string), first(distinct blob), first(distinct timestamp), first(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+select time,last(distinct time), last(distinct id), last(distinct int32), last(distinct int64), last(distinct float), last(distinct double), last(distinct text), last(distinct boolean), last(distinct string), last(distinct blob), last(distinct timestamp), last(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+select id, stddev(distinct int32), stddev(distinct int64), stddev(distinct float), stddev(distinct double) from t1 group by 1 order by 1;
+
+select id, stddev_pop(distinct int32), stddev_pop(distinct int64), stddev_pop(distinct float), stddev_pop(distinct double) from t1 group by 1 order by 1;
+
+select id, stddev_samp(distinct int32), stddev_samp(distinct int64), stddev_samp(distinct float), stddev_samp(distinct double) from t1 group by 1 order by 1;
+
+select id, variance(distinct int32), variance(distinct int64), variance(distinct float), variance(distinct double) from t1 group by 1 order by 1;
+
+select id, var_pop(distinct int32), var_pop(distinct int64), var_pop(distinct float), var_pop(distinct double) from t1 group by 1 order by 1;
+select round(VAR_POP(distinct int32),1), round(VAR_POP(distinct int64),1), round(VAR_POP(distinct float),1), round(VAR_POP(distinct double),1) from t1;
+select id, round(VAR_POP(distinct int32),1), round(VAR_POP(distinct int64),1), round(VAR_POP(distinct float),1), round(VAR_POP(distinct double),1) from t1 group by 1 order by 1;
+
+select id, var_samp(distinct int32), var_samp(distinct int64), var_samp(distinct float), var_samp(distinct double) from t1 group by 1 order by 1;
+
+select id, extreme(distinct int32), extreme(distinct int64), extreme(distinct float), extreme(distinct double) from t1 group by 1 order by 1;
+
+select time, mode(distinct time), mode(distinct id), mode(distinct int32), mode(distinct int64), mode(distinct float), mode(distinct double), mode(distinct text), mode(distinct boolean), mode(distinct string), mode(distinct blob), mode(distinct timestamp), mode(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+select id, min_by(distinct id, int32), min_by(distinct id, int64), min_by(distinct id, float), min_by(distinct id, double), min_by(distinct id, text), min_by(distinct id, boolean), min_by(distinct id, string), min_by(distinct id, blob), min_by(distinct id, timestamp), min_by(distinct id, date) from t1 group by 1 order by 1;
+
+select id, max_by(distinct time, int32), max_by(distinct time, int64), max_by(distinct time, float), max_by(distinct time, double) from t1 group by 1 order by 1;
+
+select id, first_by(distinct id, int32), first_by(distinct id, int64), first_by(distinct id, float), first_by(distinct id, double), first_by(distinct id, text), first_by(distinct id, boolean), first_by(distinct id, string), first_by(distinct id, blob), first_by(distinct id, timestamp), first_by(distinct id, date) from t1 group by 1 order by 1;
+
+select id, last_by(distinct time, int32), last_by(distinct time, int64), last_by(distinct time, float), last_by(distinct time, double), last_by(distinct time, timestamp) from t1 group by 1 order by 1;
+
+select id, count_if(distinct int32 < 0), count_if(distinct int64 is not null), count_if(distinct float is not null), count_if(distinct double is not null), count_if(distinct boolean is not null), count_if(distinct text is not null), count_if(distinct string is not null), count_if(distinct blob is not null), count_if(distinct timestamp is not null), count_if(distinct date is not null) from t1 group by 1 order by 1;
+
+select min_by(distinct time, int32), min_by(distinct time, int64), min_by(distinct time, float), min_by(distinct time, double) from t1 where id='D001';
+
+select id, min_by(distinct time, int32), min_by(distinct time, int64), min_by(distinct time, float), min_by(distinct time, double), min_by(distinct time, timestamp) from t1 where id='D001' or id='D002' group by 1 order by 1;
+
+select max_by(distinct int32, int64), max_by(distinct time, int32), max_by(distinct time, float), max_by(distinct float, double), max_by(distinct time, timestamp) from t1 where id='D002';
+
+select id, max_by(distinct time, int32), max_by(distinct time, int64), max_by(distinct time, double), max_by(distinct time, float) from t1 where id='D001' or id='D002' group by 1 order by 1;
+
+select id, first_by(distinct time, int32), first_by(distinct time, int64), first_by(distinct time, float), first_by(distinct time, double), first_by(distinct time, timestamp), first_by(distinct time, string) from t1 where id='D001' or id='D003' group by 1 order by 1;
+
+select id, last(distinct int32), last(distinct int64), last(distinct float), last(distinct double), last(distinct text), last(distinct string), last(distinct timestamp) from t1 where id='D002' or id='D003' group by 1 order by 1;
+
+select id, last_by(distinct time, text), last_by(distinct time, string), last_by(distinct time, blob), last_by(distinct time, double), first_by(distinct time, int32) from t1 where id='D001' or id='D002' group by 1 order by 1;
+			
+--8.5 多个列去重查询
+select distinct time,int32,double,text,string from t1 order by time;
+
+--8.6 count(distinct *) 这种错误输入，系统会在语法解析层进行规避
+select count(distinct *) from t1;
+<<SQLSTATE;
+
+--8.7 去重多个列时，错误的使用
+select distinct(time,int32,double) from t1;
+<<SQLSTATE;
+
+
+--9. 清理数据
+drop database test_db;
+<<NULl;

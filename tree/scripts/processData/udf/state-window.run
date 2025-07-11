@@ -1,0 +1,85 @@
+connect root/root;
+-- 1. attributes: start, end, step, interval
+-- 2. attributes: step, interval
+-- 3. attributes: interval
+
+drop database root.**;<<NULL;
+sleep 1000;
+-- delete timeseries root.udf.**;<<NULL;
+DROP FUNCITON count_sec;<<NULL;
+create database root.udf;<<NULL;
+
+CREATE FUNCTION count_sec as "com.timecho.udf.normal.TestStateWindowAccessStrategy";
+
+CREATE TIMESERIES root.udf.d1.s1 WITH DATATYPE=boolean, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d1.s2 WITH DATATYPE=boolean, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d1.ss1 WITH DATATYPE=boolean, ENCODING=PLAIN;
+
+-- all null
+SELECT count_sec(s1) FROM root.udf.d1;
+
+INSERT INTO root.udf.d1 (time, s1, s2) VALUES (1, 1, 1),(2, 1, 0),(3, 0, 1),(4, 0, 1),(5, 0, 1),(8, 1, 1),(7, 1, 1),(6, null, 1),(12, 1, 1),(20, 1, 1);
+
+-- all null
+SELECT count_sec(ss1) FROM root.udf.d1;
+
+-- 查询
+select count_sec(s1) from root.udf.d1;
+select count_sec(s1,s2) from root.udf.d1;<<SQLSTATE;
+select count_sec(*) from root.udf.d1;
+
+
+-- aligned
+CREATE ALIGNED TIMESERIES root.udf.d2 (s1 boolean, s2 boolean);
+INSERT INTO root.udf.d2 (time, s1, s2) ALIGNED VALUES (1, 1, 1),(2, 1, 0),(3, 0, 1),(4, 0, 1),(5, 0, 1),(8, 1, 1),(7, 1, 1),(6, null, 1),(12, 1, 1),(20, 1, 1);
+
+-- 查询
+select count_sec(s1) from root.udf.d2;
+-- IOTDB-4943
+select count_sec(s1,s2) from root.udf.d2;<<SQLSTATE;
+select count_sec(*) from root.udf.d2;
+
+
+-- double state test
+CREATE FUNCTION COUNT_SEC_double as "com.timecho.udf.normal.TestStateWindowAccessStrategy2";
+
+CREATE TIMESERIES root.udf.d3.s1 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d3.s2 WITH DATATYPE=double, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d3.ss1 WITH DATATYPE=double, ENCODING=PLAIN;
+
+
+insert into root.udf.d3 (time, s1, s2) values  (1, 100.324, 2),(2, 99.985, 4),(6, null, 6),(4, 99.635, 8),(5, 100.622, 10),(16, 17.67, 14.5),(7, 13, 14),(8, 17.44, 16),(12, 17, 18),(20, 18.01, 20);
+
+
+select * from root.udf.d3;
+
+select count_sec_double(s1,'delta'='0.5') from root.udf.d3;
+
+select count_sec_double(s1,'delta'='2.5') from root.udf.d3;
+
+select count_sec_double(s2,'delta'='2.5') from root.udf.d3;
+
+select count_sec_double(*,'delta'='0.5') from root.udf.d3;
+
+
+CREATE ALIGNED TIMESERIES root.udf.d4 (s1 double, s2 double);
+insert into root.udf.d4 (time, s1, s2) aligned values  (1, 100.324, 2),(2, 99.985, 4),(6, null, 6),(4, 99.635, 8),(5, 100.622, 10),(16, 17.67, 14.5),(7, 13, 14),(8, 17.44, 16),(12, 17, 18),(20, 18.01, 20);
+
+select * from root.udf.d4;
+
+select count_sec_double(s1,'delta'='0.5') from root.udf.d4;
+
+select count_sec_double(s1,'delta'='2.5') from root.udf.d4;
+
+select count_sec_double(s2,'delta'='2.5') from root.udf.d4;
+
+select count_sec_double(*,'delta'='0.5') from root.udf.d4;
+
+
+-- cleanup
+delete timeseries root.udf.**;
+DROP FUNCTION count_sec;
+DROP FUNCTION count_sec_double;
+
+
+

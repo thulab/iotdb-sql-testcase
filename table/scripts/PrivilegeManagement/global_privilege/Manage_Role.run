@@ -1,0 +1,131 @@
+// MANAGE_ROLE
+// 允许用户创建角色
+// 允许用户删除角色
+// 允许用户查看角色的权限信息
+// 允许用户将角色授予某个用户或撤销
+// 允许用户列出所有角色
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;
+
+--1. 创建用户和角色
+CREATE USER user01 'pass1234';
+CREATE USER user02 'pass1234';
+CREATE ROLE manager;
+CREATE ROLE staff;
+
+--2.列出用户和列出角色
+list user;
+list role;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
+LIST PRIVILEGES OF USER user01;
+
+--4. 赋予普通用户角色 | 赋予角色权限
+GRANT ROLE manager TO user01;
+GRANT ROLE staff TO user01;
+GRANT CREATE on any to role manager;
+
+--5. 普通用户user01未授权任何权限，执行角色管理
+connect user01/pass1234;
+
+--5.1 user01创建角色
+create role testrole;
+<<SQLSTATE;
+
+--5.2 user01查看角色列表
+list role;
+<<SQLSTATE;
+
+--5.3 user01列出指定角色下所有用户
+LIST USER OF ROLE manager;
+<<SQLSTATE;
+LIST USER OF ROLE staff;
+<<SQLSTATE;
+
+--5.4 user01列出指定用户下所有角色
+LIST ROLE OF USER user01;
+LIST ROLE OF USER user02;
+<<SQLSTATE;
+
+--5.5 user01列出角色拥有的权限
+list privilege of role manager;
+<<SQLSTATE;
+
+--5.6 撤销用户角色
+revoke role staff from user01;
+<<SQLSTATE;
+
+--5.7 user01删除指定的角色
+drop role staff;
+<<SQLSTATE;
+
+--6. root赋予普通用户user01关于【MANAGE_ROLE】权限
+connect root/root;
+grant manage_role to user user01;
+
+--7.root列出用户所有权限
+list privileges of user user01;
+
+--8. user01用户登录
+connect user01/pass1234;
+list privileges of user user01;
+create role testrole1;
+grant role testrole1 to user02;
+list role;
+list role of user user01;
+list role of user user02;
+list user of role manager;
+<<SQLSTATE;
+list user of role staff;
+<<SQLSTATE;
+revoke role testrole1 from user02;
+drop role testrole1;
+list role;
+
+--9. root对user01取消授权MANAGE_ROLE】权限
+connect root/root;
+revoke manage_role from user user01;
+
+--10. 被取消授权的user01执行角色管理功能
+connect user01/pass1234;
+list privileges of user user01;
+create role testrole2;
+<<SQLSTATE;
+list role;
+<<SQLSTATE;
+list role of user user01;
+list user of role manager;
+<<SQLSTATE;
+list user of role staff;
+<<SQLSTATE;
+drop role staff;
+<<SQLSTATE;
+
+--11. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;

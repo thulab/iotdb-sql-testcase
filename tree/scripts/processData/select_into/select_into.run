@@ -1,0 +1,1418 @@
+//一、普通时间序列查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE,compression=SNAPPY;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d2.s1 WITH DATATYPE=INT32, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d2.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+
+--2. 查询设备和时间序列
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1,1.0),(2,2,0.0),(3,-1,-1.0);
+insert into root.sg.d2(time,s1,s2) values(1,-1,1.0),(2,1,0.1),(3,0,-1.0);
+
+--4. 源序列数据查询
+select * from root.sg.*;
+
+--5. 同一设备查询写回并数据查询
+select s1,s2 into root.sg.new_d1(t1,t2) from root.sg.d1;
+select * from root.sg.new_d1;
+
+--6. 跨设备查询写回并数据查询
+select s1,s2  into root.sg_01.new_${2}(::) from root.sg.*;
+select * from root.sg_01.**;
+
+--7. 查询同一源序列写入不同目标序列
+select s1 into root.sg.d3(s1) from root.sg.d1;
+select * from root.sg.d3;
+select s1, s2, s1, s2 into root.test.new_d1(t1, t2), aligned root.data.new_d2(t1, t2) from root.sg.d1;
+select * from root.test.new_d1;
+select * from root.data.new_d2;
+
+--8. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二、源序列和目标序列
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT32, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s4 WITH DATATYPE=DOUBLE, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s5 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg.d1.s6 WITH DATATYPE=BOOLEAN, ENCODING=RLE;
+create aligned timeseries root.sg.d2(s1 FLOAT encoding=RLE, s2 INT32 encoding=RLE);
+CREATE TIMESERIES root.db.d1.s1 WITH DATATYPE=FLOAT, ENCODING=RLE;
+
+--2. 查询设备和时间序列
+show devices;
+show timeseries;
+
+--3. 插入数据
+INSERT INTO root.sg.d1(time, s1) VALUES (1, 1);
+INSERT INTO root.sg.d1(time, s1) VALUES (2, 2);
+INSERT INTO root.sg.d1(time, s1) VALUES (3, 3);
+INSERT INTO root.sg.d1(time, s1) VALUES (4, 4);
+INSERT INTO root.sg.d1(time, s1) VALUES (5, 5);
+INSERT INTO root.sg.d2(time, s1, s2) aligned VALUES (1, 1.0, 1);
+INSERT INTO root.sg.d2(time, s1, s2) aligned VALUES (2, NaN, 2);
+INSERT INTO root.sg.d2(time, s1, s2) aligned VALUES (3, null, 3),(4, 4.0, 4),(5, -1.0, 5);
+
+--4. 目标序列已存在，源序列和目标序列数据类型不一致，查询写回然后数据查询
+select s1 into root.sg.d1(s2) from root.sg.d1;
+select s2 from root.sg.d1;
+select s1 into root.sg.d1(s3) from root.sg.d1;
+select s3 from root.sg.d1;
+select s1 into root.sg.d1(s4) from root.sg.d1;
+select s4 from root.sg.d1;
+select s1 into root.sg.d1(s5) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d1(s6) from root.sg.d1;
+<<SQLSTATE;
+
+--5. 目标序列不存在，执行查询写回时自动创建元数据，然后进行数据查询
+select s1 into root.test.d1(t1) from root.sg.d1;
+show databases;
+show devices;
+show timeseries;
+select * from root.test.d1;
+
+--6. 源序列不存在时，源序列不会自动创建元数据,展示为空列表
+select s1 into root.test.d1(t2) from root.sg1.d1;
+show databases;
+show devices;
+show timeseries; 
+
+--7. 源序列不存在数据时，目标序列不会自动创建元数据，且查询写入为空
+select s1 into root.am.d1(t1) from root.db.d1;
+show databases;
+show devices;
+show timeseries; 
+
+--8. 源序列为对齐序列，目标序列为非对齐序列，查询写回并数据查询
+select s1,s2 into root.sg.d3(t1,t2) from root.sg.d2;
+show devices root.sg.d3;
+show timeseries root.sg.d3.*;
+select * from root.sg.d3;
+
+--9. 源序列为对齐序列，目标序列为对齐序列
+select s1,s2 into aligned root.sg.d4(t1,t2) from root.sg.d2;
+show devices root.sg.d4;
+show timeseries root.sg.d4.*;
+select * from root.sg.d4;
+
+--10. 源序列为非对齐序列，目标序列为对齐序列
+select s1 into aligned root.sg.d5(t1) from root.sg.d1;
+show devices root.sg.d5;
+show timeseries root.sg.d5.*;
+select * from root.sg.d5;
+
+--11. 源序列为非对齐序列，目标序列为非对齐序列
+select s1 into root.sg.d6(t1) from root.sg.d1;
+show devices root.sg.d6;
+show timeseries root.sg.d6.*;
+select * from root.sg.d6;
+
+--12. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//三、对齐时间序列查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT32, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+create aligned timeseries root.sg.d2(s1 FLOAT encoding=RLE, s2 INT32 encoding=RLE);
+create aligned timeseries root.sg.d3(s1 INT32 encoding=RLE, s2 FLOAT encoding=RLE);
+
+--2. 查询设备和时间序列
+show devices;
+show timeseries;
+
+--3. 插入数据
+INSERT INTO root.sg.d1(time, s1, s2) VALUES (1, 1, 1.0);
+INSERT INTO root.sg.d1(time, s1, s2) VALUES (2, 2, NaN);
+INSERT INTO root.sg.d1(time, s1, s2) VALUES (3, null, 3.0),(4, 4, 0.0),(5, 5, -1.0);
+
+--4. 已存在的对齐目标序列添加【ALIGNED】关键字，执行查询写入并数据查询
+select s1, s2 into aligned root.sg.d2(s2,s1) from root.sg.d1;
+select * from root.sg.**;
+
+--5. 已存在的对齐目标序列，执行查询写回不加【ALIGNED】关键字
+select s1, s2 into root.sg.d3(s1,s2) from root.sg.d1;
+show devices root.sg.d3;
+show timeseries root.sg.d3.*;
+select * from root.sg.d3;
+
+--6. 目标序列不存在，通过查询写回自动创建对齐目标时间序列，然后数据查询
+select s1,s2 into aligned root.sg.d4(t1,t2) from root.sg.d1;
+show devices root.sg.d4;
+show timeseries root.sg.d4.*;
+select * from root.sg.d4;
+
+--7. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//四、原始序列查询写入：六种数据类型校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=DOUBLE,encoding=PLAIN;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,1,true,'V1',-1.1,100);
+
+--4. 数据查询
+select * from root.sg.d1;
+
+--5. 查询写回并数据查询
+select s1, s2, s3, s4, s5, s6 into root.sg.d2(t1,t2,t3,t4,t5,t6) from root.sg.d1;
+select * from root.sg.d2;
+
+--6. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//五、选择表达式查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg.dd.s1 WITH DATATYPE=DOUBLE, ENCODING=RLE;
+CREATE TIMESERIES root.sg.dd.s2 WITH DATATYPE=INT32, ENCODING=RLE;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.dd(time,s1,s2) values(1,1.1,1),(2,10.2,0),(3,-1.5,10),(4,0.0,-1),(5,-1.0,20);
+
+--4. 算数运算查询写回，然后数据查询
+select s1, - s1, s2, + s2, s1 + s2, s1 - s2, s1 * s2, s1 / s2, s1 % s2 into root.sg.d2(s1,s2,s3,s4,s5,s6,s7,s8,s9) from root.sg.d1;
+select * from root.sg.d2;
+
+--5. 逻辑运算查询写回，然后数据查询
+select s1, s2, s1 != s2, s1 > 10, s1 <= s2, !(s1 <= s2), s1 > 10 && s1 > s2 into root.sg.d3(s1,s2,s3,s4,s5,s6,s7)from root.sg.d1;
+select * from root.sg.d3;
+select s1, s3, s1 in (1, 2), s3 like '1%', s3 regexp '[0-2]' into root.sg.d4(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d4;
+
+--6. 内置时间序列生成函数查询写回，然后数据查询
+--6.1 数学函数
+select sin(s1), cos(s1), tan(s1), asin(s1), acos(s1), atan(s1),sinh(s1), cosh(s1),tanh(s1) into root.sg.d5(s1,s2,s3,s4,s5,s6,s7,s8,s9) from root.sg.d1;
+select * from root.sg.d5;
+--6.2 字符串函数
+select s3, string_contains(s3, 's'='warn'), string_matches(s3, 'regex'='[^\\s]+37229') into root.sg.d6(s1,s2,s3) from root.sg.d1;
+select * from root.sg.d6;
+--6.3 选择函数
+select s1, top_k(s1, 'k'='2'), bottom_k(s1, 'k'='2') into root.sg.d7(s1,s2,s3) from root.sg.d1;
+select * from root.sg.d7;
+--6.4 趋势计算函数
+select s1,time_difference(s1), difference(s1), non_negative_difference(s1), derivative(s1), non_negative_derivative(s1) into root.sg.d8(s1,s2,s3,s4,s5,s6) from root.sg.d1;
+select * from root.sg.d8;
+--6.5 常序列生成函数
+select s1, s2, const(s1, 'value'='1024', 'type'='INT64'), pi(s2), e(s1, s2) into root.sg.d9(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d9;
+--6.6 数据类型转换函数
+select cast(s1, 'type'='BOOLEAN'), cast(s1, 'type'='INT64'), cast(s1, 'type'='FLOAT'), cast(s1, 'type'='TEXT'), cast(s1, 'type'='DOUBLE') into root.sg.d10(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d10;
+--6.7 条件函数
+select s1, on_off(s1, 'threshold'='2'), in_range(s1, 'lower'='2', 'upper'='3.1') into root.sg.d11(s1,s2,s3) from root.sg.d1;
+select * from root.sg.d11;
+--6.8 连续满足区间函数
+select s1, zero_count(s1), non_zero_count(s2), zero_duration(s1), non_zero_duration(s2) into root.sg.d12(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d12;
+--6.9 等数量分桶聚合采样
+select equal_size_bucket_agg_sample(s1, 'type'='avg','proportion'='0.1') as agg_avg, equal_size_bucket_agg_sample(s1, 'type'='max','proportion'='0.1') as agg_max, equal_size_bucket_agg_sample(s1,'type'='min','proportion'='0.1') as agg_min, equal_size_bucket_agg_sample(s1, 'type'='sum','proportion'='0.1') as agg_sum, equal_size_bucket_agg_sample(s1, 'type'='extreme','proportion'='0.1') as agg_extreme, equal_size_bucket_agg_sample(s1, 'type'='variance','proportion'='0.1') as agg_variance into root.sg.d13(s1,s2,s3,s4,s5,s6) from root.sg.d1;
+select * from root.sg.d13;
+--6.10 等数量分桶M4采样
+select equal_size_bucket_m4_sample(s1, 'proportion'='0.1') as M4_sample into root.sg.d14(s1) from root.sg.d1;
+select * from root.sg.d14;
+--6.11 等数量分桶离群值采样
+select equal_size_bucket_outlier_sample(s1, 'proportion'='0.1', 'type'='avg', 'number'='2') as outlier_avg_sample, equal_size_bucket_outlier_sample(s1, 'proportion'='0.1', 'type'='stendis', 'number'='2') as outlier_stendis_sample, equal_size_bucket_outlier_sample(s1, 'proportion'='0.1', 'type'='cos', 'number'='2') as outlier_cos_sample, equal_size_bucket_outlier_sample(s1, 'proportion'='0.1', 'type'='prenextdis', 'number'='2') as outlier_prenextdis_sample into root.sg.d15(s1,s2,s3,s4) from root.sg.d1;
+select * from root.sg.d15;
+--6.12 M4函数
+select M4(s1,'timeInterval'='25','displayWindowBegin'='0','displayWindowEnd'='100'), M4(s2,'windowSize'='10') into root.sg.d16(s1,s2) from root.sg.d1;
+select * from root.sg.d16;
+--6.13 JEXL自定义函数
+select jexl(s1, 'expr'='x -> {x + x}') as jexl1, jexl(s1, 'expr'='x -> {x * 3}') as jexl2, jexl(s1, 'expr'='x -> {x * x}') as jexl3, jexl(s1, 'expr'='x -> {multiply(x, 100)}') as jexl4, jexl(s1, s2, 'expr'='(x, y) -> {x + y}') as jexl5, jexl(s1, s2, s3, 'expr'='(x, y, z) -> {x + y + z}') as jexl6 into root.sg.d17(s1,s2,s3,s4,s5,s6) from root.sg.d1;
+select * from root.sg.d17;
+
+--7. 嵌套表达式查询写回
+--7.1 时间序列查询嵌套表达式
+select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 into root.sg.d18(s1,s2,s3,s4,s5)from root.sg.d1;
+select * from root.sg.d18;
+select (s1 + s2) * 2 + sin(s1) into root.sg.d19(s1) from root.sg.d1;
+select * from root.sg.d19;
+select (s1 + s2) * 3 into root.sg.d20(s1,s2,s3,s4) from root.sg.d1, root.sg.dd;
+select * from root.sg.d20;
+--7.2 聚合查询嵌套表达式
+select avg(s1),sin(avg(s1)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) into root.sg.d21(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d21;
+select avg(*),(avg(*) + 1) * 3 / 2 -1 into root.sg.d22(s1,s2,s3,s4) from root.sg.dd;
+select * from root.sg.d22;
+select avg(s1),sin(avg(s1)),avg(s2) + 1,-sum(s2),avg(s1) + sum(s2) as custom_sum into root.sg.d23(s1,s2,s3,s4,s5) from root.sg.d1 GROUP BY([1, 10), 1ms);
+select * from root.sg.d23;
+
+--8. 别名查询写回
+select s1 as temperature, s2 as speed into root.sg.d24(s1,s2) from root.sg.d1;
+select * from root.sg.d24;
+
+--9. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//六、过滤查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.d1(time,s1,s2,s3) values(11,10,0.5,'15');
+insert into root.sg.d1(time,s1,s2,s3) values(12,12,null,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(13,null,11.1,'abcc');
+insert into root.sg.d1(time,s1,s2,s3) values(14,25,null,'abccadd');
+insert into root.sg.d1(time,s1,s2,s3) values(15,100,-2.15,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(16,0,0.15,'abc');
+
+--4. 时间过滤
+select s1 into root.sg.d2(s1) from root.sg.d1 where time > 5;
+select * from root.sg.d2;
+select s1 into root.sg.d2(s2) from root.sg.d1 where time = 7;
+select * from root.sg.d2;
+select s1,s2 into root.sg.d3(s1,s2) from root.sg.d1 where time >= 3 and time < 9;
+select * from root.sg.d3;
+
+--5. 值过滤
+select s1 into root.sg.d4(s1) from root.sg.d1 where s1 > 10;
+select * from root.sg.d4;
+select s2 into root.sg.d4(s2) from root.sg.d1 where s2 = 1.0;
+select * from root.sg.d4;
+select s1 into root.sg.d4(s3) from root.sg.d1 where s1 between 1 and 10;
+select * from root.sg.d4;
+select s1 into root.sg.d4(s4) from root.sg.d1 where s1 not between 1 and 10;
+select * from root.sg.d4;
+select s1 into root.sg.d4(s5) from root.sg.d1 where s1 in (1,2,3,4,5);
+select * from root.sg.d4;
+select s1 into root.sg.d4(s6) from root.sg.d1 where s1 not in (1,2,3,4,5);
+select * from root.sg.d4;
+
+--6. 空值过滤
+select s1 into root.sg.d5(s1) from root.sg.d1 where s2 is null;
+select * from root.sg.d5;
+select s1 into root.sg.d5(s2) from root.sg.d1 where s2 is not null;
+select * from root.sg.d5;
+
+--7. 模糊查询
+--7.1 Like 进行模糊匹配
+select s3 into root.sg.d6(s1) from root.sg.d1 where s3 like '%cc%';
+select * from root.sg.d6;
+select s3 into root.sg.d6(s2) from root.sg.d1 where s3 like '_b_';
+select * from root.sg.d6;
+select s3 into root.sg.d6(s3) from root.sg.d1 where s3 regexp '^[A-Za-z]+$';
+select * from root.sg.d6;
+select s3 into root.sg.d1(s4) from root.sg.d1 where s3 regexp '^[a-z]+$' and time > 10;
+select * from root.sg.d6;
+
+--8. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//七、结果分页查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+create database root.sg;
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.d1(time,s1,s2,s3) values(11,10,0.5,'15');
+insert into root.sg.d1(time,s1,s2,s3) values(12,12,null,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(13,null,11.1,'abcc');
+insert into root.sg.d1(time,s1,s2,s3) values(14,25,null,'abccadd');
+insert into root.sg.d1(time,s1,s2,s3) values(15,100,-2.15,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(16,0,0.15,'abc');
+
+--4. 按行分页【LIMIT & OFFSET】
+select s1, s2 into root.sg.d2(s1,s2) from root.sg.d1 limit 10;
+select * from root.sg.d2;
+select s1, s2 into root.sg.d3(s1,s2) from root.sg.d1 limit 5 offset 3;
+select * from root.sg.d3;
+select s1,s2 into root.sg.d4(s1,s2) from root.sg.d1 where time > 3 and time< 15 limit 5 offset 3;
+select * from root.sg.d4;
+select count(s1), max_value(s2) into root.sg.d5(s1,s2) from root.sg.d1 group by ([1, 15),1ms) limit 4 offset 3;
+select * from root.sg.d5;
+
+--5. 按列分页【slimit和soffset按列查询写回不支持】
+select s1,s2,s3 into root.sg.d6(s1,s2,s3) from root.sg.d1 where time > 1 and time < 15 slimit 3;
+<<SQLSTATE;
+
+--6. 行和列混合分页
+select s1,s2 into root.sg.d7(s1) from root.sg.d1 limit 10 offset 2 slimit 2 soffset 1;
+<<SQLSTATE;
+
+--7. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//八、结果对齐格式查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.d1(time,s1,s2,s3) values(11,10,0.5,'15');
+insert into root.sg.d1(time,s1,s2,s3) values(12,12,null,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(13,null,11.1,'abcc');
+insert into root.sg.d1(time,s1,s2,s3) values(14,25,null,'abccadd');
+insert into root.sg.d1(time,s1,s2,s3) values(15,100,-2.15,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(16,0,0.15,'abc');
+
+--4. 按设备对齐
+select s1,s2,s3 into root.sg.d2(s1,s2,s3) from root.sg.d1 where time <= 15 align by device;
+select * from root.sg.d2;
+
+--5. 时序不对齐【 DISABLE ALIGN 时序不对齐不支持查询写回】
+select s1,s2,s3 into root.sg.d3(s1,s2,s3) from root.sg.d1 where time <= 15 disable align;
+<<SQLSTATE;
+
+--6. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//九、聚合查询查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+create database root.sg;
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE tags(city=Beijing, workshop=w1);
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE tags(city=Beijing, workshop=w1);
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN tags(city=Shanghai, workshop=w1);
+CREATE TIMESERIES root.sg.d1.s4 WITH DATATYPE=BOOLEAN, ENCODING=RLE tags(city=Shanghai, workshop=w2);
+CREATE TIMESERIES root.sg.d1.s5 WITH DATATYPE=INT32, ENCODING=PLAIN tags(city=Beijing, workshop=w2);
+CREATE TIMESERIES root.sg.d1.s6 WITH DATATYPE=DOUBLE, ENCODING=RLE tags(city=Shanghai, workshop=w2);
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1,1.1,'001',true,2,0.0),(2,-1,-1.1,'false',false,15,-10.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,3,5.1,'1',false,2,-1.2),(4,11,12.1,'2',false,2,2.2),(5,9,10.1,'true',false,11,-1.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,1531604122307244742,0.0,'warn:-8721',false,1,1.5);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,-858162572565591,1.0,'error:-37229',true,1,1.0);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,-7162825364312,0.0,'warn:1731',false,5,-5.0);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,0,1.0,'test',true,1,3.2);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,1,0.0,'111',true,111,11.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(11,10,0.5,'15',false,2,0.0);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(12,12,null,'test',true,0,0.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(13,null,11.1,'abcc',false,0,0.0);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(14,25,null,'abccadd',false,1,1.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(15,100,-2.15,'test',true,2,2.1);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(16,0,0.15,'abc',false,1,1.0);
+
+--4. 内置聚合函数
+select sum(s1),avg(s2),extreme(s1),max_value(s5),min_value(s6) into root.sg.d2(s1,s2,s3,s4,s5) from root.sg.d1;
+select * from root.sg.d2;
+select count(s1),first_value(s2),last_value(s3),max_time(s4),min_time(s5),avg(s6) into root.sg.d3(s1,s2,s3,s4,s5,s6) from root.sg.d1;
+select * from root.sg.d3;
+
+--5. 分层聚合查询【GROUP BY LEVEL】
+select count(s1) into root.sg.d4(s1) from root.sg.d1 group by level = 1;
+select * from root.sg.d4;
+select count(s1),avg(s2),last_value(s3) into root.sg.d5(s1,s2,s3) from root.sg.d1 group by level = 1, 2;
+select * from root.sg.d5;
+
+--6. 时间区间分段聚合
+select count(s1), max_value(s2) into root.sg.d6(s1,s2) from root.sg.d1 group by ([1,15),2ms);
+select * from root.sg.d6;
+select count(s3), max_value(s5) into root.sg.d7(s1,s2) from root.sg.d1 group by ([1, 16), 1ms, 1h);
+select * from root.sg.d7;
+
+--7. 时间区间和路径层级混合聚合查询
+select count(s1),max_value(s6) into root.sg.d8(s1,s2) from root.sg.d1 group by ((1, 16],1ms), level=1;
+select * from root.sg.d8;  
+select count(s1) into root.sg.d9(s1) from root.sg.d1 group by ([1, 16), 10ms, 1s), level=1;
+select * from root.sg.d9;
+
+--8. 标签聚合查询【不支持查询写回】
+SELECT AVG(s1) into root.sg.d10(s1) FROM root.sg.d1 GROUP BY TAGS(city);
+<<SQLSTATE;
+SELECT COUNT(s1) into root.sg.d11(s1) FROM root.sg.d1 GROUP BY TAGS(city, workshop);
+<<SQLSTATE;
+
+--9. 聚合结果过滤查询
+select count(s1) into root.sg.d12(s1) from root.sg.d1 group by ([1,16),2ms), level=1 having count(s2) > 1;
+select * from root.sg.d12;
+select count(s1), count(s2) into root.sg.d13(s1,s2) from root.sg.d1 group by ([1,16),2ms) having count(s2) > 1 align by device;
+select * from root.sg.d13;
+
+--10. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL
+
+ 
+//十、最新点查询
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+create database root.sg;
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.d1(time,s1,s2,s3) values(11,10,0.5,'15');
+insert into root.sg.d1(time,s1,s2,s3) values(12,12,null,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(13,null,11.1,'abcc');
+insert into root.sg.d1(time,s1,s2,s3) values(14,25,null,'abccadd');
+insert into root.sg.d1(time,s1,s2,s3) values(15,100,-2.15,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(16,0,0.15,'abc');
+
+--4. 最新点查询写回
+select last s1 into root.sg.d2(s1) from root.sg.d1;
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十一、空值填充
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525300000,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525360000,null,25.99,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525470000,TRUE,25.99,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525490000,null,26.92,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509559200000,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509638400000,TRUE,26.0,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509724800000,TRUE,23.29,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509811200000,null,24.19,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509897600000,FALSE,20.19,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509908400000,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509984000000,null,22.12,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510069800000,FALSE,20.12,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510069920000,FALSE,21.22,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070100000,TRUE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070370000,TRUE,28.12,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070400000,TRUE,23.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1541174400000,null,20.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1541433600000,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1572883200000,TRUE,19.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1573056000000,TRUE,24.19,'V002');
+
+--4. previous
+select temperature, status from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000;
+select temperature, status, hardware into root.sg.d1(s1,s2,s3) from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(previous);
+select * from root.sg.d1;
+
+--5. linear
+select * from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000;
+select temperature, status into root.sg.d2(s1,s2) from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(linear);
+select * from root.sg.d2;
+
+--6. value
+select * from root.ln.wf01.wt01;
+select temperature, hardware into root.sg.d3(s1,s2) from root.ln.wf01.wt01 where time>=1509525360000 and time < 1510070370000 fill(10.11);
+select * from root.sg.d3;
+
+--7. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十二、变量占位符【:: & ${i}】
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建时间序列
+create database root.sg;
+create database root.ln;
+CREATE TIMESERIES root.sg.d1.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d1.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg.d2.s1 WITH DATATYPE=INT64, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d2.s2 WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.sg.d2.s3 WITH DATATYPE=TEXT, ENCODING=PLAIN;
+CREATE TIMESERIES root.ln.wf01.wt01.temperature WITH DATATYPE=FLOAT, ENCODING=RLE;
+CREATE TIMESERIES root.ln.wf01.wt01.status WITH DATATYPE=BOOLEAN, ENCODING=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3) values(1,1,1.1,'001'),(2,-1,-1.1,'false');
+insert into root.sg.d1(time,s1,s2,s3) values(3,3,5.1,'1'),(4,11,12.1,'2'),(5,9,10.1,'true');
+insert into root.sg.d1(time,s1,s2,s3) values(6,1531604122307244742,0.0,'warn:-8721');
+insert into root.sg.d1(time,s1,s2,s3) values(7,-8581625725655917595,1.0,'error:-37229');
+insert into root.sg.d1(time,s1,s2,s3) values(8,-7162825364312197604,0.0,'warn:1731');
+insert into root.sg.d1(time,s1,s2,s3) values(9,0,1.0,'test');
+insert into root.sg.d1(time,s1,s2,s3) values(10,1,0.0,'111');
+insert into root.sg.d2(time,s1,s2,s3) values(1,10,0.5,'15');
+insert into root.sg.d2(time,s1,s2,s3) values(2,12,null,'test');
+insert into root.sg.d2(time,s1,s2,s3) values(3,null,11.1,'abcc');
+insert into root.sg.d2(time,s1,s2,s3) values(4,25,null,'abccadd');
+insert into root.sg.d2(time,s1,s2,s3) values(5,100,-2.15,'test');
+insert into root.sg.d2(time,s1,s2,s3) values(6,0,0.15,'abc');
+insert into root.ln.wf01.wt01(time,temperature,status) values(1,1.0,false),(2,0.0,true),(3,-1.0,false);
+
+--4. 对齐时间序列使用变量占位符
+--4.1 目标设备不使用变量占位符&目标物理量列表使用变量占位符
+select s1, s2 into root.sg_copy.d1(::), root.sg_copy.d2(s1), root.sg_copy.d1(${3}), root.sg_copy.d2(::) from root.sg.d1, root.sg.d2;
+select * from root.sg_copy.**;
+--4.2 目标设备使用变量占位符&目标物理量列表不使用变量占位符
+select d1.s1, d1.s2, d2.s1, d1.s2 into ::(s1_1, s2_2), root.sg.d2_2(s3_3), root.${2}_copy.::(s4) from root.sg;
+select * from root.**;
+--4.3 目标设备使用变量占位符 & 目标物理量列表使用变量占位符
+select * into root.sg_bk.::(::) from root.sg.**;
+select * from root.sg_bk.**;
+
+--5. 按设备对齐使用变量占位符
+--5.1 目标设备不使用变量占位符 & 目标物理量列表使用变量占位符
+select s1, s2, s3 into root.backup_sg.d1(::), root.backup_sg.d2(backup_${3}) from root.sg.d1, root.sg.d2 align by device;
+select * from root.backup_sg.**;
+--5.2 目标设备使用变量占位符 & 目标物理量列表不使用变量占位符
+select avg(s1), sum(s1) + sum(s1), count(s3) into root.agg_${2}.::(avg_s1, sum_s1_add_s1, count_s3) from root.sg.d1, root.sg.d2 align by device;
+select * from root.**;
+--5.3 目标设备使用变量占位符 & 目标物理量列表使用变量占位符
+select * into ::(backup_${3}) from root.sg.** align by device;
+select * from root.**;
+
+--6. 与通配符*和**连用
+select * into root.pk.::(${3}) from root.sg.*;
+select * from root.pk.**;
+select * into root.ab.${3}(::) from root.ln.**;
+select * from root.ab.**;
+
+--7. 目标物理量列表中要使用变量占位符仅支持写一个，不能写多个
+select s1,s2,s3 into root.ph.d1(s1,data_${1},${2}_data),root.ph.d2(::) from root.sg.d1,root.sg.d2 align by device;
+<<SQLSTATE;
+
+--8. 包含聚合、表达式计算无法使用变量占位符
+select avg(s1),last_value(s2),count(s3) into root.sh.::(s1,s2,${3}) from root.sg.d1;
+<<SQLSTATE;
+select s1, s1 into t1, t2 from root.sg.d1;
+<<SQLSTATE;
+
+--9. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十三、0.14语法已更新，对之前的旧语法进行校验（V0.13.x）
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+
+--2. 插入数据
+insert into root.sg.d1(time,s1) values(1,1.2);
+
+--3. 以 root 开头的完整序列名
+select s1, s1 into root.sg.d1.t1, root.sg.d1.t2 from root.sg.d1;
+<<SQLSTATE;
+
+--4. 不以 root 开头的部分序列名
+select s1, s1 into t1, t2 from root.sg.d1;
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十四、Group By查询
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(3,3);
+insert into root.sg.d1(time,s1) values(4,4);
+insert into root.sg.d1(time,s1) values(6,6);
+
+--4. group by 查询写入
+select count(s1) into root.sg.d1(group_by_s1) from root.sg.d1 group by ([1, 5), 1ms);
+select * from root.sg.d1;
+
+--5. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十五、Group By Fil 查询
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1) values(1,1);
+insert into root.sg.d1(time,s1) values(3,3);
+insert into root.sg.d1(time,s1) values(10,10);
+insert into root.sg.d1(time,s1) values(11,11);
+
+--4. group by fill 查询写入
+select last_value(s1) into root.sg.d1(group_by_fill_s1) from root.sg.d1 group by ([1, 10),1ms) fill(PREVIOUS);
+select * from root.sg.d1;
+
+--5. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十六、ASC查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+
+--4. ASC查询写入
+select s1, s2 into root.sg.d1(p1, p2) from root.sg.d1 order by time ASC;
+
+--5. 查询数据
+select * from root.sg.d1;
+
+--6. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十七、DESC查询写回
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+
+--4. desc写入查询
+select s1, s2 into root.sg.d1(p1, p2) from root.sg.d1 order by time desc;
+
+--5.0 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十八、select子句中源序列和into子句中的目标序列数量需一致校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+insert into root.sg.d1(time,s1,s2) values(3,3,6);
+insert into root.sg.d1(time,s1,s2) values(9,2,1);
+
+--4. 源序列与目标序列数对应数据不一致
+select s1 into root.sg.d1(p1, p2) from root.sg.d1;
+<<SQLSTATE;
+
+--5. 源序列与目标序列数对应数据一致
+select s1, s2 into root.sg.d1(t1, t2) from root.sg.d1;
+
+--6. 查询数据
+select s1, s2, t1, t2 from root.sg.d1;
+
+--7. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//十九、select子句带“*”查询校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=FLOAT,encoding=PLAIN;
+
+--2. 查询存储组，设备和时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,3);
+
+--4. 带“*”查询：
+--4.1 目标序列个数与源序列个数不一致，给出报错提示
+select * into root.::(p1,p2,p3)from root.sg.d1;
+<<SQLSTATE;
+select s1, * into root.::(w1,w2) from root.sg.d1;
+<<SQLSTATE;
+--4.2 目标序列个数与源序列个数一致
+select * into root.::(t1,t2)from root.sg.d1;
+select * from root.sg.d1;
+--4.3 不带*查询，可查询写回成功
+select s1, s2 into root.::(m1,m2) from root.sg.d1;
+select s1,s2,m1,m2 from root.sg.d1;
+
+--5. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十、into子句默认值自动创建schema功能校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 预先创建存储组和时间序列
+--1.1 创建存储组和源序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+--1.2 源序列插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+--1.3 创建目标序列
+create timeseries root.sg.d1.p1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.p2 with datatype=BOOLEAN,encoding=PLAIN;
+--1.4 执行查询写回
+select s1, s2 into root.sg.d1(p1, p2) from root.sg.d1;
+--1.5 查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+--1.6 清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--2. 不预先创建目标时间序列
+--2.1 创建存储组和源序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+--2.2 源序列插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+--2.3 执行查询写回
+select s1, s2 into root.sg.d1(p3, p4) from root.sg.d1;
+--2.4 查询数据
+select s1, s2, p3, p4 from root.sg.d1;
+
+--3. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十一、select子句中的源序列和into子句中的目标序列的数据类型校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 数据类型校验:数据类型不一致
+--1.1 创建数据库和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.p1 with datatype=BOOLEAN,encoding=PLAIN;
+--1.2 插入数据
+insert into root.sg.d1(time,s1) values(1,2);
+--1.3 执行查询写回
+select s1 into root.sg.d1(p1) from root.sg.d1;
+<<SQLSTATE;
+--1.4 清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--2. 数据类型校验:数据类型一致
+--2.1 创建存储组和时间序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.t1 with datatype=FLOAT,encoding=PLAIN;
+--2.2 插入数据
+insert into root.sg.d1(time,s1) values(1,2);
+--2.3 执行查询写回
+select s1 into root.sg.d1(t1) from root.sg.d1;
+--2.4 查询数据
+select s1, t1 from root.sg.d1;
+
+--3. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十二、into子句中的目标序列名称校验
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1.目标序列存在多个列且名称相同校验
+--1.1 创建存储组和源序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+--1.2 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+--1.3 查询写回
+select s1,s2 into root.sg.d1(p1, p1) from root.sg.d1;
+<<SQLSTATE;
+--1.4 清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--2. 目标序列存在多个列且名称不同校验
+--2.1 创建存储组和源序列
+CREATE DATABASE root.sg;
+create timeseries root.sg.d1.s1 with datatype=FLOAT,encoding=PLAIN;
+create timeseries root.sg.d1.s2 with datatype=BOOLEAN,encoding=PLAIN;
+--2.2 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,2,TRUE);
+--2.3 查询写回
+select s1,s2 into root.sg.d1(p1, p2) from root.sg.d1;
+--2.4 查询数据
+select s1, s2, p1, p2 from root.sg.d1;
+
+--3. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十三、select into设置TTL
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+CREATE DATABASE root.sg_ttl;
+create timeseries root.sg_ttl.dev.status with datatype=double,encoding=PLAIN ;
+
+--2. 插入数据
+insert into root.sg_ttl.dev(time,status) values(now(),2.3);
+
+--3. 查询写回
+select status into root.::(s1) from root.sg_ttl.dev;
+select count(*) from root.sg_ttl.dev;
+
+--4. 创建TTL
+set ttl to root.sg_ttl 5000;
+flush;
+
+--5. 验证TTL
+select count(*) from root.sg_ttl.dev;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+
+--6. 查看TTL
+SHOW TTL ON root.sg_ttl;
+show all ttl;
+
+--7. 取消TTL
+unset ttl to root.sg_ttl;
+insert into root.sg_ttl.dev(time,status,s1) values(1000,2.3,7.5);
+flush;
+sleep 6000;
+select count(*) from root.sg_ttl.dev;
+
+--8. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十四、select into和template连用
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+delete timeseries of schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+
+--1. 分别创建存储组和元数据模板
+create database root.sg1;
+create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+
+--2. 查看存储组和查看模板列表
+show databases;
+show schema templates;
+
+--3. 挂载模板和查看挂载了模板的路径
+set schema template t1 to root.sg1.d1;
+show paths set schema template t1;
+
+--4. 激活模板
+create timeseries of schema template on root.sg1.d1;
+show paths using schema template t1;
+
+--5. 查看设备和时间序列
+show devices root.sg1.**;
+show timeseries root.sg1.**;
+
+--6. 插入数据
+insert into root.sg1.d1(time, temperature, status) values(1, 1, TRUE);
+insert into root.sg1.d1(time, temperature, status) values(2, 2, FALSE), (3, 3, TRUE);
+
+--7. 查询写回并数据查询
+select temperature, status into root.::(t1,t2) from root.sg1.d1; 
+select * from root.sg1.d1;
+
+--8. 解除模板
+delete timeseries of schema template t1 from root.sg1.d1;
+
+--9. 查看元数据模板是否已有路径使用
+show paths using schema template t1;
+
+--10. 卸载元数据模板
+unset schema template t1 from root.sg1.d1;
+
+--11. 删除模板并查看模板列表
+drop schema template t1;
+show schema templates;
+
+--12. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+delete timeseries of schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+
+
+//二十五、select into和UDF连用
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建数据库和时间序列
+CREATE DATABASE root.sg1;
+CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN;
+
+--2.插入数据
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (0, -1, 1);
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (1, -2, 2);
+INSERT INTO root.sg1.d1(timestamp, s1, s2) VALUES (2, -3, 3);
+
+--3.注册UDF并查看UDF（已注册的UDF是否存在）
+CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
+SHOW FUNCTIONS;
+
+--4. UDF查询
+SELECT s1, example(s1), s2, example(s2) FROM root.sg1.d1;
+
+--5.select into与UDF连用
+select example(s1), example(s2) into root.sg2.d1(s1,s2) from root.sg1.d1;
+select * from root.sg2.d1;
+select example(s1), example(s2) into root.db.d1(::,${3}) from root.sg1.d1;
+<<SQLSTATE;
+
+--6. 清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二十六、select into 数据类型自动转换
+
+--0. 清理环境
+connect root/root;
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建时间序列和插入数据
+create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=FLOAT,encoding=RLE,'MAX_POINT_NUMBER'='2';
+create timeseries root.sg.d1.s5 with datatype=DOUBLE,encoding=RLE,'MAX_POINT_NUMBER'='3';
+create timeseries root.sg.d1.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d2.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d2.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d3.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d3.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d3.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d3.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d3.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d3.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d4.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d4.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d4.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d4.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d4.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d4.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d5.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d5.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d5.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d5.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d5.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d5.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d6.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d6.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d6.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d6.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d6.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d6.s6 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d7.s1 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d7.s2 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d7.s3 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d7.s4 with datatype=FLOAT,encoding=RLE;
+create timeseries root.sg.d7.s5 with datatype=DOUBLE,encoding=RLE;
+create timeseries root.sg.d7.s6 with datatype=TEXT,encoding=PLAIN;
+
+--2.源序列写入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,false,1,1,1.008,1.1256,'001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,true,0,-1,-0.123,0.2371,'002');
+
+--3. 查看源序列设备和时间序列
+show devices root.sg.**;
+show timeseries root.sg.**;
+select * from root.sg.d1;
+
+--4.数据类型转换
+--4.1 BOOLEAN类型只能转换BOOLEAN类型，其他类型转换不了
+select s1 into root.sg.d2(s1) from root.sg.d1;
+select s1 from root.sg.d2;
+select s1 into root.sg.d2(s2) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s3) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s4) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s5) from root.sg.d1;
+<<SQLSTATE;
+select s1 into root.sg.d2(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.2 INT32类型可以转换INT64，FLOAT，DOUBLE，其他的数据类型不支持
+select s2 into root.sg.d3(s1) from root.sg.d1;
+<<SQLSTATE;
+select s2 into root.sg.d3(s2) from root.sg.d1;
+select s2 from root.sg.d3;
+select s2 into root.sg.d3(s3) from root.sg.d1;
+select s3 from root.sg.d3;
+select s2 into root.sg.d3(s4) from root.sg.d1;
+select s4 from root.sg.d3;
+select s2 into root.sg.d3(s5) from root.sg.d1;
+select s5 from root.sg.d3;
+select s2 into root.sg.d3(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.3 INT64类型可以转换DOUBLE，除本身之外，其他类型不支持
+select s3 into root.sg.d4(s1) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s2) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s3) from root.sg.d1;
+select s3 from root.sg.d4;
+select s3 into root.sg.d4(s4) from root.sg.d1;
+<<SQLSTATE;
+select s3 into root.sg.d4(s5) from root.sg.d1;
+select s5 from root.sg.d4;
+select s3 into root.sg.d4(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.4 FLOAT类型可以转换DOUBLE，除本身之外，其他类型不支持
+select s4 into root.sg.d5(s1) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s2) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s3) from root.sg.d1;
+<<SQLSTATE;
+select s4 into root.sg.d5(s4) from root.sg.d1;
+select s4 from root.sg.d5;
+select s4 into root.sg.d5(s5) from root.sg.d1;
+select s5 from root.sg.d5;
+select s4 into root.sg.d5(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.5 DOUBLE类型不支持其他数据类型转换
+select s5 into root.sg.d6(s1) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s2) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s3) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s4) from root.sg.d1;
+<<SQLSTATE;
+select s5 into root.sg.d6(s5) from root.sg.d1;
+select s5 from root.sg.d6;
+select s5 into root.sg.d6(s6) from root.sg.d1;
+<<SQLSTATE;
+--4.6 Text类型不支持其他数据类型转换
+select s6 into root.sg.d7(s1) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s2) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s3) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s4) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s5) from root.sg.d1;
+<<SQLSTATE;
+select s6 into root.sg.d7(s6) from root.sg.d1;
+select s6 from root.sg.d7;
+
+--5. 清理环境
+connect root/root;
+DROP FUNCTION example;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;

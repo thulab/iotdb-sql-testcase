@@ -1,0 +1,184 @@
+// 非关联查询：Exist
+// 非关联的 EXISTS 查询用于检查某个子查询是否返回至少一行数据
+
+connect root/root;
+
+--0.清理环境：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    remark STRING ATTRIBUTE,
+    name TEXT FIELD,
+    Gender TEXT FIELD,
+        Status BOOLEAN FIELD,
+        employee_id INT32 FIELD,
+        salary DOUBLE FIELD,
+        date_of_birth DATE FIELD,
+        Contac_info string FIELD
+);
+
+create table departments
+(
+    department_id STRING TAG,
+    dep_description STRING ATTRIBUTE,
+    dep_name TEXT FIELD,
+    dep_phone TEXT FIELD,
+        dep_status BOOLEAN FIELD,
+        dep_member INT32 FIELD,
+        employee_id INT32 FIELD
+);
+
+create table customers
+(
+        customer_id STRING TAG,
+        remark STRING ATTRIBUTE,
+        customer_name TEXT,
+        region TEXT,
+        order_id INT64
+);
+
+create table orders
+(
+        customer_id STRING TAG,
+        employee_id INT32,
+        project_id STRING TAG,
+        project_name STRING ATTRIBUTE,
+        order_id INT64,
+        order_amount FLOAT
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+desc orders;
+desc customers;
+
+--6. 数据写入
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1, 'D001', 'good', 'Mary','Female', false, 1223, 5500.22, '1988-10-12', '133-1212-1234');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(2, 'D001', 'great', 'John', 'Male', true, 40012, 8822, '1985-06-15', '130-1002-1334');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(3, 'D002', 'excellent', 'Nancy', 'Female', true, 30112, 10002, '1983-08-15', '135-1302-1354');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(4, 'D002', 'good', 'Jack', 'Male', false, 12212, 7000, '1990-03-26', '138-1012-1353');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(5, 'D003', 'great', 'Linda', 'Female', false, 10212, 5600, '1995-06-15', '150-2003-1355');
+
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(1, 'D001', 'goods','销售部', '010-2271-2120', false, 1223,1223);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(2, 'D001', 'goods','销售部', '010-2271-2120', false, 102, 40012);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(3, 'D002', 'service','客服部', '010-2077-2520', true, 220, 30112);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(4, 'D002', 'service','客服部', '010-2077-2520', true, 2012, 12212);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(5, 'D003', 'IT','研发部', '010-3272-2310', true, 300, 10212);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(6, 'D004', 'IT','人事部', '010-3272-2312', true, 300, 10200);
+
+insert into orders(time, customer_id, employee_id, project_id, project_name, order_id, order_amount) values
+(1, 'C111000111', 12212, 'P1001001', 'chair', 111122223333, 5000.89),
+(2, 'C332113221', 40012, 'P2002021', 'table', 222333445881,1860.5),
+(3, 'C113344421', 10212, 'P3893001', 'mirror', 66788843922,3699.88),
+(4, 'C223321123', 1223, 'P0010100', 'clothes', 7263722222,8888.88),
+(5, 'C123532982', 30112, 'P3983819', 'shoes',22238472992, 9999.9),
+(6, null,1002293,'P22633332','cars',3729837293838,350102.9),
+(7, 'C566378432', 10212, 'P22633332', 'cars',null, null);
+
+insert into customers(time,customer_id, remark, customer_name, region, order_id) values
+(1, 'C111000111', 'A', 'Helen', 'Beijing', 22238472992),
+(2, 'C332113221', 'A', 'Mike', 'Shanghai', 111122223333),
+(3, 'C113344421', 'B', 'John', 'Hebei', 66788843922),
+(4, 'C223321123', 'A', 'Jack', 'Guangzhou', 7263722222),
+(5, 'C123532982', 'B', 'Amy', 'Tianjin', 222333445881),
+(6, null, 'C', 'CoCO', 'Beijing', 3729837293838),
+(7, 'C092938273', 'A', 'Nancy', 'Shanghai',null);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+select * from orders order by time;
+select * from customers order by time;
+
+
+--8. 非关联EXISTS的子查询查询
+--8.1 查询将返回所有员工的姓名，前提是他们的部门在 departments 表中存在
+select name from employees
+	where EXISTS (
+		select 1 from departments 
+			where departments.department_id = employees.department_id
+);
+
+--8.2 查找有订单的客户
+select customer_name from customers
+	where EXISTS (
+		select 1 from orders
+			where orders.customer_id = customers.customer_id
+);
+
+--8.3 检查特定客户的订单
+select customer_id from orders
+	where customer_id = 'C111000111' and EXISTS (
+		select 1 from orders
+		where customer_id = 'C111000111'
+);
+
+--8.4 检查是否存在特定条件的记录 
+select order_amount from orders o1
+	where EXISTS (
+		select 1 from  orders o2
+    WHERE o2.order_amount > 5000
+    AND o1.order_id = o2.order_id
+);
+
+
+--8.5 使用 NOT EXISTS 找出没有员工的部门
+select department_id, dep_name from departments
+	where NOT EXISTS (
+		select 1 from employees
+			where employees.department_id = departments.department_id
+);
+
+select DISTINCT department_id, dep_name from departments
+	where NOT EXISTS (
+		select 1 from employees
+			where employees.department_id = departments.department_id
+);
+
+--8.6 使用 EXISTS 找出有订单的客户
+select customer_id, customer_name from customers
+	where EXISTS (
+		select 1 from orders
+			where orders.customer_id = customers.customer_id
+);
+
+
+-- 清理环境
+drop database test_db;
+<<NULL;

@@ -1,0 +1,48 @@
+// Explain 语句：允许用户预览查询SQL的执行计划，包括IoTDB如何组织数据检索和处理
+
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	float FLOAT FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(time, device_id, model_id, float) values(1,'d1','m1',1.1);
+insert into table_1(time, device_id, model_id, float) values(2,'d1','m1',2.2);
+insert into table_1(time, device_id, model_id, float) values(3,'d2','m2',3.3);
+
+--7. 数据查询
+select * from table_1 order by time;
+
+--8. explain 执行查询计划
+explain select * from table_1 order by time;
+<<CHECKCODE;
+explain select float from table_1 limit 1 offset 1;
+<<CHECKCODE;
+explain select count(*) from table_1 group by device_id;
+<<CHECKCODE;
+
+
+-- 清理数据：
+drop database test_db;
+<<NULL;

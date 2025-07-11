@@ -1,0 +1,122 @@
+-- 用户手册中例子，测试了非对齐和对齐的时间序列，还有各种查询语句
+connect root/root;
+
+drop database root.**;<<NULL;
+sleep 1000;
+
+DROP FUNCTION example;<<NULL;
+-- 创建
+CREATE FUNCTION example AS 'Max';
+
+SHOW FUNCTIONS;
+
+//3.UDF查询
+--测试操作
+-- init data
+CREATE DATABASE root.udf;<<NULL;
+CREATE TIMESERIES root.udf.user_d1.s1 WITH datatype=INT32,encoding=RLE;
+CREATE TIMESERIES root.udf.user_d1.s2 WITH datatype=INT32,encoding=RLE;
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(1,23,32);
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(2,31,19);
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(3,null,21);
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(4,20,32);
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(5,33,null);
+INSERT INTO root.udf.user_d1(time,s1,s2) VALUES(6,19,28);
+
+
+--基本查询数据
+SELECT * from root.udf.user_d1;
+
+-- 查询单列:expect 5,33
+SELECT example(s1) from root.udf.user_d1;
+-- 带where 查询:expect 4, 32
+SELECT example(s2) from root.udf.user_d1 where time >2 and time < 6;
+
+
+--SLIMIT和SOFFSET查询
+SELECT * from root.sq.d1 slimit 1 soffset 1;
+SELECT *, example(*) from root.udf.user_d1 slimit 1 soffset 1;
+SELECT example(*) from root.udf.user_d1 slimit 1 soffset 1;
+
+--LIMIT和OFFSET查询
+SELECT * from root.udf.user_d1 limit 1 offset 1;
+SELECT example(*) from root.udf.user_d1 limit 1 offset 1;
+SELECT *, example(*) from root.udf.user_d1 limit 1 offset 1;
+
+
+SELECT example(*) from root.udf.user_d1;
+--align by device对齐方式
+SELECT example(*) from root.udf.user_d1 align by device;
+
+--支持值过滤查询
+SELECT example(*) from root.udf.user_d1 where s1 < 20;
+
+--支持时间过滤查询
+SELECT example(*) from root.udf.user_d1 where time < 5;
+
+--带*查询
+SELECT *, example(*) from root.udf.user_d1;
+SELECT example(*), * from root.udf.user_d1;
+
+SELECT example(s1, *) from root.udf.user_d1;
+SELECT example(*, *) from root.udf.user_d1;
+SELECT *, example(s1) from root.udf.user_d1;
+
+SELECT example(*) from root.udf.user_d1;
+SELECT count(*) from root.udf.user_d1;
+SELECT count(example(*)) from root.udf.user_d1;
+SELECT example(count(*)) from root.udf.user_d1;
+
+-- aligned
+CREATE ALIGNED TIMESERIES root.udf.user_d2(s1 int32, s2 int32);
+INSERT INTO root.udf.user_d2(time,s1,s2) ALIGNED VALUES (1,23,32),(2,31,19),(3,null,21),(4,20,32),(5,33,null),(6,19,28);
+
+--基本查询数据
+SELECT * from root.udf.user_d2;
+
+-- 查询单列:expect 5,33
+SELECT example(s1) from root.udf.user_d2;
+-- 带where 查询:expect 4, 32
+SELECT example(s2) from root.udf.user_d2 where time >2 and time < 6;
+
+
+--SLIMIT和SOFFSET查询
+SELECT * from root.sq.d1 slimit 1 soffset 1;
+SELECT *, example(*) from root.udf.user_d2 slimit 1 soffset 1;
+SELECT example(*) from root.udf.user_d2 slimit 1 soffset 1;
+
+--LIMIT和OFFSET查询
+SELECT * from root.udf.user_d2 limit 1 offset 1;
+SELECT example(*) from root.udf.user_d2 limit 1 offset 1;
+SELECT *, example(*) from root.udf.user_d2 limit 1 offset 1;
+
+
+SELECT example(*) from root.udf.user_d2;
+--align by device对齐方式
+SELECT example(*) from root.udf.user_d2 align by device;
+
+--支持值过滤查询
+SELECT example(*) from root.udf.user_d2 where s1 < 20;
+
+--支持时间过滤查询
+SELECT example(*) from root.udf.user_d2 where time < 5;
+
+--带*查询
+SELECT *, example(*) from root.udf.user_d2;
+SELECT example(*), * from root.udf.user_d2;
+
+SELECT example(s1, *) from root.udf.user_d2;
+SELECT example(*, *) from root.udf.user_d2;
+SELECT *, example(s1) from root.udf.user_d2;
+
+SELECT example(*) from root.udf.user_d2;
+SELECT count(*) from root.udf.user_d2;
+SELECT count(example(*)) from root.udf.user_d2;
+SELECT example(count(*)) from root.udf.user_d2;
+
+
+--清理环境
+delete timeseries root.**;
+DROP FUNCTION example;
+
+

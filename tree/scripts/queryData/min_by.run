@@ -1,0 +1,141 @@
+//聚合函数：min_by(x,y)，返回y最小时对应时间戳下的x值。
+//x和y均可以为time,min_by(time,y)返回y最小时对应的时间戳
+//如果y最小时对应的时间戳下x为null，则返回null
+//如果y有多个最小值，取最小值中最小时间戳对应的x值
+//与max_value保持一致，仅支持数据类型为：INT32、INT64、FLOAT、DOUBLE最为y的输入，支持所有六种类型最为x的输入
+//x,y的输入均不允许为常数
+//min_by必须有两个输入参数x和y
+
+
+--0. 清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=DOUBLE;
+create timeseries root.sg.d1.s2 with datatype=INT32;
+create timeseries root.sg.d1.s3 with datatype=FLOAT;
+create timeseries root.sg.d1.s4 with datatype=INT64;
+create timeseries root.sg.d1.s5 with datatype=BOOLEAN;
+create timeseries root.sg.d1.s6 with datatype=TEXT;
+create aligned timeseries root.sg.d2(s1 DOUBLE, s2 INT32, s3 FLOAT, s4 INT64, s5 BOOLEAN, s6 TEXT);
+
+--2. 查询数据库、设备以及时间序列
+show databases root.sg;
+show devices root.sg.**;
+show timeseries root.sg.**;
+
+--3.插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,100.1,1,10.1,12,false,'test01');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,60.2,36,150.5,155,true,'test02');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,0.2,2,10.1,12,false,'test03');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,0.2,0,222.2,1010,true,'test04');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,0,4.14,188,false,'test05');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,0.2,0,80.6,2500,true,'test06');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,16.6,25,null,3610,false,'test07');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,1.6,100,null,1,false,'test08');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,999,111.1,16,true,'A01Db');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,155.5,101,-1.1,66,false,'BNno10112Dnc');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,11,55.5,360,true,'LpNY10sdhj');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(4,0.12,20,null,5,true,'BNdhj');
+
+--4.聚合查询：min_by
+
+--4.0 按设备对齐原始查询
+select * from root.sg.** align by device;
+
+--4.1 min_by(time,y)返回y最小时对应的时间戳(min_by不支持text和BOOLEAN)
+select s1 from root.sg.**;
+select min_by(time,s1) from root.sg.**;
+select s2 from root.sg.**;
+select min_by(time,s2) from root.sg.**;
+select s3 from root.sg.**;
+select min_by(time,s3) from root.sg.**;
+select s4 from root.sg.**;
+select min_by(time,s4) from root.sg.**;
+select s5 from root.sg.**;
+select min_by(time,s5) from root.sg.**;
+<<SQLSTATE;
+select s6 from root.sg.**;
+select min_by(time,s6) from root.sg.**;
+<<SQLSTATE;
+
+--4.2 y最小时对应的时间戳下x为null,则返回null
+select s3, s4 from root.sg.**;
+select min_by(s3,s4) from root.sg.**;
+
+--4.3 y有多个最小值，取最小值中最小时间戳对应的x值
+select * from root.sg.d1 align by device;
+select min_by(time,s1) from root.sg.d1 align by device;
+select s1, s2 from root.sg.d1 align by device;
+select min_by(s1,s2) from root.sg.d1 align by device;
+
+--4.4 x,y输入均不允许为具体数值，不存在的字符串统一返回空列表
+select min_by(a,b) from root.sg.**;
+select min_by(π,e) from root.sg.**;
+<<SQLSTATE;
+select min_by(1,2) from root.sg.**;
+<<SQLSTATE;
+select min_by(#,*)) from root.sg.**;
+<<SQLSTATE;
+
+--4.5 min_by必须有两个输入参数x和y
+select min_by(time,s1,s2) from root.sg.**;
+<<SQLSTATE;
+select min_by(s1,s2,s3,s4) from root.sg.**;
+<<SQLSTATE;
+select min_by(*) from root.sg.d1;
+<<SQLSTATE;
+
+--4.6 min_by与其他聚合函数连用
+select min_by(time,s1),max_value(s1) from root.sg.**;
+select count(s1), min_by(s1,s4) from root.sg.**;
+select min_by(s1,s3),sum(s1+s3),avg(s1+s3) from root.sg.d1 align by device;
+select mode(*), min_by(s2,s4) from root.sg.d1 align by device;
+
+--4.7 min_by与原始数据查询连用（应该不能混合使用）
+select s1, s2, min_by(s1,s2) from root.sg.d1;
+<<SQLSTATE;
+
+--4.8 min_by + 选择表达式查询
+select min_by(time+10-5,2*(s2+s3)-1) from root.sg.d1 align by device;
+select min_by(s2*2/3,s3+1) from root.sg.d1 align by device;
+select min_by(s3+s4,s2-s1) as D001, avg(s1)+sum(s2)+1 as D002 from root.sg.d1 align by device;
+
+--4.9 min_by时间分区分组聚合（group by time）
+select min_by(s1,s2) from root.sg.d1 group by ([0,10),2ms);
+select min_by(time,s4) from root.sg.** group by ([0,10),3ms);
+
+--4.10 min_by + having(聚合结果过滤)
+select min_by(s1,s3) from root.sg.d1 group by ([0,10),4ms) having min_by(s3,s2) > 10 align by device;
+select min_by(s2,s3) from root.sg.d1 group by ([0,10),2ms) having min_by(time,s4) <=4 align by device;
+select min_by(s1,s2) from root.sg.d1 group by ([1,6),2ms) having sum(s1) > 1;
+select min_by(s1,s2) from root.sg.d1 group by ([1,6),2ms) having s1 > 1;
+<<SQLSTATE;
+
+--4.11 min_by + order by(结果集排序)
+select min_by(s1,s2),min_by(s3,s4) from root.sg.** group by ([0,10),2ms) order by time desc align by device;
+select min_by(time,s1),min_by(s1,s3),min_by(s3,s2),min_by(s4,s2) from root.sg.** group by([0,10),4ms) order by device desc,time asc align by device;
+select min_by(s1,s2),min_by(s3,s4) from root.sg.** order by device asc, time desc limit 1 align by device;
+
+--4.12 min_by路径层级分组聚合（group by level）
+select min_by(s1,s2) from root.sg.d1 group by ([1,6),2ms),level=1 having sum(s1) > 1;
+select min_by(s3,s4) from root.sg.** group by ([1,10),2ms),level=2 having min_by(time,s1) > 2;
+select min_by(s1,s2) from root.** group by ([0,7),3ms),level=1 having sum(d1.s1) >1;
+<<SQLSTATE;
+
+--4.13 min_by与select into结合使用
+select min_by(s1,s2) into root.sg.min_by.device(min_by_s1) from root.sg.d1;
+show timeseries root.sg.min_by.device.**;
+select * from root.sg.min_by.device;
+
+--4.14 min_by不能与view视图结合
+create view root.view.device.min_by as select min_by(s1,s2) from root.sg.d1;
+<<SQLSTATE;
+
+--5.清理环境
+connect root/root;
+delete database root.**;
+<<NULL;

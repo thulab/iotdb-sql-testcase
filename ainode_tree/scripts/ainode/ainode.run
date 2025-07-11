@@ -1,0 +1,88 @@
+connect root/root;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+-- show cluster
+show cluster;
+<<CHECKCODE;
+show cluster details;
+<<CHECKCODE;
+
+-- show models
+show models;
+show models arima;
+show models holtwinters;
+show models exponential_smoothing;
+show models naive_forecaster;
+show models stl_forecaster;
+show models gaussian_hmm;
+show models gmm_hmm;
+show models stray;
+show models timer_xl;
+show models sundial;
+
+-- create models
+create model dlinear_example using uri "file:///Users/zzm/Downloads/ainode/models/dlinear";
+sleep 3000;
+show models;
+show models dlinear_example;
+
+-- create err models
+create model bbbexists using uri "file:///bbbexists";
+show models;
+show models bbbexists;
+
+-- load tsfile for query 
+load "/Users/zzm/Downloads/ainode/tsfiles/ai-data.tsfile" onSuccess=None;
+
+-- query call interface
+-- -- 内置 预测，BUILT_IN_FORECAST
+call inference(stl_forecaster, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(naive_forecaster, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(arima, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+call inference(arima, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", generateTime=True,window=head(96),predict_length=48);
+call inference(exponential_smoothing, "select s_0,s_1,s_2 from root.test.g_0.d_0 limit 96", window=head(96),predict_length=48);
+-- -- 内置 正常检测，BUILT_IN_ANOMALY_DETECTION
+call inference(gaussian_hmm, "select s_0 from root.test.g_0.d_0 limit 10");
+call inference(gmm_hmm, "select s_0 from root.test.g_0.d_0 limit 10");
+call inference(stray, "select s_22 from root.test.g_0.d_0 limit 10", k=2);
+-- -- USER_DEFINED
+call inference(dlinear_example,"select s_11,s_12,s_13,s_14,s_15,s_16,s_17 from root.test.g_0.d_0 limit 96");
+
+-- drop err models
+drop model bbbexists;
+show models bbbexists;
+drop model bbbexists;
+<<SQLSTATE;
+
+-- drop outside models
+drop model dlinear_example;
+show models;
+
+-- drop  BUILT-IN models;
+drop models arima;
+<<SQLSTATE;
+drop models holtwinters;
+<<SQLSTATE;
+drop models exponential_smoothing;
+<<SQLSTATE;
+drop models naive_forecaster;
+<<SQLSTATE;
+drop models stl_forecaster;
+<<SQLSTATE;
+drop models gaussian_hmm;
+<<SQLSTATE;
+drop models gmm_hmm;
+<<SQLSTATE;
+drop models stray;
+<<SQLSTATE;
+drop models timer_xl;
+<<SQLSTATE;
+drop models sundial;
+<<SQLSTATE;
+
+-- finally
+delete DATABASE root.**;
+<<NULL;
