@@ -142,12 +142,21 @@ delete database root.**;
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN;
 CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN;
+CREATE TIMESERIES root.sg1.d1.s3 WITH DATATYPE=BLOB;
 
 --2. 不插入任何值，执行last查询
 select last * from root.sg1.d1;
 
 --3. 不插入任何值，执行last_value查询
 select last_value(*) from root.sg1.d1;
+
+--4. 插入具体测点的值
+insert into root.sg1.d1(time,s3) values(10000, X'cafebabe');
+
+--5. 数据查询
+select s3 from root.sg1.d1;
+select last s3 from root.sg1.d1;
+select last_value(s3) from root.sg1.d1;
 
 --4. 清理数据
 delete database root.**;
