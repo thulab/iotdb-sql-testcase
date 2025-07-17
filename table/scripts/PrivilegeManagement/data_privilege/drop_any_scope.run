@@ -1,0 +1,108 @@
+// DROP : 删除权限
+// 范围： 系统范围内
+// 允许删除任意表、允许删除任意数据库
+
+
+--0. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop database db1;
+<<NULL;
+drop database db2;
+<<NULL;
+
+
+--1. root 创建普通用户和角色
+create user user01 'pass1234';
+create user user02 'pass1234';
+
+create role role01;
+grant role role01 to user02;
+
+list user;
+list role;
+list user of role role01;
+list role of user user02;
+
+create database db1;
+show databases;
+create table db1.t1(ID TAG, status BOOLEAN);
+show tables from db1;
+desc db1.t1;
+
+create database db2;
+show databases;
+create table db2.t1(ID TAG, status BOOLEAN);
+show tables from db2;
+desc db2.t1;
+
+--2. 普通用户user01未授予【DROP】权限，分别删除表和数据库
+connect user01/pass1234;
+list privileges of user user01;
+drop table db1.t1;
+<<SQLSTATE;
+drop database db1;
+<<SQLSTATE;
+
+--3. root赋予user01关于ANY范围【DROP】权限
+connect root/root;
+grant drop on any to user user01;
+
+--4. 被授予【DROP】权限的user01,分别删除表和删除数据库
+connect user01/pass1234;
+list privileges of user user01;
+show databases;
+show tables from db1;
+drop table db1.t1;
+show tables from db1;
+show databases;
+drop database db1;
+drop database information_schema;
+<<SQLSTATE;
+show databases;
+
+--5. 角色role01未授予【DROP】权限，关联角色role01的普通用户user02，分别删除表和删除数据库
+connect user02/pass1234;
+list privileges of user user02;
+list role of user user02;
+drop table db2.t1;
+<<SQLSTATE;
+drop database db2;
+<<SQLSTATE;
+
+--6. root赋予role01关于ANY范围【DROP】权限
+connect root/root;
+grant drop on any to role role01;
+
+--7. 被授予【DROP】权限的角色role01，关联角色role01的普通用户user02分别删除表和删除数据库
+connect user02/pass1234;
+list privileges of user user02;
+list role of user user02;
+show databases;
+show tables from db2;
+drop table db2.t1;
+show tables from db2;
+show databases;
+drop database db2;
+drop database information_schema;
+<<SQLSTATE;
+show databases;
+
+
+--清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop database db1;
+<<NULL;
+drop database db2;
+<<NULL;

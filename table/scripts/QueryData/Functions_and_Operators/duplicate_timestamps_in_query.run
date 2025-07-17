@@ -1,0 +1,30 @@
+// 表模型查询结果有重复时间戳
+
+connect root/root;
+
+--0. 清理数据
+drop database db;
+<<NULL;
+
+--1. 创建数据库
+create database db;
+
+--2. 指定数据库
+use db;
+
+--3. 创建表
+create table table1(id1 tag, s1 string);
+
+--4. 插入数据，执行flush操作
+insert into table1 values(0, 'd1', null), (1,'d1', 1);
+flush;
+insert into table1 values(0, 'd1', 0);
+flush;
+
+--5.查询数据（问题现象：时间戳有相同个time结果）
+select * from table1 order by time;
+
+
+--6. 清理数据
+drop database db;
+<<NULL;

@@ -1,0 +1,143 @@
+connect root/root;
+-- 1. attributes: start, end, step, interval
+-- 2. attributes: step, interval
+-- 3. attributes: interval
+-- non aligned and algned timeseries
+-- select into
+-- include null
+
+drop database root.**;<<NULL;
+sleep 1000;
+DROP FUNCTION SUM_SEC;<<NULL;
+
+create function sum_sec as "com.timecho.udf.normal.TestSlidingTimeWindowAccessStrategy";
+
+CREATE TIMESERIES root.udf.d1.s1 WITH DATATYPE=int64, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d1.s2 WITH DATATYPE=int64, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d1.s3 WITH DATATYPE=int32, ENCODING=PLAIN;
+CREATE TIMESERIES root.udf.d1.ss1 WITH DATATYPE=int64, ENCODING=PLAIN;
+ 
+insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20);
+
+-- 检验
+-- quote
+// IOTDB-4926
+select sum_sec(s1, interval=3) from root.udf.d1;
+select sum_sec(s1, 'interval'='3') from root.udf.d1;
+select sum_sec(s1, "interval"='3') from root.udf.d1;
+select sum_sec(s1, `interval`='3') from root.udf.d1;
+select sum_sec(s1, 'interval'='3') from root.udf.d1;
+select sum_sec(s1, 'interval'="3") from root.udf.d1;
+select sum_sec(s1, 'interval'=`3`) from root.udf.d1;<<SQLSTATE;
+
+-- no required attribute
+select sum_sec(s1) from root.udf.d1;<<SQLSTATE;
+-- type not match
+select sum_sec(s3, 'interval'='3') from root.udf.d1;<<SQLSTATE;
+-- 0 test
+select sum_sec(s1,'interval'='0') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'interval'='3', 'step'='0') from root.udf.d1;<<SQLSTATE;
+-- 0 条
+select sum_sec(s1,'interval'='3','step'='3', 'start'='0','end'='0') from root.udf.d1;
+
+-- start > end
+select sum_sec(s1,'interval'='3', 'step'='3', 'start'='2', 'end'='1') from root.udf.d1;<<SQLSTATE;
+
+-- time interval is negative
+select sum_sec(s1,'interval'='3', 'step'='-1') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'interval'='-1') from root.udf.d1;<<SQLSTATE;
+
+-- beforeStart throw exception
+select sum_sec(s1,'interval'='3', 'step'='3', 'end'='1') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'interval'='3', 'step'='3', 'start'='2') from root.udf.d1;<<SQLSTATE;
+
+-- 非number
+select sum_sec(s1,'interval'='a') from root.udf.d1;<<SQLSTATE;
+select sum_sec(s1,'interval'='3', 'step'='a') from root.udf.d1;<<SQLSTATE;
+
+-- all null
+select sum_sec(ss1,'interval'='3') from root.udf.d1;
+
+-- 查询
+select sum_sec(s1,'start'='0','end'='12','interval'='1','step'='1') from root.udf.d1;
+
+// IOTDB-4929
+select sum_sec(s1,'start'='0','end'='5','interval'='3','step'='1') from root.udf.d1;
+select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.d1;
+select sum_sec(s1,'interval'='3','step'='1') from root.udf.d1;
+
+-- expect: 4
+select sum_sec(s1,'interval'='5','step'='5') from root.udf.d1;
+select sum_sec(s1,'interval'='5') from root.udf.d1;
+
+select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.d1;
+-- 多列
+select sum_sec(s1,s2,'interval'='15') from root.udf.d1;
+
+-- select into
+select s1,s2 into root.udf.dd1(::) from root.udf.d1;
+sleep 500;
+select * from root.udf.dd1;
+-- 查询
+select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.dd1;
+
+select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.dd1;
+select sum_sec(s1,'interval'='3','step'='1') from root.udf.dd1;
+
+select sum_sec(s1,'interval'='5','step'='5') from root.udf.dd1;
+select sum_sec(s1,'interval'='5') from root.udf.dd1;
+
+select sum_sec(*,'interval'='5') from root.udf.dd1;
+
+-- start = end
+select sum_sec(s1,'interval'='4', 'start'='4','end'='4') from root.udf.d1;
+select sum_sec(s1,'interval'='4') from root.udf.d1;
+
+-- aligned
+
+CREATE ALIGNED TIMESERIES root.udf.d2 (s1 int64, s2 int64);
+insert into root.udf.d1 (time, s1, s2) values (1, 1, 2),(2, 3, 4),(3, null, 6),(4, 7, 8),(5, 9, 10),(6, 11, null),(7, 13, 14),(8, 15, 16),(12, 17, 18),(20, 19, 20);
+
+-- all null
+select sum_sec(ss1,'interval'='3') from root.udf.d2;
+
+-- 查询
+select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.d2;
+
+select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.d2;
+select sum_sec(s1,'interval'='3','step'='1') from root.udf.d2;
+
+select sum_sec(s1,'interval'='5','step'='5') from root.udf.d2;
+select sum_sec(s1,'interval'='5') from root.udf.d2;
+
+select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.d2;
+-- 多列
+select sum_sec(s1,s2,'interval'='15') from root.udf.d2;
+
+-- start = end
+select sum_sec(s1,'interval'='4', 'start'='4','end'='4') from root.udf.d2;
+select sum_sec(s1,'interval'='4') from root.udf.d2;
+
+
+-- select into
+select s1,s2 into root.udf.dd2(::) from root.udf.d2;
+sleep 500;
+select * from root.udf.dd2;
+
+-- 查询
+select sum_sec(s1,'start'='0',end='5','interval'='3','step'='1') from root.udf.dd2;
+
+select sum_sec(s1,'start'='0','end'='10','interval'='3','step'='1') from root.udf.dd2;
+select sum_sec(s1,'interval'='3','step'='1') from root.udf.dd2;
+
+select sum_sec(s1,'interval'='5','step'='5') from root.udf.dd2;
+select sum_sec(s1,'interval'='5') from root.udf.dd2;
+
+select sum_sec(s1,'interval'='15', 'step'='3') from root.udf.dd2;
+-- 多列
+select sum_sec(*,'interval'='15') from root.udf.dd2;
+
+delete timeseries root.udf.**;<<NULL;
+DROP FUNCTION SUM_SEC;
+
+

@@ -1,0 +1,81 @@
+// 支持表和列填写注释
+
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+
+--1. 创建数据库
+create database test_db;
+
+
+--2. 指定数据库
+use test_db;
+
+
+--3. 创建表
+CREATE TABLE table_name (
+  time TIMESTAMP TIME COMMENT 'column_comment',
+  region STRING TAG COMMENT 'column_comment',
+  plant_id STRING TAG COMMENT '',
+  device_id STRING TAG,
+  model_id STRING ATTRIBUTE COMMENT '',
+  maintenance STRING ATTRIBUTE COMMENT 'column_comment',
+  temperature FLOAT FIELD COMMENT 'column_comment',
+  humidity FLOAT FIELD COMMENT '',
+  status Boolean FIELD,
+  arrival_time TIMESTAMP FIELD
+) COMMENT 'table_comment' WITH (TTL=31536000000) ;
+
+
+--4. 查看表
+show tables;
+show tables details;
+
+
+--5. 展示表结构信息
+desc table_name;
+desc table_name details;
+
+
+--6. 添加列并带有注释
+ALTER TABLE table_name ADD COLUMN column2 int32 COMMENT 'column_comment_2';
+select * from information_schema.columns where table_name='table_name';
+desc table_name details;
+
+
+--7. 修改表注释
+COMMENT ON TABLE table_name is '表注释';
+show tables;
+show tables details;
+COMMENT ON TABLE table_name is '';
+show tables;
+show tables details;
+COMMENT ON TABLE table_name is null;
+show tables;
+show tables details;
+
+
+--8. 修改列注释
+COMMENT ON COLUMN table_name.status IS '状态';
+select * from information_schema.columns where table_name='table_name';
+desc table_name details;
+COMMENT ON COLUMN table_name.status IS '';
+select * from information_schema.columns where table_name='table_name';
+desc table_name details;
+COMMENT ON COLUMN table_name.status IS null;
+select * from information_schema.columns where table_name='table_name';
+desc table_name details;
+
+
+--9. 通过系统表查询
+select * from information_schema.databases;
+select * from information_schema.tables;
+select * from information_schema.columns;
+
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

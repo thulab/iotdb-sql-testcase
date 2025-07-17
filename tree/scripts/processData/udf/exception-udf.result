@@ -1,0 +1,59 @@
+-- [1]19:create timeseries root.udf.exp1.s1 with datatype=int32
+STRICT{
+PASS
+}
+-- [1]20:create timeseries root.udf.exp1.s2 with datatype=int32
+STRICT{
+PASS
+}
+-- [1]21:insert into root.udf.exp1(time,s1,s2) values (1,1,2),(2,2,3),(3,3,4),(4,4,5),(5,5,6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.259
+-- [1]25:create function validate_exp as "com.timecho.udf.exception.ExceptionValidate"
+STRICT{
+PASS
+}
+-- [1]26:select validate_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: validate exception
+}
+-- [1]30:create function beforeStart_exp as "com.timecho.udf.exception.ExceptionBeforeStart"
+STRICT{
+PASS
+}
+-- [1]31:select beforeStart_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: before start exception
+}
+-- [1]48:create function beforeDestroy_exp as "com.timecho.udf.exception.ExceptionBeforeDestroy"
+STRICT{
+PASS
+}
+-- [1]49:select beforeDestroy_exp(s1) from root.udf.exp1
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+java.lang.RuntimeException: beforeDestroy exception
+}
+-- [1]53:delete timeseries root.udf.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.256
+-- [1]54:drop function validate_exp
+STRICT{
+PASS
+}
+-- [1]55:drop function beforeStart_exp
+STRICT{
+PASS
+}
+-- [1]58:drop function beforeDestroy_exp
+STRICT{
+PASS
+}

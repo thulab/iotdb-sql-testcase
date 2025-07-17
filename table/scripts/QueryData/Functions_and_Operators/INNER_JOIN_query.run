@@ -1,0 +1,588 @@
+// 支持对Time列的等值的INNER JOIN查询
+// INNER 关键字可省略
+// 内连接，返回两个表中连接条件的记录，等同于两个表的交集
+
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table students
+(
+    region STRING TAG,
+	student_id INT32 FIELD,
+	name STRING FIELD,
+	genders text FIELD,
+    date_of_birth DATE FIELD 
+);
+
+create table teachers
+(
+    region STRING TAG,
+	teacher_id INT32 FIELD,
+    course_id INT32 FIELD,
+    age INT32 FIELD
+);
+
+create table courses
+(
+    course_region STRING TAG,
+    course_id INT32 FIELD,
+    course_name STRING FIELD,
+    teacher_id INT32 FIELD
+);
+
+create table grades
+(
+    grade_id STRING TAG,
+	course_id INT32 FIELD,
+	student_id INT32 FIELD,
+	score INT32 FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc students;
+desc teachers;
+desc courses;
+desc grades;
+
+--6. 分别插入数据
+insert into students(time,region,student_id,name,genders,date_of_birth) values
+(1,'haidian',1,'Lucy','女','2015-10-10'),
+(2,'haidian',2,'Jack','男','2015-09-24'),
+(3,'chaoyang',3,'Sam','男','2014-07-20'),
+(4,'chaoyang',4,'Lily','女','2015-03-28'),
+(5,'xicheng',5,'Helen','女','2016-01-22'),
+(6,'changping',6,'Nancy','女','2017-12-20'),
+(7,'changping',7,'Mike','男','2016-11-22'),
+(8,'shunyi',8,'Bob','男','2016-05-12');
+
+insert into teachers(time,region,teacher_id,course_id,age) values
+(1,'haidian',1001,10000001,25),
+(2,'haidian',1002,10000002,26),
+(3,'chaoyang',1003,10000003,28),
+(4,'chaoyang',1004,10000004,27),
+(5,'xicheng',1005,10000005,26);
+
+insert into courses(time,course_region,course_id,course_name,teacher_id) values
+(1,'Math',10000001,'数学',1001),
+(2,'CHIN',10000002,'语文',1002),
+(3,'ENG',10000003,'英语',1003),
+(4,'PE',10000004,'体育',1004),
+(5,'HIST',10000005,'历史',1005);
+
+insert into grades(time,grade_id,course_id,student_id,score) values
+(1,1111,10000001,1,99),
+(2,1112,10000002,2,90),
+(3,1113,10000003,3,85),
+(4,1114,10000004,4,89),
+(5,1115,10000005,5,98),
+(6,1113,10000003,6,55),
+(7,1114,10000004,7,60),
+(8,1115,10000005,8,100),
+(9,1114,10000001,2,99),
+(10,1115,10000002,1,95);
+
+--7. 分别查询表数据
+select * from students order by time;
+select * from teachers order by time;
+select * from courses order by time;
+select * from grades order by time;
+
+
+--8. 显式指定连接条件:在ON关键字后指定连接条件或在Using关键字后指定连接列
+
+--8.1  ON内连接
+--8.1.1 针对time列的等值连接:INNER JOIN ON
+select
+  s.time, 
+  s.name as s_name, 
+  s.genders as s_gender,
+  c.course_region as c_region, 
+  c.course_id as c_id, 
+  c.course_name as c_name
+from 
+   students s 
+INNER JOIN courses c ON s.time = c.time;
+
+select 
+  s.time, 
+  s.region as region1, 
+  s.student_id as id1, 
+  t.region as region2, 
+  t.teacher_id as id2 
+from
+  students s 
+JOIN teachers t ON s.time = t.time;
+
+select 
+   t.teacher_id,
+   course_name
+from 
+    teachers t
+JOIN 
+    courses c ON t.time = c.time;
+	
+select
+	s.time,
+	s.region as stu_region,
+	s.name as stu_name,
+	t.region as tea_region,
+	c.course_name,
+	g.score
+from students s 
+JOIN teachers t ON s.time=t.time 
+JOIN courses c ON c.time=t.time 
+JOIN grades g ON g.time=c.time;
+
+select 
+	count(s.region) as region_count,
+	count(s.student_id) as student_id_count,
+	count(t.teacher_id) as teacher_id_count,
+	count(c.course_id) as course_id_count,
+	avg(g.score) as avg_score,
+	max(g.score) as max_score,
+	min(g.score) as min_score
+from students s 
+JOIN teachers t ON s.time=t.time 
+JOIN courses c ON c.time=t.time 
+JOIN grades g ON g.time=c.time;
+
+select 
+    s.name,
+    g.score,
+    CASE 
+        WHEN g.score >= 90 THEN 'A'
+        WHEN g.score >= 80 THEN 'B'
+        WHEN g.score >= 70 THEN 'C'
+        WHEN g.score >= 60 THEN 'D'
+        ELSE 'F'
+    END AS grade,
+    CASE 
+        WHEN g.score >= 60 THEN 'Pass'
+        ELSE 'Fail'
+    END AS status,
+    CASE 
+        WHEN g.score >= 85 THEN 'Excellent'
+        WHEN g.score >= 70 THEN 'Good'
+        WHEN g.score >= 50 THEN 'Average'
+        ELSE 'Needs Improvement'
+    END AS performance
+from 
+    students s
+JOIN 
+    grades g ON s.time = g.time;
+	
+select 
+	s.region,
+	s.name,
+	t.teacher_id,
+	c.course_id,
+	c.course_name,
+	g.score
+from students s 
+JOIN teachers t ON s.time=t.time 
+JOIN courses c ON c.time=t.time 
+JOIN grades g ON g.time=c.time
+where s.time > 2 and s.time < 6;
+
+--8.1.2 针对time列的等值表达式连接
+select 
+  s.time as s_time, 
+  s.region as s_region, 
+  g.student_id as g_stud_id, 
+  g.score as g_score, 
+  c.course_name as c_course
+from 
+  students s 
+INNER JOIN
+	grades g ON s.time = date_bin(1ms, g.time)
+INNER JOIN
+	courses c on s.time= date_bin(1ms, c.time);
+	
+--8.1.3 针对非time列的等值连接
+select 
+  s.time as s_time, 
+  t.time as t_time,
+  g.time as g_time,
+  c.time as c_time,
+  s.name as s_name,
+  g.score as g_score
+from 
+  students s 
+INNER JOIN
+	teachers t ON s.region = t.region and s.time = t.time
+INNER JOIN
+	grades g on s.student_id = g.student_id and s.time = g.time
+INNER JOIN 
+	courses c on g.course_id = c.course_id and g.time = c.time;
+
+--8.1.4多表（大于2表）连接
+select 
+	s.time as s_time,
+	s.name as s_name,
+	s.genders as s_gender,
+	t.teacher_id as t_tea_id,
+	c.course_id as c_cour_id,
+	c.course_name as c_cour_name,
+	g.score as g_score
+from 
+	students s
+INNER JOIN 
+	teachers t ON s.time = t.time and s.region = t.region
+INNER JOIN
+	courses c ON s.time = c.time and t.course_id = c.course_id
+INNER JOIN
+	grades g ON  s.time = g.time and s.student_id = g.student_id and c.course_id = g.course_id;
+
+--8.1.5 非 Time列的等值多表查询
+select  
+    s.name as student_name,
+    c.course_name,
+    g.score
+from 
+    students s
+INNER JOIN 
+    grades g on s.student_id = g.student_id
+INNER JOIN 
+    courses c on g.course_id = c.course_id
+ORDER BY 
+    s.student_id;
+	
+--8.1.6 针对time列的非等值连接
+select
+	s.time as s_time,
+	s.region as s_region,
+	c.course_name as c_cour_name,
+	t.teacher_id as t_tea_id,
+	g.grade_id as g_grade_id,
+	g.score as g_score
+from 
+	students s
+INNER JOIN
+	courses c ON s.time > c.time
+INNER JOIN  
+	teachers t ON s.region <> t.region
+INNER JOIN 
+	grades g ON s.time < g.time and s.student_id <> g.student_id
+WHERE 
+	s.time between 1 AND 10 and s.region='haidian'
+order by t_tea_id,g_grade_id,g_score
+limit 10;
+	
+--8.1.7 针对任意列的任意连接
+select 
+	s.time as s_time,
+	t.time as t_time,
+	s.name as s_name,
+	s.date_of_birth as s_birth,
+	c.course_name as c_cour_name,
+	g.score as g_score
+from 
+	students s
+INNER JOIN 
+	teachers t ON s.region != t.region OR s.time > t.time
+INNER JOIN
+	courses c ON t.teacher_id = c.teacher_id
+INNER JOIN 
+	grades g ON g.course_id = c.course_id
+where g.score > 80
+order by s_time,t_time,s_name,s_birth,c_cour_name,g_score
+limit 5 offset 5;
+
+
+--8.2 USING内连接：INNER JOIN + USING 连接
+--8.2.1针对time列的等值连接
+select time from grades g INNER JOIN courses c USING(time);
+
+select s.student_id, s.name, t.teacher_id, t.course_id from students s INNER JOIN teachers t USING(time);
+
+select
+	s.region,
+	s.genders as "性别",
+    s.name as "学生姓名",
+    t.teacher_id as "教师编号",
+    t.age as "年龄",
+    c.course_id as "课程编号",
+    c.course_name as "课程名",
+    g.score as "学生成绩"
+from 
+    students s
+INNER JOIN 
+    teachers t USING (time)
+INNER JOIN
+	courses c USING (time)
+INNER JOIN
+	grades g USING (time);
+
+select
+	count(s.region) as region_count,
+    count(s.student_id) as student_id_count,
+    count(t.teacher_id) as teacher_id_count,
+    count(c.course_id) as course_id_count,
+    avg(g.score) as avg_score,
+    max(g.score) as max_score,
+    last(g.score) as last_score
+from 
+    students s
+INNER JOIN 
+    teachers t USING (time)
+INNER JOIN
+	courses c USING (time)
+INNER JOIN
+	grades g USING (time)
+where time > 2 and time <6;
+
+--8.2.2 针对非time列的连接
+select * 
+	from students s
+INNER JOIN 
+	grades g USING(student_id)
+INNER JOIN 
+	teachers t USING(region)
+where g.score > 80 and g.score < 95 and region = 'haidian';
+
+--8.2.3 针对多列（time、column1、column2）
+select *
+	from students s
+INNER JOIN 
+	teachers t USING(time,region)
+INNER JOIN
+	courses c USING(time,course_id)
+INNER JOIN
+	grades g USING(time,course_id,student_id);
+
+
+--9. 隐式指定条件：不需要出现JOIN | ON | USING，通过WHERE子句指定条件来实现表与表之间连接
+--9.1 针对time列的等值连接
+select c.time, 
+       c.course_id as id_1, c.course_name as name,
+       g.grade_id as id_2, g.score as score 
+from 
+courses c, grades g
+where
+c.time=g.time;
+
+select s.time,
+	   s.student_id as s_id, s.name as s_name, s.date_of_birth as s_birth,
+	   t.teacher_id as t_id, t.course_id as t_c_id,
+       c.course_name as c_name,
+       g.grade_id as g_id, g.score as score 
+from 
+students s, teachers t, courses c, grades g
+where
+s.time=t.time AND c.time=g.time AND s.time=c.time;
+
+select s.time,
+	   count(s.student_id) as s_id_count,
+	   count(t.teacher_id) as t_id_count,
+       count(c.course_id) as c_name_count,
+       avg(g.score) as score_count, sum(g.score) as score_sum
+from 
+students s, teachers t, courses c, grades g
+where
+s.time=t.time AND c.time=g.time AND s.time=c.time 
+group by s.time;
+
+select s.time,
+	   s.name,
+	   c.course_name,
+	   g.score,
+	   case
+	   		when g.score =100 then 'Excellent'
+	   		when g.score >=85 then 'Great'
+	   		when g.score >=60 then 'Not Bad'
+	   		else 'Keep Going'
+	   end as grade,
+	   case
+	   		when avg(g.score) > 60 then 'PASS'
+	   		else 'FAIL'
+	   	end as status
+from students s, courses c, grades g
+where
+s.time=c.time and c.time=g.time 
+group by s.time,s.name, c.course_name,g.score;
+
+select s.student_id,
+	   t.teacher_id,
+	   c.course_name,
+	   max(g.score) as highest_score,
+	   min(g.score) as lowest_score
+from students s, teachers t, courses c, grades g
+where
+s.time=t.time and t.time=c.time and c.time=g.time 
+group by s.student_id, t.teacher_id, c.course_name;
+
+select s.time,
+	   s.student_id as s_id, s.name as s_name, s.date_of_birth as s_birth,
+	   t.teacher_id as t_id, t.course_id as t_c_id,
+       c.course_name as c_name,
+       g.grade_id as g_id, g.score as score 
+from 
+students s, teachers t, courses c, grades g
+where
+s.time=t.time AND c.time=g.time AND s.time=c.time 
+order by s.student_id, t.teacher_id, c.course_id,g.grade_id;
+
+select s.time,
+	   count(s.student_id) as s_id_count,
+	   count(t.teacher_id) as t_id_count,
+       count(c.course_id) as c_name_count,
+       avg(g.score) as score_count, sum(g.score) as score_sum
+from 
+students s, teachers t, courses c, grades g
+where
+s.time=t.time AND c.time=g.time AND s.time=c.time 
+group by s.time order by time offset 2 limit 1;
+
+select s.region, s.name,
+	   t.teacher_id,
+	   c.course_name,
+	   g.score,
+	   case
+	   		when g.score =100 then 'Excellent'
+	   		when g.score >=85 then 'Great'
+	   		when g.score >=60 then 'Not Bad'
+	   		else 'Keep Going'
+	   end as grade,
+	   case
+	   		when avg(g.score) > 60 then 'PASS'
+	   		else 'FAIL'
+	   	end as status
+from students s, teachers t, courses c, grades g
+where
+s.time=c.time and c.time=g.time and s.region='haidian'
+group by s.region, s.name, t.teacher_id, c.course_name, g.score order by s.name,t.teacher_id;
+
+select s.region, s.name,
+	   t.teacher_id,
+	   c.course_name,
+	   g.score,
+	   case
+	   		when g.score =100 then 'Excellent'
+	   		when g.score >=85 then 'Great'
+	   		when g.score >=60 then 'Not Bad'
+	   		else 'Keep Going'
+	   end as grade,
+	   case
+	   		when avg(g.score) > 60 then 'PASS'
+	   		else 'FAIL'
+	   	end as status
+from students s, teachers t, courses c, grades g
+where
+s.time=t.time and t.time=c.time and c.time=g.time and s.region='haidian'
+group by s.region, s.name, t.teacher_id, c.course_name, g.score;
+
+--9.2 针对time列的等值表达式连接
+select 
+	s.time as s_time,
+	t.time as t_time,
+	c.time as c_time,
+	g.time as g_time
+from 
+	students s, teachers t, courses c, grades g
+where 
+	s.time = date_bin(2ms,t.time) 
+	or
+	s.time = c.time + 1000
+	and 
+	s.time = g.time - 1000
+order by s_time,t_time,c_time,g_time
+limit 5 offset 3;
+
+--9.3 针对非time列的等值连接
+select
+	s.time as s_time,
+	s.region as s_region,
+	t.teacher_id as tea_id,
+	c.course_id as c_cour_id,
+	c.course_name as c_cour_name,
+	g.score as g_score
+from 
+	students s, teachers t, courses c, grades g
+WHERE 
+	s.region = t.region
+	and 
+	s.student_id = g.student_id
+	and
+	c.course_id = t.course_id;
+
+
+--9.4 针对多表（大于2表）连接
+select 
+	s.time as s_time,
+	s.name as s_name,
+	s.genders as s_gender,
+	t.teacher_id as tea_id,
+	c.course_id as cour_id,
+	c.course_name as c_cour_name,
+	g. grade_id as grade_id,
+	g.score as g_score
+from 
+	students s, teachers t, courses c, grades g
+where s.time = t.time and t.time = c.time and c.time = g.time
+	and
+	s.student_id = g.student_id
+	and
+	s.region= t.region
+order by s_time,s_name,tea_id,cour_id,c_cour_name,grade_id,g_score;
+	
+
+--9.5 针对time列的非等值连接
+select 
+	s.time as s_time,
+	t.time as t_time,
+	c.time as c_time,
+	g.time as g_time,
+	s.name as s_name,
+	c.course_name as c_cour_name,
+	g.score as g_score
+from 
+	students s, teachers t, courses c, grades g
+where 
+	s.time < g.time and g.score < 90 and s.region !='haidian'
+order by s_time,t_time,c_time,g_time,c_cour_name,g_score
+limit 5 offset 3;
+	
+
+--9.6 针对任意列的任意连接
+select
+	s.time as s_time,
+	s.name as s_name,
+	s.genders as s_gender,
+	s.date_of_birth as s_dat_of_bir,
+	t.teacher_id as t_tea_id,
+	c.course_name as c_cour_name,
+	g.grade_id as g_grade_id,
+	g.score as g_score
+from 
+	students s, teachers t, courses c, grades g
+where
+	(s.region != t.region and s.time > t.time)
+and
+	g.score between 80 and 90
+order by s_time,s_name,s_gender,s_dat_of_bir,t_tea_id,c_cour_name,g_grade_id,g_score
+limit 5 offset 5;
+
+
+--10. 不支持NATURAL [INNER] JOIN自然连接
+select * from 
+	teachers
+NATURAL INNER JOIN 
+	courses;
+<<SQLSTATE;
+
+-- 11. 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

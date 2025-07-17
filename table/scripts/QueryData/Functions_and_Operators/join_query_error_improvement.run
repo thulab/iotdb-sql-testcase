@@ -1,0 +1,35 @@
+// 参考飞书issue：https://timechor.feishu.cn/docx/DJshdCq5eoX8Ttxzox2csS3pnVd
+// 参考飞书issue：https://timechor.feishu.cn/docx/UyJAd5GDgoX1rbxiIWwcF1ACnEh
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表，插入数据
+create table table1(device string tag, value int32 field); 
+insert into table1(time,device,value) values(1577808001000,'d1',1);
+
+--4. 执行下推查询
+--4.1
+-- 修复前异常：【301: time is null】
+-- 修复后，执行查询，返回1条结果记录
+select * from ( select date_bin(1ms,time) as date,count(*)from table1 group by date_bin(1ms,time)) t0 join ( select date_bin(1ms,time) as date,count(*)from table1 group by date_bin(1ms,time)) t1  on t0.date = t1.date;
+
+--4.2
+-- 修复前：查询计划中，出现无意义的SortNode占用资源：explain select * from table1 t1 full join table1 using (time) full join table1 using (time)
+-- 修复后，优化内存
+select * from table1 t1 full join table1 using (time) full join table1 using (time);
+
+
+
+--清理环境
+drop database test_db;
+<<NULL;

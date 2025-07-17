@@ -1,0 +1,204 @@
+-- [1]19:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]20:create user user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]22:create role role01
+STRICT{
+PASS
+}
+-- [1]23:grant role role01 to user02
+STRICT{
+PASS
+}
+
+-- [1]25:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]26:list role
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]27:list user of role role01
+STRICT{
+User(TEXT)      |
+----------------
+user02          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]28:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]30:create database db1
+STRICT{
+PASS
+}
+
+-- [1]35:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]36:create database test_db
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON DB:test_db
+}
+-- [1]38:create table db1.t1(ID TAG, int32 INT32)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON db1.t1
+}
+-- [1]43:grant create on table db1.t1 to user user01
+STRICT{
+PASS
+}
+
+-- [1]47:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |db1.t1           |CREATE                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]48:create database test_db
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON DB:test_db
+}
+-- [1]50:create table db1.t1(ID TAG, int32 INT32)
+STRICT{
+PASS
+}
+-- [1]51:create table db1.t2(ID TAG, int32 INT32)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON db1.t2
+}
+
+-- [1]53:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]54:desc db1.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]58:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]59:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]60:create table db1.table1(ID TAG, float FLOAT)
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON db1.table1
+}
+-- [1]65:grant create on table db1.table1 to role role01
+STRICT{
+PASS
+}
+
+-- [1]69:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |db1.table1       |CREATE                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]70:list role of user user02
+STRICT{
+Role(TEXT)      |
+----------------
+role01          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]71:create table db1.table1(ID TAG, float FLOAT)
+STRICT{
+PASS
+}
+
+-- [1]72:show tables from db1
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+table1               |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]73:desc db1.table1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+float                 |FLOAT               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.42

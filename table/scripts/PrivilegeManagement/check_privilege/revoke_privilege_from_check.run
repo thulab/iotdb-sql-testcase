@@ -1,0 +1,77 @@
+// 取消授权
+// revoke (grant option for) privilege from user/role 
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+
+--1. 准备测试数据
+create user user01 'pass1234';
+create user user02 'pass1234';
+create role role01;
+create role role02;
+
+--2. root授予普通用户和角色关于【MANAGE_USER】权限
+grant manage_user to user user01;
+list privileges of user user01;
+
+grant manage_user to user user02 with grant option;
+list privileges of user user02;
+
+grant manage_user to role role01;
+list privileges of role role01;
+
+grant manage_user to role role02 with grant option;
+list privileges of role role02;
+
+--3. root 取消user01关于【MANAGE_USER】权限
+revoke manage_user from user user01;
+list privileges of user user01;
+
+--3. root 再次取消user01权限
+revoke manage_user from user user01;
+
+--4. root针对user01执行取消不存在的权限
+revoke write on any from user user01;
+<<SQLSTATE;
+
+--5. root 取消角色role01关于【MANAGE_USER】权限
+revoke manage_user from role role01;
+list privileges of role role01;
+
+--6. root 再次取消role01权限
+revoke manage_user from role role01;
+
+--7. root 针对普通用户user02取消转授权限
+revoke grant option for manage_user from user user02;
+list privileges of user user02;
+
+revoke manage_user from user user02;
+list privileges of user user02;
+
+--8. root 针对角色role02 取消转授权限
+revoke grant option for manage_user from role role02;
+list privileges of role role02;
+
+revoke manage_user from role role02;
+list privileges of role role02;
+
+
+--清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;

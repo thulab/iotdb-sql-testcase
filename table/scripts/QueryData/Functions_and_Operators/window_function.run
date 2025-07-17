@@ -1,0 +1,198 @@
+--0.连接数据库清理环境
+connect root/root;
+drop database window_function_test;
+<<NULL;
+
+--1.准备数据
+create database window_function_test;
+use window_function_test;
+create table t1 (Device string tag, "没问题1" string tag, " 123!@// " string tag, " abc没问题123!@// " string attribute, Flow int64 field, "没问题2" int32 field, " 098!@// " double field, " abc没问题098!@// " float field, date date field, timestamp timestamp field, string string field);
+insert into t1 values (1970-01-01T08:00:00.000+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3');
+insert into t1 values (1970-01-01T08:00:00.001+08:00, 'd0', 'd0', 'd0', 'd0', 5, 5, 5.0, 5.0, '1970-01-01', 5, '5');
+insert into t1 values (1970-01-01T08:00:00.002+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3');
+insert into t1 values (1970-01-01T08:00:00.003+08:00, 'd0', 'd0', 'd0', 'd0', 1, 1, 1.0, 1.0, '1970-01-01', 1, '1');
+insert into t1 values (1970-01-01T08:00:00.004+08:00, 'd0', 'd0', 'd0', 'd0', null, null, null, null, null, null, null);
+insert into t1 values (1970-01-01T08:00:00.005+08:00, 'd1', 'd1', 'd1', 'd1', 2, 2, 2.0, 2.0, '1970-01-01', 2, '2');
+insert into t1 values (1970-01-01T08:00:00.006+08:00, 'd1', 'd1', 'd1', 'd1', null, null, null, null, null, null, null);
+insert into t1 values (1970-01-01T08:00:00.007+08:00, 'd1', 'd1', 'd1', 'd1', 4, 4, 4.0, 4.0, '1970-01-01', 4, '4');
+insert into t1 values (1970-01-01T08:00:00.008+08:00,  null, null, null, null, null, null, null, null, null, null, null);
+
+--2.单独使用PARTITION BY
+//1、各种列名
+SELECT time, device, flow, sum(flow) OVER(PARTITION BY DEVICE) as sum FROM t1 ORDER BY time;
+SELECT time, "没问题1", "没问题2", sum("没问题2") OVER(PARTITION BY "没问题1") as sum FROM t1 ORDER BY time;
+SELECT time, " 123!@// ", " 098!@// ", sum(" 098!@// ") OVER(PARTITION BY " 123!@// ") as sum FROM t1 ORDER BY time;
+SELECT time, " abc没问题123!@// ", " abc没问题098!@// ", sum(" abc没问题098!@// ") OVER(PARTITION BY " abc没问题123!@// ") as sum FROM t1 ORDER BY time;
+
+--3.单独使用ORDER BY
+//1、各种列名
+SELECT time, device, flow, sum(flow) OVER(ORDER BY FLOW) as sum FROM t1 ORDER BY time;
+SELECT time, "没问题1", "没问题2", sum("没问题2") OVER(ORDER BY "没问题2") as sum FROM t1 ORDER BY time;
+SELECT time, " 123!@// ", " 098!@// ", sum(" 098!@// ") OVER(ORDER BY " 098!@// ") as sum FROM t1 ORDER BY time;
+SELECT time, " abc没问题123!@// ", " abc没问题098!@// ", sum(" abc没问题098!@// ") OVER(ORDER BY " abc没问题098!@// ") as sum FROM t1 ORDER BY time;
+//2、对多个列进行ORDER BY
+SELECT time, device, flow, sum(flow) OVER(ORDER BY FLOW, device) as sum FROM t1 ORDER BY time;
+SELECT time, device, flow, sum(flow) OVER(ORDER BY FLOW, device) as sum FROM t1 ORDER BY device,time;
+
+--4.单独使用frame（需要结合ORDER BY）
+//1、ROWS（以每行为划分）
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS flow PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)FROM t1 ORDER BY time;
+//2、GROUPS（把值相同的行分为一组）
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device GROUPS BETWEEN 1 PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+//3、RANGE（通过值来划分）
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE 2 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device RANGE CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+
+--5.PARTITION BY+ORDER BY
+//1、各种列名
+SELECT time, device, flow, sum(flow) OVER(PARTITION BY DEVICE ORDER BY FLOW) as sum FROM t1 ORDER BY time;
+SELECT time, "没问题1", "没问题2", sum("没问题2") OVER(PARTITION BY "没问题1" ORDER BY "没问题2") as sum FROM t1 ORDER BY time;
+SELECT time, " 123!@// ", " 098!@// ", sum(" 098!@// ") OVER(PARTITION BY " 123!@// " ORDER BY " 098!@// ") as sum FROM t1 ORDER BY time;
+SELECT time, " abc没问题123!@// ", " abc没问题098!@// ", sum(" abc没问题098!@// ") OVER(PARTITION BY " abc没问题123!@// " ORDER BY " abc没问题098!@// ") as sum FROM t1 ORDER BY time;
+
+--6.PARTITION BY+ORDER BY+frame
+//1、ROWS（以每行为划分）
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)FROM t1 ORDER BY time;
+//2、GROUPS（把值相同的行分为一组）
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+//3、RANGE（通过值来划分）
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow RANGE 2 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow RANGE BETWEEN 2 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device RANGE CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY time RANGE BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+
+--7.各类窗口函数
+//1、带frame
+SELECT time, device, flow, avg(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, min(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, max(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, first_value(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, last_value(flow) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, nth_value(flow, 1) OVER(PARTITION BY device ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+//2、不带frame
+SELECT time, device, flow, avg(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, min(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, max(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, first_value(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, last_value(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, nth_value(flow, 1) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, lead(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, lag(flow) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, row_number() OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+SELECT time, device, flow, ntile(2) OVER(PARTITION BY device ORDER BY flow)FROM t1 ORDER BY time;
+
+--8.多设备场景
+//1、多设备diff函数
+SELECT time, device, flow, flow - lag(flow) OVER (PARTITION BY device ORDER BY time) FROM t1 ORDER BY time;
+//2、多设备TOP_K/BOTTOM_K
+//SELECT * FROM( SELECT time, device, flow, rank() OVER(PARTITION BY device ORDER BY time DESC) as rank FROM t1) WHERE rank <= 3 ORDER BY time;
+//3、多设备CHANGE_POINTS
+SELECT time, device, flow FROM(SELECT time, device, flow, LEAD(flow) OVER (PARTITION BY device ORDER BY time) AS next FROM t1 )WHERE flow != next OR next IS NULL ORDER BY time;
+
+--9.与其他语句结合
+//1、函数外再加ORDER BY排序
+SELECT time, device, flow, count(device) OVER(ORDER BY device)FROM t1 ORDER BY device,time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device)FROM t1 ORDER BY flow,time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow)FROM t1 ORDER BY device,time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow, device)FROM t1 ORDER BY device,time;
+//2、函数内的ORDER BY结合DESC或ASC排序
+//SELECT time, device, flow, count(device) OVER(ORDER BY device DESC)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ASC)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow DESC)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ASC)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ASC)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow DESC NULLS FIRST)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ASC)FROM t1 ORDER BY time;
+
+--10.异常情况
+//1、非法列名
+SELECT time, device, flow, sum(flow) OVER(PARTITION BY "no1"  ORDER BY "no2") as sum FROM t1 ORDER BY time;
+<<SQLSTATE;
+SELECT time, device, flow, sum(flow) OVER(PARTITION BY ""  ORDER BY "") as sum FROM t1 ORDER BY time;
+<<SQLSTATE;
+//3、错误的使用
+SELECT *, count(flow) OVER(PARTITION BY device ROWS 1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ROWS UNBOUNDED FOLLOWING) as count FROM t1;
+<<SQLSTATE;
+SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND UNBOUNDED PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN CURRENT ROW AND 1 PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1.1 PRECEDING AND 1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND 1.1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND 1.1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device GROUPS 1 PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS 1.1 PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device GROUPS 1 PRECEDING AND 1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS 1 PRECEDING AND 1.1 FOLLOWING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device RANGE BETWEEN 2 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY timestamp RANGE string PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY date RANGE date PRECEDING)FROM t1;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow, device RANGE 2 PRECEDING)FROM t1 ORDER BY time;
+<<SQLSTATE;
+SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device RANGE BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+<<SQLSTATE;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS device PRECEDING)FROM t1 ORDER BY time;
+<<SQLSTATE;
+SELECT time, device, flow, count(flow) OVER(PARTITION BY device ROWS BETWEEN -1 PRECEDING AND -1 FOLLOWING)FROM t1 ORDER BY time;
+<<SQLSTATE;
+
+--11.其他测试点
+//1、不使用窗口函数任何参数
+SELECT time, device, flow, sum(flow) OVER() as sum FROM t1 ORDER BY time;
+
+drop database window_function_test;
+

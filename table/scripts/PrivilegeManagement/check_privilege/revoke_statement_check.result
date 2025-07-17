@@ -1,0 +1,198 @@
+-- [1]18:create user user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]19:create user user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]20:create role role01
+STRICT{
+PASS
+}
+-- [1]21:create role role02
+STRICT{
+PASS
+}
+-- [1]23:create database test_db
+STRICT{
+PASS
+}
+-- [1]24:use test_db
+STRICT{
+PASS
+}
+-- [1]25:create table test_db.t1(ID TAG, float FLOAT)
+STRICT{
+PASS
+}
+
+-- [1]26:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.21
+-- [1]31:GRANT MANAGE_USER TO USER user01
+STRICT{
+PASS
+}
+
+-- [1]32:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_USER           |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]34:grant manage_user to user user02 with grant option
+STRICT{
+PASS
+}
+
+-- [1]35:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_USER           |true                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]39:GRANT CREATE on database test_db to ROLE role01
+STRICT{
+PASS
+}
+-- [1]39:grant INSERT on table test_db.t1 TO role role02 WITH GRANT OPTION
+STRICT{
+PASS
+}
+
+-- [1]41:LIST privileges OF role role01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role01          |test_db.*        |CREATE                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]41:list PRIVILEGES of ROLE role02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role02          |test_db.t1       |INSERT                |true                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+-- [1]46:REVOKE MANAGE_USER FROM USER user01
+STRICT{
+PASS
+}
+
+-- [1]47:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]49:revoke CREATE on database test_db from role role01
+STRICT{
+PASS
+}
+
+-- [1]50:list privileges of role role01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]54:ReVoke Grant OPtion FOR Manage_user FROM user user02
+STRICT{
+PASS
+}
+
+-- [1]54:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_USER           |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]57:revoke from user user02
+STRICT{
+SQLSTATE : 700: line 1:8: mismatched input 'from'. Expecting: 'ALL', 'ALTER', 'CREATE', 'DELETE', 'DROP', 'GRANT', 'INSERT', 'MANAGE_ROLE', 'MANAGE_USER', 'ROLE', 'SELECT'
+}
+-- [1]61:revoke write from user user02
+STRICT{
+SQLSTATE : 700: line 1:8: mismatched input 'write'. Expecting: 'ALL', 'ALTER', 'CREATE', 'DELETE', 'DROP', 'GRANT', 'INSERT', 'MANAGE_ROLE', 'MANAGE_USER', 'ROLE', 'SELECT'
+}
+-- [1]65:revoke create on test_db from role role01
+STRICT{
+SQLSTATE : 700: line 1:26: mismatched input 'from'. Expecting: '.'
+}
+-- [1]69:revoke create on database db1 from user user01
+STRICT{
+PASS
+}
+-- [1]72:revoke grant option for insert on test_db.t1 from role role02
+STRICT{
+PASS
+}
+
+-- [1]73:list privileges of role role02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+role02          |test_db.t1       |INSERT                |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]76:revoke insert on table test_db.t2 from role role02
+STRICT{
+PASS
+}
+-- [1]79:revoke manage_user from user01
+STRICT{
+SQLSTATE : 700: line 1:25: mismatched input 'user01'. Expecting: ',', 'FROM'
+}
+-- [1]83:revoke manage_user from user user1
+STRICT{
+SQLSTATE : 804: No such user user1
+}
+-- [1]87:revoke CREATE on database test_db from role01
+STRICT{
+SQLSTATE : 700: line 1:40: mismatched input 'role01'. Expecting: 'ROLE', 'USER'
+}
+-- [1]91:revoke CREATE on database test_db from role role1
+STRICT{
+SQLSTATE : 808: No such role role1
+}
+-- [1]95:revoke CREATE database test_db from role role1
+STRICT{
+SQLSTATE : 700: line 1:15: mismatched input 'database'. Expecting: ',', 'ON'
+}
+-- [1]97:revoke INSERT table test_db.t1 from role role2
+STRICT{
+SQLSTATE : 700: line 1:15: mismatched input 'table'. Expecting: ',', 'ON'
+}
+-- [1]101:revoke manage_user user user01
+STRICT{
+SQLSTATE : 700: line 1:20: mismatched input 'user'. Expecting: ',', 'FROM'
+}
+-- [1]103:revoke CREATE on database test_db role role1
+STRICT{
+SQLSTATE : 700: line 1:35: mismatched input 'role'. Expecting: 'FROM'
+}

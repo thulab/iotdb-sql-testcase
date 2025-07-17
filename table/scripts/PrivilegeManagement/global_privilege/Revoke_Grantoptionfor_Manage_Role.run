@@ -1,0 +1,125 @@
+// MANAGE_ROLE
+// revoke grant option for
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;
+drop role testrole3;
+<<NULL;
+
+--1. root创建普通用户并查看所有用户列表
+create user user01 'pass1234';
+create user user02 'pass1234';
+create user user03 'pass1234';
+create user user04 'pass1234';
+
+list user;
+
+--2. 列出普通用户user01拥有的权限列表
+list privileges of user user01;
+
+--3. 授予user01关于【MANAGE_ROLE】with grant option转授权限
+--3.1 root授予user01权限
+grant manage_role to user user01 with grant option;
+--3.2 列出用户user01拥有的权限列表
+list privileges of user user01;
+
+--4. user01登录
+connect user01/pass1234;
+
+--4.1 user01列出自己拥有的权限列表以及角色列表
+list privileges of user user01;
+list role of user user01;
+
+--4.2 user01创建角色testrole1 ：
+create role testrole1;
+
+--4.3 user01查看角色列表
+list role;
+
+--4.4 user01 删除角色
+drop role testrole1;
+
+--4.5 user01授予user02关于【MANAGE_ROLE】with grant option转授权限
+grant manage_role to user user02 with grant option;
+
+--5. user02登录
+connect user02/pass1234;
+
+--5.1 user02列出自己拥有的权限列表
+list privileges of user user02;
+
+--5.2 user02创建角色
+create role testrole2;
+
+--5.3 user02列出角色列表
+list role;
+
+--5.4 user02删除角色
+drop role testrole2;
+
+--5.5 user02授予user03关于【MANAGE_ROLE】权限
+grant manage_role to user user03;
+
+--6. user03登录
+connect user03/pass1234;
+
+--6.1 user03列出自己拥有的权限列表
+list privileges of user user03;
+
+--6.2 user03创建角色
+create role testrole3;
+
+--6.3 user03 列出角色列表
+list role;
+
+--6.4 user03 删除角色
+drop role testrole3;
+
+--7. 取消转授权限操作
+ --7.1 user01对user02取消【MANAGE_ROLE】转授权限
+connect user01/pass1234;
+list privileges of user user01;
+revoke grant option for manage_role from user user02;
+
+--7.2 user02对user03取消【MANAGE_ROLE】转授权限
+connect user02/pass1234;
+list privileges of user user02;
+revoke grant option for manage_role from user user03;
+<<SQLSTATE;
+grant manage_role to user user04;
+<<SQLSTATE;
+
+--7.3 root对use01取消【MANAGE_ROLE】转授权限
+connect root/root;
+revoke grant option for manage_role from user user01;
+list privileges of user user01;
+
+--5. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;
+drop role testrole3;
+<<NULL;

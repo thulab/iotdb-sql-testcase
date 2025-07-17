@@ -1,0 +1,301 @@
+-- [1]5:set configuration "trusted_uri_pattern"='.*'
+STRICT{
+PASS
+}
+-- [1]10:create function my_sum as "com.timecho.udf.normal.MySum"
+STRICT{
+PASS
+}
+-- [1]13:CREATE TIMESERIES root.stateless.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]14:CREATE TIMESERIES root.stateless.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]15:CREATE TIMESERIES root.stateless.d1.s3 WITH DATATYPE=DOUBLE, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]17:CREATE ALIGNED TIMESERIES root.ln.alerting (table_name text, alert_content text)
+STRICT{
+PASS
+}
+-- [1]22:CREATE STATELESS TRIGGER `cap_multi_double` AFTER INSERT ON root.stateless.** AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1','lo'=700, 'hi'=1000)
+STRICT{
+PASS
+}
+-- [1]24:insert into root.stateless.d1(time, s1, s2, s3) values(1, 100,200,300),(2,400, 600, 765),(3,7400, 600, 765),(4,400, 600, 565),(5,400, 710, 665)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.51
+-- [1]29:CREATE aligned TIMESERIES root.stateful.d1(s1 DOUBLE, s2 float, s3 int32)
+STRICT{
+PASS
+}
+-- [1]31:CREATE STATEful TRIGGER `cap-stateful-beforeInsert` before INSERT ON root.stateful.** AS 'com.abc.trigger.stateful.test.StatefulTriggerTest' USING URI 'file:///data/nginx/stateful-test-0.14-SNAPSHOT.jar' WITH ( 'HOST'='127.0.0.1', 'data_type'='double', 'standard_value'=100, 'trig_name'='cap-stateful-beforeInsert')
+STRICT{
+PASS
+}
+
+-- [1]33:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+cap-stateful-beforeInse|BEFORE_INSERT    |STATEFUL        |ACTIVE           |root.stateful.**       |com.abc.trigger.state|1                 |
+rt                     |                 |                |                 |                       |ful.test.StatefulTri|                  |
+                       |                 |                |                 |                       |ggerTest             |                  |
+---------------------------------------------------------------------------------------------------------------------------------------
+cap_multi_double       |AFTER_INSERT     |STATELESS       |ACTIVE           |root.stateless.**      |org.example.DoubleVal|ALL               |
+                       |                 |                |                 |                       |ueMonitor            |                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]35:insert into root.stateful.d1(time, s1, s2,s3) aligned values (10, 101,202,83),(20,2222,333,444),(30,333,104,34),(40,30,333,445),(50,99,100,1002),(51,20,3,44),(52,30,33,35)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.102
+
+-- [1]38:show timeseries root.stateless.d1.s1
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s1  |null             |root.stateless      |DOUBLE              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]39:show timeseries root.stateless.d1.s2
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s2  |null             |root.stateless      |DOUBLE              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]40:show timeseries root.stateless.d1.s3
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateless.d1.s3  |null             |root.stateless      |DOUBLE              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]41:show timeseries root.ln.alerting.alert_content
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.alerting.alert|null             |root.ln             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+_content              |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]42:show timeseries root.ln.alerting.table_name
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.alerting.table|null             |root.ln             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+_name                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]43:show timeseries root.stateful.d1.s1
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s1   |null             |root.stateful       |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]44:show timeseries root.stateful.d1.s2
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s2   |null             |root.stateful       |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]45:show timeseries root.stateful.d1.s3
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.stateful.d1.s3   |null             |root.stateful       |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]46:show timeseries root.target.alerting.stateful.trig_name
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+tateful.trig_name     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]47:show timeseries root.target.alerting.stateful.ts_type
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+tateful.ts_type       |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]48:show timeseries root.target.alerting.stateful.device
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+tateful.device        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]49:show timeseries root.target.alerting.stateful.value
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.target.alerting.s|null             |root.target         |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+tateful.value         |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]52:select * from root.stateless.d1
+STRICT{
+Time(TIMESTAMP)      |root.stateless.d1.s3(DOUBLE)      |root.stateless.d1.s1(DOUBLE)      |root.stateless.d1.s2(DOUBLE)      |
+---------------------------------------------------------------------------------------------------------------------------
+1                    |300.0                             |100.0                             |200.0                             |
+---------------------------------------------------------------------------------------------------------------------------
+2                    |765.0                             |400.0                             |600.0                             |
+---------------------------------------------------------------------------------------------------------------------------
+3                    |765.0                             |7400.0                            |600.0                             |
+---------------------------------------------------------------------------------------------------------------------------
+4                    |565.0                             |400.0                             |600.0                             |
+---------------------------------------------------------------------------------------------------------------------------
+5                    |665.0                             |400.0                             |710.0                             |
+总数目：5
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]54:select count(*) from root.ln.alerting
+STRICT{
+count(root.ln.alerting.alert_content)(INT64)      |count(root.ln.alerting.table_name)(INT64)      |
+-------------------------------------------------------------------------------------------------
+4                                                 |4                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]57:select * from root.stateful.d1
+STRICT{
+Time(TIMESTAMP)      |root.stateful.d1.s3(INT32)      |root.stateful.d1.s1(DOUBLE)      |root.stateful.d1.s2(FLOAT)      |
+----------------------------------------------------------------------------------------------------------------------
+10                   |83                              |101.0                            |202.0                           |
+----------------------------------------------------------------------------------------------------------------------
+20                   |444                             |2222.0                           |333.0                           |
+----------------------------------------------------------------------------------------------------------------------
+30                   |34                              |333.0                            |104.0                           |
+----------------------------------------------------------------------------------------------------------------------
+40                   |445                             |30.0                             |333.0                           |
+----------------------------------------------------------------------------------------------------------------------
+50                   |1002                            |99.0                             |100.0                           |
+----------------------------------------------------------------------------------------------------------------------
+51                   |44                              |20.0                             |3.0                             |
+----------------------------------------------------------------------------------------------------------------------
+52                   |35                              |30.0                             |33.0                            |
+总数目：7
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]59:select count(*) from root.target.alerting.stateful
+STRICT{
+count(root.target.alerting.stateful.trig_name)(INT64)      |count(root.target.alerting.stateful.ts_type)(INT64)      |count(root.target.alerting.stateful.value)(INT64)      |count(root.target.alerting.stateful.device)(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                                                          |1                                                        |1                                                      |1                                                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]62:select my_sum(*) into root.stateless.d2(sum_s1) ,root.stateless.d2(sum_s2),root.stateless.d2(sum_s3)from root.stateless.d1
+STRICT{
+SourceColumn(TEXT)      |TargetTimeseries(TEXT)      |Written(INT32)      |
+------------------------------------------------------------------------
+my_sum(root.stateless.d1|root.stateless.d2.sum_s1    |1                   |
+.s3)                    |                            |                    |
+------------------------------------------------------------------------
+my_sum(root.stateless.d1|root.stateless.d2.sum_s2    |1                   |
+.s1)                    |                            |                    |
+------------------------------------------------------------------------
+my_sum(root.stateless.d1|root.stateless.d2.sum_s3    |1                   |
+.s2)                    |                            |                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.64
+
+-- [1]63:select my_sum(*) into root.stateful.d2(sum_s1) ,root.stateful.d2(sum_s2),root.stateful.d2(sum_s3)from root.stateful.d1
+STRICT{
+SourceColumn(TEXT)      |TargetTimeseries(TEXT)      |Written(INT32)      |
+------------------------------------------------------------------------
+my_sum(root.stateful.d1.|root.stateful.d2.sum_s1     |1                   |
+s3)                     |                            |                    |
+------------------------------------------------------------------------
+my_sum(root.stateful.d1.|root.stateful.d2.sum_s2     |1                   |
+s1)                     |                            |                    |
+------------------------------------------------------------------------
+my_sum(root.stateful.d1.|root.stateful.d2.sum_s3     |1                   |
+s2)                     |                            |                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.62
+-- [1]67:drop trigger `cap_multi_double`
+STRICT{
+PASS
+}
+-- [1]68:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]69:drop trigger `cap-stateful-beforeInsert`
+STRICT{
+PASS
+}
+-- [1]70:drop function `my_sum`
+STRICT{
+PASS
+}

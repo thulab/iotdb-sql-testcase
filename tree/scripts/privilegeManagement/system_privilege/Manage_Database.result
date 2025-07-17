@@ -1,0 +1,228 @@
+-- [1]18:create database root.root_db
+STRICT{
+PASS
+}
+
+-- [1]21:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.root_db        |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]25:CREATE USER user01 'pass1234'
+STRICT{
+PASS
+}
+-- [1]26:CREATE USER user02 'pass1234'
+STRICT{
+PASS
+}
+-- [1]27:CREATE USER user03 'pass1234'
+STRICT{
+PASS
+}
+
+-- [1]29:list user
+STRICT{
+User(TEXT)      |
+----------------
+root            |
+----------------
+user01          |
+----------------
+user02          |
+----------------
+user03          |
+总数目：4
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]33:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]34:LIST PRIVILEGES OF USER `user02`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]35:LIST PRIVILEGES OF USER `user03`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]37:grant manage_database on root.** to user user01
+STRICT{
+PASS
+}
+-- [1]39:GRANT MANAGE_DATABASE on root.sg.** TO USER user02
+STRICT{
+SQLSTATE : 701: [MANAGE_DATABASE] can only be set on path: root.**
+}
+-- [1]41:GRANT MANAGE_DATABASE ON root.** TO USER user02 with grant option
+STRICT{
+PASS
+}
+
+-- [1]44:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_DATABASE       |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]45:LIST PRIVILEGES OF USER `user02`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_DATABASE       |true                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]49:show version
+STRICT{
+PASS
+}
+-- [1]51:create database root.user01_db
+STRICT{
+PASS
+}
+-- [1]52:create database root.qwertyuiop.Y1234567890.qwertyuiop.P1234567890.qwertyuiop.M1234567890.qwertyuiop
+STRICT{
+SQLSTATE : 509: root.qwertyuiop.Y1234567890.qwertyuiop.P1234567890.qwertyuiop.M1234567890.qwertyuiop is not a legal path, because the length of database name shall not exceed 64
+}
+-- [1]54:create database root.qwertyuiop.Y1234567890.qwertyuiop.P1234567890.qwertyuiop.M1
+STRICT{
+PASS
+}
+
+-- [1]55:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]56:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]57:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]58:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+-------------------------------------
+root.**           |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]59:delete database root.user01_db
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.253
+-- [1]61:create timeseries root.user01_db.d1.s1 with datatype=INT32
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
+}
+-- [1]63:insert into root.user01_db.d1(time,s1) values(1,1)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.user01_db.d1.s1]
+}
+-- [1]69:show version
+STRICT{
+PASS
+}
+-- [1]72:GRANT MANAGE_DATABASE ON root.** TO USER user03
+STRICT{
+PASS
+}
+-- [1]72:create database root.user02_db
+STRICT{
+PASS
+}
+-- [1]73:delete database root.user02_db
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.254
+-- [1]74:revoke manage_database on root.** from user user02
+STRICT{
+PASS
+}
+-- [1]76:create timeseries root.user02_db.d1.s1 with datatype=INT32
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA
+}
+-- [1]78:insert into root.user02_db.d1(time,s1) values(1,1)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.user02_db.d1.s1]
+}
+-- [1]83:show version
+STRICT{
+PASS
+}
+-- [1]85:create database root.user03_db
+STRICT{
+PASS
+}
+-- [1]86:delete database root.user03_db
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.253
+
+-- [1]91:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |MANAGE_DATABASE       |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]91:revoke manage_database on root.** from user user01
+STRICT{
+PASS
+}
+
+-- [1]93:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1

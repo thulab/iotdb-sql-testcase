@@ -1,0 +1,96 @@
+// MANAGE_USER
+// with grant option
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user testuser1;
+<<NULL;
+drop user testuser2;
+<<NULL;
+drop user testuser3;
+<<NULL;
+
+--1. root创建普通用户并查看所有用户列表
+create user user01 'pass1234';
+create user user02 'pass1234';
+create user user03 'pass1234';
+create user user04 'pass1234';
+list user;
+
+--2. 列出普通用户user01拥有的权限列表
+list privileges of user user01;
+
+--3. 授予user01关于【MANAGE_USER】with grant option转授权限，执行用户管理
+--3.1 root授予user01权限
+grant manage_user to user user01 with grant option;
+
+--3.2 user01列出自己拥有的权限列表
+connect user01/pass1234;
+list privileges of user user01;
+
+--3.3 user01创建一个普通用户testuser1 ：
+create user testuser1 '1234';
+
+--3.4 testuser访问数据库：
+connect testuser1/1234;
+list privileges of user testuser1;
+
+--3.4 user01查看所有用户列表
+connect user01/pass1234;
+list user;
+
+--3.5 user01 删除其他用户（管理员root不能被删除）
+drop user testuser1;
+list user;
+drop user root;
+<<SQLSTATE;
+
+--3.6 user01授予user02关于【MANAGE_USER】with grant option转授权限
+grant manage_user to user user02 with grant option;
+
+--3.7 user02执行用户管理
+connect user02/pass1234;
+list privileges of user user02;
+create user testuser2 '1234';
+list user;
+alter user testuser2 set password 'pass1234';
+drop user testuser2;
+
+--3.8 user02授予user03关于【MANAGE_USER】权限
+grant manage_user to user user03;
+
+--3.9 user03执行用户管理
+connect user03/pass1234;
+list privileges of user user03;
+create user testuser3 '1234';
+list user;
+alter user testuser3 set password 'pass1234';
+drop user testuser3;
+grant manage_user to user user04;
+<<SQLSTATE;
+
+--4. 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user testuser1;
+<<NULL;
+drop user testuser2;
+<<NULL;
+drop user testuser3;
+<<NULL;

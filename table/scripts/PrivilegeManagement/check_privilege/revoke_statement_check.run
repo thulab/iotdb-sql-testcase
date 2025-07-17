@@ -1,0 +1,117 @@
+// 取消授权语法
+
+connect root/root;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop database test_db;
+<<NULL;
+
+--1. 准备测试数据
+create user user01 'pass1234';
+create user user02 'pass1234';
+create role role01;
+create role role02;
+
+create database test_db;
+use test_db;
+create table test_db.t1(ID TAG, float FLOAT);
+show tables;
+
+--2. root授予普通用户和角色关于【MANAGE_USER】权限
+--2.1 授权全大写
+GRANT MANAGE_USER TO USER user01;
+LIST PRIVILEGES OF USER user01;
+
+--2.2 授权全小写
+grant manage_user to user user02 with grant option;
+list privileges of user user02;
+
+--2.3 授权大小写混合
+GRANT CREATE on database test_db to ROLE role01;
+grant INSERT on table test_db.t1 TO role role02 WITH GRANT OPTION;
+LIST privileges OF role role01;
+list PRIVILEGES of ROLE role02;
+
+--3. root 取消【MANAGE_USER】权限
+--3.1 全大写取消授权
+REVOKE MANAGE_USER FROM USER user01;
+LIST PRIVILEGES OF USER user01;
+
+--3.2 全小写取消授权
+revoke CREATE on database test_db from role role01;
+list privileges of role role01;
+
+--3.3 大小写混合取消授权
+ReVoke Grant OPtion FOR Manage_user FROM user user02;
+list privileges of user user02;
+
+--3.4 缺少privilege具体权限
+revoke from user user02;
+<<SQLSTATE;
+
+--3.5 privilege 不在权限列表内
+revoke write from user user02;
+<<SQLSTATE;
+
+--3.6 缺少关键字database
+revoke create on test_db from role role01;
+<<SQLSTATE;
+
+--3.7 数据库名不存在
+revoke create on database db1 from user user01;
+
+--3.8 缺少关键字table
+revoke grant option for insert on test_db.t1 from role role02;
+list privileges of role role02;
+
+--3.9 表名不存在
+revoke insert on table test_db.t2 from role role02;
+
+--3.10 缺少关键字user
+revoke manage_user from user01;
+<<SQLSTATE;
+
+--3.11 user用户名不存在
+revoke manage_user from user user1;
+<<SQLSTATE;
+
+--3.12 缺少关键字role
+revoke CREATE on database test_db from role01;
+<<SQLSTATE;
+
+--3.13 角色名role不存在
+revoke CREATE on database test_db from role role1;
+<<SQLSTATE;
+
+--3.14 权限范围中缺少关键on
+revoke CREATE database test_db from role role1;
+<<SQLSTATE;
+revoke INSERT table test_db.t1 from role role2;
+<<SQLSTATE;
+
+--3.15 缺少关键字from
+revoke manage_user user user01;
+<<SQLSTATE;
+revoke CREATE on database test_db role role1;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/root;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop database test_db;
+<<NULL;

@@ -1,0 +1,33 @@
+connect root/root;
+
+-- 清理环境
+delete timeseries root.db.**;
+<<NULL;
+delete database root.db;
+<<NULL;
+drop device template t1;
+<<NULL;
+
+-- TIMECHODB-251
+insert into root.db.d1.t1(timestamp,s1) values(now(),false);
+-- 创建无任何节点的模板
+create device template t1;
+-- 挂载
+set device template t1 to root.db.d1.t2;
+-- 激活
+create timeseries using device template on root.db.d1.t2;
+-- 解除(问题所在)
+deactivate device template from root.db.d1.t2;
+-- 卸载
+unset device template t1 from root.db.d1.t2;
+-- 删除模板
+drop device template t1;
+
+
+-- 清理环境
+delete timeseries root.db.**;
+<<NULL;
+delete database root.db;
+<<NULL;
+drop device template t1;
+<<NULL;

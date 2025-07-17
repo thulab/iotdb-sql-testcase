@@ -1,0 +1,170 @@
+//标量子查询返回的结果是一个标量
+
+connect root/root;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    name TEXT FIELD,
+	employee_id STRING FIELD,
+    Gender TEXT FIELD,
+	salary DOUBLE FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    department_name TEXT FIELD,
+	department_location STRING FIELD,
+	dep_member INT32 FIELD
+);
+
+
+create table salarys 
+(
+    department_id STRING TAG,
+	employee_id STRING FIELD,
+	salary DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+desc salarys;
+
+--6. 数据写入
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1704874210000, 'D001', 'Mary', '100011223', 'Female',6500.22);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1706698230000, 'D001', 'John', '100230012', 'Male', 8822);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1708868070000, 'D002', 'Nancy','120010112', 'Female', 10002);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1711437332000, 'D002', 'Jack', '102320120', 'Male', 7610);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1719754343000, 'D001', 'Linda','231102121', 'Female', 5600);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748736000000, 'D002', 'Jack', '242320120', 'Male', 7880);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748822400000, 'D001', 'Linda','243102121', 'Female', 8600);
+
+
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1704874210000, 'D001', '销售部', 'Beijing', 10223);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1706698230000, 'D002', '行政人事部', 'Shanghai', 1012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1708868070000, 'D002', '行政人事部', 'Beijing', 1112);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1711437332000, 'D001', '销售部', 'Hebei', 12012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1719754343000, 'D001', '销售部', 'Tianjin', 5511);
+
+
+insert into salarys(time, department_id, employee_id, salary) values(1748822400000, 'D001', '110011223', 6782);
+insert into salarys(time, department_id, employee_id, salary) values(1749036000000, 'D002', '243102121', 8600);
+insert into salarys(time, department_id, employee_id, salary) values(1759036000000, 'D001', '231102121', 5600);
+insert into salarys(time, department_id, employee_id, salary) values(1759122400000, 'D001', '230122121', 9910);
+insert into salarys(time, department_id, employee_id, salary) values(1759236000000, 'D002', '201102121', 5400);
+insert into salarys(time, department_id, employee_id, salary) values(1759536000000, 'D001', '221102121', 3600);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+select * from salarys order by time;
+
+--8. 关联标量子查询
+--8.1 where 子句中
+select dep_member from departments d1
+	where department_id = 'D001'
+		and dep_member > (select last(dep_member) from departments d2 where time < 1759754343000)
+order by dep_member;
+
+
+select salary from employees e1
+	where department_id = 'D001'
+		and salary >= (select avg(salary) from salarys s1 where s1.salary = e1.salary)
+order by salary;
+	
+	
+select cast(employee_id as INT32) as emp_id from employees e1 
+	where department_id = 'D001' and employee_id >= 
+		(select employee_id from salarys s1 where e1.employee_id = s1.employee_id )
+order by emp_id;
+		
+
+select distinct salary from employees e1
+	where salary >= (select max(salary) from salarys s1 
+		where e1.salary = s1.salary and salary = (select max(salary) from employees e2 
+			where e2.salary = s1.salary))
+order by salary;
+
+
+select employee_id, name, salary from employees e1
+	where salary > (
+		select AVG(salary) from employees e2
+			where e2.department_id = e1.department_id
+) order by employee_id, name, salary;
+
+		
+--8.2 having 子句中
+select department_id, count(*) from employees e1 group by department_id
+	having count(*) +9900 >
+		(select max(salary) from salarys s1 where s1.department_id= e1.department_id);
+
+
+--8.3 select 子句中
+select (select min(salary) from employees e1 where e1.salary = s1.salary) as select_result from salarys s1 order by select_result;
+
+
+select e1.employee_id, e1.name, e1.salary, (
+	select MAX(e2.salary) from employees e2
+		where e2.department_id = e1.department_id
+			) AS max_department_salary
+from employees e1
+order by employee_id, name, salary, max_department_salary;
+
+
+select e1.employee_id, e1.salary, (
+    select round(AVG(e2.salary),2) from employees e2
+		where e2.department_id = e1.department_id
+			) AS avg_department_salary
+from employees e1 order by employee_id, salary, avg_department_salary;
+
+
+select d.department_id, COUNT(e.employee_id) AS employee_count, (
+    select MAX(e2.salary) from employees e2
+		where e2.department_id = d.department_id
+			) AS max_salary from departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_id
+order by department_id, employee_count, max_salary;
+
+				
+--9. 不支持查询
+select distinct cast(employee_id as INT32) as emp_id from employees e1
+	where department_id = 'D002' and employee_id >= 
+		(select max(employee_id) from salarys s1 where department_id = 'D002' and e1.employee_id = s1.employee_id and employee_id not in (select employee_id from departments where employee_id is not null));
+<<SQLSTATE;
+
+
+select salary from employees e
+	where department_id = 'D001' and salary >= (
+		select avg(dep_member) from departments d where d.salary > e.salary);
+<<SQLSTATE;
+
+
+select department_id from employees e where department_id > 
+	(select department_id from salarys s where e.department_id = s.department_id and department_id = 
+		(select department_id from departments d where d.department_id = e.department_id limit 1) limit 1);
+<<SQLSTATE;
+
+select employee_id from employees e
+	where department_id = 'D001' 
+		and employee_id >= (select avg(salary) from salarys s where s.salary = e.salary limit 1);
+<<SQLSTATE;
+
+--清理环境
+drop database test_db;
+<<NULL;

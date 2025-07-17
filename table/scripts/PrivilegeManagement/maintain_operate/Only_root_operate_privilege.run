@@ -1,0 +1,158 @@
+//ROOT
+//管理员权限独占。集群的运维管理权限。
+
+
+connect root/root;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+drop user user01;
+<<NULL;
+
+--1.创建数据库和表
+create database test_db;
+use test_db;
+create table t1(device_id string TAG,int32 INT32 FIELD);
+
+--2. 表中插入数据
+insert into test_db.t1(time,device_id,int32) values(1,'d1',11),(2,'d1',22),(3,'d1',33);
+FLUSH;
+
+--3. 创建普通用户
+create user user01 'pass1234';
+
+--4.root支持的运维命令
+show version;
+<<CHECKCODE;
+
+--企业版激活信息
+--show activation;
+--<<CHECKCODE;
+
+show cluster;
+<<CHECKCODE;
+show cluster details;
+<<CHECKCODE;
+show clusterid;
+<<CHECKCODE;
+
+show confignodes;
+
+show datanodes;
+
+show regions;
+<<CHECKCODE;
+
+show schema regions;
+<<CHECKCODE;
+
+show data regions;
+<<CHECKCODE;
+
+show variables;
+
+show current_database;
+
+show CURRENT_SQL_DIALECT;
+
+show CURRENT_TIMESTAMP;
+<<CHECKCODE;
+
+show CURRENT_USER;
+
+show queries;
+<<CHECKCODE;
+
+show query processlist;
+<<CHECKCODE;
+
+kill all queries;
+
+flush;
+
+clear cache;
+
+load configuration;
+
+set system to readonly;
+insert into test_db.t1(time,device_id,int32) values(4,'d1',12);
+<<SQLSTATE;
+select * from test_db.t1 order by time;
+
+set system to running;
+insert into test_db.t1(time,device_id,int32) values(4,'d1',12);
+select * from test_db.t1 order by time;
+
+--5.user01登录
+connect user01/pass1234;
+
+show version;
+<<CHECKCODE;
+
+--企业版激活信息
+--show activation;
+--<<CHECKCODE;
+
+show cluster;
+<<SQLSTATE;
+show cluster details;
+<<SQLSTATE;
+show clusterid;
+<<SQLSTATE;
+
+show confignodes;
+<<SQLSTATE;
+
+show datanodes;
+<<SQLSTATE;
+
+show regions;
+<<SQLSTATE;
+
+show schema regions;
+<<SQLSTATE;
+
+show data regions;
+<<SQLSTATE;
+
+show variables;
+<<SQLSTATE;
+
+show current_database;
+
+show CURRENT_SQL_DIALECT;
+
+show CURRENT_TIMESTAMP;
+<<CHECKCODE;
+
+show CURRENT_USER;
+
+show queries;
+<<CHECKCODE;
+
+show query processlist;
+<<CHECKCODE;
+
+kill all queries;
+<<SQLSTATE;
+
+flush;
+<<SQLSTATE;
+
+clear cache;
+<<SQLSTATE;
+
+load configuration;
+<<SQLSTATE;
+
+set system to readonly;
+<<SQLSTATE;
+
+
+--6.清理环境
+connect root/root;
+drop database test_db;
+<<NULL;
+drop user user01;
+<<NULL;
