@@ -1,0 +1,36 @@
+// 参考飞书issue：https://timechor.feishu.cn/docx/Vm0ud6280oK26rxjOq7cM12Xn8c
+// BUG 现象：
+// last(value),first(value),last_by(value,time),first_by(value,time),max(value),min(value) 查询结果应为 value 列的值，但实际是 time 列的值
+
+connect root/root;
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table1(device STRING TAG, value TIMESTAMP FIELD);
+
+--4. 查看表
+show tables;
+
+--5.展示表结构信息
+desc table1;
+
+--6. 插入数据
+insert into table1(time,device,value) values('2020-01-01 00:00:07.000', 'd2', '1970-01-01 00:00:00.000');
+				
+--7. 原始数据查询
+select * from table1 order by time;		
+
+--8. select last | first | last_by | first_by | max | min  查询
+select last(value),first(value),last_by(value,time),first_by(value,time),max(value),min(value) from table1;
+	
+--清理环境
+drop database test_db;
+<<NULL;
