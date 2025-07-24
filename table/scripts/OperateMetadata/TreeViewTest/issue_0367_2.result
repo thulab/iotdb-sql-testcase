@@ -1,0 +1,249 @@
+-- [1]2:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]5:create timeseries root.vehicle.重庆.current string  COMPRESSOR=LZ4 tags(string=chongqing, description='this is current of chongqing') attributes(speed=9988, color=green)
+STRICT{
+PASS
+}
+-- [1]7:insert into root.vehicle.重庆(time,current) values(4000,'string row 1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.4.368
+-- [1]8:create aligned timeseries root.vehicle.chongqing(current string,money double )
+STRICT{
+PASS
+}
+-- [1]9:insert into root.vehicle.chongqing(time,current,money)values(1000,'aligned current row 1',1000.99),(2000,'aligned current row 2',1900.09)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.71
+
+-- [1]11:select current from root.vehicle.重庆
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.重庆.current(STRING)      |
+----------------------------------------------------------
+4000                 |string row 1                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]12:select current from root.vehicle.chongqing
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.chongqing.current(STRING)      |
+-----------------------------------------------------------------
+1000                 |aligned current row 1                       |
+-----------------------------------------------------------------
+2000                 |aligned current row 2                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]13:show devices root.vehicle.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.vehicle.重庆   |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.vehicle.chong|true                 |null                |INF                |
+qing              |                     |                    |                   |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]14:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]16:create database db
+STRICT{
+PASS
+}
+-- [1]17:use db
+STRICT{
+PASS
+}
+-- [1]18:create or replace view v1(device_id string tag) restrict as root.vehicle.**
+STRICT{
+PASS
+}
+
+-- [1]19:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |current(STRING)      |money(DOUBLE)      |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|chongqing              |aligned current row 1|1000.99            |
+00+08:00             |                       |                     |                   |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|chongqing              |aligned current row 2|1900.09            |
+00+08:00             |                       |                     |                   |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:04.0|重庆                     |string row 1         |null               |
+00+08:00             |                       |                     |                   |
+总数目：3
+}
+
+Elapsed Time: 0.0.10
+
+-- [1]20:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+current               |STRING              |FIELD               |
+--------------------------------------------------------------
+money                 |DOUBLE              |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]21:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG,"cur|
+                |rent" STRING FIELD,"mo|
+                |ney" DOUBLE FIELD) RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."vehicle".**  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]22:create or replace view v1() restrict as root.vehicle.**
+STRICT{
+PASS
+}
+
+-- [1]23:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]24:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]25:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" () RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."vehicle".**  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]26:alter view v1 add column device_id string tag
+STRICT{
+PASS
+}
+
+-- [1]27:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]28:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."vehicle".**  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]29:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+--------------------------------------------
+1970-01-01T08:00:01.0|chongqing              |
+00+08:00             |                       |
+--------------------------------------------
+1970-01-01T08:00:02.0|chongqing              |
+00+08:00             |                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]30:alter view v1 add column money double field
+STRICT{
+PASS
+}
+-- [1]31:alter view v1 add column current string field
+STRICT{
+PASS
+}
+
+-- [1]32:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |money(DOUBLE)      |current(STRING)      |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|chongqing              |1000.99            |aligned current row 1|
+00+08:00             |                       |                   |                     |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|chongqing              |1900.09            |aligned current row 2|
+00+08:00             |                       |                   |                     |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:04.0|重庆                     |null               |string row 1         |
+00+08:00             |                       |                   |                     |
+总数目：3
+}
+
+Elapsed Time: 0.0.6
+-- [1]33:drop view v1
+STRICT{
+PASS
+}
+
+-- [1]34:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]35:drop database db
+STRICT{
+PASS
+}
+-- [1]36:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]37:drop database root.vehicle
+STRICT{
+PASS
+}

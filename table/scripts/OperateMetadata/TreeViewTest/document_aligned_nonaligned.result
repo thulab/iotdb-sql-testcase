@@ -1,0 +1,1766 @@
+-- [1]2:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]5:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]7:create database db
+STRICT{
+PASS
+}
+-- [1]8:use db
+STRICT{
+PASS
+}
+-- [1]10:CREATE VIEW view1 (battery_id TAG, voltage INT32 FIELD, current FLOAT FIELD) as root.db.battery.**
+STRICT{
+PASS
+}
+
+-- [1]10:select * from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |battery_id(STRING)      |voltage(INT32)      |current(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]11:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]14:CREATE ALIGNED TIMESERIES root.db.battery.b1(voltage INT32, current FLOAT)
+STRICT{
+PASS
+}
+-- [1]15:INSERT INTO root.db.battery.b1(time, voltage, current) aligned values (1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.716
+-- [1]16:INSERT INTO root.db.battery.b1(time, voltage, current) aligned values (2, null, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]16:select voltage, current from root.db.battery.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------
+1                    |root.db.battery.b1|1                   |1.0                 |
+-------------------------------------------------------------------------------
+2                    |root.db.battery.b1|null                |1.0                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]17:select voltage, current from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b1.voltage(INT32)      |root.db.battery.b1.current(FLOAT)      |
+---------------------------------------------------------------------------------------------------
+1                    |1                                      |1.0                                    |
+---------------------------------------------------------------------------------------------------
+2                    |null                                   |1.0                                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]18:select voltage from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b1.voltage(INT32)      |
+------------------------------------------------------------
+1                    |1                                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]19:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]20:use db
+STRICT{
+PASS
+}
+
+-- [1]21:select * from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |battery_id(STRING)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]22:select voltage from view1 order by battery_id
+STRICT{
+voltage(INT32)      |
+--------------------
+1                   |
+--------------------
+null                |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]23:select voltage,current from view1 order by battery_id
+STRICT{
+voltage(INT32)      |current(FLOAT)      |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]24:select battery_id from view1 order by battery_id
+STRICT{
+battery_id(STRING)      |
+------------------------
+b1                      |
+------------------------
+b1                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]25:select time from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]26:select time,voltage from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |voltage(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|null                |
+02+08:00             |                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+-- [1]27:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]28:drop database root.**
+STRICT{
+PASS
+}
+-- [1]30:CREATE TIMESERIES root.db.battery.b1.voltage INT32
+STRICT{
+PASS
+}
+-- [1]31:CREATE TIMESERIES root.db.battery.b1.current FLOAT
+STRICT{
+PASS
+}
+-- [1]32:INSERT INTO root.db.battery.b1(time, voltage, current) values (1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.3.227
+-- [1]33:INSERT INTO root.db.battery.b1(time, voltage, current) values (2, null, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]33:select voltage, current from root.db.battery.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------
+1                    |root.db.battery.b1|1                   |1.0                 |
+-------------------------------------------------------------------------------
+2                    |root.db.battery.b1|null                |1.0                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]34:select voltage, current from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b1.voltage(INT32)      |root.db.battery.b1.current(FLOAT)      |
+---------------------------------------------------------------------------------------------------
+1                    |1                                      |1.0                                    |
+---------------------------------------------------------------------------------------------------
+2                    |null                                   |1.0                                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]35:select voltage from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b1.voltage(INT32)      |
+------------------------------------------------------------
+1                    |1                                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]36:select count(voltage) from root.db.battery.**
+STRICT{
+count(root.db.battery.b1.voltage)(INT64)      |
+----------------------------------------------
+1                                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]37:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]38:use db
+STRICT{
+PASS
+}
+
+-- [1]39:select * from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |battery_id(STRING)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]40:select voltage from view1 order by battery_id
+STRICT{
+voltage(INT32)      |
+--------------------
+1                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]41:select battery_id,count(voltage) from view1 group by battery_id order by battery_id
+STRICT{
+battery_id(STRING)      |_col1(INT64)      |
+------------------------------------------
+b1                      |1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]42:select voltage,current from view1 order by battery_id
+STRICT{
+voltage(INT32)      |current(FLOAT)      |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]43:select battery_id from view1 order by battery_id
+STRICT{
+battery_id(STRING)      |
+------------------------
+b1                      |
+------------------------
+b1                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]44:select time from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]45:select time,voltage from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |voltage(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]46:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]48:CREATE ALIGNED TIMESERIES root.db.battery.b2(voltage INT32, current FLOAT)
+STRICT{
+PASS
+}
+-- [1]49:INSERT INTO root.db.battery.b2(time, voltage, current) aligned values (1, 1, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.57
+-- [1]50:INSERT INTO root.db.battery.b2(time, voltage, current) aligned values (2, null, 1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]50:select voltage, current from root.db.battery.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------
+1                    |root.db.battery.b1|1                   |1.0                 |
+-------------------------------------------------------------------------------
+2                    |root.db.battery.b1|null                |1.0                 |
+-------------------------------------------------------------------------------
+1                    |root.db.battery.b2|1                   |1.0                 |
+-------------------------------------------------------------------------------
+2                    |root.db.battery.b2|null                |1.0                 |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]51:select voltage, current from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b2.voltage(INT32)      |root.db.battery.b1.voltage(INT32)      |root.db.battery.b2.current(FLOAT)      |root.db.battery.b1.current(FLOAT)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |1                                      |1                                      |1.0                                    |1.0                                    |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |null                                   |null                                   |1.0                                    |1.0                                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]52:select voltage from root.db.battery.**
+STRICT{
+Time(TIMESTAMP)      |root.db.battery.b2.voltage(INT32)      |root.db.battery.b1.voltage(INT32)      |
+---------------------------------------------------------------------------------------------------
+1                    |1                                      |1                                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]53:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]54:use db
+STRICT{
+PASS
+}
+
+-- [1]55:select * from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |battery_id(STRING)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b2                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b2                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]56:select voltage from view1 order by battery_id
+STRICT{
+voltage(INT32)      |
+--------------------
+1                   |
+--------------------
+1                   |
+--------------------
+null                |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]57:select battery_id,count(voltage) from view1 group by battery_id order by battery_id
+STRICT{
+battery_id(STRING)      |_col1(INT64)      |
+------------------------------------------
+b1                      |1                 |
+------------------------------------------
+b2                      |1                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]58:select voltage,current from view1 order by battery_id
+STRICT{
+voltage(INT32)      |current(FLOAT)      |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+总数目：4
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]59:select battery_id from view1 order by battery_id
+STRICT{
+battery_id(STRING)      |
+------------------------
+b1                      |
+------------------------
+b1                      |
+------------------------
+b2                      |
+------------------------
+b2                      |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]60:select time from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]61:select time,voltage from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |voltage(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|null                |
+02+08:00             |                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.7
+-- [1]63:CREATE or replace VIEW view1 (battery_id TAG, voltage INT32 FIELD, current FLOAT FIELD) as root.db.battery.**
+STRICT{
+PASS
+}
+
+-- [1]63:select * from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |battery_id(STRING)      |voltage(INT32)      |current(FLOAT)      |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b1                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b2                      |1                   |1.0                 |
+01+08:00             |                        |                    |                    |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|b2                      |null                |1.0                 |
+02+08:00             |                        |                    |                    |
+总数目：4
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]64:select voltage from view1 order by battery_id
+STRICT{
+voltage(INT32)      |
+--------------------
+1                   |
+--------------------
+1                   |
+--------------------
+null                |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]65:select battery_id, count(voltage) from view1 group by battery_id order by battery_id
+STRICT{
+battery_id(STRING)      |_col1(INT64)      |
+------------------------------------------
+b1                      |1                 |
+------------------------------------------
+b2                      |1                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]66:select battery_id,count(*) as count from view1 group by battery_id order by battery_id
+STRICT{
+battery_id(STRING)      |count(INT64)      |
+------------------------------------------
+b1                      |2                 |
+------------------------------------------
+b2                      |2                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]67:select voltage,current from view1 order by battery_id
+STRICT{
+voltage(INT32)      |current(FLOAT)      |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+----------------------------------------
+1                   |1.0                 |
+----------------------------------------
+null                |1.0                 |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]68:select battery_id from view1 order by battery_id
+STRICT{
+battery_id(STRING)      |
+------------------------
+b1                      |
+------------------------
+b1                      |
+------------------------
+b2                      |
+------------------------
+b2                      |
+总数目：4
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]69:select time from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+总数目：4
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]70:select time,voltage from view1 order by battery_id
+STRICT{
+time(TIMESTAMP)      |voltage(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|1                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|null                |
+02+08:00             |                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]71:show create view view1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+view1           |CREATE VIEW "view1" ("b|
+                |attery_id" STRING TAG,|
+                |"voltage" INT32 FIELD,|
+                |"current" FLOAT FIELD)|
+                | WITH (ttl='INF') AS r|
+                |oot."db"."battery".**  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]72:drop view view1
+STRICT{
+PASS
+}
+-- [1]73:drop database db
+STRICT{
+PASS
+}
+-- [1]74:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]75:drop database root.**
+STRICT{
+PASS
+}
+-- [1]78:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]80:create database root.db
+STRICT{
+PASS
+}
+-- [1]82:CREATE TIMESERIES root.db.风机.风机组1.风机1.电压 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]83:CREATE TIMESERIES root.db.风机.风机组1.风机1.电流 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]84:CREATE TIMESERIES root.db.风机.风机组1.风机2.电压 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]85:CREATE TIMESERIES root.db.风机.风机组1.风机2.电流 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]87:CREATE TIMESERIES root.db.电机.电机组1.电机1.功率 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]88:CREATE TIMESERIES root.db.电机.电机组1.电机1.电量 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]89:CREATE TIMESERIES root.db.电机.电机组1.电机1.温度 with datatype=float ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]90:CREATE TIMESERIES root.db.电机.电机组1.电机2.功率 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]91:CREATE TIMESERIES root.db.电机.电机组1.电机2.电量 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]92:CREATE TIMESERIES root.db.电机.电机组1.电机2.温度 with datatype=float ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2)
+STRICT{
+PASS
+}
+-- [1]93:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]95:create database viewdb
+STRICT{
+PASS
+}
+-- [1]96:use viewdb
+STRICT{
+PASS
+}
+-- [1]105:CREATE VIEW viewdb."风机表"   ("风机组" TAG,     "风机号" TAG,     "电压" DOUBLE FIELD,     "电流" DOUBLE FIELD    )  AS root.db."风机".**
+STRICT{
+PASS
+}
+-- [1]115:CREATE VIEW viewdb."电机表"   ("电机组" TAG,     "电机号" TAG,     "功率" FLOAT FIELD,     "电量" FLOAT FIELD,    "温度" FLOAT FIELD    )  AS root.db."电机".**
+STRICT{
+PASS
+}
+
+-- [1]115:select "风机组","风机号", "电压","电流" from "风机表"
+STRICT{
+风机组(STRING)      |风机号(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]116:select time, "风机组","风机号", "电压","电流" from "风机表"
+STRICT{
+time(TIMESTAMP)      |风机组(STRING)      |风机号(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]117:select count(*) from "风机表"
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]118:select "电机组","电机号", "功率","电量","温度" from "电机表"
+STRICT{
+电机组(STRING)      |电机号(STRING)      |功率(FLOAT)      |电量(FLOAT)      |温度(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]119:select time, "电机组","电机号", "功率","电量","温度" from "电机表"
+STRICT{
+time(TIMESTAMP)      |电机组(STRING)      |电机号(STRING)      |功率(FLOAT)      |电量(FLOAT)      |温度(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]120:select count(*) from "电机表"
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]121:select count(*) from "电机表" inner join "风机表" using (time)
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+-- [1]122:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]123:insert into root.db.风机.风机组1.风机1(time,电压,电流) values(10000,2.2,3.4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.613
+-- [1]124:insert into root.db.风机.风机组1.风机2(time,电压,电流) values(10000,12.2,13.4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.27
+-- [1]125:insert into root.db.风机.风机组1.风机2(time,电压,电流) values(20000,null,13.4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]126:insert into root.db.电机.电机组1.电机1(time,功率,电量,温度) values(10000,8.9,7.7,6.6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]127:insert into root.db.电机.电机组1.电机1(time,功率,电量,温度) values(20000,18.9,17.7,16.6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]128:insert into root.db.电机.电机组1.电机2(time,功率,电量,温度) values(30000,null,17.7,16.6)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.956
+-- [1]129:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]130:use viewdb
+STRICT{
+PASS
+}
+
+-- [1]131:select "风机组","风机号", "电压","电流" from "风机表" order by time,"风机组","风机号", "电压","电流"
+STRICT{
+风机组(STRING)      |风机号(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+------------------------------------------------------------------
+风机组1             |风机1              |2.2             |3.4             |
+------------------------------------------------------------------
+风机组1             |风机2              |12.2            |13.4            |
+------------------------------------------------------------------
+风机组1             |风机2              |null            |13.4            |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]132:select time, "风机组","风机号", "电压","电流" from "风机表" order by time,"风机组","风机号", "电压","电流"
+STRICT{
+time(TIMESTAMP)      |风机组(STRING)      |风机号(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:10.0|风机组1             |风机1              |2.2             |3.4             |
+00+08:00             |                 |                 |                |                |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:10.0|风机组1             |风机2              |12.2            |13.4            |
+00+08:00             |                 |                 |                |                |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:20.0|风机组1             |风机2              |null            |13.4            |
+00+08:00             |                 |                 |                |                |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]133:select count(*) from "风机表"
+STRICT{
+_col0(INT64)      |
+------------------
+3                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]134:select "电机组","电机号", "功率","电量","温度" from "电机表" order by time,"电机组","电机号", "功率","电量","温度"
+STRICT{
+电机组(STRING)      |电机号(STRING)      |功率(FLOAT)      |电量(FLOAT)      |温度(FLOAT)      |
+-------------------------------------------------------------------------------
+电机组1             |电机1              |8.9            |7.7            |6.6            |
+-------------------------------------------------------------------------------
+电机组1             |电机1              |18.9           |17.7           |16.6           |
+-------------------------------------------------------------------------------
+电机组1             |电机2              |null           |17.7           |16.6           |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]135:select time, "电机组","电机号", "功率","电量","温度" from "电机表" order by time,"电机组","电机号", "功率","电量","温度"
+STRICT{
+time(TIMESTAMP)      |电机组(STRING)      |电机号(STRING)      |功率(FLOAT)      |电量(FLOAT)      |温度(FLOAT)      |
+----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:10.0|电机组1             |电机1              |8.9            |7.7            |6.6            |
+00+08:00             |                 |                 |               |               |               |
+----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:20.0|电机组1             |电机1              |18.9           |17.7           |16.6           |
+00+08:00             |                 |                 |               |               |               |
+----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:30.0|电机组1             |电机2              |null           |17.7           |16.6           |
+00+08:00             |                 |                 |               |               |               |
+总数目：3
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]136:select count(*) from "电机表"
+STRICT{
+_col0(INT64)      |
+------------------
+3                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]137:select count(*) from "电机表" inner join "风机表" using (time)
+STRICT{
+_col0(INT64)      |
+------------------
+3                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]138:select count(*) from "电机表" inner join "风机表" using (time) where time>now()
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]139:select * from "电机表" inner join "风机表" using (time) where time>now()
+STRICT{
+time(TIMESTAMP)      |电机组(STRING)      |电机号(STRING)      |功率(FLOAT)      |电量(FLOAT)      |温度(FLOAT)      |风机组(STRING)      |风机号(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]140:select count(*) from "电机表" inner join "风机表" using (time) where time>now() and time<now()-1d and "电机组"='电机组1'
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.11
+-- [1]141:drop database viewdb
+STRICT{
+PASS
+}
+-- [1]142:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]143:drop database root.**
+STRICT{
+PASS
+}
+-- [1]145:create database root.db
+STRICT{
+PASS
+}
+-- [1]146:insert into root.db(time,DCS_PIT_02105A) values(1000,1.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.61
+-- [1]147:insert into root.db(time,DCS_PIT_02105B) values(1000,2.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+-- [1]148:insert into root.db(time,DCS_PIT_02105C) values(2000,3.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]149:insert into root.db(time, DCS_XI_02716A) aligned values(2000,99.2)
+STRICT{
+SQLSTATE : 507: TSStatus(code:609, message:Time series under this device is not aligned, please use createTimeSeries or change device. (Path: root.db))
+}
+-- [1]150:insert into root.db(time, DCS_XI_02716A) values(2000,99.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]151:select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from root.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |DCS_PIT_02105A(DOUBLE)      |DCS_PIT_02105B(DOUBLE)      |DCS_PIT_02105C(DOUBLE)      |DCS_XI_02716A(DOUBLE)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |root.db           |1.2                         |2.2                         |null                        |null                       |
+------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |root.db           |null                        |null                        |3.2                         |99.2                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]152:select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from root.**
+STRICT{
+Time(TIMESTAMP)      |root.db.DCS_PIT_02105A(DOUBLE)      |root.db.DCS_PIT_02105B(DOUBLE)      |root.db.DCS_PIT_02105C(DOUBLE)      |root.db.DCS_XI_02716A(DOUBLE)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |1.2                                 |2.2                                 |null                                |null                               |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |null                                |null                                |3.2                                 |99.2                               |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]153:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]155:create database viewdb
+STRICT{
+PASS
+}
+-- [1]156:use viewdb
+STRICT{
+PASS
+}
+-- [1]164:CREATE VIEW viewdb.machine   (DCS_PIT_02105A DOUBLE FIELD,     DCS_PIT_02105B DOUBLE FIELD,    DCS_PIT_02105C DOUBLE FIELD,    DCS_XI_02716A DOUBLE FIELD    )  AS root.db.**
+STRICT{
+PASS
+}
+
+-- [1]164:select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from machine
+STRICT{
+DCS_PIT_02105A(DOUBLE)      |DCS_PIT_02105B(DOUBLE)      |DCS_PIT_02105C(DOUBLE)      |DCS_XI_02716A(DOUBLE)      |
+---------------------------------------------------------------------------------------------------------------
+1.2                         |2.2                         |null                        |null                       |
+---------------------------------------------------------------------------------------------------------------
+null                        |null                        |3.2                         |99.2                       |
+总数目：2
+}
+
+Elapsed Time: 0.1.10
+
+-- [1]165:select time, DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from machine
+STRICT{
+time(TIMESTAMP)      |DCS_PIT_02105A(DOUBLE)      |DCS_PIT_02105B(DOUBLE)      |DCS_PIT_02105C(DOUBLE)      |DCS_XI_02716A(DOUBLE)      |
+------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|1.2                         |2.2                         |null                        |null                       |
+00+08:00             |                            |                            |                            |                           |
+------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|null                        |null                        |3.2                         |99.2                       |
+00+08:00             |                            |                            |                            |                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]166:drop database viewdb
+STRICT{
+PASS
+}
+-- [1]167:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]168:drop database root.**
+STRICT{
+PASS
+}
+-- [1]169:create database root.db
+STRICT{
+PASS
+}
+-- [1]170:insert into root.db.电池站1.电池舱1(time,电压,电流) values(10000,1.1,1.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.50
+-- [1]171:insert into root.db.电池站1.电池舱1(time,电压,电流) values(20000,2.1,2.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]172:insert into root.db.电池站1.电池舱1.电池堆1(time,电压,电流) values(30000,3.1,3.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.7
+-- [1]173:insert into root.db.电池站1.电池舱1.电池堆1(time,电压,电流) values(10000,11.1,11.111)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]174:insert into root.db.电池站1.电池舱1.电池堆1.电池簇1(time,电压,电流) values(11000,11.1,11.111)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.952
+-- [1]175:insert into root.db.电池站1.电池舱1.电池堆1.电池簇1.电芯1(time,电压,电流) values(12000,11.1,11.111)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+-- [1]176:insert into root.db.电池站1.电池舱1.电池堆1.电池簇1.电芯2(time,电压,电流) values(13000,11.1,11.111)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+
+-- [1]177:select 电压,电流 from root.db.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |电压(DOUBLE)      |电流(DOUBLE)      |
+-----------------------------------------------------------------------
+10000                |root.db.电池站1.电池舱1 |1.1             |1.2             |
+-----------------------------------------------------------------------
+20000                |root.db.电池站1.电池舱1 |2.1             |2.2             |
+-----------------------------------------------------------------------
+10000                |root.db.电池站1.电池舱1.|11.1            |11.111          |
+                     |电池堆1              |                |                |
+-----------------------------------------------------------------------
+30000                |root.db.电池站1.电池舱1.|3.1             |3.2             |
+                     |电池堆1              |                |                |
+-----------------------------------------------------------------------
+11000                |root.db.电池站1.电池舱1.|11.1            |11.111          |
+                     |电池堆1.电池簇1         |                |                |
+-----------------------------------------------------------------------
+12000                |root.db.电池站1.电池舱1.|11.1            |11.111          |
+                     |电池堆1.电池簇1.电芯1     |                |                |
+-----------------------------------------------------------------------
+13000                |root.db.电池站1.电池舱1.|11.1            |11.111          |
+                     |电池堆1.电池簇1.电芯2     |                |                |
+总数目：7
+}
+
+Elapsed Time: 0.0.6
+-- [1]179:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]181:create database viewdb
+STRICT{
+PASS
+}
+-- [1]182:use viewdb
+STRICT{
+PASS
+}
+-- [1]193:CREATE VIEW viewdb."电池舱表"   ("电池站" TAG,     "电池舱" TAG,     "电压" DOUBLE FIELD,     "电流" DOUBLE FIELD    )  RESTRICT AS root.db.**
+STRICT{
+PASS
+}
+-- [1]204:CREATE VIEW viewdb."电池堆表"   ("电池站" TAG,     "电池舱" TAG,     "电池堆" TAG,     "电压" DOUBLE FIELD,     "电流" DOUBLE FIELD    )  RESTRICT AS root.db.**
+STRICT{
+PASS
+}
+-- [1]216:CREATE VIEW viewdb."电池簇表"   ("电池站" TAG,     "电池舱" TAG,     "电池堆" TAG,     "电池簇" TAG,    "电压" DOUBLE FIELD,     "电流" DOUBLE FIELD    )  RESTRICT AS root.db.**
+STRICT{
+PASS
+}
+-- [1]229:CREATE VIEW viewdb."电芯表"   ("电池站" TAG,     "电池舱" TAG,     "电池堆" TAG,     "电池簇" TAG,    "电芯" TAG,    "电压" DOUBLE FIELD,     "电流" DOUBLE FIELD    ) RESTRICT AS root.db.**
+STRICT{
+PASS
+}
+
+-- [1]229:select * from "电池舱表"
+STRICT{
+time(TIMESTAMP)      |电池站(STRING)      |电池舱(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:10.0|电池站1             |电池舱1             |1.1             |1.2             |
+00+08:00             |                 |                 |                |                |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:20.0|电池站1             |电池舱1             |2.1             |2.2             |
+00+08:00             |                 |                 |                |                |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]230:select * from "电池堆表"
+STRICT{
+time(TIMESTAMP)      |电池站(STRING)      |电池舱(STRING)      |电池堆(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+--------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:10.0|电池站1             |电池舱1             |电池堆1             |11.1            |11.111          |
+00+08:00             |                 |                 |                 |                |                |
+--------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:30.0|电池站1             |电池舱1             |电池堆1             |3.1             |3.2             |
+00+08:00             |                 |                 |                 |                |                |
+总数目：2
+}
+
+Elapsed Time: 0.0.11
+
+-- [1]231:select * from "电池簇表"
+STRICT{
+time(TIMESTAMP)      |电池站(STRING)      |电池舱(STRING)      |电池堆(STRING)      |电池簇(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:11.0|电池站1             |电池舱1             |电池堆1             |电池簇1             |11.1            |11.111          |
+00+08:00             |                 |                 |                 |                 |                |                |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]232:select * from "电芯表" order by time,"电池站","电池舱","电池堆","电池簇","电芯","电压","电流"
+STRICT{
+time(TIMESTAMP)      |电池站(STRING)      |电池舱(STRING)      |电池堆(STRING)      |电池簇(STRING)      |电芯(STRING)      |电压(DOUBLE)      |电流(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:12.0|电池站1             |电池舱1             |电池堆1             |电池簇1             |电芯1             |11.1            |11.111          |
+00+08:00             |                 |                 |                 |                 |                |                |                |
+-----------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:13.0|电池站1             |电池舱1             |电池堆1             |电池簇1             |电芯2             |11.1            |11.111          |
+00+08:00             |                 |                 |                 |                 |                |                |                |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]233:select count(*) from "电池舱表" inner join "电池堆表" using (time) inner join "电池簇表" using (time) inner join "电芯表" using(time)
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.15
+-- [1]234:drop view "电池舱表"
+STRICT{
+PASS
+}
+-- [1]235:drop view "电池堆表"
+STRICT{
+PASS
+}
+-- [1]236:select count(*) from "电池舱表" inner join "电池堆表" using (time) inner join "电池簇表" using (time) inner join "电芯表" using(time)
+STRICT{
+SQLSTATE : 550: Table 'viewdb.电池舱表' does not exist.
+}
+-- [1]237:drop view "电池簇表"
+STRICT{
+PASS
+}
+-- [1]238:drop view "电芯表"
+STRICT{
+PASS
+}
+-- [1]239:drop database viewdb
+STRICT{
+PASS
+}
+-- [1]240:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]241:drop database root.**
+STRICT{
+PASS
+}
+-- [1]243:create database root.db
+STRICT{
+PASS
+}
+-- [1]244:insert into root.db.DCS_PIT_02105A(time,value) values(1000,1.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.4.18
+-- [1]245:insert into root.db.DCS_PIT_02105B(time,value) values(1000,2.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.46
+-- [1]246:insert into root.db.DCS_PIT_02105C(time,value) values(2000,3.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+-- [1]247:insert into root.db.DCS_XI_02716A(time, value) aligned values(2000,99.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.10
+-- [1]248:insert into root.db.DCS_XI_02716A(time, value) values(3000,99.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]249:select value from root.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |value(DOUBLE)      |
+----------------------------------------------------------
+1000                 |root.db.DCS_PIT_02|1.2                |
+                     |105A              |                   |
+----------------------------------------------------------
+1000                 |root.db.DCS_PIT_02|2.2                |
+                     |105B              |                   |
+----------------------------------------------------------
+2000                 |root.db.DCS_PIT_02|3.2                |
+                     |105C              |                   |
+----------------------------------------------------------
+2000                 |root.db.DCS_XI_027|99.2               |
+                     |16A               |                   |
+----------------------------------------------------------
+3000                 |root.db.DCS_XI_027|99.2               |
+                     |16A               |                   |
+总数目：5
+}
+
+Elapsed Time: 0.0.5
+-- [1]250:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]253:create database viewdb
+STRICT{
+PASS
+}
+-- [1]254:use viewdb
+STRICT{
+PASS
+}
+-- [1]259:CREATE VIEW viewdb.machine   (    sensor_id STRING TAG,    value DOUBLE FIELD    )  AS root.db.**
+STRICT{
+PASS
+}
+
+-- [1]261:select * from machine order by time,value
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(DOUBLE)      |
+---------------------------------------------------------------
+1970-01-01T08:00:01.0|DCS_PIT_02105A         |1.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:01.0|DCS_PIT_02105B         |2.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_PIT_02105C         |3.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:03.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+总数目：5
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]262:select value from machine order by time,value
+STRICT{
+value(DOUBLE)      |
+-------------------
+1.2                |
+-------------------
+2.2                |
+-------------------
+3.2                |
+-------------------
+99.2               |
+-------------------
+99.2               |
+总数目：5
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]263:select count(*) from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' and time=2000
+STRICT{
+_col0(INT64)      |
+------------------
+2                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.12
+
+-- [1]264:select * from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' and time=2000
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(DOUBLE)      |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:03.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+总数目：2
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]265:select * from machine where (sensor_id like  'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A') and time=2000
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(DOUBLE)      |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]266:select * from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' or time=2000 order by time,sensor_id,value
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(DOUBLE)      |
+---------------------------------------------------------------
+1970-01-01T08:00:01.0|DCS_PIT_02105A         |1.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_PIT_02105C         |3.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:03.0|DCS_XI_02716A          |99.2               |
+00+08:00             |                       |                   |
+总数目：4
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]267:select count(value) from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' or time=2000
+STRICT{
+_col0(INT64)      |
+------------------
+4                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.11
+-- [1]268:drop database viewdb
+STRICT{
+PASS
+}
+-- [1]269:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]270:drop database root.**
+STRICT{
+PASS
+}
+-- [1]271:create database root.db
+STRICT{
+PASS
+}
+-- [1]272:insert into root.db.DCS_PIT_02105A(time,value) values(1000,1.2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.3.31
+-- [1]273:insert into root.db.DCS_PIT_02105B(time,value) values(1000,true)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.63
+-- [1]274:insert into root.db.DCS_PIT_02105C(time,value) values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]275:insert into root.db.DCS_XI_02716A(time, value) aligned values(2000,64)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.8
+-- [1]276:insert into root.db.DCS_XI_02716B(time, value) values(3000,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]277:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.DCS_PIT_02105B|null             |root.db             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+.value                |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.DCS_PIT_02105A|null             |root.db             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+.value                |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.DCS_XI_02716B.|null             |root.db             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+value                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.DCS_PIT_02105C|null             |root.db             |BLOB                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+.value                |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.DCS_XI_02716A.|null             |root.db             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+value                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：5
+}
+
+Elapsed Time: 0.0.2
+-- [1]278:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]280:create database viewdb
+STRICT{
+PASS
+}
+-- [1]281:use viewdb
+STRICT{
+PASS
+}
+-- [1]286:CREATE VIEW viewdb.machine_bool   (    sensor_id STRING TAG,    value boolean FIELD    ) AS root.db.**
+STRICT{
+PASS
+}
+-- [1]292:CREATE VIEW viewdb.machine_blob   (    sensor_id STRING TAG,    value blob FIELD    ) AS root.db.**
+STRICT{
+PASS
+}
+-- [1]298:CREATE VIEW viewdb.machine_double   (    sensor_id STRING TAG,    value double FIELD    ) AS root.db.**
+STRICT{
+PASS
+}
+-- [1]304:CREATE VIEW viewdb.machine_text   (    sensor_id STRING TAG,    value text FIELD    ) AS root.db.**
+STRICT{
+PASS
+}
+-- [1]310:CREATE VIEW viewdb.machine_int64   (    sensor_id STRING TAG,    value int64 FIELD    ) AS root.db.**
+STRICT{
+PASS
+}
+
+-- [1]312:select * from machine_bool order by time,sensor_id
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(BOOLEAN)      |
+----------------------------------------------------------------
+1970-01-01T08:00:01.0|DCS_PIT_02105B         |true                |
+00+08:00             |                       |                    |
+----------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null                |
+00+08:00             |                       |                    |
+总数目：2
+}
+
+Elapsed Time: 0.1.13
+
+-- [1]313:select * from machine_blob order by time,sensor_id
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(BLOB)      |
+-------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_PIT_02105C         |0xabcd           |
+00+08:00             |                       |                 |
+-------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null             |
+00+08:00             |                       |                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]314:select * from machine_double order by time,sensor_id
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(DOUBLE)      |
+---------------------------------------------------------------
+1970-01-01T08:00:01.0|DCS_PIT_02105A         |1.2                |
+00+08:00             |                       |                   |
+---------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |64.0               |
+00+08:00             |                       |                   |
+总数目：2
+}
+
+Elapsed Time: 0.0.14
+
+-- [1]315:select * from machine_text order by time,sensor_id
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(TEXT)      |
+-------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null             |
+00+08:00             |                       |                 |
+-------------------------------------------------------------
+1970-01-01T08:00:03.0|DCS_XI_02716B          |hello            |
+00+08:00             |                       |                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]316:select * from machine_int64 order by time,sensor_id
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(INT64)      |
+--------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null              |
+00+08:00             |                       |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]317:select * from machine_bool inner join machine_blob using(time) inner join machine_double using(time) inner join machine_text using(time) inner join machine_int64 using (time) order by time,machine_bool.sensor_id,machine_blob.value
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(BOOLEAN)      |sensor_id(STRING)      |value(BLOB)      |sensor_id(STRING)      |value(DOUBLE)      |sensor_id(STRING)      |value(TEXT)      |sensor_id(STRING)      |value(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null                |DCS_PIT_02105C         |0xabcd           |DCS_XI_02716A          |64.0               |DCS_XI_02716A          |null             |DCS_XI_02716A          |null              |
+00+08:00             |                       |                    |                       |                 |                       |                   |                       |                 |                       |                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|DCS_XI_02716A          |null                |DCS_XI_02716A          |null             |DCS_XI_02716A          |64.0               |DCS_XI_02716A          |null             |DCS_XI_02716A          |null              |
+00+08:00             |                       |                    |                       |                 |                       |                   |                       |                 |                       |                  |
+总数目：2
+}
+
+Elapsed Time: 0.0.27
+-- [1]322:CREATE or replace VIEW viewdb.DCS_PIT_02105A   (    value double FIELD    ) AS root.db.DCS_PIT_02105A.**
+STRICT{
+PASS
+}
+-- [1]327:CREATE or replace VIEW viewdb.DCS_PIT_02105B   (    value boolean FIELD    ) AS root.db.DCS_PIT_02105B.**
+STRICT{
+PASS
+}
+-- [1]332:CREATE or replace VIEW viewdb.DCS_PIT_02105C   (    value blob FIELD    ) AS root.db.DCS_PIT_02105C.**
+STRICT{
+PASS
+}
+-- [1]337:CREATE or replace VIEW viewdb.DCS_XI_02716A   (    value int64 FIELD    ) AS root.db.DCS_XI_02716A.**
+STRICT{
+PASS
+}
+-- [1]342:CREATE or replace VIEW viewdb.DCS_XI_02716B   (    value text FIELD    ) AS root.db.DCS_XI_02716B.**
+STRICT{
+PASS
+}
+
+-- [1]343:select * from viewdb.DCS_PIT_02105A
+STRICT{
+time(TIMESTAMP)      |value(DOUBLE)      |
+----------------------------------------
+1970-01-01T08:00:01.0|1.2                |
+00+08:00             |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]344:select * from viewdb.DCS_PIT_02105B
+STRICT{
+time(TIMESTAMP)      |value(BOOLEAN)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|true                |
+00+08:00             |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]345:select * from viewdb.DCS_PIT_02105C
+STRICT{
+time(TIMESTAMP)      |value(BLOB)      |
+--------------------------------------
+1970-01-01T08:00:02.0|0xabcd           |
+00+08:00             |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]346:select * from viewdb.DCS_XI_02716A
+STRICT{
+time(TIMESTAMP)      |value(INT64)      |
+---------------------------------------
+1970-01-01T08:00:02.0|null              |
+00+08:00             |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]347:select * from viewdb.DCS_XI_02716B
+STRICT{
+time(TIMESTAMP)      |value(TEXT)      |
+--------------------------------------
+1970-01-01T08:00:03.0|hello            |
+00+08:00             |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.15
+
+-- [1]348:select * from machine_bool inner join machine_blob using(time) inner join machine_double using(time) inner join machine_text using(time) inner join machine_int64 using (time) inner join DCS_PIT_02105A using(time) inner join DCS_PIT_02105B using(time) inner join DCS_PIT_02105C using(time) inner join DCS_XI_02716A using (time) inner join DCS_XI_02716B using (time)
+STRICT{
+time(TIMESTAMP)      |sensor_id(STRING)      |value(BOOLEAN)      |sensor_id(STRING)      |value(BLOB)      |sensor_id(STRING)      |value(DOUBLE)      |sensor_id(STRING)      |value(TEXT)      |sensor_id(STRING)      |value(INT64)      |value(DOUBLE)      |value(BOOLEAN)      |value(BLOB)      |value(INT64)      |value(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.30
+-- [1]349:create or replace viewdb.${2}(${3}) as root.db.**
+STRICT{
+SQLSTATE : 700: line 1:19: mismatched input 'viewdb'. Expecting: 'VIEW'
+}
+-- [1]350:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]351:show create view DCS_PIT_02105A
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:5 no viable alternative at input 'show create'
+}
+-- [1]352:drop view DCS_PIT_02105A
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:10 mismatched input 'DCS_PIT_02105A' expecting ROOT
+}
+-- [1]353:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]354:drop database viewdb
+STRICT{
+PASS
+}
+-- [1]355:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]356:drop database root.**
+STRICT{
+PASS
+}

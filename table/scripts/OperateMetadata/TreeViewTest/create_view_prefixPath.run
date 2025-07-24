@@ -1,0 +1,234 @@
+connect root/root;
+//tc normal user create view no tree db
+set sql_dialect=tree;
+drop database root.**;
+<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+set sql_dialect=table;
+drop database db;
+<<null;
+drop user test;
+<<null;
+create database db;
+create user test '123456';
+grant all on db.v1 to user test;
+set sql_dialect=tree;
+grant READ_SCHEMA, READ_DATA on root.** to user test;
+connect test/123456;
+set sql_dialect=table;
+drop view v1;<<null;
+create view db.v1() as **;
+<<sqlstate;
+create view db.v1() as root.db.**;
+select * from db.v1;
+show create view db.v1;
+connect root/root;
+set sql_dialect=tree;
+insert into root.db(time,s0) values(1000,1.1);
+insert into root.db(time,s1) values(2000,X'abcd');
+show devices root.db.**;
+show devices;
+connect test/123456;
+set sql_dialect=table;
+select * from db.v1;
+show create view db.v1;
+create or replace view db.v1() as root.**;
+
+create or replace view db.v1() as root.**.db;
+<<sqlstate;
+create or replace view db.v1() as root.*.db.**;
+<<sqlstate;
+show create view db.v1;
+select * from db.v1;
+
+create or replace view db.v1() as root.db;
+<<sqlstate;
+create or replace view db.v1() as root."中文";
+<<sqlstate;
+create or replace view db.v1() as root.*.db;
+<<sqlstate;
+create or replace view db.v1() as root.*."中文";
+<<sqlstate;
+create or replace view db.v1() as root.**.**;
+<<sqlstate;
+create or replace view db.v1() as root.*.**;
+<<sqlstate;
+create or replace view db.v1() as root.db.***;
+<<sqlstate;
+create or replace view db.v1() as root."中文".***;
+<<sqlstate;
+create or replace view db.v1() as db.**;
+<<sqlstate;
+create or replace view db.v1() as "中文".**;
+<<sqlstate;
+
+create or replace view db.v1() as db;
+<<sqlstate;
+create or replace view db.v1(device_id string tag) as root.**;
+
+select * from db.v1;
+<<sqlstate;
+connect root/root;
+set sql_dialect=tree;
+// drop tree db ,query view
+drop database root.db;
+connect test/123456;
+set sql_dialect=table;
+select * from db.v1;
+
+connect root/root;
+set sql_dialect=table;
+drop database db;
+
+// tc ,tree 2db ,view root.** ,create failed,pass
+
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;<<null;
+insert into root.db1(time,s0) values(1000,1.1);
+insert into root.db2(time,s1) values(2000,X'abcd');
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+create or replace view db.v1(device_id string tag) as root.**;
+<<sqlstate;
+select * from db.v1;
+<<sqlstate;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;
+
+// tc ,create view root.db.**,create insert tree ,query view only device_id ,create or replace ,view all could be 
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;<<null;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+create or replace view db.v1(device_id string tag) as root.db.**;
+use db;
+select * from v1;
+set sql_dialect=tree;
+insert into root.db.d1(time,s0) values(1000,1.1);
+insert into root.db.d2(time,s1) aligned values(2000,X'abcd');
+set sql_dialect=table;
+use db;
+select * from v1;
+flush;
+select * from v1;
+show create view v1;
+create or replace view db.v1(device_id string tag) as root.db.**;
+select * from v1 order by time;
+show create view v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;
+
+// tc tree not exist any db,create root.**,insert tree root.db  is a device
+
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;<<null;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+create or replace view db.v1(device_id string tag) as root.**;
+
+use db;
+select * from v1;
+set sql_dialect=tree;
+insert into root.db.d1(time,s0) values(1000,1.1);
+insert into root.db.d2(time,s1) aligned values(2000,X'abcd');
+show databases;
+set sql_dialect=table;
+use db;
+select * from v1;
+flush;
+sleep 1000;
+select * from v1;<<sqlstate;
+show create view v1;
+create or replace view db.v1(device_id string tag) as root.**;
+<<sqlstate;
+create or replace view db.v1(device_id string tag) as root.db.**;
+select * from v1 order by time;
+show create view v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;
+set sql_dialect=table;
+create database db;
+use db;
+create or replace view db.v1(device_id string tag) as root.**;
+
+select * from v1;
+
+set sql_dialect=tree;
+insert into root.db(time,s0) values(1000,1.1);
+set sql_dialect=table;
+use db;
+select * from v1;
+show create view v1;
+create or replace view db.v1(device_id string tag) as root.**;
+select * from v1;<<sqlstate;
+show create view v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;
+
+// tc tree not exist any db,create root.**,insert tree root.db.d1
+
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;<<null;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view db.v1(device_id string tag) as root.**;
+select * from v1;
+set sql_dialect=tree;
+insert into root.db.d1(time,s0) values(1000,1.1);
+set sql_dialect=table;
+use db;
+select * from v1;
+show create view v1;
+create or replace view db.v1(device_id string tag) as root.**;
+select * from v1;
+show create view v1;
+drop database db;
+set sql_dialect=tree;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+drop database root.**;
+//tc root.__system.**
+set sql_dialect=tree;
+drop database root.**;<<null;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+create or replace view db.v1(metric string tag,clustername string tag,nodetype string tag,nodeid string tag,point string tag,database string tag,type string tag,region string tag) as root.__system.**;
+use db;
+select * from v1;
+set sql_dialect=tree;
+insert into root.db.d1(time,s0) values(1000,1.1);
+insert into root.db.d2(time,s1) aligned values(2000,X'abcd');
+show databases;
+show devices;
+set sql_dialect=table;
+use db;
+flush;
+sleep 100;
+select * from v1;
+flush;
+flush;
+flush;
+flush;
+flush;
+select count(*) from v1 having count(*)>2;
+sleep 100;
+create or replace view db.v1(metric string tag,clustername string tag,nodetype string tag,nodeid string tag,point string tag,database string tag,type string tag,region string tag) as root.__system.**;
+select count(*) from v1 having count(*)>4;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;

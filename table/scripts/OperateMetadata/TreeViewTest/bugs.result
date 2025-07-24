@@ -1,0 +1,354 @@
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]5:create database root.db
+STRICT{
+PASS
+}
+-- [1]6:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string)
+STRICT{
+PASS
+}
+-- [1]7:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.201
+
+-- [1]8:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.s03(BOOLEAN)      |root.db.d1.s04(FLOAT)      |root.db.d1.s05(DOUBLE)      |root.db.d1.s06(TEXT)      |root.db.d1.s07(BLOB)      |root.db.d1.s08(DATE)      |root.db.d1.s09(TIMESTAMP)      |root.db.d1.s10(STRING)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |88                         |99                         |true                         |7.67                       |9.97                        |text timeseries           |0xabcd                    |1970-01-01                |1970-01-01T08:00:00.010+08:00  |string timeseries           |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]9:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]11:create database db
+STRICT{
+PASS
+}
+-- [1]12:use db
+STRICT{
+PASS
+}
+-- [1]13:create or replace view v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]14:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+88              |99              |true              |7.67            |9.97             |text timeseries|0xabcd         |1970-01-01     |1970-01-01T08:00:00.|string timeseries|
+                |                |                  |                |                 |               |               |               |010+08:00           |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.7
+-- [1]15:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]16:delete timeseries root.db.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.34
+
+-- [1]17:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]18:show devices root.db.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]19:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]21:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s10 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s09 date,s08 timestamp,s07 string)
+STRICT{
+PASS
+}
+-- [1]22:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s10,s09,s08,s07) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]23:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.s03(BOOLEAN)      |root.db.d1.s04(FLOAT)      |root.db.d1.s05(DOUBLE)      |root.db.d1.s06(TEXT)      |root.db.d1.s07(STRING)      |root.db.d1.s08(TIMESTAMP)      |root.db.d1.s09(DATE)      |root.db.d1.s10(BLOB)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |88                         |99                         |true                         |7.67                       |9.97                        |text timeseries           |string timeseries           |1970-01-01T08:00:00.010+08:00  |1970-01-01                |0xabcd                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]24:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]25:use db
+STRICT{
+PASS
+}
+
+-- [1]26:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+88              |99              |true              |7.67            |9.97             |text timeseries|null           |null           |null                |null             |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]27:flush
+STRICT{
+PASS
+}
+
+-- [1]28:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+88              |99              |true              |7.67            |9.97             |text timeseries|null           |null           |null                |null             |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]29:drop database db
+STRICT{
+PASS
+}
+-- [1]30:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]31:drop database root.db
+STRICT{
+PASS
+}
+-- [1]33:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]35:create database root.db
+STRICT{
+PASS
+}
+-- [1]38:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string)
+STRICT{
+PASS
+}
+-- [1]39:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.653
+
+-- [1]40:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.s03(BOOLEAN)      |root.db.d1.s04(FLOAT)      |root.db.d1.s05(DOUBLE)      |root.db.d1.s06(TEXT)      |root.db.d1.s07(BLOB)      |root.db.d1.s08(DATE)      |root.db.d1.s09(TIMESTAMP)      |root.db.d1.s10(STRING)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |88                         |99                         |true                         |7.67                       |9.97                        |text timeseries           |0xabcd                    |1970-01-01                |1970-01-01T08:00:00.010+08:00  |string timeseries           |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]41:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]43:create database db
+STRICT{
+PASS
+}
+-- [1]44:use db
+STRICT{
+PASS
+}
+-- [1]45:create or replace view v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+-- [1]46:create or replace view v2(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]58:SELECT * FROM     (SELECT time,          device_id AS device1,          s07 AS blob1     FROM v1     WHERE device_id='d1') AS t1 FULL OUTER JOIN     (SELECT time,          device_id AS device2,          s07 AS blob2     FROM v2     WHERE device_id='d2') AS t2 USING(time)
+STRICT{
+time(TIMESTAMP)      |device1(STRING)      |blob1(BLOB)      |device2(STRING)      |blob2(BLOB)      |
+-------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                   |0xabcd           |null                 |null             |
+00+08:00             |                     |                 |                     |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.13
+
+-- [1]72:SELECT * FROM     (SELECT time,          device_id AS device1,          s07 AS blob1     FROM v1     WHERE device_id='d2') AS t1 FULL OUTER JOIN     (SELECT time,          device_id AS device2,          s07 AS blob2     FROM v2     WHERE device_id='d2') AS t2 USING(time)
+STRICT{
+time(TIMESTAMP)      |device1(STRING)      |blob1(BLOB)      |device2(STRING)      |blob2(BLOB)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]86:SELECT * FROM     (SELECT time,          device_id AS device1,          s07 AS blob1     FROM v1     WHERE device_id='d2') AS t1 FULL OUTER JOIN     (SELECT time,          device_id AS device2,          s07 AS blob2     FROM v2     WHERE device_id='d1') AS t2 USING(time)
+STRICT{
+time(TIMESTAMP)      |device1(STRING)      |blob1(BLOB)      |device2(STRING)      |blob2(BLOB)      |
+-------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|null                 |null             |d1                   |0xabcd           |
+00+08:00             |                     |                 |                     |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+-- [1]90:drop database db
+STRICT{
+PASS
+}
+-- [1]91:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]92:drop database root.db
+STRICT{
+PASS
+}
+-- [1]95:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]97:create database root.db
+STRICT{
+PASS
+}
+-- [1]100:create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string)
+STRICT{
+PASS
+}
+-- [1]101:insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.695
+
+-- [1]102:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.s03(BOOLEAN)      |root.db.d1.s04(FLOAT)      |root.db.d1.s05(DOUBLE)      |root.db.d1.s06(TEXT)      |root.db.d1.s07(BLOB)      |root.db.d1.s08(DATE)      |root.db.d1.s09(TIMESTAMP)      |root.db.d1.s10(STRING)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |88                         |99                         |true                         |7.67                       |9.97                        |text timeseries           |0xabcd                    |1970-01-01                |1970-01-01T08:00:00.010+08:00  |string timeseries           |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]103:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]105:create database db
+STRICT{
+PASS
+}
+-- [1]106:use db
+STRICT{
+PASS
+}
+-- [1]107:create or replace view v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]108:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+88              |99              |true              |7.67            |9.97             |text timeseries|0xabcd         |1970-01-01     |1970-01-01T08:00:00.|string timeseries|
+                |                |                  |                |                 |               |               |               |010+08:00           |                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.7
+-- [1]109:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]110:set ttl to root.db.** 3600000
+STRICT{
+PASS
+}
+
+-- [1]112:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |root.db.d1.s03(BOOLEAN)      |root.db.d1.s04(FLOAT)      |root.db.d1.s05(DOUBLE)      |root.db.d1.s06(TEXT)      |root.db.d1.s07(BLOB)      |root.db.d1.s08(DATE)      |root.db.d1.s09(TIMESTAMP)      |root.db.d1.s10(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]113:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]114:use db
+STRICT{
+PASS
+}
+
+-- [1]115:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]116:flush
+STRICT{
+PASS
+}
+
+-- [1]117:select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1
+STRICT{
+s01(INT32)      |s02(INT64)      |s03(BOOLEAN)      |s04(FLOAT)      |s05(DOUBLE)      |s06(TEXT)      |s07(BLOB)      |s08(DATE)      |s09(TIMESTAMP)      |s10(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]118:drop database db
+STRICT{
+PASS
+}
+-- [1]119:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]120:unset ttl to root.db.**
+STRICT{
+PASS
+}
+-- [1]121:drop database root.db
+STRICT{
+PASS
+}

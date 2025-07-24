@@ -1,0 +1,356 @@
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;
+<<null;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+CREATE VIEW view1 (battery_id TAG, voltage INT32 FIELD, current FLOAT FIELD) as root.db.battery.**;
+select * from view1 order by battery_id;
+set sql_dialect=tree;
+drop database root.**;<<null;
+CREATE ALIGNED TIMESERIES root.db.battery.b1(voltage INT32, current FLOAT);
+INSERT INTO root.db.battery.b1(time, voltage, current) aligned values (1, 1, 1);
+INSERT INTO root.db.battery.b1(time, voltage, current) aligned values (2, null, 1);
+select voltage, current from root.db.battery.** align by device;
+select voltage, current from root.db.battery.** ;
+select voltage from root.db.battery.** ;
+set sql_dialect=table;
+use db;
+select * from view1 order by battery_id;
+select voltage from view1 order by battery_id;
+select voltage,current from view1 order by battery_id;
+select battery_id from view1 order by battery_id;
+select time from view1 order by battery_id;
+select time,voltage from view1 order by battery_id;
+set sql_dialect=tree;
+drop database root.**;
+CREATE TIMESERIES root.db.battery.b1.voltage INT32;
+CREATE TIMESERIES root.db.battery.b1.current FLOAT;
+INSERT INTO root.db.battery.b1(time, voltage, current) values (1, 1, 1);
+INSERT INTO root.db.battery.b1(time, voltage, current) values (2, null, 1);
+select voltage, current from root.db.battery.** align by device;
+select voltage, current from root.db.battery.** ;
+select voltage from root.db.battery.** ;
+select count(voltage) from root.db.battery.** ;
+set sql_dialect=table;
+use db;
+select * from view1 order by battery_id;
+select voltage from view1 order by battery_id;
+select battery_id,count(voltage) from view1 group by battery_id order by battery_id;
+select voltage,current from view1 order by battery_id;
+select battery_id from view1 order by battery_id;
+select time from view1 order by battery_id;
+select time,voltage from view1 order by battery_id;
+set sql_dialect=tree;
+CREATE ALIGNED TIMESERIES root.db.battery.b2(voltage INT32, current FLOAT);
+INSERT INTO root.db.battery.b2(time, voltage, current) aligned values (1, 1, 1);
+INSERT INTO root.db.battery.b2(time, voltage, current) aligned values (2, null, 1);
+select voltage, current from root.db.battery.** align by device;
+select voltage, current from root.db.battery.** ;
+select voltage from root.db.battery.** ;
+set sql_dialect=table;
+use db;
+select * from view1 order by battery_id;
+select voltage from view1 order by battery_id;
+select battery_id,count(voltage) from view1 group by battery_id order by battery_id;
+select voltage,current from view1 order by battery_id;
+select battery_id from view1 order by battery_id;
+select time from view1 order by battery_id;
+select time,voltage from view1 order by battery_id;
+CREATE or replace VIEW view1 (battery_id TAG, voltage INT32 FIELD, current FLOAT FIELD) as root.db.battery.**;
+select * from view1 order by battery_id;
+select voltage from view1 order by battery_id;
+select battery_id, count(voltage) from view1 group by battery_id order by battery_id;
+select battery_id,count(*) as count from view1 group by battery_id order by battery_id;
+select voltage,current from view1 order by battery_id;
+select battery_id from view1 order by battery_id;
+select time from view1 order by battery_id;
+select time,voltage from view1 order by battery_id;
+show create view view1;
+drop view view1;
+drop database db;
+set sql_dialect=tree;
+drop database root.**;
+//tc example
+-- 风机表
+set sql_dialect=tree;
+drop database root.**;<<null;
+create database root.db;
+CREATE TIMESERIES root.db.风机.风机组1.风机1.电压 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.风机.风机组1.风机1.电流 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.风机.风机组1.风机2.电压 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.风机.风机组1.风机2.电流 with datatype=DOUBLE ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+
+CREATE TIMESERIES root.db.电机.电机组1.电机1.功率 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.电机.电机组1.电机1.电量 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.电机.电机组1.电机1.温度 with datatype=float ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.电机.电机组1.电机2.功率 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.电机.电机组1.电机2.电量 with datatype=FLOAT ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+CREATE TIMESERIES root.db.电机.电机组1.电机2.温度 with datatype=float ENCODING=RLE ,compressor=LZ4 tags(s1_tag1=s1_tag1, s1_tag2=s1_tag2) attributes(s1_attr1=s1_attr1, s1_attr2=s1_attr2);
+
+set sql_dialect=table;
+drop database viewdb;<<null;
+create database viewdb;
+use viewdb;
+
+CREATE VIEW viewdb."风机表"
+  ("风机组" TAG, 
+   "风机号" TAG, 
+   "电压" DOUBLE FIELD, 
+   "电流" DOUBLE FIELD
+   ) 
+AS root.db."风机".**;
+
+// 电机表
+CREATE VIEW viewdb."电机表"
+  ("电机组" TAG, 
+   "电机号" TAG, 
+   "功率" FLOAT FIELD, 
+   "电量" FLOAT FIELD,
+   "温度" FLOAT FIELD
+   ) 
+AS root.db."电机".**;
+select "风机组","风机号", "电压","电流" from "风机表";
+select time, "风机组","风机号", "电压","电流" from "风机表";
+select count(*) from "风机表";
+select "电机组","电机号", "功率","电量","温度" from "电机表";
+select time, "电机组","电机号", "功率","电量","温度" from "电机表";
+select count(*) from "电机表";
+select count(*) from "电机表" inner join "风机表" using (time);
+set sql_dialect=tree;
+insert into root.db.风机.风机组1.风机1(time,电压,电流) values(10000,2.2,3.4);
+insert into root.db.风机.风机组1.风机2(time,电压,电流) values(10000,12.2,13.4);
+insert into root.db.风机.风机组1.风机2(time,电压,电流) values(20000,null,13.4);
+insert into root.db.电机.电机组1.电机1(time,功率,电量,温度) values(10000,8.9,7.7,6.6);
+insert into root.db.电机.电机组1.电机1(time,功率,电量,温度) values(20000,18.9,17.7,16.6);
+insert into root.db.电机.电机组1.电机2(time,功率,电量,温度) values(30000,null,17.7,16.6);
+set sql_dialect=table;
+use viewdb;
+select "风机组","风机号", "电压","电流" from "风机表" order by time,"风机组","风机号", "电压","电流";
+select time, "风机组","风机号", "电压","电流" from "风机表" order by time,"风机组","风机号", "电压","电流";
+select count(*) from "风机表";
+select "电机组","电机号", "功率","电量","温度" from "电机表" order by time,"电机组","电机号", "功率","电量","温度";
+select time, "电机组","电机号", "功率","电量","温度" from "电机表" order by time,"电机组","电机号", "功率","电量","温度";
+select count(*) from "电机表";
+select count(*) from "电机表" inner join "风机表" using (time);
+select count(*) from "电机表" inner join "风机表" using (time) where time>now();
+select * from "电机表" inner join "风机表" using (time) where time>now();
+select count(*) from "电机表" inner join "风机表" using (time) where time>now() and time<now()-1d and "电机组"='电机组1';
+drop database viewdb;
+set sql_dialect=tree;
+drop database root.**;
+//tc case2
+create database root.db;
+insert into root.db(time,DCS_PIT_02105A) values(1000,1.2);
+insert into root.db(time,DCS_PIT_02105B) values(1000,2.2);
+insert into root.db(time,DCS_PIT_02105C) values(2000,3.2);
+insert into root.db(time, DCS_XI_02716A) aligned values(2000,99.2);<<sqlstate;
+insert into root.db(time, DCS_XI_02716A) values(2000,99.2);
+select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from root.** align by device;
+select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from root.** ;
+set sql_dialect=table;
+drop database viewdb;<<null;
+create database viewdb;
+use viewdb;
+CREATE VIEW viewdb.machine
+  (DCS_PIT_02105A DOUBLE FIELD, 
+   DCS_PIT_02105B DOUBLE FIELD,
+   DCS_PIT_02105C DOUBLE FIELD,
+   DCS_XI_02716A DOUBLE FIELD
+   ) 
+AS root.db.**;
+select DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from machine;
+select time, DCS_PIT_02105A,DCS_PIT_02105B,DCS_PIT_02105C,DCS_XI_02716A from machine;
+drop database viewdb;
+set sql_dialect=tree;
+drop database root.**;
+create database root.db;
+insert into root.db.电池站1.电池舱1(time,电压,电流) values(10000,1.1,1.2);
+insert into root.db.电池站1.电池舱1(time,电压,电流) values(20000,2.1,2.2);
+insert into root.db.电池站1.电池舱1.电池堆1(time,电压,电流) values(30000,3.1,3.2);
+insert into root.db.电池站1.电池舱1.电池堆1(time,电压,电流) values(10000,11.1,11.111);
+insert into root.db.电池站1.电池舱1.电池堆1.电池簇1(time,电压,电流) values(11000,11.1,11.111);
+insert into root.db.电池站1.电池舱1.电池堆1.电池簇1.电芯1(time,电压,电流) values(12000,11.1,11.111);
+insert into root.db.电池站1.电池舱1.电池堆1.电池簇1.电芯2(time,电压,电流) values(13000,11.1,11.111);
+select 电压,电流 from root.db.** align by device;
+//tc case3
+set sql_dialect=table;
+drop database viewdb;<<null;
+create database viewdb;
+use viewdb;
+
+// 电池舱表
+CREATE VIEW viewdb."电池舱表"
+  ("电池站" TAG, 
+   "电池舱" TAG, 
+   "电压" DOUBLE FIELD, 
+   "电流" DOUBLE FIELD
+   ) 
+RESTRICT
+AS root.db.**;
+
+// 电池堆表
+CREATE VIEW viewdb."电池堆表"
+  ("电池站" TAG, 
+   "电池舱" TAG, 
+   "电池堆" TAG, 
+   "电压" DOUBLE FIELD, 
+   "电流" DOUBLE FIELD
+   ) 
+RESTRICT
+AS root.db.**;
+
+// 电池簇表
+CREATE VIEW viewdb."电池簇表"
+  ("电池站" TAG, 
+   "电池舱" TAG, 
+   "电池堆" TAG, 
+   "电池簇" TAG,
+   "电压" DOUBLE FIELD, 
+   "电流" DOUBLE FIELD
+   ) 
+RESTRICT
+AS root.db.**;
+
+// 电芯表
+CREATE VIEW viewdb."电芯表"
+  ("电池站" TAG, 
+   "电池舱" TAG, 
+   "电池堆" TAG, 
+   "电池簇" TAG,
+   "电芯" TAG,
+   "电压" DOUBLE FIELD, 
+   "电流" DOUBLE FIELD
+   )
+RESTRICT
+AS root.db.**;
+select * from "电池舱表"; 
+select * from "电池堆表"; 
+select * from "电池簇表"; 
+select * from "电芯表" order by time,"电池站","电池舱","电池堆","电池簇","电芯","电压","电流";
+select count(*) from "电池舱表" inner join "电池堆表" using (time) inner join "电池簇表" using (time) inner join "电芯表" using(time);
+drop view "电池舱表";
+drop view "电池堆表";
+select count(*) from "电池舱表" inner join "电池堆表" using (time) inner join "电池簇表" using (time) inner join "电芯表" using(time);<<sqlstate;
+drop view "电池簇表";
+drop view "电芯表";
+drop database viewdb;
+set sql_dialect=tree;
+drop database root.**;
+//tc case4
+create database root.db;
+insert into root.db.DCS_PIT_02105A(time,value) values(1000,1.2);
+insert into root.db.DCS_PIT_02105B(time,value) values(1000,2.2);
+insert into root.db.DCS_PIT_02105C(time,value) values(2000,3.2);
+insert into root.db.DCS_XI_02716A(time, value) aligned values(2000,99.2);
+insert into root.db.DCS_XI_02716A(time, value) values(3000,99.2);
+select value from root.** align by device;
+set sql_dialect=table;
+drop database viewdb;<<null;
+//tc 
+create database viewdb;
+use viewdb;
+CREATE VIEW viewdb.machine
+  (
+   sensor_id STRING TAG,
+   value DOUBLE FIELD
+   ) 
+AS root.db.**;
+select * from machine order by time,value;
+select value from machine order by time,value;
+select count(*) from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' and time=2000;
+select * from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' and time=2000;
+select * from machine where (sensor_id like  'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A') and time=2000;
+select * from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' or time=2000 order by time,sensor_id,value;
+select count(value) from machine where sensor_id like 'DCS_XI%A' or sensor_id like '%DCS_PIT_02105%A' or time=2000;
+drop database viewdb;
+set sql_dialect=tree;
+drop database root.**;
+create database root.db;
+insert into root.db.DCS_PIT_02105A(time,value) values(1000,1.2);
+insert into root.db.DCS_PIT_02105B(time,value) values(1000,true);
+insert into root.db.DCS_PIT_02105C(time,value) values(2000,X'abcd');
+insert into root.db.DCS_XI_02716A(time, value) aligned values(2000,64);
+insert into root.db.DCS_XI_02716B(time, value) values(3000,"hello");
+show timeseries root.db.**;
+set sql_dialect=table;
+drop database viewdb;<<null;
+create database viewdb;
+use viewdb;
+CREATE VIEW viewdb.machine_bool
+  (
+   sensor_id STRING TAG,
+   value boolean FIELD
+   )
+AS root.db.**;
+CREATE VIEW viewdb.machine_blob
+  (
+   sensor_id STRING TAG,
+   value blob FIELD
+   )
+AS root.db.**;
+CREATE VIEW viewdb.machine_double
+  (
+   sensor_id STRING TAG,
+   value double FIELD
+   )
+AS root.db.**;
+CREATE VIEW viewdb.machine_text
+  (
+   sensor_id STRING TAG,
+   value text FIELD
+   )
+AS root.db.**;
+CREATE VIEW viewdb.machine_int64
+  (
+   sensor_id STRING TAG,
+   value int64 FIELD
+   )
+AS root.db.**;
+select * from machine_bool order by time,sensor_id;
+select * from machine_blob order by time,sensor_id;
+select * from machine_double order by time,sensor_id;
+select * from machine_text order by time,sensor_id;
+select * from machine_int64 order by time,sensor_id;
+select * from machine_bool inner join machine_blob using(time) inner join machine_double using(time) inner join machine_text using(time) inner join machine_int64 using (time) order by time,machine_bool.sensor_id,machine_blob.value;
+CREATE or replace VIEW viewdb.DCS_PIT_02105A
+  (
+   value double FIELD
+   )
+AS root.db.DCS_PIT_02105A.**;
+CREATE or replace VIEW viewdb.DCS_PIT_02105B
+  (
+   value boolean FIELD
+   )
+AS root.db.DCS_PIT_02105B.**;
+CREATE or replace VIEW viewdb.DCS_PIT_02105C
+  (
+   value blob FIELD
+   )
+AS root.db.DCS_PIT_02105C.**;
+CREATE or replace VIEW viewdb.DCS_XI_02716A
+  (
+   value int64 FIELD
+   )
+AS root.db.DCS_XI_02716A.**;
+CREATE or replace VIEW viewdb.DCS_XI_02716B
+  (
+   value text FIELD
+   )
+AS root.db.DCS_XI_02716B.**;
+select * from viewdb.DCS_PIT_02105A;
+select * from viewdb.DCS_PIT_02105B;
+select * from viewdb.DCS_PIT_02105C;
+select * from viewdb.DCS_XI_02716A;
+select * from viewdb.DCS_XI_02716B;
+select * from machine_bool inner join machine_blob using(time) inner join machine_double using(time) inner join machine_text using(time) inner join machine_int64 using (time) inner join DCS_PIT_02105A using(time) inner join DCS_PIT_02105B using(time) inner join DCS_PIT_02105C using(time) inner join DCS_XI_02716A using (time) inner join DCS_XI_02716B using (time);
+create or replace viewdb.${2}(${3}) as root.db.**;<<sqlstate;
+set sql_dialect=tree;
+show create view DCS_PIT_02105A;<<sqlstate;
+drop view DCS_PIT_02105A;<<sqlstate;
+set sql_dialect=table;
+drop database viewdb;
+set sql_dialect=tree;
+drop database root.**;
