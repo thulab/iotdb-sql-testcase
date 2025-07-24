@@ -1,0 +1,818 @@
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]8:create database root.vehicle
+STRICT{
+PASS
+}
+-- [1]9:create database root.car
+STRICT{
+PASS
+}
+-- [1]10:create database root.null
+STRICT{
+PASS
+}
+-- [1]11:create timeseries root.vehicle.重庆.九龙坡.西厂.current INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=chongqing, description='this is current of xichang') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]12:create timeseries root.vehicle.重庆.九龙坡.current INT64 ENCODING=RLE COMPRESSOR=LZ4 tags(restrict=chongqing, description='this is current of jiulongpo') attributes(speed=999, color=blue)
+STRICT{
+PASS
+}
+-- [1]13:create timeseries root.vehicle.重庆.current string  COMPRESSOR=LZ4 tags(string=chongqing, description='this is current of chongqing') attributes(speed=9988, color=green)
+STRICT{
+PASS
+}
+-- [1]14:insert into root.car(time,current)values(1000,"car row 1")
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.341
+-- [1]15:insert into root.vehicle.重庆.九龙坡.西厂(time,current) values(2000,2000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.60
+-- [1]16:insert into root.vehicle.重庆.九龙坡(time,current) values(3000,3000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.57
+-- [1]17:insert into root.vehicle.重庆(time,current) values(4000,'string row 1')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]18:select current from root.car
+STRICT{
+Time(TIMESTAMP)      |root.car.current(TEXT)      |
+-------------------------------------------------
+1000                 |car row 1                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]19:select current from root.vehicle.重庆.九龙坡.西厂
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.重庆.九龙坡.西厂.current(INT32)      |
+----------------------------------------------------------------
+2000                 |2000                                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]20:select current from root.vehicle.重庆.九龙坡
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.重庆.九龙坡.current(INT64)      |
+-------------------------------------------------------------
+3000                 |3000                                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]21:select current from root.vehicle.重庆
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.重庆.current(STRING)      |
+----------------------------------------------------------
+4000                 |string row 1                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+-- [1]22:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]24:create database db
+STRICT{
+PASS
+}
+-- [1]25:use db
+STRICT{
+PASS
+}
+-- [1]27:create or replace view v1(device_id string tag comment 'this is view v1 s device_id') comment 'restrict  view v1' restrict as root.**
+STRICT{
+SQLSTATE : 701: Cannot specify view pattern to match more than one tree database.
+}
+-- [1]28:show create view v1
+STRICT{
+SQLSTATE : 550: Table 'db.v1' does not exist.
+}
+-- [1]29:select * from v1
+STRICT{
+SQLSTATE : 550: Table 'db.v1' does not exist.
+}
+-- [1]30:create or replace view v1(device_id string tag comment 'this is view v1 s device_id') comment 'restrict  view v1' restrict as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]31:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG COMM|
+                |ENT 'this is view v1 s|
+                | device_id') COMMENT '|
+                |restrict  view v1' RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."db".**       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]32:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]33:drop database db
+STRICT{
+PASS
+}
+-- [1]34:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]35:drop database root.**
+STRICT{
+PASS
+}
+-- [1]37:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]42:create database root.vehicle
+STRICT{
+PASS
+}
+-- [1]43:create database root.car
+STRICT{
+PASS
+}
+-- [1]44:create database root.null
+STRICT{
+PASS
+}
+-- [1]45:create timeseries root.vehicle.重庆.九龙坡.西厂.current INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=chongqing, description='this is current of xichang') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]46:create timeseries root.car.city.重庆.current INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=chongqing, description='this is current of xichang') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]47:insert into root.vehicle.重庆.九龙坡.西厂(time,current) values(2000,2000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.825
+-- [1]48:insert into root.car.city.重庆(time,current) values(22000,22222)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.10
+
+-- [1]49:select current from root.vehicle.重庆.九龙坡.西厂
+STRICT{
+Time(TIMESTAMP)      |root.vehicle.重庆.九龙坡.西厂.current(INT32)      |
+----------------------------------------------------------------
+2000                 |2000                                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]50:select current from root.car.city.重庆
+STRICT{
+Time(TIMESTAMP)      |root.car.city.重庆.current(INT32)      |
+----------------------------------------------------------
+22000                |22222                                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]51:show devices root.vehicle.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.vehicle.重庆.九龙|false                |null                |INF                |
+坡.西厂              |                     |                    |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]52:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]54:create database db
+STRICT{
+PASS
+}
+-- [1]55:use db
+STRICT{
+PASS
+}
+-- [1]57:create or replace view "中文"(device_id string tag comment '设备ID')  comment 'restrict view name 中文' restrict as root.vehicle.**
+STRICT{
+PASS
+}
+-- [1]58:create or replace view "中文_no_restrict"(device_id string tag comment 'no restrict') as root.vehicle.**
+STRICT{
+PASS
+}
+-- [1]59:create or replace view "中文_no_restrict2"(device_id string tag ) comment 'view' as root.vehicle.**
+STRICT{
+PASS
+}
+
+-- [1]60:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |
+--------------------------------------------------------------------------------------------------
+中文                   |INF                |USING             |restrict view name |VIEW FROM TREE       |
+                     |                   |                  |中文                 |                     |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict       |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict2      |INF                |USING             |view               |VIEW FROM TREE       |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]61:desc "中文"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]62:desc "中文_no_restrict"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]63:desc "中文_no_restrict2"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]64:show create view  "中文"
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+中文              |CREATE VIEW "中文" ("devi|
+                |ce_id" STRING TAG COMM|
+                |ENT '设备ID') COMMENT 'r|
+                |estrict view name 中文' |
+                |RESTRICT WITH (ttl='IN|
+                |F') AS root."vehicle".|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]65:select device_id from "中文"
+STRICT{
+device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]66:select device_id from "中文_no_restrict"
+STRICT{
+device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]67:select device_id from "中文_no_restrict2"
+STRICT{
+device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]68:select * from "中文"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]69:select * from "中文_no_restrict"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]70:select * from "中文_no_restrict2" where device_id='中文_no_restrict'
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]71:create or replace view "中文"(device_id string tag) restrict as root.car.city.**
+STRICT{
+PASS
+}
+-- [1]72:create or replace view "中文_no_restrict"(device_id string tag) as root.car.city.**
+STRICT{
+PASS
+}
+
+-- [1]73:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |
+--------------------------------------------------------------------------------------------------
+中文                   |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict       |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict2      |INF                |USING             |view               |VIEW FROM TREE       |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]74:desc "中文"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+current               |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]75:desc "中文_no_restrict"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+current               |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]77:select device_id from "中文"
+STRICT{
+device_id(STRING)      |
+-----------------------
+重庆                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]78:select device_id from "中文_no_restrict"
+STRICT{
+device_id(STRING)      |
+-----------------------
+重庆                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]79:select * from "中文"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |current(INT32)      |
+----------------------------------------------------------------
+1970-01-01T08:00:22.0|重庆                     |22222               |
+00+08:00             |                       |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]80:select * from "中文_no_restrict"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |current(INT32)      |
+----------------------------------------------------------------
+1970-01-01T08:00:22.0|重庆                     |22222               |
+00+08:00             |                       |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]81:select * from "中文_no_restrict" where device_id='中文_no_restrict'
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |current(INT32)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]82:select * from "中文_no_restrict" where device_id='重庆'
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |current(INT32)      |
+----------------------------------------------------------------
+1970-01-01T08:00:22.0|重庆                     |22222               |
+00+08:00             |                       |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+-- [1]83:drop table "中文"
+STRICT{
+SQLSTATE : 701: Table 'db.中文' is a tree view table, does not support alter table
+}
+-- [1]84:drop view "中文"
+STRICT{
+PASS
+}
+-- [1]85:drop view "中文_no_restrict"
+STRICT{
+PASS
+}
+-- [1]87:create table t1(device_id string tag,col string field)
+STRICT{
+PASS
+}
+
+-- [1]88:show create table t1
+STRICT{
+Table(TEXT)      |Create Table(TEXT)      |
+-----------------------------------------
+t1               |CREATE TABLE "t1" ("devi|
+                 |ce_id" STRING TAG,"col"|
+                 | STRING FIELD) WITH (tt|
+                 |l='INF')                |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]89:show create view t1
+STRICT{
+SQLSTATE : 701: The table t1 is a base table, does not support show create view.
+}
+-- [1]90:show create t1
+STRICT{
+SQLSTATE : 700: line 1:13: mismatched input 't1'. Expecting: 'TABLE', 'VIEW'
+}
+-- [1]91:create or replace view "中文"(device_id string tag) restrict as root.car.city.non_exist1.**
+STRICT{
+PASS
+}
+-- [1]92:create or replace view "中文_no_restrict"(device_id string tag) as root.car.city.non_exist2.**
+STRICT{
+PASS
+}
+
+-- [1]93:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |
+--------------------------------------------------------------------------------------------------
+t1                   |INF                |USING             |null               |BASE TABLE           |
+--------------------------------------------------------------------------------------------------
+中文                   |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict       |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict2      |INF                |USING             |view               |VIEW FROM TREE       |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]94:desc "中文"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]95:desc "中文_no_restrict"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]96:show create view "中文"
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+中文              |CREATE VIEW "中文" ("devi|
+                |ce_id" STRING TAG) RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."car"."city".|
+                |"non_exist1".**        |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]97:show create table "中文"
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+中文              |CREATE VIEW "中文" ("devi|
+                |ce_id" STRING TAG) RES|
+                |TRICT WITH (ttl='INF')|
+                | AS root."car"."city".|
+                |"non_exist1".**        |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]98:show create "中文"
+STRICT{
+SQLSTATE : 700: line 1:13: mismatched input '"中文"'. Expecting: 'TABLE', 'VIEW'
+}
+
+-- [1]99:select device_id from "中文"
+STRICT{
+device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]100:select device_id from "中文_no_restrict"
+STRICT{
+device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]101:select * from "中文"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]102:select * from "中文_no_restrict"
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]103:select * from "中文_no_restrict" where device_id='中文_no_restrict'
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]104:select * from "中文_no_restrict" where device_id='重庆'
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]105:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]106:create timeseries root.vehicle.重庆.九龙坡.current INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=chongqing, description='this is current of xichang') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]107:create timeseries root.vehicle.重庆.current INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=chongqing, description='this is current of xichang') attributes(speed=100, color=red)
+STRICT{
+PASS
+}
+-- [1]108:insert into root.vehicle.重庆.九龙坡(time,current) values(40000,444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.493
+-- [1]109:insert into root.vehicle.重庆(time,current) values(80000,888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+-- [1]110:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]111:use db
+STRICT{
+PASS
+}
+-- [1]112:create or replace view "中文"(city string tag,region string tag) restrict as root.vehicle.**
+STRICT{
+PASS
+}
+-- [1]113:create or replace view "中文_no_restrict"(city string tag,region string tag) as root.vehicle.**
+STRICT{
+PASS
+}
+
+-- [1]114:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |
+--------------------------------------------------------------------------------------------------
+t1                   |INF                |USING             |null               |BASE TABLE           |
+--------------------------------------------------------------------------------------------------
+中文                   |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict       |INF                |USING             |null               |VIEW FROM TREE       |
+--------------------------------------------------------------------------------------------------
+中文_no_restrict2      |INF                |USING             |view               |VIEW FROM TREE       |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]115:desc "中文"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+city                  |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+current               |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]116:desc "中文_no_restrict"
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+city                  |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+current               |INT32               |FIELD               |
+总数目：4
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]118:select city,region from "中文" order by time
+STRICT{
+city(STRING)      |region(STRING)      |
+--------------------------------------
+重庆                |九龙坡                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]119:select city ,region from "中文_no_restrict" order by time
+STRICT{
+city(STRING)      |region(STRING)      |
+--------------------------------------
+重庆                |九龙坡                 |
+--------------------------------------
+重庆                |null                |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]120:select * from "中文"
+STRICT{
+time(TIMESTAMP)      |city(STRING)      |region(STRING)      |current(INT32)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:40.0|重庆                |九龙坡                 |444                 |
+00+08:00             |                  |                    |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]121:select * from "中文_no_restrict" order by time
+STRICT{
+time(TIMESTAMP)      |city(STRING)      |region(STRING)      |current(INT32)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:40.0|重庆                |九龙坡                 |444                 |
+00+08:00             |                  |                    |                    |
+-------------------------------------------------------------------------------
+1970-01-01T08:01:20.0|重庆                |null                |888                 |
+00+08:00             |                  |                    |                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]122:select * from "中文_no_restrict" where city='中文_no_restrict' order by time
+STRICT{
+time(TIMESTAMP)      |city(STRING)      |region(STRING)      |current(INT32)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]123:select * from "中文_no_restrict" where city='重庆' order by time
+STRICT{
+time(TIMESTAMP)      |city(STRING)      |region(STRING)      |current(INT32)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:40.0|重庆                |九龙坡                 |444                 |
+00+08:00             |                  |                    |                    |
+-------------------------------------------------------------------------------
+1970-01-01T08:01:20.0|重庆                |null                |888                 |
+00+08:00             |                  |                    |                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]124:select * from "中文" where city='重庆' order by time
+STRICT{
+time(TIMESTAMP)      |city(STRING)      |region(STRING)      |current(INT32)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:40.0|重庆                |九龙坡                 |444                 |
+00+08:00             |                  |                    |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+-- [1]125:drop database db
+STRICT{
+PASS
+}
+-- [1]126:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]127:drop database root.**
+STRICT{
+PASS
+}

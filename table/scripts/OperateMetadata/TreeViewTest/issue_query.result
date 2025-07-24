@@ -1,0 +1,182 @@
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]5:create database root.db
+STRICT{
+PASS
+}
+-- [1]6:create timeseries root.db.d1.value timestamp
+STRICT{
+PASS
+}
+-- [1]7:create  aligned timeseries root.db.d2(value timestamp)
+STRICT{
+PASS
+}
+-- [1]8:insert into root.db.d1(time,value)values(2020-01-01 00:00:07.000, 1970-01-01 00:00:00.000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.115
+-- [1]9:insert into root.db.d2(time,value)values(2022-01-01 00:00:07.000, 1972-01-01 00:00:00.000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.71
+-- [1]10:insert into root.db.d3(time,value) aligned values(2023-01-01 00:00:07.000, 1973-01-01 00:00:00.000)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]11:select value from root.db.** order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.value(TIMESTAMP)      |root.db.d2.value(TIMESTAMP)      |root.db.d3.value(INT64)      |
+--------------------------------------------------------------------------------------------------------------------
+1577808007000        |1970-01-01T00:00:00.000+08:00    |null                             |null                         |
+--------------------------------------------------------------------------------------------------------------------
+1640966407000        |null                             |1972-01-01T00:00:00.000+08:00    |null                         |
+--------------------------------------------------------------------------------------------------------------------
+1672502407000        |null                             |null                             |94665600000                  |
+总数目：3
+}
+
+Elapsed Time: 0.0.18
+-- [1]12:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]14:create database test
+STRICT{
+PASS
+}
+-- [1]15:use test
+STRICT{
+PASS
+}
+-- [1]16:create or replace view tableD(device STRING TAG, value TIMESTAMP FIELD) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]17:select last(value),first(value),last_by(value,time),first_by(value,time),max(value),min(value) from tableD
+STRICT{
+_col0(TIMESTAMP)      |_col1(TIMESTAMP)      |_col2(TIMESTAMP)      |_col3(TIMESTAMP)      |_col4(TIMESTAMP)      |_col5(TIMESTAMP)      |
+------------------------------------------------------------------------------------------------------------------------------------
+1972-01-01T00:00:00.00|1970-01-01T00:00:00.00|null                  |1970-01-01T00:00:00.00|1972-01-01T00:00:00.00|1970-01-01T00:00:00.00|
+0+08:00               |0+08:00               |                      |0+08:00               |0+08:00               |0+08:00               |
+总数目：1
+}
+
+Elapsed Time: 0.0.12
+
+-- [1]18:select last(device),first(device),last_by(device,time),first_by(device,time),max(device),min(device) from tableD
+STRICT{
+_col0(STRING)      |_col1(STRING)      |_col2(STRING)      |_col3(STRING)      |_col4(STRING)      |_col5(STRING)      |
+------------------------------------------------------------------------------------------------------------------
+d3                 |d1                 |d3                 |d1                 |d3                 |d1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+-- [1]19:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]20:delete from root.db.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]21:select value from root.db.** order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.value(TIMESTAMP)      |root.db.d2.value(TIMESTAMP)      |root.db.d3.value(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]22:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]23:use test
+STRICT{
+PASS
+}
+
+-- [1]24:select last(value),first(value),last_by(value,time),first_by(value,time),max(value),min(value) from tableD
+STRICT{
+_col0(TIMESTAMP)      |_col1(TIMESTAMP)      |_col2(TIMESTAMP)      |_col3(TIMESTAMP)      |_col4(TIMESTAMP)      |_col5(TIMESTAMP)      |
+------------------------------------------------------------------------------------------------------------------------------------
+null                  |null                  |null                  |null                  |null                  |null                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]25:select last(device),first(device),last_by(device,time),first_by(device,time),max(device),min(device) from tableD
+STRICT{
+_col0(STRING)      |_col1(STRING)      |_col2(STRING)      |_col3(STRING)      |_col4(STRING)      |_col5(STRING)      |
+------------------------------------------------------------------------------------------------------------------
+null               |null               |null               |null               |null               |null               |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+-- [1]26:drop view tableD
+STRICT{
+PASS
+}
+-- [1]27:create table tableD(device STRING TAG, value TIMESTAMP FIELD)
+STRICT{
+PASS
+}
+-- [1]28:insert into tableD(time,device,value) values('2020-01-02 00:00:07.000', 'd2', '1970-01-02 00:00:00.000')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.979
+
+-- [1]29:select last(value),first(value),last_by(value,time),first_by(value,time),max(value),min(value) from tableD
+STRICT{
+_col0(TIMESTAMP)      |_col1(TIMESTAMP)      |_col2(TIMESTAMP)      |_col3(TIMESTAMP)      |_col4(TIMESTAMP)      |_col5(TIMESTAMP)      |
+------------------------------------------------------------------------------------------------------------------------------------
+1970-01-02T00:00:00.00|1970-01-02T00:00:00.00|1970-01-02T00:00:00.00|1970-01-02T00:00:00.00|1970-01-02T00:00:00.00|1970-01-02T00:00:00.00|
+0+08:00               |0+08:00               |0+08:00               |0+08:00               |0+08:00               |0+08:00               |
+总数目：1
+}
+
+Elapsed Time: 0.0.15
+
+-- [1]30:select last(device),first(device),last_by(device,time),first_by(device,time),max(device),min(device) from tableD
+STRICT{
+_col0(STRING)      |_col1(STRING)      |_col2(STRING)      |_col3(STRING)      |_col4(STRING)      |_col5(STRING)      |
+------------------------------------------------------------------------------------------------------------------
+d2                 |d2                 |d2                 |d2                 |d2                 |d2                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+-- [1]31:drop table tableD
+STRICT{
+PASS
+}
+-- [1]32:drop database test
+STRICT{
+PASS
+}
+-- [1]33:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]34:drop database root.db
+STRICT{
+PASS
+}

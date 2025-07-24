@@ -1,0 +1,886 @@
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]8:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]13:create database db
+STRICT{
+PASS
+}
+-- [1]14:create user test '123456'
+STRICT{
+PASS
+}
+-- [1]15:grant all on db.v1 to user test
+STRICT{
+PASS
+}
+-- [1]16:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]17:grant READ_SCHEMA, READ_DATA on root.** to user test
+STRICT{
+PASS
+}
+-- [1]19:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]21:create view db.v1() as **
+STRICT{
+SQLSTATE : 700: line 1:24: mismatched input '**'. Expecting: 'ROOT'
+}
+-- [1]23:create view db.v1() as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]24:select * from db.v1
+STRICT{
+time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]25:show create view db.v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" () WIT|
+                |H (ttl='INF') AS root.|
+                |"db".**                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]27:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]28:insert into root.db(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.725
+-- [1]29:insert into root.db(time,s1) values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]30:show devices root.db.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]31:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.db           |false                |null                |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]33:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]34:select * from db.v1
+STRICT{
+time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]35:show create view db.v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" () WIT|
+                |H (ttl='INF') AS root.|
+                |"db".**                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]36:create or replace view db.v1() as root.**
+STRICT{
+PASS
+}
+-- [1]38:create or replace view db.v1() as root.**.db
+STRICT{
+SQLSTATE : 701: The last node must be '**'
+}
+-- [1]40:create or replace view db.v1() as root.*.db.**
+STRICT{
+SQLSTATE : 701: The wildCard is not permitted to set before the last node
+}
+
+-- [1]42:show create view db.v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" () WIT|
+                |H (ttl='INF') AS root.|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]43:select * from db.v1
+STRICT{
+time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]45:create or replace view db.v1() as root.db
+STRICT{
+SQLSTATE : 701: The last node must be '**'
+}
+-- [1]47:create or replace view db.v1() as root."中文"
+STRICT{
+SQLSTATE : 701: The last node must be '**'
+}
+-- [1]49:create or replace view db.v1() as root.*.db
+STRICT{
+SQLSTATE : 701: The last node must be '**'
+}
+-- [1]51:create or replace view db.v1() as root.*."中文"
+STRICT{
+SQLSTATE : 701: The last node must be '**'
+}
+-- [1]53:create or replace view db.v1() as root.**.**
+STRICT{
+SQLSTATE : 701: The wildCard is not permitted to set before the last node
+}
+-- [1]55:create or replace view db.v1() as root.*.**
+STRICT{
+SQLSTATE : 701: The wildCard is not permitted to set before the last node
+}
+-- [1]57:create or replace view db.v1() as root.db.***
+STRICT{
+SQLSTATE : 700: line 1:45: mismatched input '*'. Expecting: '.', <EOF>
+}
+-- [1]59:create or replace view db.v1() as root."中文".***
+STRICT{
+SQLSTATE : 700: line 1:47: mismatched input '*'. Expecting: '.', <EOF>
+}
+-- [1]61:create or replace view db.v1() as db.**
+STRICT{
+SQLSTATE : 700: line 1:35: mismatched input 'db'. Expecting: 'ROOT'
+}
+-- [1]63:create or replace view db.v1() as "中文".**
+STRICT{
+SQLSTATE : 700: line 1:35: mismatched input '"中文"'. Expecting: 'ROOT'
+}
+-- [1]66:create or replace view db.v1() as db
+STRICT{
+SQLSTATE : 700: line 1:35: mismatched input 'db'. Expecting: 'ROOT'
+}
+-- [1]68:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+-- [1]70:select * from db.v1
+STRICT{
+SQLSTATE : 301: tree db name should at least be two level: root
+}
+-- [1]73:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]75:drop database root.db
+STRICT{
+PASS
+}
+-- [1]77:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]78:select * from db.v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s0(DOUBLE)      |s1(BLOB)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]81:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]82:drop database db
+STRICT{
+PASS
+}
+-- [1]87:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]89:insert into root.db1(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.4.924
+-- [1]90:insert into root.db2(time,s1) values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.393
+-- [1]91:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]93:create database db
+STRICT{
+PASS
+}
+-- [1]94:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+SQLSTATE : 701: Cannot specify view pattern to match more than one tree database.
+}
+-- [1]96:select * from db.v1
+STRICT{
+SQLSTATE : 550: Table 'db.v1' does not exist.
+}
+-- [1]98:drop database db
+STRICT{
+PASS
+}
+-- [1]99:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]100:drop database root.**
+STRICT{
+PASS
+}
+-- [1]104:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]106:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]108:create database db
+STRICT{
+PASS
+}
+-- [1]109:create or replace view db.v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+-- [1]110:use db
+STRICT{
+PASS
+}
+
+-- [1]111:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]112:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]113:insert into root.db.d1(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.7
+-- [1]114:insert into root.db.d2(time,s1) aligned values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.22
+-- [1]115:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]116:use db
+STRICT{
+PASS
+}
+
+-- [1]117:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+--------------------------------------------
+1970-01-01T08:00:02.0|d2                     |
+00+08:00             |                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.11
+-- [1]118:flush
+STRICT{
+PASS
+}
+
+-- [1]119:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+--------------------------------------------
+1970-01-01T08:00:02.0|d2                     |
+00+08:00             |                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]120:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) WIT|
+                |H (ttl='INF') AS root.|
+                |"db".**                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]121:create or replace view db.v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]122:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s0(DOUBLE)      |s1(BLOB)      |
+--------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1.1             |null          |
+00+08:00             |                       |                |              |
+--------------------------------------------------------------------------
+1970-01-01T08:00:02.0|d2                     |null            |0xabcd        |
+00+08:00             |                       |                |              |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]123:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG,"s0"|
+                | DOUBLE FIELD,"s1" BLO|
+                |B FIELD) WITH (ttl='IN|
+                |F') AS root."db".**    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]124:drop database db
+STRICT{
+PASS
+}
+-- [1]125:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]126:drop database root.**
+STRICT{
+PASS
+}
+-- [1]131:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]133:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]135:create database db
+STRICT{
+PASS
+}
+-- [1]136:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+-- [1]138:use db
+STRICT{
+PASS
+}
+
+-- [1]139:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]140:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]141:insert into root.db.d1(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.18
+-- [1]142:insert into root.db.d2(time,s1) aligned values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.2.989
+
+-- [1]143:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]144:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]145:use db
+STRICT{
+PASS
+}
+
+-- [1]146:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.7
+-- [1]147:flush
+STRICT{
+PASS
+}
+-- [1]149:select * from v1
+STRICT{
+SQLSTATE : 701: Tree device view with multiple databases is unsupported yet.
+}
+
+-- [1]150:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) WIT|
+                |H (ttl='INF') AS root.|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]151:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+SQLSTATE : 701: Cannot specify view pattern to match more than one tree database.
+}
+-- [1]153:create or replace view db.v1(device_id string tag) as root.db.**
+STRICT{
+PASS
+}
+
+-- [1]154:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s0(DOUBLE)      |s1(BLOB)      |
+--------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1.1             |null          |
+00+08:00             |                       |                |              |
+--------------------------------------------------------------------------
+1970-01-01T08:00:02.0|d2                     |null            |0xabcd        |
+00+08:00             |                       |                |              |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]155:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG,"s0"|
+                | DOUBLE FIELD,"s1" BLO|
+                |B FIELD) WITH (ttl='IN|
+                |F') AS root."db".**    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]156:drop database db
+STRICT{
+PASS
+}
+-- [1]157:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]158:drop database root.**
+STRICT{
+PASS
+}
+-- [1]159:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]160:create database db
+STRICT{
+PASS
+}
+-- [1]161:use db
+STRICT{
+PASS
+}
+-- [1]162:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+
+-- [1]164:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]166:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]167:insert into root.db(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.4.234
+-- [1]168:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]169:use db
+STRICT{
+PASS
+}
+
+-- [1]170:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]171:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) WIT|
+                |H (ttl='INF') AS root.|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]172:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+-- [1]173:select * from v1
+STRICT{
+SQLSTATE : 301: tree db name should at least be two level: root
+}
+
+-- [1]174:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG,"s0"|
+                | DOUBLE FIELD) WITH (t|
+                |tl='INF') AS root.**   |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]175:drop database db
+STRICT{
+PASS
+}
+-- [1]176:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]177:drop database root.**
+STRICT{
+PASS
+}
+-- [1]182:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]184:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]186:create database db
+STRICT{
+PASS
+}
+-- [1]187:use db
+STRICT{
+PASS
+}
+-- [1]188:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+
+-- [1]189:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]190:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]191:insert into root.db.d1(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.972
+-- [1]192:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]193:use db
+STRICT{
+PASS
+}
+
+-- [1]194:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]195:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) WIT|
+                |H (ttl='INF') AS root.|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]196:create or replace view db.v1(device_id string tag) as root.**
+STRICT{
+PASS
+}
+
+-- [1]197:select * from v1
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]198:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("devi|
+                |ce_id" STRING TAG) WIT|
+                |H (ttl='INF') AS root.|
+                |**                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]199:drop database db
+STRICT{
+PASS
+}
+-- [1]200:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]203:drop database root.**
+STRICT{
+PASS
+}
+-- [1]205:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]207:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]209:create database db
+STRICT{
+PASS
+}
+-- [1]210:create or replace view db.v1(metric string tag,clustername string tag,nodetype string tag,nodeid string tag,point string tag,database string tag,type string tag,region string tag) as root.__system.**
+STRICT{
+PASS
+}
+-- [1]211:use db
+STRICT{
+PASS
+}
+
+-- [1]212:select * from v1
+STRICT{
+time(TIMESTAMP)      |metric(STRING)      |clustername(STRING)      |nodetype(STRING)      |nodeid(STRING)      |point(STRING)      |database(STRING)      |type(STRING)      |region(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]213:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]214:insert into root.db.d1(time,s0) values(1000,1.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.995
+-- [1]215:insert into root.db.d2(time,s1) aligned values(2000,X'abcd')
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.9
+
+-- [1]216:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]217:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.db.d1        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.db.d2        |true                 |null                |INF                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]218:set sql_dialect=table
+STRICT{
+PASS
+}
+-- [1]219:use db
+STRICT{
+PASS
+}
+-- [1]220:flush
+STRICT{
+PASS
+}
+
+-- [1]222:select * from v1
+STRICT{
+time(TIMESTAMP)      |metric(STRING)      |clustername(STRING)      |nodetype(STRING)      |nodeid(STRING)      |point(STRING)      |database(STRING)      |type(STRING)      |region(STRING)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.11
+-- [1]223:flush
+STRICT{
+PASS
+}
+-- [1]224:flush
+STRICT{
+PASS
+}
+-- [1]225:flush
+STRICT{
+PASS
+}
+-- [1]226:flush
+STRICT{
+PASS
+}
+-- [1]227:flush
+STRICT{
+PASS
+}
+
+-- [1]228:select count(*) from v1 having count(*)>2
+STRICT{
+_col0(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.8
+-- [1]230:create or replace view db.v1(metric string tag,clustername string tag,nodetype string tag,nodeid string tag,point string tag,database string tag,type string tag,region string tag) as root.__system.**
+STRICT{
+PASS
+}
+
+-- [1]231:select count(*) from v1 having count(*)>4
+STRICT{
+_col0(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.10
+-- [1]232:drop database db
+STRICT{
+PASS
+}
+-- [1]233:set sql_dialect=tree
+STRICT{
+PASS
+}
+-- [1]234:drop database root.**
+STRICT{
+PASS
+}

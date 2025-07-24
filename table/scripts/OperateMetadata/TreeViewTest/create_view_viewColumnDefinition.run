@@ -1,0 +1,754 @@
+connect root/root;
+
+set sql_dialect=tree;
+drop database root.db;<<null;
+drop database root.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-1d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+
+CREATE DEVICE TEMPLATE t1(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+CREATE DEVICE TEMPLATE t2 aligned(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(now(),1);
+insert into root.db.d1(time,s2) values(now()-1d,2222);
+insert into root.db.d1(time,s2) values(now(),2);
+sleep 100;
+insert into root.db.d1(time,s3) values(now(),3);
+sleep 100;
+insert into root.db.d1(time,s4) values(now(),4);
+sleep 100;
+insert into root.db.d1(time,s5) values(now(),5);
+sleep 100;
+insert into root.db.d1(time,s6) values(now(),6);
+sleep 100;
+insert into root.db.d1(time,s7) values(now(),7);
+sleep 100;
+insert into root.db.d1(time,s8) values(now(),8);
+sleep 100;
+insert into root.db.d1(time,s9) values(now(),9);
+sleep 100;
+insert into root.db.d1(time,s10) values(now(),10);
+insert into root.db.d3(time,c0,c1,c2,c3) values(now(),0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,c2,c3) values(now()-1d,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now(),110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now()-1d,110,2,X'd4','d4 before ttl time');
+select count(s0),count(c1) from root.db.**;
+select count(*) from root.db.** align by device;
+select count_time(*) from root.db.** align by device;
+
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+//tc column is null
+create or replace view v1() as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+//tc only device_id
+create or replace view v1(device_id string tag) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+// tc tag time
+create or replace view v1(time timestamp tag) as root.db.**;
+<<sqlstate;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+create or replace view v1(time timestamp time) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+//tc no specify string
+create or replace view v1(device_id tag) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+// tc attribute
+create or replace view v1(device_id string ATTRIBUTE) as root.db.**;
+<<sqlstate;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+create or replace view v1(device_id ATTRIBUTE) as root.db.**;
+<<sqlstate;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+//tc only 1 field
+create or replace view v1(s10 double field) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+
+create or replace view v1(s10 double ) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+//tc 1 tag,1 field
+create or replace view v1(device_id tag,s10 double ) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+select count(*) from v1 where time> now()+10d;
+create or replace view v1(device_id tag ,s10  double field) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+select count(*) from v1 where time> now()+10d;
+create or replace view v1(device_id string tag ,s10  double field) as root.db.**;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+select count(*) from v1 where time> now()+10d;
+//tc create root.db.d5.s10 blob
+set sql_dialect=tree;
+create timeseries root.db.d5.s10 blob;
+set sql_dialect=table;
+use db;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+set sql_dialect=tree;
+insert into root.db.d5.s10(time,s10)values(10000,X'abcd');
+<<sqlstate;
+insert into root.db.d5(time,s10)values(10000,X'abcd');
+
+select * from root.db.d5;
+set sql_dialect=table;
+use db;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+//tc create root.db.d6.s10 double
+set sql_dialect=tree;
+create timeseries root.db.d6.s10 double;
+set sql_dialect=table;
+use db;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+set sql_dialect=tree;
+insert into root.db.d6(time,s10)values(10000,206.4);
+insert into root.db.d6(time,s10)values(20000,207.4);
+
+select * from root.db.d6;
+set sql_dialect=table;
+use db;
+show create view v1;
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+select * from v1 where device_id='d6'; 
+set sql_dialect=tree;
+insert into root.db.d6(time,s10)values(10000,911.4);
+insert into root.db.d6(time,s10)values(20000,999.4);
+set sql_dialect=table;
+use db; 
+select * from v1 where device_id='d6'; 
+// tc delete tree data
+set sql_dialect=tree;
+delete from root.db.d6.s10 where time=10000;
+select * from root.db.d6;
+set sql_dialect=table;
+use db;
+select * from v1 where device_id='d6';
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+//tc drop tree ts
+set sql_dialect=tree;
+delete from root.db.d6.s10 where time=10000;
+select * from root.db.d6;
+delete timeseries root.db.d6.s10;
+select * from root.db.d6;
+set sql_dialect=table;
+use db;
+select * from v1 where device_id='d6';
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+flush;
+select * from v1 where device_id='d6';
+select count(*) from v1 ;
+show devices from v1;
+count devices from v1;
+// tc alter timeseries add tags
+set sql_dialect=tree;
+alter timeseries root.db.对齐d3.s10 add tags tag=addtag;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as count from v1 ;
+show devices from v1;
+count devices from v1;
+show create view v1;
+// tc alter timeseries UPSERT ALIAS=newAlias TAGS(tag2=newV2, tag3=v3) ATTRIBUTES(attr3=v3, attr4=v4)
+set sql_dialect=tree;
+alter timeseries root.db.对齐d3.s10 UPSERT ALIAS=newAlias TAGS(tag2=newV2, tag3=v3) ATTRIBUTES(attr3=v3, attr4=v4); 
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+// tc tree set ttl
+set sql_dialect=tree;
+insert into root.db.d1(time,s10)values(now()-1d,3.14);
+select count(s10) from root.db.d1;
+set ttl to root.db.d1 3600000;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+// tc set db ttl
+set sql_dialect=tree;
+insert into root.db.d3(time,s10)values(now()-1d,3.14);
+sleep 2000;
+set ttl to root.db 1000;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+
+//tc delete timeseries root.db.**
+set sql_dialect=tree;
+delete timeseries root.db.**;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+//tc drop tree db
+set sql_dialect=tree;
+drop database root.db;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+
+//tc recreate type is not same
+set sql_dialect=tree;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(10000,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(20000,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(30000,0,1,2,3,4,5,6,7,8,9,10);
+
+CREATE DEVICE TEMPLATE t1(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    s10 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+CREATE DEVICE TEMPLATE t2 aligned(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    s10 text  compression=SNAPPY
+);
+
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(1751959383000,1);
+insert into root.db.d1(time,s2) values(1751959384000,2222);
+insert into root.db.d1(time,s2) values(1751959385000,2);
+insert into root.db.d1(time,s3) values(1751959386000,3);
+insert into root.db.d1(time,s4) values(1751959387000,4);
+insert into root.db.d1(time,s5) values(1751959388000,5);
+insert into root.db.d1(time,s6) values(1751959389000,6);
+insert into root.db.d1(time,s7) values(1751959382000,7);
+insert into root.db.d1(time,s8) values(1751959381000,8);
+insert into root.db.d1(time,s9) values(1751959380000,9);
+insert into root.db.d1(time,s10) values(1751959373000,10);
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959363000,0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959383000,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959383000,110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959384000,110,2,X'd4','d4 before ttl time');
+select * from root.db.** align by device ;<<sqlstate;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+select * from v1 order by time;
+create or replace view v1(device_id string tag ,s10  double field) as root.db.**;
+select * from v1 order by time;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+// tc drop template
+set sql_dialect=tree;
+deactivate device template t1 from root.db.d3;
+deactivate device template t2 from root.db.d4;
+unset device template t1 from root.db.d3;
+unset device template t2 from root.db.d4;
+drop device template t1;
+drop device template t2;
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959363000,0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959383000,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959383000,110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959384000,110,2,X'd4','d4 before ttl time');
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+select * from v1 order by time;
+create or replace view v1(device_id string tag ,s10  double field) as root.db.**;
+select * from v1 order by time;
+set sql_dialect=tree;
+drop database root.db;
+set sql_dialect=table;
+use db;
+select count(*) as tag from v1 where device_id='对齐d3';
+select count(*) as tag from v1 where device_id like '%d1%';
+select count(*) as count from v1 ;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+select device_id,count(*) as count from v1 group by device_id having count(*)>1 order by device_id;
+show devices from v1;
+count devices from v1;
+select * from v1 order by time;
+create or replace view v1(device_id string tag ,s10  double field) as root.db.**;
+select * from v1 order by time;
+drop view v1;
+show create view v1;<<sqlstate;
+select * from v1 order by time;<<sqlstate;
+drop database db;
+
+// tc issue flush
+set sql_dialect=tree;
+drop database root.db;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema tGemplate t1;<<null;
+drop schema template t2;<<null;
+
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(10000,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(20000,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(30000,0,1,2,3,4,5,6,7,8,9,10);
+
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(1751959383000,1);
+insert into root.db.d1(time,s2) values(1751959384000,2222);
+insert into root.db.d1(time,s2) values(1751959385000,2);
+insert into root.db.d1(time,s3) values(1751959386000,3);
+insert into root.db.d1(time,s4) values(1751959387000,4);
+insert into root.db.d1(time,s5) values(1751959388000,5);
+insert into root.db.d1(time,s6) values(1751959389000,6);
+insert into root.db.d1(time,s7) values(1751959382000,7);
+insert into root.db.d1(time,s8) values(1751959381000,8);
+insert into root.db.d1(time,s9) values(1751959380000,9);
+insert into root.db.d1(time,s10) values(1751959373000,10);
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959363000,0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,s10,c3) values(1751959383000,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959383000,110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,s10) aligned values(1751959384000,110,2,X'd4','d4 before ttl time');
+select s10 from root.db.** ;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag ,s10  double field) as root.db.**;
+select * from v1 order by time;
+flush;
+select * from v1 order by time;
+set sql_dialect=tree;
+drop database root.db;
+set sql_dialect=table;
+use db;
+drop view v1;
+drop database db;
+
+set sql_dialect=tree;
+drop database root.**;<<null;
+drop database root.db;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(10000,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(20000,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(30000,0,1,2,3,4,5,6,7,8,9,10);
+
+CREATE DEVICE TEMPLATE t1(
+    s0  text,
+    s1  text,
+    s2 int64 ,
+    s3 int32 ,
+    s4 boolean ,
+    s5 timestamp ,
+    s6 string,
+    s7 text,
+    s8 float,
+    s9 date,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    s10 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+CREATE DEVICE TEMPLATE t2 aligned(
+    s0 blob ,
+    s1 blob ,
+    s2 int64 ,
+    s3 int32 ,
+    s4 boolean ,
+    s5 timestamp ,
+    s6 string,
+    s7 text,
+    s8 float,
+    s9 date,
+    c2 blob ,
+    s10 text  compression=SNAPPY
+);
+
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(1751959383000,1);
+insert into root.db.d1(time,s2) values(1751959384000,2222);
+insert into root.db.d1(time,s2) values(1751959385000,2);
+insert into root.db.d1(time,s3) values(1751959386000,3);
+insert into root.db.d1(time,s4) values(1751959387000,4);
+insert into root.db.d1(time,s5) values(1751959388000,5);
+insert into root.db.d1(time,s6) values(1751959389000,6);
+insert into root.db.d1(time,s7) values(1751959382000,7);
+insert into root.db.d1(time,s8) values(1751959381000,8);
+insert into root.db.d1(time,s9) values(1751959380000,9);
+insert into root.db.d1(time,s10) values(1751959373000,10);
+insert into root.db.d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c1,c3) values(1751959363000,'hi','lucy',121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',X'd3',3.14,'c3:3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c1,c3) values(1751959364000,'hello','lily',221,231,false,now()+1d,'string timeseries row 2','text timeseries row 2',5.34,'2025-07-08',X'd31234',4.14,'c3:3,4,5,6,7,8,9,10 row2');
+insert into root.db.d4(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,c2,s10) aligned values(1751959383000,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,c2,s10) aligned values(1751959382000,X'bcad0123',X'ABCD',110,220,false,now()-8d,'d4 string timeseries row 2','d4 text timeseries row 2',3.34,'2025-07-05',X'd4','s10 text 3,4,5,6,7,8,9,10 row 2');
+select * from root.db.** align by device ;<<sqlstate;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+//tc declaration original_measurement but original_measurement is not exist
+create or replace view v1(device_id string tag ,s10  double field from orig_not_exit) as root.db.**;
+select device_id,s10 from v1 order by time,device_id;
+select * from v1 where s10 is not null;
+flush;
+select device_id,s10 from v1 order by time,device_id;
+select * from v1 where s10 is not null;
+//tc declaration original_measurement  is uniq but view col datatype is not same with it
+create or replace view v1(device_id string tag ,s10  double field from c1) as root.db.**;
+select device_id,s10 from v1 order by time,device_id;
+select * from v1 where s10 is not null;
+create or replace view v1(device_id string tag ,s10  blob field from c1) as root.db.**;
+select device_id,s10 from v1 order by time,device_id;
+select * from v1 where s10 is not null;
+create or replace view v1(device_id string tag ,s10  float field from c1) as root.db.**;
+select * from v1 order by time,device_id;
+select * from v1 where s10 is not null;
+create or replace view v1(device_id string tag ,c1  float field from c1) as root.db.**;
+select device_id,c1 from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+//tc no declaration view col name
+create or replace view v1(device_id string tag ,c1 field from c1) as root.db.**;<<sqlstate;
+select device_id,c1 from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+create or replace view v1(device_id string tag ,c1_not_same field from c1) as root.db.**;<<sqlstate;
+create or replace view v1(device_id string tag ,c1_not_same float from c1) as root.db.**;
+select device_id,c1_not_same from v1 order by time,device_id;
+select * from v1 where c1_not_same is not null;
+create or replace view v1(device_id string tag ,field from c1) as root.db.**;
+select device_id,field from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+<<sqlstate;
+select * from v1 where c1_not_same is not null;
+<<sqlstate;
+create or replace view v1(device_id string tag ,c1 blob from c1) as root.db.**;
+select device_id,c1 from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+//tc 
+create or replace view v1(device_id string tag ,c1,c2,c3 float field from c1) as root.db.**;<<sqlstate;
+create or replace view v1(device_id string tag ,c1 from c1,c2 field from c1,c3 float from c1,c4 float field from c1) as root.db.**;<<sqlstate;
+select device_id,c1 from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+show create view v1;
+create or replace view v1(device_id string tag ,c1 from c1,c2 float field from c1,c3 float from c1,c4 float field from c1) as root.db.**;<<sqlstate;
+select * from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+show create view v1;
+create or replace view v1(device_id string tag ,from c1) as root.db.**;<<sqlstate;
+select device_id,c1 from v1 order by time,device_id;
+select * from v1 where c1 is not null;
+show create view v1;
+create or replace view v1(device_id string tag ,c1_not_same from c1) as root.db.**;
+select * from v1 where c1 is not null;<<sqlstate;
+select * from v1 where c1_not_same is not null;
+select * from v1 where c1_not_same is not null or c1 is not null;<<sqlstate;
+select device_id,c1_not_same from v1 order by time,device_id;
+show create view v1;
+create or replace view v1(device_id string tag ,c1_Not_Same from C1) as root.db.**;<<sqlstate;
+select * from v1 where c1_not_same is not null;
+select device_id,c1_not_same from v1 order by time,device_id;
+show create view v1;
+create or replace view v1(device_id string tag ,c1_Not_Same from c1) as root.db.**;
+select * from v1 where c1_not_same is not null;
+select * from v1 where C1_not_same is not null;
+select * from v1 where c1_Not_Same is not null;
+select device_id,c1_Not_Same from v1 order by time,device_id;
+show create view v1;
+create or replace view v1(device_id string tag ,c1_Not_Same blob,C2 blob field) as root.db.**;
+select * from v1 where c1_not_same is not null;
+select * from v1 where C1_not_same is not null;
+select * from v1 where c1_Not_Same is not null;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show create view v1;
+set sql_dialect=tree;
+insert into root.db.d3(time,C2) values(10000,X'abcd');
+set sql_dialect=table;
+use db;
+select * from v1 where C2 is not null;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+alter view v1 add column if not exists 'C2_相同测点' from C2;<<sqlstate;
+select * from v1 where C2 is not null;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+alter view v1 add column if not exists 'C2_相同测点' from C2_not_exist;<<sqlstate;
+select * from v1 where C2 is not null;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+create or replace view v1(device_id string tag ,c1_Not_Same blob,C2 blob field from C2_NOT_EXIST) as root.db.**;
+select * from v1 where C2 is not null;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+create or replace view v1(device_id string tag ) as root.db.**;<<sqlstate;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+set sql_dialect=tree;
+drop database root.test;<<null;
+create database root.test;
+insert into root.test.d1(time,c2) values(10000,'text');
+insert into root.test.d1(time,C2) values(20000,123);
+insert into root.test.d2(time,c2) aligned values(50000,123);
+insert into root.test.d2(time,C2) aligned values(60000,'text');
+set sql_dialect=table;
+use db;
+create or replace view v1(device_id string tag ) as root.test.**;<<sqlstate;
+select * from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+set sql_dialect=tree;
+delete timeseries root.test.d2.**;
+set sql_dialect=table;
+use db;
+create or replace view v1(device_id string tag ) as root.test.**;<<sqlstate;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+set sql_dialect=tree;
+drop database root.test;
+create database root.test;
+insert into root.test.d1(time,c2) values(10000,'text');
+insert into root.test.d2(time,c2) aligned values(50000,123);
+set sql_dialect=table;
+use db;
+//tc no datatype
+create or replace view v1(device_id string tag,c2 field from c2 ) as root.test.**;<<sqlstate;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+//tc no datatype && orig not exist
+create or replace view v1(device_id string tag,c2 field from c2_not_exist ) as root.test.**;<<sqlstate;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+//tc no datatype && no database 
+create or replace view v1(device_id string tag,c2 field from c2) as root.test_not_exist.**;<<sqlstate;
+select device_id,c1_Not_Same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+set sql_dialect=tree;
+delete timeseries  root.test.d2.**;
+//tc no datatype && no database
+set sql_dialect=table;
+use db;
+create or replace view v1(device_id string tag,c2 field from c2) as root.test.**;<<sqlstate;
+select device_id,c1_not_same,c2 from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+create or replace view v1(device_id string tag,sensor_id string tag) as root.test.**;
+select * from v1;
+show devices from v1;
+count devices from v1;
+show create view v1;
+set sql_dialect=tree;
+insert into root.test.d2.s1(time,c2)values(30000,4.5);
+insert into root.test.d2.s2(time,c2)values(40000,'text');
+set sql_dialect=table;
+use db;
+select * from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+create or replace view v1(device_id string tag,sensor_id string tag,sensor_sensor_id string tag,sensor_sensor_sensor_id string tag) as root.test.**;<<sqlstate;
+select * from v1 order by time,device_id;
+show devices from v1;
+count devices from v1;
+show create view v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+drop database root.**;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;

@@ -1,0 +1,216 @@
+connect root/root;
+//tc1 
+set sql_dialect=tree;
+drop database root.db;<<null;
+drop database root.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-1d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+CREATE DEVICE TEMPLATE t1(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+CREATE  DEVICE TEMPLATE t2 aligned(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(now(),1);
+sleep 100;
+insert into root.db.d1(time,s2) values(now()-1d,2222);
+insert into root.db.d1(time,s2) values(now(),2);
+sleep 100;
+insert into root.db.d1(time,s3) values(now(),3);
+sleep 100;
+insert into root.db.d1(time,s4) values(now(),4);
+sleep 100;
+insert into root.db.d1(time,s5) values(now(),5);
+sleep 100;
+insert into root.db.d1(time,s6) values(now(),6);
+sleep 100;
+insert into root.db.d1(time,s7) values(now(),7);
+sleep 100;
+insert into root.db.d1(time,s8) values(now(),8);
+sleep 100;
+insert into root.db.d1(time,s9) values(now(),9);
+sleep 100;
+insert into root.db.d1(time,s10) values(now(),10);
+sleep 100;
+insert into root.db.d3(time,c0,c1,c2,c3) values(now(),0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,c2,c3) values(now()-1d,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now(),110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now()-1d,110,2,X'd4','d4 before ttl time');
+select count(s0),count(c1) from root.db.**;
+select count(s0),count(s1),count(s2),count(s3),count(s4),count(s5),count(s6),count(s7),count(s8),count(s9),count(s10),count(c0),count(c1),count(c2),count(c3) from root.db.** align by device;
+show devices root.db.**;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create view v1(device_id string tag ) as root.db.**;
+select count(*) as count from v1;
+select count(*) as count from v1 where time>now()+8d;
+select count(*) as count from v1 where time<now()+8d;
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00;
+show devices from v1;
+count devices from v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+drop database root.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+
+//tc2 delete tree all data
+set sql_dialect=tree;
+drop database root.db;<<null;
+drop database root.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-1d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+CREATE DEVICE TEMPLATE t1(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+CREATE  DEVICE TEMPLATE t2 aligned(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s1) values(now(),1);
+sleep 100;
+insert into root.db.d1(time,s2) values(now()-1d,2222);
+insert into root.db.d1(time,s2) values(now(),2);
+sleep 100;
+insert into root.db.d1(time,s3) values(now(),3);
+sleep 100;
+insert into root.db.d1(time,s4) values(now(),4);
+sleep 100;
+insert into root.db.d1(time,s5) values(now(),5);
+sleep 100;
+insert into root.db.d1(time,s6) values(now(),6);
+sleep 100;
+insert into root.db.d1(time,s7) values(now(),7);
+sleep 100;
+insert into root.db.d1(time,s8) values(now(),8);
+sleep 100;
+insert into root.db.d1(time,s9) values(now(),9);
+sleep 100;
+insert into root.db.d1(time,s10) values(now(),10);
+sleep 100;
+insert into root.db.d3(time,c0,c1,c2,c3) values(now(),0,1,X'd3','3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,c1,c2,c3) values(now()-1d,0,1,X'd3','d3 before ttl time');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now(),110,2,X'd4','3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(now()-1d,110,2,X'd4','d4 before ttl time');
+select count(s0),count(c1) from root.db.**;
+select count(s0),count(s1),count(s2),count(s3),count(s4),count(s5),count(s6),count(s7),count(s8),count(s9),count(s10),count(c0),count(c1),count(c2),count(c3) from root.db.** align by device;
+show devices root.db.**;
+delete from root.db.**;
+select s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3 from root.db.** align by device;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create view v1(device_id string tag ) as root.db.**;
+select count(*) as count from v1;
+select count(*) as count from v1 where time<now();
+select count(*) as count from v1 where time>1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00;
+flush;
+select count(*) as count from v1;
+select count(*) as count from v1 where time<now();
+select count(*) as count from v1 where time>1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00;
+select count(*) as count from v1 where time!=1975-03-21T12:19:59.000+08:00;
+//tc3 where time and device_id
+select count(*) as count from v1 where device_id like '%d';
+select count(*) as count from v1 where device_id like '%d1';
+select count(*) as count from v1 where time<now() and device_id like '%d1';
+select count(*) as count from v1 where time>1975-03-21T12:19:59.000+08:00 and device_id like '%d1';
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00 or device_id like '%d1';
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00 and device_id like '%d1';
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00 and device_id like '%d1';
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00 or device_id like '%d1';
+select count(*) as count from v1 where time!=1975-03-21T12:19:59.000+08:00 and device_id like '%d1';
+select count(*) as count from v1 where time!=1975-03-21T12:19:59.000+08:00 or device_id like '%d1';
+//tc4 where time and sensor
+select count(*) as count from v1 where device_id like '%d' and s1=1;
+select count(*) as count from v1 where device_id like '%d1' and s1=1;
+select count(*) as count from v1 where time<now() and device_id like '%d1' and s1=1;
+select count(*) as count from v1 where time>1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1=1;
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1=1;
+select count(*) as count from v1 where time=1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where time<1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1>1;
+select count(*) as count from v1 where time!=1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where time!=1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1>1;
+//tc5 where sensor
+select count(*) as count from v1 where s1=1;
+select count(*) as count from v1 where s1>1;
+select count(*) as count from v1 where s1>1 or time<now() and device_id like '%d1' and s1=2;
+select count(*) as count from v1 where s2<1 and time>1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1=1;
+select count(*) as count from v1 where s3>2 and time=1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1=1;
+select count(*) as count from v1 where s4>4 and time=1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where device_id like 'd2' and time<1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where s_not_exit > 5 and time<1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1>1;<<sqlstate;
+select count(*) as count from v1 where s2>2 or time!=1975-03-21T12:19:59.000+08:00 and device_id like '%d1' and s1>1;
+select count(*) as count from v1 where time >1975-03-20T12:19:59.000+08:00 and time!=1975-03-21T12:19:59.000+08:00 or device_id like '%d1' and s1>1;
+
+show devices from v1;
+count devices from v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+drop database root.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+

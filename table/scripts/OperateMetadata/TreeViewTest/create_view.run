@@ -1,0 +1,812 @@
+connect root/root;
+//tc1 tree 10 types 
+set sql_dialect=tree;
+unset ttl to root.db.**;<<null;
+unset ttl to root.db.d1.**;<<null;
+drop database root.**;<<null;
+show CURRENT_SQL_DIALECT;
+drop database root.db;<<null;
+create database root.db;
+create timeseries root.db.shanghai.region_num  datatype=INT32;
+create timeseries root.db.beijing.region_num  datatype=INT64;
+create timeseries root.db.chongqing.region_num  datatype=boolean;
+create timeseries root.db.shandong.region_num  datatype=float;
+create timeseries root.db.hebei.region_num  datatype=double;
+create timeseries root.db.zhejiang.region_num  datatype=text;
+create timeseries root.db.jiangxi.region_num  datatype=string;
+create timeseries root.db.hubei.region_num  datatype=blob;
+create timeseries root.db.hunan.region_num  datatype=timestamp;
+create timeseries root.db.xinjiang.region_num  datatype=date;
+insert into root.db.shanghai(time,region_num)values (1,1);
+insert into root.db.beijing(time,region_num)values (2,2);
+insert into root.db.chongqing(time,region_num)values (3,true);
+insert into root.db.shandong(time,region_num)values (4,2.23);
+insert into root.db.hebei(time,region_num)values (5,2.88);
+insert into root.db.zhejiang(time,region_num)values (6,"I love zhe jiang");
+insert into root.db.jiangxi(time,region_num)values (7,"I like jiang xi");
+insert into root.db.hubei(time,region_num)values (8,X'abcdef');
+insert into root.db.hunan(time,region_num)values (9,1970-01-01T08:00:00.01+08:00);
+insert into root.db.xinjiang(time,region_num)values (10,'1970-01-02');
+select region_num from root.db.** order by time;
+set sql_dialect=table;
+show CURRENT_SQL_DIALECT;
+drop database db;
+<<NULL;
+create database db;
+use db;
+create view v1(province STRING TAG ) AS root.db.**;
+<<sqlstate;
+// tc2 specify data type
+create view v1(province STRING TAG,region_num blob ) AS root.db.**;
+select time,province,region_num from v1;
+// tc3 flush ,query 
+flush;
+select time,province,region_num from v1;
+// tc4 create another view with specify data type
+create view v2(province STRING TAG,region_num double) AS root.db.**;
+select time,province,region_num from v2;
+select time,province,region_num from v1;
+// tc5 join query
+select v1.province as v1_prov,v2.province as v2_prov,v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 using (time);
+select v1.province as v1_prov,v2.province as v2_prov,v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 using (time);
+select v1.province as v1_prov,v2.province as v2_prov,v1.region_num as v1_region,v2.region_num as v2_region from v1 full outer join v2 using (time);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 using (time,province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 using (time,province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 full outer join v2 using (time,province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 using (time,province,region_num);
+<<sqlstate;
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 using (province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 using (province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 full outer join v2 using (province);
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 using (not_exist);
+<<sqlstate;
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 on v1.time=1000;
+<<sqlstate;
+select v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 on v1.time=1000;
+<<sqlstate;
+select * from v1 full outer join v2 using(time) left outer join v1 using (time) left outer join v2 using (time) order by time desc;
+select * from v1 left outer join v1 using(time) left outer join v1 using (time) left outer join v1 using (time) order by time;
+select * from v1 left outer join v1 using(time) left outer join v1 using (time) left outer join v1 using (time)  order by time limit 2 offset 100;
+set sql_dialect=tree;
+show create view v1;
+<<sqlstate;
+drop view v1;
+<<sqlstate;
+set sql_dialect=table;
+use db;
+show create view v1;
+drop view v1;
+show create view v1;
+<<sqlstate;
+select * from v1 full outer join v2 using(time) left outer join v1 using (time) left outer join v2 using (time) order by time desc;
+<<sqlstate;
+show create view v2;
+drop view v2;
+show create view v2;
+<<sqlstate;
+drop database db;
+//tc6 create or replace, v1 is not exist
+create view v1(province STRING TAG ) AS root.db.**;
+<<sqlstate;
+create database db;
+use db;
+create or replace view v1(province STRING TAG,region_num blob ) AS root.db.**;
+show create view v1;
+create or replace view v1(province STRING TAG,region_num blob ) AS root.db.**;
+show create view v1;
+create or replace view v1(province STRING TAG,region_num text) AS root.db.**;
+show create view v1;
+select time,province,region_num from v1;
+create or replace view v1(province STRING TAG,region_num text,add_new_column int32) AS root.db.**;
+show create view v1;
+select time,province,region_num,add_new_column from v1;
+set sql_dialect=tree;
+create timeseries root.db.hebei.add_new_column  datatype=text;
+insert into root.db.hebei(time,add_new_column)values (10,'So near, so beautiful — spend your weekend in Hebei!');
+flush;
+select region_num,add_new_column from root.db.hebei;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1;
+select time,province,region_num from v1;
+set sql_dialect=tree;
+create timeseries root.db.zhejiang.add_new_column  datatype=text;
+insert into root.db.zhejiang(time,add_new_column)values (11,'The Heavenly Terrace soars forty-eight thousand zhang high!');
+flush;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1;
+set sql_dialect=tree;
+create timeseries root.db.xinjiang.add_new_column  datatype=int32;
+insert into root.db.xinjiang(time,add_new_column)values (12,6667);
+flush;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1;
+show create view v1;
+set sql_dialect=tree;
+create timeseries root.db.shandong.add_new_column  datatype=int32;
+insert into root.db.shandong(time,add_new_column)values (12,7788);
+flush;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1;
+show create view v1;
+set sql_dialect=tree;
+create timeseries root.db.shandong.add_new_column_3  datatype=int32;
+insert into root.db.shandong(time,add_new_column_3)values (1000,9911);
+flush;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1;
+show create view v1;
+create or replace view v1(province STRING TAG,region_num text,add_new_column int32) AS root.db.**;
+show create view v1;
+select time,province,region_num,add_new_column from v1;
+drop view v1;
+create or replace view v1(province STRING TAG,region_num text,add_new_column int32) AS root.db.**;
+show create view v1;
+select time,province,region_num,add_new_column from v1;
+create or replace view v1(province STRING TAG,region_num text,add_new_column text) AS root.db.**;
+show create view v1;
+select time,province,region_num,add_new_column from v1 order by time;
+select time,province,region_num,add_new_column from v1 order by time,province;
+// tc7 create or replace failed
+create or replace view v1(province STRING TAG,region_num text) AS root.db.**;
+show create view v1;
+select time,province,region_num,add_new_column from v1 order by time,province;
+<<sqlstate;
+create or replace view v1(province STRING TAG) AS root.db.**;
+<<sqlstate;
+show create view v1;
+select time,province,region_num from v1 order by time,province;
+// tc8 tree : create or replace view
+set sql_dialect=tree;
+create or replace view v1(province STRING TAG) AS root.db.**;
+<<sqlstate;
+show tables;
+<<sqlstate;
+show create view v1;
+<<sqlstate;
+show view;
+// tc9 drop from db ,query view
+drop database root.db;
+flush;
+set sql_dialect=table;
+use db;
+select time,province,region_num,add_new_column from v1 order by time,province;
+<<sqlstate;
+// tc10 show create table v1;show create view v1;show tables details;
+show tables details;
+show create table v1;
+show create view v1;
+// tc11 create table same name with view
+CREATE TABLE v1 (
+  "场站" STRING TAG,
+  "温度" int32 FIELD COMMENT 'temperature'
+ ) with (TTL=DEFAULT);
+<<sqlstate;
+CREATE or replace TABLE v1 (
+  "场站" STRING TAG,
+  "温度" int32 FIELD COMMENT 'temperature'
+ ) with (TTL=DEFAULT);
+<<sqlstate;
+CREATE TABLE if not exists v1 (
+  "场站" STRING TAG,
+  "温度" int32 FIELD COMMENT 'temperature'
+ ) with (TTL=DEFAULT);
+
+show create table v1;
+show create view v1;
+show tables details;
+drop database db;
+
+set sql_dialect=tree;
+//tc12 timeseires name : uppercase and lowercase letters
+drop database root.db.**;<<null;
+create database root.db;
+create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,abc blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),ABC date,ABc timestamp,aBc string);
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,abc,ABC,ABc,aBc) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,abc,ABC,ABc,aBc from root.db.d1;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag) as root.db;
+<<sqlstate;
+// tc13 The measurements ABC and aBc share the same lower case when auto detecting type, please check
+create or replace view v1(device_id string tag) as root.db.**;
+<<sqlstate;
+// tc14 field from illegal,lower case same 
+set sql_dialect=tree;
+create aligned timeseries root.db.nation.prov.county.town.village(headcount int32,w int32,m int32,name string,avg_age int32);
+insert into root.db.nation.prov.county.town.village(time,headcount,w,m,name,avg_age)values(2000,200,111,89,'liu',50);
+select headcount,w,m,name,avg_age from root.db.nation.prov.county.town.village;
+set sql_dialect=table;
+use db;
+create or replace view v1(device_id string tag,A1 date field from ABC,a1 blob field from abc,a2 timestamp field from ABc,a3 string field from root.db.d1.aBc ) as root.db.**;
+<<sqlstate;
+create or replace view v1(device_id string tag,A1 date field from ABC,a1 blob field from abc,a2 timestamp field from ABc,a3 string field from aBc ) as root.db.**;
+<<sqlstate;
+// tc15 right field from 
+create or replace view v1(device_id string tag,D1 date field from ABC,a1 blob field from abc,a2 timestamp field from ABc,a3 string field from aBc ) as root.db.**;
+show tables;
+show tables details;
+show create table v1;
+select device_id,D1,d1 a1,a2,a3 from v1;
+select device_id,D1,d1,a1,a2,a3 from v1;
+// tc16 701: The wildCard is not permitted to set before the last node 
+create or replace view v1(nation string tag ) as root.db.*.prov.*.county.**;
+<<sqlstate;
+create or replace view v1(prov string tag ) as root.db.nation.**;
+show create view v1;
+desc v1;
+show devices from v1;
+// tc17 insert into view
+insert into v1(time,prov)values(1000,'shandong');
+<<sqlstate;
+create or replace view v1(prov string tag ) as root.db.nation.prov.county.town.**;
+show devices from v1;
+select headcount,w,m,name,avg_age from v1 where w+m=headcount;
+insert into v1(time,headcount,w,m,name,avg_age)values(3000,400,211,189,'zhang',20);
+<<sqlstate;
+// tc18 delete from  delete devices
+delete from v1 where time=2000;<<sqlstate;
+select headcount,w,m,name,avg_age from v1 order by time;
+delete devices from v1 where prov='d1' or prov='d2';<<sqlstate;
+show devices from v1;
+delete from v1 where prov='d1' and prov='d2';<<sqlstate;
+show devices from v1;
+select headcount,w,m,name,avg_age from v1 order by time;
+
+set sql_dialect=tree;
+select headcount,w,m,name,avg_age from root.db.nation.prov.county.town.village;
+set sql_dialect=table;
+use db;
+select headcount,w,m,name,avg_age from v1 where w+m=headcount order by time;
+drop database db;
+set sql_dialect=tree;
+select headcount,w,m,name,avg_age from root.db.nation.prov.county.town.village;
+drop database root.db;
+// tc19 attribute
+drop database root.db.**;<<null;
+create database root.db;
+create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,abc blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),ABC date,ABc timestamp,aBc string);
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,abc,ABC,ABc,aBc) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,abc,ABC,ABc,aBc from root.db.d1;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag,city int32 field attributes(speed=100, color=red)) as root.db.**;
+<<sqlstate;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+// tc20 with ttl
+create database root.db;
+create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string);
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+set sql_dialect=table;
+create database db;
+use db;
+create or replace view v1(device_id string tag) with (ttl=604800000) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+create or replace view v1(device_id string tag) with (ttl=0) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+create or replace view v2(device_id string tag) with (ttl=604800000) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+SELECT *
+FROM 
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+JOIN 
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d1') AS t2 USING(time);
+
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+LEFT OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d1') AS t2 USING(time);
+
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+RIGHT OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d1') AS t2 USING(time);
+
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d2') AS t2 USING(time);
+
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d_not_exist_1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d_not_exist_2') AS t2 USING(time);
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d_not_exist_1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v2
+    WHERE device_id='d1') AS t2 USING(time);
+show tables details;
+create or replace view v1(device_id string tag) with (ttl=-604800000) as root.db.**;
+<<sqlstate;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+show tables details;
+//tc21 set ttl to root.db.dev.**
+set sql_dialect=tree;
+set ttl to root.db.d1.** 3600000;
+show timeseries root.db.d1.s07;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+create or replace view v2(device_id string tag) with (ttl='INF') as root.db.**;
+show tables details;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+set sql_dialect=tree;
+set ttl to root.db.** 3600000;
+show timeseries root.db.d1.s07;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+create or replace view v2(device_id string tag) with (ttl='INF') as root.db.**;
+show tables details;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+// tc22 2 tables join
+create table t1(device_id string tag,s07 blob field);
+create table t2(device_id string tag,s07 blob field);
+insert into t1(time,device_id,s07)values(1000,'d1',X'ab0101');
+insert into t2(time,device_id,s07)values(1000,'d1',X'ca2266');
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM t1
+    WHERE device_id='d_not_exist_1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM t2
+    WHERE device_id='d1') AS t2 USING(time);
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM t1
+    WHERE device_id='d_not_exist_1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM t2
+    WHERE device_id='d_not_exist_1') AS t2 USING(time);
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM t1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM t2
+    WHERE device_id='d_not_exist_1') AS t2 USING(time);
+
+// tc22 delete orig timeseries
+set sql_dialect=tree;
+delete timeseries root.db.**;
+show timeseries root.db.**;
+show devices root.db.**;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+// tc23 create orig timeseries datatype dismatch v1
+set sql_dialect=tree;
+unset ttl to root.db.**;<<null;
+unset ttl to root.db.d1.**;<<null;
+
+create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s10 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s09 date,s08 timestamp,s07 string);
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s10,s09,s08,s07) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+
+//tc24 normal ts some data types inconsistent
+set sql_dialect=tree;
+drop database root.db;<<null;
+create database root.db;
+create timeseries root.db.d1.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+create timeseries root.db.d1.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+create timeseries root.db.d1.s03 boolean;
+create timeseries root.db.d1.s04 float;
+create timeseries root.db.d1.s05 double;
+create timeseries root.db.d1.s06 text;
+create timeseries root.db.d1.s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10);
+create timeseries root.db.d1.s08 date;
+create timeseries root.db.d1.s09 timestamp;
+create timeseries root.db.d1.s10 string;
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+set sql_dialect=tree;
+delete timeseries root.db.**;
+show timeseries root.db.**;
+show devices root.db.**;
+set sql_dialect=tree;
+
+create timeseries root.db.d1.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+create timeseries root.db.d1.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+create timeseries root.db.d1.s03 boolean;
+create timeseries root.db.d1.s04 float;
+create timeseries root.db.d1.s05 double;
+create timeseries root.db.d1.s06 text;
+create timeseries root.db.d1.s10 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10);
+create timeseries root.db.d1.s09 date;
+create timeseries root.db.d1.s08 timestamp;
+create timeseries root.db.d1.s07 string;
+
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s10,s09,s08,s07) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+flush;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+//tc25 fix tc23 and tc24 
+set sql_dialect=tree;
+drop database root.db;<<null;
+create database root.db;
+create timeseries root.db.d1.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+create timeseries root.db.d1.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+create timeseries root.db.d1.s03 boolean;
+create timeseries root.db.d1.s04 float;
+create timeseries root.db.d1.s05 double;
+create timeseries root.db.d1.s06 text;
+create timeseries root.db.d1.s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10);
+create timeseries root.db.d1.s08 date;
+create timeseries root.db.d1.s09 timestamp;
+create timeseries root.db.d1.s10 string;
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+
+create aligned timeseries root.db.d2(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string);
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,188,299,false,87.67,109.97,"algined text timeseries",X'aabbccdd','1970-02-02',1970-03-31T08:00:00.01+08:00,'aligned string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.** align by device;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d2';
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v1
+    WHERE device_id='d2') AS t2 USING(time);
+
+set sql_dialect=tree;
+delete timeseries root.db.**;
+show timeseries root.db.**;
+show devices root.db.**;
+set sql_dialect=tree;
+create timeseries root.db.d1.s10 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+create timeseries root.db.d1.s09 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+create timeseries root.db.d1.s08 boolean;
+create timeseries root.db.d1.s07 float;
+create timeseries root.db.d1.s06 double;
+create timeseries root.db.d1.s05 text;
+create timeseries root.db.d1.s04 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10);
+create timeseries root.db.d1.s03 date;
+create timeseries root.db.d1.s02 timestamp;
+create timeseries root.db.d1.s01 string;
+insert into root.db.d1(time,s10,s09,s08,s07,s06,s05,s04,s03,s02,s01) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+
+create aligned timeseries root.db.d2(s10 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s09 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s08 boolean,s07 float,s06 double,s05 text,s04 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s03 date,s02 timestamp,s01 string);
+insert into root.db.d2(time,s10,s09,s08,s07,s06,s05,s04,s03,s02,s01) values(2000,188,299,false,87.67,109.97,"algined text timeseries",X'aabbccdd','1970-02-02',1970-03-31T08:00:00.01+08:00,'aligned string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.** align by device;
+set sql_dialect=table;
+use db;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d2';
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v1
+    WHERE device_id='d2') AS t2 USING(time);
+flush;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d2';
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v1
+    WHERE device_id='d2') AS t2 USING(time);
+flush;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d2';
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v1
+    WHERE device_id='d2') AS t2 USING(time);
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+//tc26 aligned ,normal ,view
+set sql_dialect=tree;
+drop database root.db;<<null;
+create database root.db;
+create timeseries root.db.d1.s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red);
+create timeseries root.db.d1.s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue);
+create timeseries root.db.d1.s03 boolean;
+create timeseries root.db.d1.s04 float;
+create timeseries root.db.d1.s05 double;
+create timeseries root.db.d1.s06 text;
+create timeseries root.db.d1.s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10);
+create timeseries root.db.d1.s08 date;
+create timeseries root.db.d1.s09 timestamp;
+create timeseries root.db.d1.s10 string;
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,88,99,true,7.67,9.97,"text timeseries",X'abcd','1970-01-01',1970-01-01T08:00:00.01+08:00,'string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+
+create aligned timeseries root.db.d2(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string);
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000,188,299,false,87.67,109.97,"algined text timeseries",X'aabbccdd','1970-02-02',1970-03-31T08:00:00.01+08:00,'aligned string timeseries');
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.** align by device;
+create view root.db.v1(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+create view root.db.v2(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v1;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v2;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag) as root.db.**;
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='d2';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='v1';
+select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1 where device_id='v2';
+
+SELECT *
+FROM
+    (SELECT time,
+         device_id AS device1,
+         s07 AS blob1
+    FROM v1
+    WHERE device_id='d1') AS t1
+FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device2,
+         s07 AS blob2
+    FROM v1
+    WHERE device_id='d2') AS t2 USING(time) FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device3,
+         s07 AS blob3
+    FROM v1
+    WHERE device_id='v1') AS t3 USING(time) FULL OUTER JOIN
+    (SELECT time,
+         device_id AS device4,
+         s07 AS blob4
+    FROM v1
+    WHERE device_id='v2')  USING(time);
+drop database db;
+set sql_dialect=tree;
+drop database root.db;
+//tc27 normal,aligned ,normal+template,aligned+template 
+set sql_dialect=tree;
+drop database root.**;<<null;
+drop database root.db;<<null;
+drop schema template t1;<<null;
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+create timeseries root.db.d1.s0 double ;
+insert into root.db.d1(time,s0) values(1000,0);
+create timeseries root.db.d1.s1 double ;
+insert into root.db.d1(time,s1) values(2000,1);
+create timeseries root.db.d1.s2 double ;
+insert into root.db.d1(time,s2) values(3000,2);
+create timeseries root.db.d1.s3 double ;
+insert into root.db.d1(time,s3) values(4000,3);
+create timeseries root.db.d1.s4 double ;
+insert into root.db.d1(time,s4) values(5000,4);
+create timeseries root.db.d1.s5 double ;
+insert into root.db.d1(time,s5) values(6000,5);
+create timeseries root.db.d1.s6 double ;
+insert into root.db.d1(time,s6) values(7000,6);
+create timeseries root.db.d1.s7 double ;
+insert into root.db.d1(time,s7) values(8000,7);
+create timeseries root.db.d1.s8 double ;
+insert into root.db.d1(time,s8) values(9000,8);
+create timeseries root.db.d1.s9 double ;
+insert into root.db.d1(time,s9) values(10000,9);
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s10) values(11000,10);
+
+
+insert into root.db.d2(time,s1) values(2000,1);
+insert into root.db.d2(time,s2) values(3000,2);
+insert into root.db.d2(time,s3) values(4000,3);
+insert into root.db.d2(time,s4) values(5000,4);
+insert into root.db.d2(time,s5) values(6000,5);
+insert into root.db.d2(time,s6) values(7000,6);
+insert into root.db.d2(time,s7) values(8000,7);
+insert into root.db.d2(time,s8) values(9000,8);
+insert into root.db.d2(time,s9) values(10000,9);
+insert into root.db.d2(time,s10) values(11000,10);
+show devices root.db.**;
+show timeseries root.db.**;
+select s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10 from root.db.** align by device;
+
+CREATE DEVICE TEMPLATE t1(
+    c0 FLOAT encoding=RLE compression=SNAPPY,
+    c1 FLOAT encoding=RLE compression=SNAPPY,
+    c2 blob  compression=SNAPPY,
+    c3 text  compression=SNAPPY
+);
+set device template t1 to root.db.d3;
+set device template t1 to root.db.d4;
+insert into root.db.d3(time,c0,c1,c2,c3) values(2000,2.3,3.14,X'01abcd','hello');
+insert into root.db.d4(time,c0,c1,c2,c3) aligned values(3000,2.3,3.14,X'01abcd','hello');
+show devices root.db.**;
+select s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3 from root.db.** align by device;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column') restrict as root.db.**;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v1 order by time,device_id;
+create or replace view v2(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column')  as root.db.**;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v2 order by time,device_id;
+select distinct device_id from v1 order by device_id;
+select distinct device_id from v2 order by device_id;
+set sql_dialect=tree;
+deactivate device template t1 from root.db.d3;
+set device template t1 to root.db.d1;<<sqlstate;
+set device template t1 to root.db.d1.s0;<<sqlstate;
+set sql_dialect=table;
+use db;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v2 order by time,device_id;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v1 order by time,device_id;
+set sql_dialect=tree;
+deactivate device template t1 from root.db.d4;
+set sql_dialect=table;
+use db;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v2 order by time,device_id;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v1 order by time,device_id;
+select distinct device_id from v1 order by device_id;
+select distinct device_id from v2 order by device_id;
+set sql_dialect=tree;
+unset device template t1 from root.db.d3;
+unset device template t1 from root.db.d4;
+
+set sql_dialect=table;
+use db;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v2 order by time,device_id;
+select time ,device_id , s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3  from v1 order by time,device_id;
+select distinct device_id from v1 order by device_id;
+select distinct device_id from v2 order by device_id;
+set sql_dialect=tree;
+drop schema template t1;
+drop database root.**;
+set sql_dialect=table;
+drop database db;

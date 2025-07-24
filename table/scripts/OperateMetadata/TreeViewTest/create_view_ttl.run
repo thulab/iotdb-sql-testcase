@@ -1,0 +1,304 @@
+connect root/root;
+set sql_dialect=tree;
+drop database root.**;<<null;
+drop database root.db;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,0,1,2,3,4,5,6,7,8,9,10);
+
+CREATE DEVICE TEMPLATE t1(
+    c0  text,
+    s1  double,
+    c2 int64 ,
+    c3 int32 ,
+    c4 boolean ,
+    c5 timestamp ,
+    c6 string,
+    c7 text,
+    c8 float,
+    c9 date,
+    c10 FLOAT encoding=RLE compression=SNAPPY,
+    c11 blob  compression=SNAPPY,
+    c12 text  compression=SNAPPY
+);
+CREATE DEVICE TEMPLATE t2 aligned(
+    cc0 blob ,
+    cc1 blob ,
+    cc2 int64 ,
+    cc3 int32 ,
+    cc4 boolean ,
+    cc5 timestamp ,
+    cc6 string,
+    cc7 text,
+    s8 double,
+    cc9 date,
+    cc10 blob ,
+    cc11 text  compression=SNAPPY
+);
+
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now(),'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now()-20d,'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now()-10d,'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now(),X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-10d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-13d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-20d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+//tc ttl 15d
+create or replace view v1(device_id string tag) with (ttl=1296000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 30d
+create or replace view v1(device_id string tag) with (ttl=2592000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 5d
+create or replace view v1(device_id string tag) with (ttl=432000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl INF
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc tree set ttl
+set sql_dialect=tree;
+//15d
+set ttl to root.db.d1 1296000000;
+set ttl to root.db.d3 1296001000;
+//30d
+set ttl to root.db.d2 2592000000;
+set ttl to root.db.d4 2592001000;
+set ttl to root.db.对齐d3 2592001000;
+set sql_dialect=table;
+use db;
+select device_id,count(*) from v1 group by device_id order by device_id;
+set sql_dialect=tree;
+//1d
+set ttl to root.db.d1 86400000;
+set ttl to root.db.d3 86401000;
+//1d
+set ttl to root.db.d2 86402000;
+set ttl to root.db.d4 86403000;
+set ttl to root.db.对齐d3 86404000;
+set sql_dialect=table;
+use db;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//10h
+set sql_dialect=tree;
+set ttl to root.db.d1 3600000;
+set ttl to root.db.d3 3601000;
+//10h
+set ttl to root.db.d2 3602000;
+set ttl to root.db.d4 3603000;
+set ttl to root.db.对齐d3 3604000;
+set sql_dialect=table;
+use db;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+//tc 1ms
+set sql_dialect=tree;
+set ttl to root.db.d1 100;
+set ttl to root.db.d3 110;
+//10h
+set ttl to root.db.d2 120;
+set ttl to root.db.d4 130;
+set ttl to root.db.对齐d3 140;
+sleep 200;
+set sql_dialect=table;
+use db;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+drop database db;
+set sql_dialect=tree;
+unset ttl from root.db.d1;
+unset ttl from root.db.d2;
+unset ttl from root.db.d3;
+unset ttl from root.db.d4;
+unset ttl from root.db.对齐d3;
+drop database root.db;
+drop database root.**;<<null;
+drop database root.db;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;
+create database root.db;
+create aligned timeseries root.db.d2(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+insert into root.db.d2(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,1102,31,42,53,46,57,68,79,80,91,1111.11);
+create aligned timeseries root.db.对齐d3(s0 double ,s1 double ,s2 double ,s3 double ,s4 double ,s5 double ,s6 double ,s7 double ,s8 double ,s9 double ,s10 double);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.对齐d3(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,0,1,2,3,4,5,6,7,8,9,10);
+
+CREATE DEVICE TEMPLATE t1(
+    c0  text,
+    s1  double,
+    c2 int64 ,
+    c3 int32 ,
+    c4 boolean ,
+    c5 timestamp ,
+    c6 string,
+    c7 text,
+    c8 float,
+    c9 date,
+    c10 FLOAT encoding=RLE compression=SNAPPY,
+    c11 blob  compression=SNAPPY,
+    c12 text  compression=SNAPPY
+);
+CREATE DEVICE TEMPLATE t2 aligned(
+    cc0 blob ,
+    cc1 blob ,
+    cc2 int64 ,
+    cc3 int32 ,
+    cc4 boolean ,
+    cc5 timestamp ,
+    cc6 string,
+    cc7 text,
+    s8 double,
+    cc9 date,
+    cc10 blob ,
+    cc11 text  compression=SNAPPY
+);
+
+set device template t1 to root.db.d3;
+set device template t2 to root.db.d4;
+create timeseries root.db.d1.s0 double ;
+create timeseries root.db.d1.s1 double ;
+create timeseries root.db.d1.s2 double ;
+create timeseries root.db.d1.s3 double ;
+create timeseries root.db.d1.s4 double ;
+create timeseries root.db.d1.s5 double ;
+create timeseries root.db.d1.s6 double ;
+create timeseries root.db.d1.s7 double ;
+create timeseries root.db.d1.s8 double ;
+create timeseries root.db.d1.s9 double ;
+create timeseries root.db.d1.s10 double ;
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now(),0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-20d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d1(time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(now()-10d,0,1,2,3,4,5,6,7,8,9,10);
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now(),'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now()-20d,'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d3(time,c0,s1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12) values(now()-10d,'hi',2.45,121,231,true,now(),'string timeseries','text timeseries',2.34,'2025-07-08',3.14,X'd3','c3:3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now(),X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-10d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-13d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+insert into root.db.d4(time,cc0,cc1,cc2,cc3,cc4,cc5,cc6,cc7,s8,cc9,cc10,cc11) aligned values(now()-20d,X'bcad',X'ABCD',110,220,true,now(),'d4 string timeseries row 1','d4 text timeseries',2.34,'2025-07-08',X'd4','s10 text 3,4,5,6,7,8,9,10');
+//tc tree set ttl
+set sql_dialect=tree;
+//15d
+set ttl to root.db.d1 1296000000;
+set ttl to root.db.d3 1296001000;
+//30d
+set ttl to root.db.d2 2592000000;
+set ttl to root.db.d4 2592001000;
+set ttl to root.db.对齐d3 2592001000;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag)  as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 15d
+create or replace view v1(device_id string tag) with (ttl=1296000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 30d
+create or replace view v1(device_id string tag) with (ttl=2592000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 5d
+create or replace view v1(device_id string tag) with (ttl=432000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl INF
+create or replace view v1(device_id string tag) with (ttl='INF') as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//tc ttl 5d
+create or replace view v1(device_id string tag) with (ttl=432000000) as root.db.**;
+select device_id,count(*) from v1 group by device_id order by device_id;
+set sql_dialect=tree;
+//1d
+set ttl to root.db.d1 86400000;
+set ttl to root.db.d3 86401000;
+//1d
+set ttl to root.db.d2 86402000;
+set ttl to root.db.d4 86403000;
+set ttl to root.db.对齐d3 86404000;
+set sql_dialect=table;
+use db;
+select device_id,count(*) from v1 group by device_id order by device_id;
+//10h
+set sql_dialect=tree;
+set ttl to root.db.d1 3600000;
+set ttl to root.db.d3 3601000;
+//10h
+set ttl to root.db.d2 3602000;
+set ttl to root.db.d4 3603000;
+set ttl to root.db.对齐d3 3604000;
+set sql_dialect=table;
+use db;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+//tc 1ms
+set sql_dialect=tree;
+set ttl to root.db.d1 100;
+set ttl to root.db.d3 110;
+//10h
+set ttl to root.db.d2 120;
+set ttl to root.db.d4 130;
+set ttl to root.db.对齐d3 140;
+sleep 200;
+set sql_dialect=table;
+use db;
+select device_id,count(*) as count from v1 group by device_id order by device_id;
+drop database db;
+set sql_dialect=tree;
+unset ttl from root.db.d1;
+unset ttl from root.db.d2;
+unset ttl from root.db.d3;
+unset ttl from root.db.d4;
+unset ttl from root.db.对齐d3;
+drop database root.db;
+drop database root.**;<<null;
+drop database root.db;<<null;
+unset ttl from root.db.d1;<<null;
+unset ttl from root.db.d2;<<null;
+unset ttl from root.db.d3;<<null;
+unset ttl from root.db.d4;<<null;
+unset ttl from root.db.对齐d3;<<null;
+unset ttl from root.db;<<null;
+unset ttl from root.db.**;<<null;
+drop schema template t1;<<null;
+drop schema template t2;<<null;

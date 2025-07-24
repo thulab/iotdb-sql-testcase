@@ -1,0 +1,37 @@
+connect root/root;
+set sql_dialect=tree;
+drop database root.vehicle;<<null;
+drop database root.**;<<null;
+create timeseries root.vehicle.重庆.current string  COMPRESSOR=LZ4 tags(string=chongqing, description='this is current of chongqing') attributes(speed=9988, color=green);
+
+insert into root.vehicle.重庆(time,current) values(4000,'string row 1');
+create aligned timeseries root.vehicle.chongqing(current string,money double );
+insert into root.vehicle.chongqing(time,current,money)values(1000,'aligned current row 1',1000.99),(2000,'aligned current row 2',1900.09);
+
+select current from root.vehicle.重庆;
+select current from root.vehicle.chongqing ;
+show devices root.vehicle.**;
+set sql_dialect=table;
+drop database db;<<null;
+create database db;
+use db;
+create or replace view v1(device_id string tag) restrict as root.vehicle.**;
+select * from v1 order by time;
+desc v1;
+show create view v1;
+create or replace view v1() restrict as root.vehicle.**; 
+select * from v1 order by time;
+desc v1;
+show create view v1;
+alter view v1 add column device_id string tag;
+desc v1;
+show create view v1;
+select * from v1 order by time;
+alter view v1 add column money double field;
+alter view v1 add column current string field;
+select * from v1 order by time;
+drop view v1;
+show tables;
+drop database db;
+set sql_dialect=tree;
+drop database root.vehicle;
