@@ -90,34 +90,34 @@ select * from table_1 order by time;
 
 --8. VARIATION 查询:根据各种数据类型进行验证
 --8.1 INT32 数据类型, delta=1.0, ignore_null=false
-select window_index, time, device_id, int32 FROM variation(table_1, 'int32', 1.0, false) order by window_index, time, device_id;
+select window_index, time, device_id, int32 FROM variation(table_1 PARTITION BY device_id order by time, 'int32', 1.0, false) order by 1,2,3,4;
 
 --8.2 INT64 数据类型, delta=2.0, ignore_null=false
-select window_index, time, device_id, int64 FROM variation(table_1, 'int64', 2.0, false) order by window_index, time, device_id;
+select window_index, time, device_id, int64 FROM variation(table_1 PARTITION BY device_id order by time, 'int64', 2.0, false) order by 1,2,3,4;
 
 --8.3 float 数据类型, delta=1.1, ignore_null=true
-select window_index, time, device_id, float FROM variation(table_1, 'float', 1.1, true) order by window_index, time, device_id;
+select window_index, time, device_id, float FROM variation(table_1 PARTITION BY device_id order by time, 'float', 1.1, true) order by 1,2,3,4;
 
 --8.4 double 数据类型, delta=100.0, ignore_null=true
-select window_index, time, device_id, double FROM variation(table_1, 'double', 100.0, true) order by window_index, time, device_id;
+select window_index, time, device_id, double FROM variation(table_1 PARTITION BY device_id order by time, 'double', 100.0, true) order by 1,2,3,4;
 
 --8.5 boolean 数据类型, delta=1.0, ignore_null=true
-select window_index, time, device_id, boolean FROM variation(table_1, 'boolean', 0.0, true) order by window_index, time, device_id;
+select window_index, time, device_id, boolean FROM variation(table_1 PARTITION BY device_id order by time, 'boolean', 0.0, true) order by 1,2,3,4;
 
 --8.6 string 数据类型, delta=0.0, ignore_null=true
-select window_index, time, device_id, string FROM variation(table_1, 'string', 0.0, true) order by window_index, time, device_id;
+select window_index, time, device_id, string FROM variation(table_1 PARTITION BY device_id order by time, 'string', 0.0, true) order by 1,2,3,4;
 
 --8.7 blob 数据类型, delta=0.0, ignore_null=false
-select window_index, time, device_id, blob FROM variation(table_1, 'blob', 0.0, false) order by window_index, time, device_id;
+select window_index, time, device_id, blob FROM variation(table_1 PARTITION BY device_id order by time, 'blob', 0.0, false) order by 1,2,3,4;
 
 --8.8 timestamp 数据类型, delta=0.0, ignore_null=false
-select window_index, time, device_id, timestamp FROM variation(DATA=>table_1, COL=>'timestamp', ignore_null=>false) order by window_index, time, device_id;
+select window_index, time, device_id, timestamp FROM variation(DATA=>table_1 PARTITION BY device_id order by time, COL=>'timestamp', ignore_null=>false) order by 1,2,3,4;
 
 --8.9 date 数据类型, delta=0.0, ignore_null=true(默认值)
-select window_index, time, device_id, date FROM variation(table_1, 'date', 0.0) order by window_index, time, device_id;
+select window_index, time, device_id, date FROM variation(table_1 PARTITION BY device_id order by time, 'date', 0.0) order by 1,2,3,4;
 
 --8.10 text 数据类型, delta=0.0（默认值）, ignore_null=true(默认值)
-select window_index, time, device_id, text FROM variation(table_1, 'text') order by window_index, time, device_id;
+select window_index, time, device_id, text FROM variation(table_1 PARTITION BY device_id order by time, 'text') order by 1,2,3,4;
 
 --8.11 全量查询
 select * from variation(
@@ -131,7 +131,7 @@ select first(time) as window_start, last(time) as window_end, device_id, avg(dou
             DATA => table_1 PARTITION BY device_id order by time,
             COL => 'double',
             DELTA => 2.0)
-       GROUP BY window_index, device_id;
+       GROUP BY window_index, device_id order by 1,2,3,4;
 
 --8.12 非法使用
 -- delta!=0 (支持INT32 | INT64 | FLOAT | DOUBLE) 其他数据类型校验
