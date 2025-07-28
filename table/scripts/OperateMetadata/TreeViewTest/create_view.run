@@ -36,16 +36,20 @@ create database db;
 use db;
 create view v1(province STRING TAG ) AS root.db.**;
 <<sqlstate;
+
 // tc2 specify data type
 create view v1(province STRING TAG,region_num blob ) AS root.db.**;
 select time,province,region_num from v1;
+
 // tc3 flush ,query 
 flush;
 select time,province,region_num from v1;
+
 // tc4 create another view with specify data type
 create view v2(province STRING TAG,region_num double) AS root.db.**;
 select time,province,region_num from v2;
 select time,province,region_num from v1;
+
 // tc5 join query
 select v1.province as v1_prov,v2.province as v2_prov,v1.region_num as v1_region,v2.region_num as v2_region from v1 left outer join v2 using (time);
 select v1.province as v1_prov,v2.province as v2_prov,v1.region_num as v1_region,v2.region_num as v2_region from v1 right outer join v2 using (time);
@@ -85,6 +89,7 @@ drop view v2;
 show create view v2;
 <<sqlstate;
 drop database db;
+
 //tc6 create or replace, v1 is not exist
 create view v1(province STRING TAG ) AS root.db.**;
 <<sqlstate;
@@ -151,6 +156,7 @@ create or replace view v1(province STRING TAG,region_num text,add_new_column tex
 show create view v1;
 select time,province,region_num,add_new_column from v1 order by time;
 select time,province,region_num,add_new_column from v1 order by time,province;
+
 // tc7 create or replace failed
 create or replace view v1(province STRING TAG,region_num text) AS root.db.**;
 show create view v1;
@@ -160,6 +166,7 @@ create or replace view v1(province STRING TAG) AS root.db.**;
 <<sqlstate;
 show create view v1;
 select time,province,region_num from v1 order by time,province;
+
 // tc8 tree : create or replace view
 set sql_dialect=tree;
 create or replace view v1(province STRING TAG) AS root.db.**;
@@ -169,6 +176,7 @@ show tables;
 show create view v1;
 <<sqlstate;
 show view;
+
 // tc9 drop from db ,query view
 drop database root.db;
 flush;
@@ -176,10 +184,12 @@ set sql_dialect=table;
 use db;
 select time,province,region_num,add_new_column from v1 order by time,province;
 <<sqlstate;
+
 // tc10 show create table v1;show create view v1;show tables details;
 show tables details;
 show create table v1;
 show create view v1;
+
 // tc11 create table same name with view
 CREATE TABLE v1 (
   "场站" STRING TAG,
@@ -202,6 +212,7 @@ show tables details;
 drop database db;
 
 set sql_dialect=tree;
+
 //tc12 timeseires name : uppercase and lowercase letters
 drop database root.db.**;<<null;
 create database root.db;
@@ -214,9 +225,11 @@ create database db;
 use db;
 create or replace view v1(device_id string tag) as root.db;
 <<sqlstate;
+
 // tc13 The measurements ABC and aBc share the same lower case when auto detecting type, please check
 create or replace view v1(device_id string tag) as root.db.**;
 <<sqlstate;
+
 // tc14 field from illegal,lower case same 
 set sql_dialect=tree;
 create aligned timeseries root.db.nation.prov.county.town.village(headcount int32,w int32,m int32,name string,avg_age int32);
@@ -228,6 +241,7 @@ create or replace view v1(device_id string tag,A1 date field from ABC,a1 blob fi
 <<sqlstate;
 create or replace view v1(device_id string tag,A1 date field from ABC,a1 blob field from abc,a2 timestamp field from ABc,a3 string field from aBc ) as root.db.**;
 <<sqlstate;
+
 // tc15 right field from 
 create or replace view v1(device_id string tag,D1 date field from ABC,a1 blob field from abc,a2 timestamp field from ABc,a3 string field from aBc ) as root.db.**;
 show tables;
@@ -235,6 +249,7 @@ show tables details;
 show create table v1;
 select device_id,D1,d1 a1,a2,a3 from v1;
 select device_id,D1,d1,a1,a2,a3 from v1;
+
 // tc16 701: The wildCard is not permitted to set before the last node 
 create or replace view v1(nation string tag ) as root.db.*.prov.*.county.**;
 <<sqlstate;
@@ -242,6 +257,7 @@ create or replace view v1(prov string tag ) as root.db.nation.**;
 show create view v1;
 desc v1;
 show devices from v1;
+
 // tc17 insert into view
 insert into v1(time,prov)values(1000,'shandong');
 <<sqlstate;
@@ -250,6 +266,7 @@ show devices from v1;
 select headcount,w,m,name,avg_age from v1 where w+m=headcount;
 insert into v1(time,headcount,w,m,name,avg_age)values(3000,400,211,189,'zhang',20);
 <<sqlstate;
+
 // tc18 delete from  delete devices
 delete from v1 where time=2000;<<sqlstate;
 select headcount,w,m,name,avg_age from v1 order by time;
@@ -268,6 +285,7 @@ drop database db;
 set sql_dialect=tree;
 select headcount,w,m,name,avg_age from root.db.nation.prov.county.town.village;
 drop database root.db;
+
 // tc19 attribute
 drop database root.db.**;<<null;
 create database root.db;
@@ -283,6 +301,7 @@ create or replace view v1(device_id string tag,city int32 field attributes(speed
 drop database db;
 set sql_dialect=tree;
 drop database root.db;
+
 // tc20 with ttl
 create database root.db;
 create aligned timeseries root.db.d1(s01 INT32 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=beijing, description='this is a capital') attributes(speed=100, color=red),s02 INT64 ENCODING=RLE COMPRESSOR=SNAPPY tags(city=shanghai, description='this is a big city') attributes(speed=111, color=blue),s03 boolean,s04 float,s05 double,s06 text,s07 blob  COMPRESSOR=lz4 tags(city=blob_city, description='this is a blob ts') attributes(managerid=100, emp_count=10),s08 date,s09 timestamp,s10 string);
@@ -388,6 +407,7 @@ create or replace view v1(device_id string tag) with (ttl=-604800000) as root.db
 <<sqlstate;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
 show tables details;
+
 //tc21 set ttl to root.db.dev.**
 set sql_dialect=tree;
 set ttl to root.db.d1.** 3600000;
@@ -413,7 +433,8 @@ create or replace view v2(device_id string tag) with (ttl='INF') as root.db.**;
 show tables details;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
-// tc22 2 tables join
+
+// tc22 tables join
 create table t1(device_id string tag,s07 blob field);
 create table t2(device_id string tag,s07 blob field);
 insert into t1(time,device_id,s07)values(1000,'d1',X'ab0101');
@@ -458,7 +479,7 @@ FULL OUTER JOIN
     FROM t2
     WHERE device_id='d_not_exist_1') AS t2 USING(time);
 
-// tc22 delete orig timeseries
+// tc23 delete orig timeseries
 set sql_dialect=tree;
 delete timeseries root.db.**;
 show timeseries root.db.**;
@@ -467,7 +488,8 @@ set sql_dialect=table;
 use db;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v2;
-// tc23 create orig timeseries datatype dismatch v1
+
+// tc24 create orig timeseries datatype dismatch v1
 set sql_dialect=tree;
 unset ttl to root.db.**;<<null;
 unset ttl to root.db.d1.**;<<null;
@@ -483,7 +505,7 @@ drop database db;
 set sql_dialect=tree;
 drop database root.db;
 
-//tc24 normal ts some data types inconsistent
+//tc25 normal ts some data types inconsistent
 set sql_dialect=tree;
 drop database root.db;<<null;
 create database root.db;
@@ -532,7 +554,8 @@ select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from v1;
 drop database db;
 set sql_dialect=tree;
 drop database root.db;
-//tc25 fix tc23 and tc24 
+
+//tc26 fix tc23 and tc24 
 set sql_dialect=tree;
 drop database root.db;<<null;
 create database root.db;
@@ -650,7 +673,8 @@ FULL OUTER JOIN
 drop database db;
 set sql_dialect=tree;
 drop database root.db;
-//tc26 aligned ,normal ,view
+
+//tc27 aligned ,normal ,view
 set sql_dialect=tree;
 drop database root.db;<<null;
 create database root.db;
@@ -672,10 +696,11 @@ insert into root.db.d2(time,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) values(1000
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
 select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.** align by device;
-create view root.db.v1(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
-create view root.db.v2(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
-select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v1;
-select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v2;
+-- 开源版树模型不支持create view
+-- create view root.db.v1(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d1;
+-- create view root.db.v2(s01,s02,s03,s04,s05,s06,s07,s08,s09,s10) as select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.d2;
+-- select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v1;
+-- select s01,s02,s03,s04,s05,s06,s07,s08,s09,s10 from root.db.v2;
 set sql_dialect=table;
 drop database db;<<null;
 create database db;
@@ -712,7 +737,8 @@ FULL OUTER JOIN
 drop database db;
 set sql_dialect=tree;
 drop database root.db;
-//tc27 normal,aligned ,normal+template,aligned+template 
+
+//tc28 normal,aligned ,normal+template,aligned+template 
 set sql_dialect=tree;
 drop database root.**;<<null;
 drop database root.db;<<null;
