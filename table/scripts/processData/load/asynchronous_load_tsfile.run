@@ -1,0 +1,116 @@
+--0.连接数据库清理环境
+connect root/root;
+drop database test_load;
+<<NULL;
+drop database "1234567890";
+<<NULL;
+drop database "qwertyuiopasdfghjklzxcvbnm";
+<<NULL;
+drop database "QWERTYUIOPASDFGHJKLZXCVBMN";
+<<NULL;
+drop database "没问题";
+<<NULL;
+drop database "_`";
+<<NULL;
+drop database "123qweQWE没问题_`";
+<<NULL;
+
+--1. 测试database-name参数（设置on-success参数都为none，防止数据文件被删除）
+// 各种合法的数据库名
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='1234567890', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "1234567890".t1 order by time;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='qwertyuiopasdfghjklzxcvbnm', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "qwertyuiopasdfghjklzxcvbnm".t1 order by time;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='QWERTYUIOPASDFGHJKLZXCVBMN', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "QWERTYUIOPASDFGHJKLZXCVBMN".t1 order by time;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='没问题', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "没问题".t1 order by time;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='_`', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "_`".t1 order by time;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='123qweQWE没问题_`', 'on-success'='none', 'async'='true');
+sleep 10000;
+select * from "123qweQWE没问题_`".t1 order by time;
+// 不使用database-name（已use database）
+create database test_load;
+use test_load;
+load '/data/tsfile/table/table1.tsfile' with ('on-success'='none', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+
+--2. 测试其他参数
+drop database test_load;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'convert-on-type-mismatch'='false', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+//drop database test_load;
+//load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'verify​'='false', 'async'='true');
+//sleep 10000;
+//select * from test_load.t1 order by time;
+drop database test_load;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'tablet-conversion-threshold'='10000', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+drop database test_load;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'async'='false', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+//drop database test_load;
+//load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'convert-on-type-mismatch'='false', 'verify​'='false', 'tablet-conversion-threshold'='10000', 'async'='true');
+//sleep 10000;
+//select * from test_load.t1 order by time;
+
+--3. 测试各种类型的TsFile数据（耗时比较久需要手动测试）
+// 大数据量：3GB、5GB
+// 跨时间分区
+
+--4. 测试目标为文件或目录，测试不同情况的tsfile
+drop database test_load;
+load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='none', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+// load不同的文件名，但是仅表名不同
+// load相同的文件名，但是仅表名不同
+// load不同的文件名，但是表名相同，无其他不同
+// load相同的文件名，但是表名相同，无其他不同
+drop database test_load;
+load '/data/tsfile/table' with ('database-name'='test_load','on-success'='none', 'async'='true');
+sleep 10000;
+select * from test_load.t1 order by time;
+
+--5. 需要手动测试的（部分正常，部分异常）
+// load不同的文件名，但是表名相同，列数量不同
+// load不同的文件名，但是表名相同，列名不同
+// load不同的文件名，但是表名不同，列数量不同
+// load不同的文件名，但是表名不同，列名不同
+// load同样的文件名，但是表名相同，列数量不同
+// load同样的文件名，但是表名相同，列名不同
+// load同样的文件名，但是表名不同，列数量不同
+// load同样的文件名，但是表名不同，列名不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后仅表名不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后表名不同，列数量不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后表名不同，列名不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后表名相同，无其他不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后表名相同，列数量不同
+// 两次load同样的文件名，保留前一个的resource文件，且前后表名相同，列名不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后仅表名不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后表名不同，列数量不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后表名不同，列名不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后表名相同，无其他不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后表名相同，列数量不同
+// 两次load不同的文件名，保留前一个的resource文件，且前后表名相同，列名不同
+// load '/data/tsfile/table' with ('database-name'='test_load','on-success'='none');
+// 加载成功后删除tsfile
+// load '/data/tsfile/table/table1.tsfile' with ('database-name'='test_load','on-success'='delete');
+
+drop database test_load;
+drop database "1234567890";
+drop database "qwertyuiopasdfghjklzxcvbnm";
+drop database "QWERTYUIOPASDFGHJKLZXCVBMN";
+drop database "没问题";
+drop database "_`";
+drop database "123qweQWE没问题_`";

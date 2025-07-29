@@ -1,0 +1,46 @@
+--0.连接数据库清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 测试database-level参数（设置on-success参数都为none，防止数据文件被删除）
+// 各种层级
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1', 'on-success'='none');
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='2', 'on-success'='none');
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='3', 'on-success'='none');
+
+--2. 测试on-success参数
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none');
+
+--3. 测试其他参数
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'convert-on-type-mismatch'='false');
+// 当前verify​参数不可用：load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'verify​'='false');
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'tablet-conversion-threshold'='10');
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'async'='false');
+// 当前verify​参数不可用：load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'convert-on-type-mismatch'='false', 'verify​'='false', 'tablet-conversion-threshold'='10', 'async'='false');
+
+--4. 测试各种类型的TsFile数据
+// 大数据量：3GB、5GB
+// 跨时间分区
+
+--5. 测试目标为文件或目录，测试不同情况的tsfile
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none');
+// load不同的文件名，但是仅表名不同
+// load相同的文件名，但是仅表名不同
+// load不同的文件名，但是表名相同，无其他不同
+// load相同的文件名，但是表名相同，无其他不同
+load '/data/tsfile/tree' with ('database-level'='1','on-success'='none');
+
+--6. 错误情况
+load '' with ('database-level'='1','on-success'='none');
+<<SQLSTATE;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='');
+<<SQLSTATE;
+
+--7. 需要手动测试的（部分正常，部分异常）
+// load不同的文件名
+// load相同的文件名
+// 加载成功后删除tsfile
+// load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='delete');
+
+delete database root.**;

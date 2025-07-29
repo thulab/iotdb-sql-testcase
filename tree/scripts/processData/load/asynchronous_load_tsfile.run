@@ -1,0 +1,72 @@
+--0.连接数据库清理环境
+connect root/root;
+delete database root.**;
+<<NULL;
+
+--1. 测试database-level参数（设置on-success参数都为none，防止数据文件被删除）
+// 各种层级
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1', 'on-success'='none', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='2', 'on-success'='none', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='3', 'on-success'='none', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+
+--2. 测试on-success参数
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+
+--3. 测试其他参数
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'convert-on-type-mismatch'='false', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+// delete database root.**;
+// 当前verify​参数不可用：load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'verify​'='false', 'async'='true');
+// sleep 10000;
+// select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'tablet-conversion-threshold'='10', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'async'='true');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+// delete database root.**;
+// 当前verify​参数不可用：load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none', 'convert-on-type-mismatch'='false', 'verify​'='false', 'tablet-conversion-threshold'='10', 'async'='true');
+// sleep 10000;
+// select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+
+--4. 测试各种类型的TsFile数据
+// 大数据量：3GB、5GB
+// 跨时间分区
+
+--5. 测试目标为文件或目录，测试不同情况的tsfile
+delete database root.**;
+load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='none');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+// load不同的文件名，但是仅表名不同
+// load相同的文件名，但是仅表名不同
+// load不同的文件名，但是表名相同，无其他不同
+// load相同的文件名，但是表名相同，无其他不同
+delete database root.**;
+load '/data/tsfile/tree' with ('database-level'='1','on-success'='none');
+sleep 10000;
+select m1,m2,m3,m4,m5,m6,m7,m8,m9,m10 from root.** order by time;
+
+--6. 需要手动测试的（部分正常，部分异常）
+// load不同的文件名
+// load相同的文件名
+// 加载成功后删除tsfile
+// load '/data/tsfile/tree/tree1.tsfile' with ('database-level'='1','on-success'='delete');
+
+delete database root.**;
