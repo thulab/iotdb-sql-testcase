@@ -20,13 +20,13 @@ DROP CONTINUOUS QUERY cq2;
 --1.root用户：分别创建CQ和普通用户，并查看CQ列表以及列出用户权限
 connect root/root;
 CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END;
-CREATE USER user01 'pass1234';
+CREATE USER user01 'pass123456789';
 show cqs;
 list user;
 list privileges of user user01;
 
 --2.普通用户创建CQ，查看CQ，删除CQ
-connect user01/pass1234;
+connect user01/pass123456789;
 CREATE CONTINUOUS QUERY cq2 RESAMPLE RANGE 10s BEGIN SELECT avg(temperature) INTO root.ln.wf01(temperature_avg) FROM root.ln.wf01 GROUP BY(5s) END;
 <<SQLSTATE;
 SHOW CONTINUOUS QUERIES;
@@ -69,9 +69,9 @@ DROP CONTINUOUS QUERY cq4;
 
 --1.root用户：分别创建普通用户
 connect root/root;
-CREATE USER user01 'pass1234';
-CREATE USER user02 'pass1234';
-CREATE USER user03 'pass1234';
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
 list user;
 
 --2. 授予普通用户USE_CQ权限
@@ -81,7 +81,7 @@ list privileges of user user01;
 list privileges of user user02;
 
 --3.用户user01：执行CQ权限
-connect user01/pass1234;
+connect user01/pass123456789;
 CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END;
 CREATE CONTINUOUS QUERY cq2 RESAMPLE RANGE 10s BEGIN SELECT avg(temperature) INTO root.ln.wf01(temperature_avg) FROM root.ln.wf01 GROUP BY(5s) END;
 SHOW CONTINUOUS QUERIES;
@@ -89,7 +89,7 @@ DROP CONTINUOUS QUERY cq1;
 SHOW CONTINUOUS QUERIES;
 
 --4.用户user02：执行CQ权限
-connect user02/pass1234;
+connect user02/pass123456789;
 GRANT USE_CQ ON root.** TO USER user03;
 CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 10s RANGE 20s BEGIN SELECT min_value(temperature) INTO root.ln.wf01(temperature_min) FROM root.ln.wf01 GROUP BY(3s) FILL(100.0) END;
 SHOW CONTINUOUS QUERIES;
@@ -97,7 +97,7 @@ DROP CONTINUOUS QUERY cq3;
 SHOW CONTINUOUS QUERIES;
 
 --5.用户user03：执行CQ权限
-connect user03/pass1234;
+connect user03/pass123456789;
 CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 10s RANGE 30s, 10s BEGIN SELECT sum(temperature) INTO root.ln.wf01(temperature_sum) FROM root.ln.wf01 GROUP BY(10s) FILL(100.0) END;
 SHOW CONTINUOUS QUERIES;
 DROP CONTINUOUS QUERY cq4;
@@ -152,7 +152,7 @@ sleep 1000;
 insert into root.ln.wf01(time,status,temperature) values(now(),1,24.1);
 
 --7.用户user01：执行CQ
-connect user01/pass1234;
+connect user01/pass123456789;
 select count(temperature_avg) from root.ln.wf01;
 show CQs;
 DROP CONTINUOUS QUERY cq2;
