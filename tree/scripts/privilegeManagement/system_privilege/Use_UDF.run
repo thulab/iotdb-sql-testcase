@@ -5,22 +5,22 @@
 
 //一、无权限用户：注册UDF，查看UDF列表，卸载已注册的UDF
 --0.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
 <<NULL;
 
 --1.root用户：分别注册UDF和创建普通用户，并查询UDF注册列表以及列出用户权限
-connect root/root;
+connect root/TimechoDB@2021;
 CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
-CREATE USER user01 'pass1234';
+CREATE USER user01 'pass123456789';
 show functions;
 list user;
 list privileges of user user01;
 
 --2.未授权的用户user01：注册UDF，查询所有注册的UDF，卸载已注册的UDF
-connect user01/pass1234;
+connect user01/pass123456789;
 CREATE FUNCTION example_cp AS 'org.apache.iotdb.udf.UDTFExample';
 <<SQLSTATE;
 SHOW FUNCTIONS;
@@ -29,7 +29,7 @@ DROP FUNCTION example;
 <<SQLSTATE;
 
 --3.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
@@ -43,7 +43,7 @@ DROP FUNCTION example_cp;
 //二、用户赋予USE_UDF权限：分别注册UDF，查询UDF注册列表，UDF查询，删除UDF操作
 
 --0.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;
@@ -54,10 +54,10 @@ DROP USER user03;
 <<NULL;
 
 --1.root用户：创建普通用户
-connect root/root;
-CREATE USER user01 'pass1234';
-CREATE USER user02 'pass1234';
-CREATE USER user03 'pass1234';
+connect root/TimechoDB@2021;
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
 list user;
 
 --2. 授予普通用户USE_CQ权限
@@ -67,25 +67,25 @@ list privileges of user user01;
 list privileges of user user02;
 
 --3.用户user01：执行UDF权限
-connect user01/pass1234;
+connect user01/pass123456789;
 CREATE FUNCTION example_01 AS 'org.apache.iotdb.udf.UDTFExample';
 show functions;
 drop function example_01;
 
 --4.用户user02：执行CQ权限
-connect user02/pass1234;
+connect user02/pass123456789;
 GRANT USE_UDF ON root.** TO USER user03;
 CREATE FUNCTION example_02 AS 'org.apache.iotdb.udf.UDTFExample';
 show functions;
 drop function example_02;
 
 --5.用户user03：执行CQ权限
-connect user03/pass1234;
+connect user03/pass123456789;
 CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
 show functions;
 
 --6.root用户：插入数据
-connect root/root;
+connect root/TimechoDB@2021;
 create timeseries root.sg.d1.s1 with datatype=INT32;
 create timeseries root.sg.d1.s2 with datatype=INT32;
 insert into root.sg.d1(time,s1,s2) values(1,1,1);
@@ -96,7 +96,7 @@ show functions;
 select example(*) from root.sg.d1;
 
 --8.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete DATABASE root.**;
 <<NULL;
 DROP USER user01;

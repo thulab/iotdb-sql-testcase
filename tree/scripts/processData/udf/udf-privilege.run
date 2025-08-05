@@ -1,4 +1,4 @@
-connect root/root;
+connect root/TimechoDB@2021;
 // 先不考虑测试权限
 // 1 CREATE_FUNCTION
 -- 1.1 用户无;
@@ -11,29 +11,29 @@ connect root/root;
 drop database root.**;<<NULL;
 sleep 1000;
 drop user lily_create_udf;<<NULL;
-create user lily_create_udf '123456';
+create user lily_create_udf 'pass123456789';
 
 -- 无任何权限
 -- 期望：报错无权限
-connect lily_create_udf/123456;
+connect lily_create_udf/pass123456789;
 CREATE FUNCTION example as 'Max';<<SQLSTATE;
 show functions;<<SQLSTATE;
 drop function example;<<SQLSTATE;
 
 -- 授权create
-connect root/root;
+connect root/TimechoDB@2021;
 grant USE_UDF on root.** to user lily_create_udf; 
 grant read on root.** to user lily_create_udf;
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 
-connect lily_create_udf/123456;
+connect lily_create_udf/pass123456789;
 CREATE FUNCTION example AS 'Max';
 show functions;
 insert into root.sg1.dev0(time,s_1) values(1,100);<<SQLSTATE;
 select example(s_1) from root.sg1.dev0;
 
-connect root/root;
+connect root/TimechoDB@2021;
 sleep 500;
 show timeseries root.**;
 insert into root.sg1.dev0(time,s_1) values(1,100);
@@ -42,11 +42,11 @@ select s_1 from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 
 -- 查看使用UDF
-connect lily_create_udf/123456;
+connect lily_create_udf/pass123456789;
 select example(s_1) from root.sg1.dev0;
 
 --普通用户卸载UDF
-connect lily_create_udf/123456;
+connect lily_create_udf/pass123456789;
 drop function example;
 show functions;
 CREATE FUNCTION example AS 'Max';
@@ -54,22 +54,22 @@ CREATE FUNCTION example2 AS 'Max';
 show functions;
 
 -- 取消授权
-connect root/root;
+connect root/TimechoDB@2021;
 revoke USE_UDF on root.** from user lily_create_udf; 
 
-connect lily_create_udf/123456;
+connect lily_create_udf/pass123456789;
 CREATE FUNCTION example3 AS 'Max';<<SQLSTATE;
 drop function example2;
 <<SQLSTATE;
 
-connect root/root;
+connect root/TimechoDB@2021;
 drop user lily_create_udf;
 drop function example;
 drop function example2;
 delete DATABASE root.**;
 
 // 3 ROLE
-connect root/root;
+connect root/TimechoDB@2021;
 delete DATABASE root.**;<<NULL;
 drop role role_function;<<NULL;
 drop role role_function_status;<<NULL;
@@ -85,14 +85,14 @@ list privileges of role role_function_status;
 
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-create user lily_create_function '123456';
+create user lily_create_function 'pass123456789';
 list privileges of user lily_create_function;
 -- 授权create read_timeseries
 grant role role_function to lily_create_function;
 list privileges of user lily_create_function;
 --list privileges of user lily_create_function on root.sg1.**;(旧语法)
 
-connect lily_create_function/123456;
+connect lily_create_function/pass123456789;
 CREATE FUNCTION example AS 'Max';
 show functions;
 select * from root.sg1.dev0;
@@ -100,7 +100,7 @@ select example(s_1) from root.sg1.dev0;
 insert into root.sg1.dev0(time,s_1) values(1,300);<<SQLSTATE;
 
 -- 授权drop
-connect root/root;
+connect root/TimechoDB@2021;
 grant role role_function_status to lily_create_function;
 list privileges of user lily_create_function;
 insert into root.sg1.dev0(time,s_1) values(2,100);
@@ -108,14 +108,14 @@ select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 sleep 50;
 
-connect lily_create_function/123456;
+connect lily_create_function/pass123456789;
 select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 drop function example;
 show functions;
 select example(s_1) from root.sg1.dev0;<<SQLSTATE;
 
-connect root/root;
+connect root/TimechoDB@2021;
 drop role role_function;
 drop role role_function_status;
 drop user lily_create_function;
