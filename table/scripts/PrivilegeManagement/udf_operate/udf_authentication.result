@@ -1,27 +1,27 @@
--- [1]23:CREATE DATABASE test_udf_authentication
+-- [1]22:CREATE DATABASE test_udf_authentication
 STRICT{
 PASS
 }
--- [1]24:USE test_udf_authentication
+-- [1]23:USE test_udf_authentication
 STRICT{
 PASS
 }
--- [1]25:CREATE TABLE t1(device_id STRING TAG, s1 TEXT FIELD, s2 INT32 FIELD)
+-- [1]24:CREATE TABLE t1(device_id STRING TAG, s1 TEXT FIELD, s2 INT32 FIELD)
 STRICT{
 PASS
 }
--- [1]26:INSERT INTO t1(time, device_id, s1, s2) VALUES (1, 'd1', 'a', 1), (2, 'd1', null, 2), (3, 'd1', 'c', null)
+-- [1]25:INSERT INTO t1(time, device_id, s1, s2) VALUES (1, 'd1', 'a', 1), (2, 'd1', null, 2), (3, 'd1', 'c', null)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.245
--- [1]30:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
+Elapsed Time: 0.0.176
+-- [1]29:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
 STRICT{
 PASS
 }
 
--- [1]32:SHOW functions
+-- [1]31:SHOW functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
 -------------------------------------------------------------------------------------------
@@ -214,9 +214,9 @@ CAPACITY                |built-in table function |                          |AVA
 总数目：81
 }
 
-Elapsed Time: 0.0.12
+Elapsed Time: 0.0.11
 
--- [1]34:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
+-- [1]33:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -231,33 +231,33 @@ time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |con
 总数目：3
 }
 
-Elapsed Time: 0.0.34
--- [1]36:DROP function contain_null
+Elapsed Time: 0.0.15
+-- [1]35:DROP function contain_null
 STRICT{
 PASS
 }
--- [1]37:create function contain_null as 'org.apache.iotdb.testcase.TestScalarFunction'
+-- [1]36:create function contain_null as 'org.apache.iotdb.testcase.TestScalarFunction'
 STRICT{
 PASS
 }
--- [1]40:create user user1 '123456'
+-- [1]39:create user user1 'pass123456789'
 STRICT{
 PASS
 }
--- [1]41:create user user2 '123456'
+-- [1]40:create user user2 'pass123456789'
 STRICT{
 PASS
 }
--- [1]42:create user user3 '123456'
+-- [1]41:create user user3 'pass123456789'
 STRICT{
 PASS
 }
--- [1]43:create user user4 '123456'
+-- [1]42:create user user4 'pass123456789'
 STRICT{
 PASS
 }
 
--- [1]44:list user
+-- [1]43:list user
 STRICT{
 User(TEXT)      |
 ----------------
@@ -273,21 +273,21 @@ user4           |
 总数目：5
 }
 
-Elapsed Time: 0.0.2
--- [1]45:grant all to user user1
+Elapsed Time: 0.0.10
+-- [1]44:grant all to user user1
 STRICT{
 PASS
 }
--- [1]46:grant SELECT ON DATABASE test_udf_authentication to user user2
+-- [1]45:grant SELECT ON DATABASE test_udf_authentication to user user2
 STRICT{
 PASS
 }
--- [1]47:grant SELECT ON TABLE t1 to user user3
+-- [1]46:grant SELECT ON TABLE t1 to user user3
 STRICT{
 PASS
 }
 
--- [1]48:list privileges of user user1
+-- [1]47:list privileges of user user1
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -311,7 +311,7 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
 
 Elapsed Time: 0.0.3
 
--- [1]49:list privileges of user user2
+-- [1]48:list privileges of user user2
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
 
 Elapsed Time: 0.0.1
 
--- [1]50:list privileges of user user3
+-- [1]49:list privileges of user user3
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -331,220 +331,668 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]51:list privileges of user user4
+-- [1]50:list privileges of user user4
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
 
+Elapsed Time: 0.0.0
+-- [1]55:USE test_udf_authentication
+STRICT{
+PASS
+}
+-- [1]57:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+
+-- [1]60:SHOW functions
+STRICT{
+FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
+-------------------------------------------------------------------------------------------
+CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
+                        |tion                    |TestScalarFunction        |                 |
+-------------------------------------------------------------------------------------------
+LN                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+UPPER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+REPLACE                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIGN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ATAN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DEGREES                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAST                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TRIM                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SQRT                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+EXP                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRCMP                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TAN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
+HMETIC                  |                        |                          |                 |
+-------------------------------------------------------------------------------------------
+REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SINH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOWER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORMAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DIFF                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CONCAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ACOS                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CEIL                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOG10                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LEAST                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RADIANS                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TANH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRPOS                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FLOOR                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+GREATEST                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+E                       |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LENGTH                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COSH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ABS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ROUND                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+PI                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ASIN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+SUM                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MODE                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+AVG                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+CUMULATE                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SESSION                 |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+HOP                     |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TUMBLE                  |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORECAST                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VARIATION               |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAPACITY                |built-in table function |                          |AVAILABLE        |
+总数目：81
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]62:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |a             |1              |false                      |false                   |false                   |
+01+08:00             |                       |              |               |                           |                        |                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |null          |2              |true                       |true                    |false                   |
+02+08:00             |                       |              |               |                           |                        |                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |c             |null           |true                       |false                   |true                    |
+03+08:00             |                       |              |               |                           |                        |                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.6
+-- [1]64:DROP function contain_null
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+-- [1]69:USE test_udf_authentication
+STRICT{
+PASS
+}
+-- [1]71:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+
+-- [1]74:SHOW functions
+STRICT{
+FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
+-------------------------------------------------------------------------------------------
+CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
+                        |tion                    |TestScalarFunction        |                 |
+-------------------------------------------------------------------------------------------
+LN                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+UPPER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+REPLACE                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIGN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ATAN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DEGREES                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAST                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TRIM                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SQRT                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+EXP                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRCMP                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TAN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
+HMETIC                  |                        |                          |                 |
+-------------------------------------------------------------------------------------------
+REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SINH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOWER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORMAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DIFF                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CONCAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ACOS                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CEIL                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOG10                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LEAST                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RADIANS                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TANH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRPOS                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FLOOR                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+GREATEST                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+E                       |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LENGTH                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COSH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ABS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ROUND                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+PI                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ASIN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+SUM                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MODE                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+AVG                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+CUMULATE                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SESSION                 |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+HOP                     |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TUMBLE                  |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORECAST                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VARIATION               |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAPACITY                |built-in table function |                          |AVAILABLE        |
+总数目：81
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]76:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |a             |1              |false                      |false                   |false                   |
+01+08:00             |                       |              |               |                           |                        |                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |null          |2              |true                       |true                    |false                   |
+02+08:00             |                       |              |               |                           |                        |                        |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |c             |null           |true                       |false                   |true                    |
+03+08:00             |                       |              |               |                           |                        |                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+-- [1]78:DROP function contain_null
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+-- [1]83:USE test_udf_authentication
+STRICT{
+PASS
+}
+-- [1]85:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
+}
+
+-- [1]88:SHOW functions
+STRICT{
+FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
+-------------------------------------------------------------------------------------------
+CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
+                        |tion                    |TestScalarFunction        |                 |
+-------------------------------------------------------------------------------------------
+LN                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+UPPER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+REPLACE                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIGN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ATAN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DEGREES                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAST                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TRIM                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SQRT                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+EXP                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRCMP                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TAN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
+HMETIC                  |                        |                          |                 |
+-------------------------------------------------------------------------------------------
+REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SINH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOWER                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORMAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DIFF                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CONCAT                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ACOS                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CEIL                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LOG10                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LEAST                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RADIANS                 |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TANH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STRPOS                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SIN                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FLOOR                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+GREATEST                |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+E                       |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LENGTH                  |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+RTRIM                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COSH                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ABS                     |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ROUND                   |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+PI                      |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ASIN                    |built-in scalar function|                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+SUM                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MODE                    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+AVG                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN                     |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
+                        |ion                     |                          |                 |
+-------------------------------------------------------------------------------------------
+CUMULATE                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SESSION                 |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+HOP                     |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TUMBLE                  |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FORECAST                |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VARIATION               |built-in table function |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAPACITY                |built-in table function |                          |AVAILABLE        |
+总数目：81
+}
+
 Elapsed Time: 0.0.1
--- [1]56:USE test_udf_authentication
-STRICT{
-PASS
-}
--- [1]58:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
-}
 
--- [1]61:SHOW functions
-STRICT{
-FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
--------------------------------------------------------------------------------------------
-CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
-                        |tion                    |TestScalarFunction        |                 |
--------------------------------------------------------------------------------------------
-LN                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-UPPER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-REPLACE                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIGN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ATAN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DEGREES                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAST                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TRIM                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SQRT                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-EXP                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRCMP                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TAN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
-HMETIC                  |                        |                          |                 |
--------------------------------------------------------------------------------------------
-REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SINH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOWER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORMAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DIFF                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CONCAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ACOS                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CEIL                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOG10                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LEAST                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RADIANS                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TANH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRPOS                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FLOOR                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-GREATEST                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-E                       |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LENGTH                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COSH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ABS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ROUND                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-PI                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ASIN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-SUM                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MODE                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-AVG                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-CUMULATE                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SESSION                 |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-HOP                     |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TUMBLE                  |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORECAST                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VARIATION               |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAPACITY                |built-in table function |                          |AVAILABLE        |
-总数目：81
-}
-
-Elapsed Time: 0.0.2
-
--- [1]63:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
+-- [1]90:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
 ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -559,469 +1007,21 @@ time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |con
 总数目：3
 }
 
-Elapsed Time: 0.0.18
--- [1]65:DROP function contain_null
+Elapsed Time: 0.0.4
+-- [1]92:DROP function contain_null
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
 }
--- [1]70:USE test_udf_authentication
-STRICT{
-PASS
-}
--- [1]72:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
-}
-
--- [1]75:SHOW functions
-STRICT{
-FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
--------------------------------------------------------------------------------------------
-CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
-                        |tion                    |TestScalarFunction        |                 |
--------------------------------------------------------------------------------------------
-LN                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-UPPER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-REPLACE                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIGN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ATAN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DEGREES                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAST                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TRIM                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SQRT                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-EXP                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRCMP                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TAN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
-HMETIC                  |                        |                          |                 |
--------------------------------------------------------------------------------------------
-REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SINH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOWER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORMAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DIFF                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CONCAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ACOS                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CEIL                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOG10                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LEAST                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RADIANS                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TANH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRPOS                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FLOOR                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-GREATEST                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-E                       |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LENGTH                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COSH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ABS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ROUND                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-PI                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ASIN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-SUM                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MODE                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-AVG                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-CUMULATE                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SESSION                 |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-HOP                     |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TUMBLE                  |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORECAST                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VARIATION               |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAPACITY                |built-in table function |                          |AVAILABLE        |
-总数目：81
-}
-
-Elapsed Time: 0.0.1
-
--- [1]77:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
-STRICT{
-time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |a             |1              |false                      |false                   |false                   |
-01+08:00             |                       |              |               |                           |                        |                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |null          |2              |true                       |true                    |false                   |
-02+08:00             |                       |              |               |                           |                        |                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |c             |null           |true                       |false                   |true                    |
-03+08:00             |                       |              |               |                           |                        |                        |
-总数目：3
-}
-
-Elapsed Time: 0.0.22
--- [1]79:DROP function contain_null
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
-}
--- [1]84:USE test_udf_authentication
-STRICT{
-PASS
-}
--- [1]86:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
-}
-
--- [1]89:SHOW functions
-STRICT{
-FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
--------------------------------------------------------------------------------------------
-CONTAIN_NULL            |user-defined scalar func|org.apache.iotdb.testcase.|AVAILABLE        |
-                        |tion                    |TestScalarFunction        |                 |
--------------------------------------------------------------------------------------------
-LN                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_NOT             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-UPPER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-REPLACE                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIGN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_AND             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_XOR             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ATAN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DEGREES                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAST                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_LEFT_SHIFT      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TRIM                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SQRT                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DATE_BIN                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-EXP                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRCMP                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TAN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_RIGHT_SHIFT_ARIT|built-in scalar function|                          |AVAILABLE        |
-HMETIC                  |                        |                          |                 |
--------------------------------------------------------------------------------------------
-REGEXP_LIKE             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SINH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOWER                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORMAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-DIFF                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CONCAT                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ACOS                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CEIL                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LOG10                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LEAST                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RADIANS                 |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SUBSTRING               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STARTS_WITH             |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TANH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-STRPOS                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SIN                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FLOOR                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BITWISE_OR              |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-GREATEST                |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-E                       |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-LENGTH                  |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-RTRIM                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-COSH                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ENDS_WITH               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ABS                     |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ROUND                   |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-PI                      |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-BIT_COUNT               |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-ASIN                    |built-in scalar function|                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VAR_POP                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_ALL               |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_SAMP             |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VAR_SAMP                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-SUM                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV_POP              |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MODE                    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-LAST_BY                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_COUNT_DISTINCT   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-AVG                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN                     |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-VARIANCE                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-STDDEV                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MAX_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-COUNT_IF                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-EXTREME                 |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST                   |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-APPROX_MOST_FREQUENT    |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-FIRST_BY                |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-MIN_BY                  |built-in aggregate funct|                          |AVAILABLE        |
-                        |ion                     |                          |                 |
--------------------------------------------------------------------------------------------
-CUMULATE                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-SESSION                 |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-HOP                     |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-TUMBLE                  |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-FORECAST                |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-VARIATION               |built-in table function |                          |AVAILABLE        |
--------------------------------------------------------------------------------------------
-CAPACITY                |built-in table function |                          |AVAILABLE        |
-总数目：81
-}
-
-Elapsed Time: 0.0.2
-
--- [1]91:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
-STRICT{
-time(TIMESTAMP)      |device_id(STRING)      |s1(TEXT)      |s2(INT32)      |contain_null(BOOLEAN)      |s1_isnull(BOOLEAN)      |s2_isnull(BOOLEAN)      |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |a             |1              |false                      |false                   |false                   |
-01+08:00             |                       |              |               |                           |                        |                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |null          |2              |true                       |true                    |false                   |
-02+08:00             |                       |              |               |                           |                        |                        |
-----------------------------------------------------------------------------------------------------------------------------------------------------
-1970-01-01T08:00:00.0|d1                     |c             |null           |true                       |false                   |true                    |
-03+08:00             |                       |              |               |                           |                        |                        |
-总数目：3
-}
-
-Elapsed Time: 0.0.16
--- [1]93:DROP function contain_null
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
-}
--- [1]98:USE test_udf_authentication
+-- [1]97:USE test_udf_authentication
 STRICT{
 SQLSTATE : 803: Access Denied: DATABASE test_udf_authentication
 }
--- [1]101:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
+-- [1]100:CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction'
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
 }
 
--- [1]104:SHOW functions
+-- [1]103:SHOW functions
 STRICT{
 FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
 -------------------------------------------------------------------------------------------
@@ -1214,36 +1214,36 @@ CAPACITY                |built-in table function |                          |AVA
 总数目：81
 }
 
-Elapsed Time: 0.0.2
--- [1]106:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
+Elapsed Time: 0.0.1
+-- [1]105:SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time
 STRICT{
 SQLSTATE : 701: Database must be specified when session database is not set
 }
--- [1]109:DROP function contain_null
+-- [1]108:DROP function contain_null
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, only root user is allowed
 }
--- [1]113:drop function contain_null
+-- [1]112:drop function contain_null
 STRICT{
 PASS
 }
--- [1]114:drop database test_udf_authentication
+-- [1]113:drop database test_udf_authentication
 STRICT{
 PASS
 }
--- [1]115:drop user user1
+-- [1]114:drop user user1
 STRICT{
 PASS
 }
--- [1]116:drop user user2
+-- [1]115:drop user user2
 STRICT{
 PASS
 }
--- [1]117:drop user user3
+-- [1]116:drop user user3
 STRICT{
 PASS
 }
--- [1]118:drop user user4
+-- [1]117:drop user user4
 STRICT{
 PASS
 }

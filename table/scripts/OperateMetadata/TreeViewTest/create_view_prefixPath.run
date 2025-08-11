@@ -1,4 +1,4 @@
-connect root/root;
+connect root/TimechoDB@2021;
 //tc normal user create view no tree db
 set sql_dialect=tree;
 drop database root.**;
@@ -11,11 +11,11 @@ drop database db;
 drop user test;
 <<null;
 create database db;
-create user test '123456';
+create user test 'pass123456789';
 grant all on db.v1 to user test;
 set sql_dialect=tree;
 grant READ_SCHEMA, READ_DATA on root.** to user test;
-connect test/123456;
+connect test/pass123456789;
 set sql_dialect=table;
 drop view v1;<<null;
 create view db.v1() as **;
@@ -23,18 +23,18 @@ create view db.v1() as **;
 create view db.v1() as root.db.**;
 select * from db.v1;
 show create view db.v1;
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 insert into root.db(time,s0) values(1000,1.1);
 insert into root.db(time,s1) values(2000,X'abcd');
 show devices root.db.**;
 show devices;
-connect test/123456;
+connect test/pass123456789;
 set sql_dialect=table;
 select * from db.v1;
 show create view db.v1;
 create or replace view db.v1() as root.**;
-
+<<sqlstate;
 create or replace view db.v1() as root.**.db;
 <<sqlstate;
 create or replace view db.v1() as root.*.db.**;
@@ -66,24 +66,24 @@ create or replace view db.v1() as "中文".**;
 create or replace view db.v1() as db;
 <<sqlstate;
 create or replace view db.v1(device_id string tag) as root.**;
-
-select * from db.v1;
 <<sqlstate;
-connect root/root;
+select * from db.v1;
+
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 // drop tree db ,query view
 drop database root.db;
-connect test/123456;
+connect test/pass123456789;
 set sql_dialect=table;
 select * from db.v1;
 
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=table;
 drop database db;
 
 // tc ,tree 2db ,view root.** ,create failed,pass
 
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 drop database root.**;<<null;
 unset ttl from root.**;<<null;
@@ -105,7 +105,7 @@ set sql_dialect=tree;
 drop database root.**;
 
 // tc ,create view root.db.**,create insert tree ,query view only device_id ,create or replace ,view all could be 
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 drop database root.**;<<null;
 set sql_dialect=table;
@@ -132,7 +132,7 @@ drop database root.**;
 
 // tc tree not exist any db,create root.**,insert tree root.db  is a device
 
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 drop database root.**;<<null;
 set sql_dialect=table;
@@ -151,10 +151,10 @@ use db;
 select * from v1;
 flush;
 sleep 1000;
-select * from v1;<<sqlstate;
+select * from v1;
 show create view v1;
 create or replace view db.v1(device_id string tag) as root.**;
-<<sqlstate;
+
 create or replace view db.v1(device_id string tag) as root.db.**;
 select * from v1 order by time;
 show create view v1;
@@ -183,7 +183,7 @@ drop database root.**;
 
 // tc tree not exist any db,create root.**,insert tree root.db.d1
 
-connect root/root;
+connect root/TimechoDB@2021;
 set sql_dialect=tree;
 drop database root.**;<<null;
 set sql_dialect=table;

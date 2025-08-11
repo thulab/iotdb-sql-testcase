@@ -6,10 +6,10 @@
 //允许在授权路径下设置、取消、查看TTL。
 //模板的创建是全局的，但只能对指定路径挂载或解除挂载模板，只能查看或删除挂载在自己路径下的模板或没有挂载的模板。
 
-connect root/root;
+connect root/TimechoDB@2021;
 
 --0.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete timeseries of device template t1 from root.sg.aligned_template;
 <<NULL;
 unset device template t1 from root.sg.aligned_template;
@@ -91,10 +91,10 @@ insert into root.sg.aligned_template(time,temperature,status) values(1,20,false)
 insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false);
 
 --9.创建用户
-CREATE USER user01 'pass1234';
-CREATE USER user02 'pass1234';
-CREATE USER user03 'pass1234';
-CREATE USER user04 'pass1234';
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
+CREATE USER user04 'pass123456789';
 
 --10.列出用户列表
 list user;
@@ -118,7 +118,7 @@ GRANT WRITE_SCHEMA ON root.data TO USER user04;
 
 --13.user01登录
 --13.1 WRITE_SCHEMA可支持的操作
-connect user01/pass1234;
+connect user01/pass123456789;
 show version;
 <<CHECKCODE;
 create aligned timeseries root.sg.d1(s3 double encoding=rle, s4 int32 encoding=rle);
@@ -187,7 +187,7 @@ delete database root.**;
 
 --14.user02登录
 --14.1 WRITE_SCHEMA可支持的操作
-connect user02/pass1234;
+connect user02/pass123456789;
 show version;
 <<CHECKCODE;
 GRANT WRITE_SCHEMA ON root.sg.d1.** TO USER user03;
@@ -230,7 +230,7 @@ delete timeseries root.**;
 
 --15.user03登录
 --15.1 WRITE_SCHEMA可支持的操作
-connect user03/pass1234;
+connect user03/pass123456789;
 show version;
 <<CHECKCODE;
 show databases;
@@ -262,7 +262,7 @@ delete timeseries root.**;
 
 --16.user04登录
 --16.1 WRITE_SCHEMA可支持的操作
-connect user04/pass1234;
+connect user04/pass123456789;
 show version;
 <<CHECKCODE;
 show databases;
@@ -286,7 +286,7 @@ delete database root.**;
 <<SQLSTATE;
 
 --17.root取消权限
-connect root/root;
+connect root/TimechoDB@2021;
 LIST PRIVILEGES OF USER `user01`;
 revoke write_schema on root.** from user user01;
 LIST PRIVILEGES OF USER `user01`;
@@ -299,7 +299,7 @@ revoke write_schema on root.sg.d1 from user user02;
 LIST PRIVILEGES OF USER `user02`;
 
 --18.清理环境
-connect root/root;
+connect root/TimechoDB@2021;
 delete timeseries of device template t1 from root.sg.aligned_template;
 <<NULL;
 unset device template t1 from root.sg.aligned_template;
