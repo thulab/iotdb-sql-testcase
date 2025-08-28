@@ -1084,8 +1084,229 @@ select m.time, m.match, m.price, m.label from orders
 			B AS B.totalprice <= PREV(B.totalprice)
     ) AS m
 order by time, match, price;
-	
-	
+
+--聚合函数
+-- count
+SELECT m.match, m.count_total from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- sum
+SELECT m.match, m.sum_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			SUM(totalprice) AS sum_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- avg
+SELECT m.match, m.avg_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			AVG(totalprice) AS avg_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- max
+SELECT m.match, m.max_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MAX(totalprice) AS max_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- min
+SELECT m.match, m.min_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MIN(totalprice) AS min_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- max_by
+SELECT m.match, m.max_by from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MAX_BY(number, totalprice) AS max_by
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+-- min_by
+SELECT m.match, m.min_by from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MIN_BY(number, totalprice) AS min_by
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+------------组装sql------------
+
+-- count, partition customer_id
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- count, partition customer_id, number < 500
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number < 500
+	) AS m;
+
+-- count, partition customer_id, number < 500, ALL ROWS
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number < 500
+	) AS m;
+
+-- count, partition customer_id, number > 88888888
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number > 88888888
+	) AS m;
+
+-- count, PATTERN, SUBSET, DEFINE
+-- error, 【TIMECHODB-0529】
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+ B)
+		SUBSET U = (A, B)
+		DEFINE 
+			A AS A.product = 'door',
+			B AS B.customer_id = '101'
+	) AS m;
+<<SQLSTATE
+
+-- count, PATTERN, SUBSET, DEFINE
+-- true
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+ B)
+		SUBSET U = (A, B)
+		DEFINE 
+			A AS A.number < 666,
+			B AS B.totalprice > 10000
+	) AS m;
+
+-- count, PATTERN, DEFINE 类型不一致
+-- error
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A*)
+		DEFINE 
+			A AS A.product = true
+	) AS m;
+<<SQLSTATE
+
+-- 聚合函数中 嵌套 导航函数
+-- error
+SELECT m.match, m.count_total, m.invalid_measure FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			AVG(PREV(totalprice)) AS invalid_measure
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+<<SQLSTATE
+
+-- 导航函数中 嵌套 聚合函数
+-- error
+SELECT m.match, m.count_total, m.invalid_measure FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			PREV(AVG(totalprice)) AS invalid_measure
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- RUNNING & FINAL
+SELECT m.match, m.running_count, m.final_count FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING COUNT(number) AS running_count,
+			FINAL COUNT(number) AS final_count
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+
 --9. 异常场景用例
 --9.1 LAST 应该为RPR_LAST
 select * from orders 
