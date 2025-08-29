@@ -1177,7 +1177,8 @@ SELECT m.match, m.customer_id, m.count_total from orders
 		ONE ROW PER MATCH
 		PATTERN (A+)
 		DEFINE A AS true
-	) AS m;
+	) AS m
+order by m.match, m.customer_id, m.count_total;
 
 -- count, partition customer_id, number < 500
 SELECT m.match, m.customer_id, m.count_total from orders
@@ -1190,20 +1191,22 @@ SELECT m.match, m.customer_id, m.count_total from orders
 		ONE ROW PER MATCH
 		PATTERN (A+)
 		DEFINE A AS A.number < 500
-	) AS m;
+	) AS m
+order by m.match, m.customer_id, m.count_total;
 
 -- count, partition customer_id, number < 500, ALL ROWS
 SELECT m.match, m.customer_id, m.count_total from orders
 	MATCH_RECOGNIZE (
 		PARTITION BY customer_id
-		ORDER BY time
+		ORDER BY totalprice
 		MEASURES
 			MATCH_NUMBER() AS match,
 			COUNT(totalprice) AS count_total
 		ALL ROWS PER MATCH
 		PATTERN (A+)
 		DEFINE A AS A.number < 500
-	) AS m;
+	) AS m
+order by m.match, m.customer_id, m.count_total;
 
 -- count, partition customer_id, number > 88888888
 SELECT m.match, m.customer_id, m.count_total from orders
@@ -1233,7 +1236,7 @@ SELECT m.match, m.count_total FROM orders
 			A AS A.product = 'door',
 			B AS B.customer_id = '101'
 	) AS m;
-<<SQLSTATE
+<<SQLSTATE;
 
 -- count, PATTERN, SUBSET, DEFINE
 -- true
@@ -1264,7 +1267,7 @@ SELECT m.match, m.count_total FROM orders
 		DEFINE 
 			A AS A.product = true
 	) AS m;
-<<SQLSTATE
+<<SQLSTATE;
 
 -- 聚合函数中 嵌套 导航函数
 -- error
@@ -1278,7 +1281,7 @@ SELECT m.match, m.count_total, m.invalid_measure FROM orders
 		PATTERN (A+)
 		DEFINE A AS true
 	) AS m;
-<<SQLSTATE
+<<SQLSTATE;
 
 -- 导航函数中 嵌套 聚合函数
 -- error
@@ -1292,6 +1295,7 @@ SELECT m.match, m.count_total, m.invalid_measure FROM orders
 		PATTERN (A+)
 		DEFINE A AS true
 	) AS m;
+<<SQLSTATE;
 
 -- RUNNING & FINAL
 SELECT m.match, m.running_count, m.final_count FROM orders
