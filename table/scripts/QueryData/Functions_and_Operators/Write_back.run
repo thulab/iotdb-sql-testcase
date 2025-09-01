@@ -1,0 +1,492 @@
+// 查询写回
+
+connect root/TimechoDB@2021;
+-- 0. 清理环境
+drop database test_db;
+<<NULL;
+
+-- 1. 标准用法
+drop database if exists db1;
+create database db1;
+use db1;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+insert into t1(time,id,voltage) values(3000, '1', 3.1), (4000, '2', 4.1);
+insert into t2 table t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+insert into t1(time,id,voltage) values(5000, '1', 5.1), (6000, '2', 6.1);
+insert into t2 (select * from t1);
+select * from t2 order by time;
+select * from t1 order by time;
+
+-- 2. 写回自己
+insert into t1(time,id,voltage) values(7000, '1', 7.1), (8000, '2', 8.1);
+select * from t1 order by time;
+insert into t1 select * from t1;
+select * from t1 order by time;
+
+insert into t1(time,id,voltage) values(9000, '1', 9.1), (10000, '2', 10.1);
+select * from t1 order by time;
+insert into t1 table t1;
+select * from t1 order by time;
+
+insert into t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+select * from t1 order by time;
+insert into t1 (select * from t1);
+select * from t1 order by time;
+
+-- 3. insert into 表存在数据时
+create table t3(id string tag, s1 float,s2 int32,s3 text);
+create table t4(id string tag, s1 float,s2 int32,s3 text);
+
+insert into t3(time,id,s1,s2) values (1, 'a', 1.1, 11);
+insert into t4(time,id,s3) values (1, 'a', 'text');
+
+select * from t4 order by time;
+insert into t4 table t3;
+select * from t4 order by time;
+
+create table t5(id string tag, s1 float,s2 int32,s3 text);
+create table t6(id string tag, s1 float,s2 int32,s3 text);
+
+insert into t5(time,id,s1,s2) values (1, 'a', 1.1, 11);
+insert into t6(time,id,s1, s3) values (1, 'a', 2.2, 'text');
+
+select * from t5 order by time;
+select * from t6 order by time;
+insert into t6 table t5;
+select * from t6 order by time;
+
+-- 4. 写其他数据库
+-- 4.1
+drop database if exists db1;
+create database db1;
+create table db1.t1(id string tag, voltage float field);
+create table db1.t2(id string tag, voltage float field);
+
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+insert into db1.t2 select * from db1.t1;
+select * from db1.t2 order by time;
+select * from db1.t1 order by time;
+
+-- 4.2
+drop database if exists db1;
+create database db1;
+create table db1.t1(id string tag, voltage float field);
+create table db1.t2(id string tag, voltage float field);
+
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+use db1;
+insert into db1.t2 select * from db1.t1;
+select * from db1.t2 order by time;
+select * from db1.t1 order by time;
+
+-- 4.3
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(id string tag, voltage float field);
+create table db2.t1(id string tag, voltage float field);
+
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+use db1;
+insert into db2.t1 select * from db1.t1;
+select * from t1 order by time;
+select * from db2.t1 order by time;
+
+-- 4.4
+create table db1.t3(id string tag, voltage float field);
+create table db2.t3(id string tag, voltage float field);
+
+insert into db1.t3(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+use db2;
+insert into t3 select * from db1.t3;
+select * from db1.t3;
+select * from t3 order by time;
+
+-- 4.5
+create table db1.t4(id string tag, voltage float field);
+create table db2.t4(id string tag, voltage float field);
+
+insert into db1.t4(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+insert into db2.t4 select * from db1.t4;
+select * from db1.t4 order by time;
+select * from db2.t4 order by time;
+
+drop database if exists db1;
+drop database if exists db2;
+
+-- 5. 10种类型
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(1, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false, '2025-06-05', 1749052800000, 'string', X'abcd');
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(2, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false, '2025-06-05', 1749052800000, 'string', X'abcd');
+
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+
+insert into db1.t2 (select * from db1.t1);
+
+select * from db1.t1 order by time;
+select * from db1.t2 order by time;
+
+drop database if exists db1;
+
+-- 6. insert into 部分列（写入6列）
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD);
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(1, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(2, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(3, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+
+select * from db1.t1 order by time;
+
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG,  s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(s1,s2) select s1,s2 from db1.t1;
+<<SQLSTATE;
+select * from db1.t2 order by time;
+insert into db1.t2(s1,s2) select time,s1,s2 from db1.t1;
+<<SQLSTATE;
+select * from db1.t2 order by time;
+insert into db1.t2(time,s1,s2) select s1,s2 from db1.t1;
+<<SQLSTATE;
+select * from db1.t2 order by time;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(time,s1,s2) select time,s1,s2 from db1.t1;
+select * from db1.t2 order by time;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(time,attr1, s1,s2) select time,attr1, s1,s2 from db1.t1;
+select * from db1.t2 order by time;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(time,attr1, s1,s2) select time,attr1,attr2, s1,s2 from db1.t1;
+<<SQLSTATE;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(time,tag1, s1,s2) select time,tag1, s1,s2 from db1.t1;
+select * from db1.t2 order by time;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t2(time,tag1) select time,tag1 from db1.t1;
+<<SQLSTATE;
+
+drop table db1.t2;
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD);
+insert into db1.t2(time,attr1,attr2, s1,s2) select time,attr1,attr2, s1,s2 from db1.t1;
+select * from db1.t2 order by time;
+
+-- 7. 时间过滤
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+
+select * from db1.t1 order by time;
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time=1;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time>3;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<3;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time>=3;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<=3;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<=3 and time >=2;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<5 and time>2;
+select * from db1.t2 order by time;
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 limit 3;
+select * from db1.t2 order by time;
+
+-- 8. insert 指定列
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+insert into db1.t1(time, tag1, attr1, s1,s2) values(1, 'tag1', 'attr1',123, 12345678);
+
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD);
+insert into db1.t2 (select * from db1.t1);
+<<SQLSTATE;
+
+-- 9. explain
+drop database if exists db1;
+create database db1;
+use db1;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+explain insert into t1 select * from t1;
+<<SQLSTATE;
+explain analyze insert into t1 select * from t1;
+<<SQLSTATE;
+explain analyze verbose insert into t1 select * from t1;
+<<SQLSTATE;
+insert into t1 explain  select * from t1;
+<<SQLSTATE;
+
+-- 10. 表不存在
+-- 10.1  insert into 表不存在 xxx
+drop database if exists db1;
+create database db1;
+use db1;
+create table t1(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+insert into t2 select * from t1;
+<<SQLSTATE;
+
+-- 10.2  insert into 表 select 表不存在
+drop database if exists db1;
+create database db1;
+use db1;
+create table t2(id string tag, voltage float field);
+insert into t2 select * from t1;
+<<SQLSTATE;
+
+-- 10.3
+drop database if exists db1;
+create database db1;
+use db1;
+insert into t2 select * from t1;
+<<SQLSTATE;
+
+-- 11. 数据库不存在
+-- 11.1
+drop database if exists db1;
+insert into db1.t1 select * from db1.t1;
+<<SQLSTATE;
+
+-- 11.2
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create table db1.t1(id string tag, voltage float field);
+insert into db1.t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+insert into db2.t1 select * from db1.t1;
+<<SQLSTATE;
+
+-- 12. 跨类型写入
+-- 12.1
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,text,int) select time,tag1,int from db1.t1;
+<<SQLSTATE;
+
+-- 12.2
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,text,int) select time,attr1,int from db1.t1;
+<<SQLSTATE;
+
+-- 12.3
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,string,int) select time,tag1,int from db1.t1;
+select * from db1.t2 order by time;
+
+-- 12.4
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,string,int) select time,attr1,int from db1.t1;
+select * from db1.t2 order by time;
+
+-- 12.5
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,tag1,int) select time,text,int from db1.t1;
+<<SQLSTATE;
+
+-- 12.6
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,attr1,int) select time,text,int from db1.t1;
+<<SQLSTATE;
+
+-- 12.7
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,tag1,int) select time,string,int from db1.t1;
+select * from db1.t2 order by time;
+
+-- 12.8
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(time,attr1,int) select time,string,int from db1.t1;
+select * from db1.t2 order by time;
+
+-- 13. 使用聚合查询
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+select * from db1.t1 order by time;
+insert into db1.t2(int) select count(int) from db1.t1; 
+<<SQLSTATE;
+
+-- 14. 运算符
+drop database if exists db1;
+create database db1;
+create table db1.t1(tag1 STRING TAG, s1 INT32,s2 int32, s3 int32);
+insert into db1.t1(time, tag1,s1, s2,s3) values(1, 'tag1', 1,2,3);
+insert into db1.t1(time, tag1,s1, s2,s3) values(2, 'tag1', 4,5,6);
+create table db1.t2(tag1 STRING TAG, s1 INT32,s2 int32, s3 int32);
+select * from db1.t1 order by time;
+insert into db1.t2(time, tag1,s1) select time,tag1, s1+s2 from db1.t1;
+select * from db1.t2 order by time;
+
+-- 15. 权限测试
+-- 15.1
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+drop user user01;
+create user user01 '123456123456';
+
+grant select on database db1  to user user01;
+grant INSERT on database db2 to user user01;
+
+connect user01/123456123456;
+insert into db2.t1 table db1.t1;
+
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+
+-- 15.2
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+drop user user01;
+create user user01 '123456123456';
+
+grant select on database db1  to user user01;
+
+connect user01/123456123456;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 15.3
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+drop user user01;
+create user user01 '123456123456';
+
+grant INSERT on database db2 to user user01;
+
+connect user01/123456123456;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 15.4
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+drop user user01;
+create user user01 '123456123456';
+
+connect user01/123456123456;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+
+-- over
+drop database if exists db1;
+drop database if exists db2;
+
