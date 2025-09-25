@@ -45,64 +45,68 @@ create role role01;
 create role role02;
 
 list user;
+<<CHECKCODE;
 list role;
 
 --2. 未有转授权限的普通用户user01,给普通用户testuser01进行赋权
 connect user01/pass123456789;
 list privileges of user user01;
-grant manage_user to user testuser01;
+grant security to user testuser01;
 <<SQLSTATE;
 
---3. root赋予普通用户user02关于【MANAGE_USER】转授权限
+--3. root赋予普通用户user02关于【MANAGE_USER】转授权限,现在统一为【SECURITY】转授权限
 connect root/TimechoDB@2021;
-grant MANAGE_USER to user user02 with grant option;
+grant security to user user02 with grant option;
 
 --4. 被授予转授权限的普通用户user02，给普通用户testuser02进行赋权
 connect user02/pass123456789;
 list privileges of user user02;
-grant manage_user to user testuser02;
+grant security to user testuser02;
 
 
 --5. 普通用户testuser02查看自己拥有的权限，执行相关权限操作
 connect testuser02/pass123456789;
 list privileges of user testuser02;
-create user testuser02_02 'pass1234';
-grant manage_user to user user03;
-<<SQLSTATE;
+create user testuser02_02 'pass123456789';
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user user03;
 
 --6. 未有任何权限的角色role01，赋予用户user03后，执行相关权限操作
 connect root/TimechoDB@2021;
 grant role role01 to user03;
 list user of role role01;
+<<CHECKCODE;
 list role of user user03;
 
 connect user03/pass123456789;
 list role of user user03;
-grant manage_user to user testuser03;
-<<SQLSTATE;
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user testuser03;
 
 --7. root赋予角色role02转授权限，再将其赋予普通用户user04，执行相关的权限操作
 connect root/TimechoDB@2021;
-grant MANAGE_USER to role role02 with grant option;
+grant security to role role02 with grant option;
 list privileges of role role02;
 grant role role02 to user04;
 list user of role role02;
+<<CHECKCODE;
 list role of user user04;
 
 connect user04/pass123456789;
 list privileges of user user04;
 list role of user user04;
 create user testuser04 'pass123456789';
-grant manage_user to user testuser04;
+grant security to user testuser04;
 list user;
+<<CHECKCODE;
 
 connect testuser04/pass123456789;
 list privileges of user testuser04;
 create user testuser04_04 'pass123456789';
 list user;
-grant manage_user to user user05;
-<<SQLSTATE;
-
+<<CHECKCODE;
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user user05;
 
 
 -- 清理环境
