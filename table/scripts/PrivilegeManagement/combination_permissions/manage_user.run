@@ -12,11 +12,12 @@ drop database dba1;
 drop database dba2;
 <<NULL;
 
---1.普通用户仅授予MANAGE_USER权限的鉴权操作
+--1.普通用户仅授予MANAGE_USER权限的鉴权操作，目前统一为【SECURITY】权限
 // 1、创建用户
 create user user_1 'pass123456789';
 list user;
-grant manage_user to user user_1;
+<<CHECKCODE;
+grant security to user user_1;
 list privileges of user user_1;
 connect user_1/pass123456789;
 create user u001 'pass12345678';
@@ -30,39 +31,36 @@ connect u001/pass123456789;
 // 3、查看用户列表
 connect user_1/pass123456789;
 list user;
+<<CHECKCODE;
 // 4、删除用户
 connect user_1/pass123456789;
 drop user u001;
 list user;
+<<CHECKCODE;
 // 5、创建角色
 connect user_1/pass123456789;
 create role role_1;
-<<SQLSTATE;
 connect root/TimechoDB@2021;
 list role of user user_1;
-create role role_1;
+create role role_2;
 // 6、查看角色列表
 connect user_1/pass123456789;
 list role;
-<<SQLSTATE;
 // 7、删除角色
 connect user_1/pass123456789;
 drop role role_1;
-<<SQLSTATE;
-connect root/TimechoDB@2021;
-drop role role_1;
+drop role role_2;
 // 8、查询运行的查询取消查询
 connect user_1/pass123456789;
 show queries;
 <<CHECKCODE;
 kill all queries;
-<<SQLSTATE;
 // 9、查看变量信息
 show variables;
 <<SQLSTATE;
 // 10、查看version信息
 show version;
-<<CHECKCODE;
+<<SQLSTATE;
 // 11、创建数据库
 create database dba2;
 <<SQLSTATE;
