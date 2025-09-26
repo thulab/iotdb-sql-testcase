@@ -22,56 +22,59 @@ create user user02 'pass123456789';
 --2. root列出角色列表和用户
 list role;
 list user;
+<<CHECKCODE;
 
 --3. 将角色赋予普通用户
 grant role teacher to user01;
 grant role student to user02;
 list user of role teacher;
+<<CHECKCODE;
 list user of role student;
+<<CHECKCODE;
 
 --4. 未授权的普通用户user01，列出相关列表信息
 connect user01/pass123456789;
 list privileges of user user01;
 list role of user user01;
 list user of role teacher;
-<<SQLSTATE;
+<<CHECKCODE;
 list user of role student;
-<<SQLSTATE;
+<<CHECKCODE;
 list user;
-<<SQLSTATE;
+<<CHECKCODE;
 list role;
-<<SQLSTATE;
 
---5. root用户授予普通用户user01关于【MANAGE_USER】权限
+--5. 新：root用户授予普通用户user01关于【SECURITY】权限；旧：root用户授予普通用户user01关于【MANAGE_USER】权限
 connect root/TimechoDB@2021;
-grant manage_user to user user01;
+grant security to user user01;
 
 --6. 已授权的普通用户user01，列出用户列表
 connect user01/pass123456789;
 list privileges of user user01;
 list role of user user01;
 list user of role teacher;
+<<CHECKCODE;
 list user of role student;
+<<CHECKCODE;
 list user;
+<<CHECKCODE;
 list role;
-<<SQLSTATE;
 
 --7. root取消普通用户关于【MANAGE_USER】权限
 connect root/TimechoDB@2021;
-revoke manage_user from user user01;
+revoke security from user user01;
 
 --8. 取消授权的普通用户user01，列出用户相关信息
 connect user01/pass123456789;
 list privileges of user user01;
 list role of user user01;
 list user of role teacher;
-<<SQLSTATE;
+<<CHECKCODE;
 list user of role student;
-<<SQLSTATE;
+<<CHECKCODE;
 list user;
-<<SQLSTATE;
+<<CHECKCODE;
 list role;
-<<SQLSTATE;
 
 
 -- 清理环境
