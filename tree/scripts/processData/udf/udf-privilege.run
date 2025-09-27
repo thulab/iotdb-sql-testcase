@@ -17,12 +17,12 @@ create user lily_create_udf 'pass123456789';
 -- 期望：报错无权限
 connect lily_create_udf/pass123456789;
 CREATE FUNCTION example as 'Max';<<SQLSTATE;
-show functions;<<SQLSTATE;
+show functions;
 drop function example;<<SQLSTATE;
 
 -- 授权create
 connect root/TimechoDB@2021;
-grant USE_UDF on root.** to user lily_create_udf; 
+grant SYSTEM on root.** to user lily_create_udf; 
 grant read on root.** to user lily_create_udf;
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
@@ -55,7 +55,7 @@ show functions;
 
 -- 取消授权
 connect root/TimechoDB@2021;
-revoke USE_UDF on root.** from user lily_create_udf; 
+revoke SYSTEM on root.** from user lily_create_udf; 
 
 connect lily_create_udf/pass123456789;
 CREATE FUNCTION example3 AS 'Max';<<SQLSTATE;
@@ -76,10 +76,10 @@ drop role role_function_status;<<NULL;
 
 create role role_function;
 create role role_function_status;
-grant USE_UDF on root.** to role role_function; 
+grant SYSTEM on root.** to role role_function; 
 grant read on root.** to role role_function;
 
-grant USE_UDF on root.** to role role_function_status;
+grant SYSTEM on root.** to role role_function_status;
 list privileges of role role_function;
 list privileges of role role_function_status;
 
