@@ -17,6 +17,7 @@ CREATE FUNCTION example AS 'org.apache.iotdb.udf.UDTFExample';
 CREATE USER user01 'pass123456789';
 show functions;
 list user;
+<<CHECKCODE;
 list privileges of user user01;
 
 --2.未授权的用户user01：注册UDF，查询所有注册的UDF，卸载已注册的UDF
@@ -24,7 +25,6 @@ connect user01/pass123456789;
 CREATE FUNCTION example_cp AS 'org.apache.iotdb.udf.UDTFExample';
 <<SQLSTATE;
 SHOW FUNCTIONS;
-<<SQLSTATE;
 DROP FUNCTION example;
 <<SQLSTATE;
 
@@ -40,7 +40,7 @@ DROP FUNCTION example_cp;
 <<NULL;
 
 
-//二、用户赋予USE_UDF权限：分别注册UDF，查询UDF注册列表，UDF查询，删除UDF操作
+//二、用户赋予SYSTEM权限：分别注册UDF，查询UDF注册列表，UDF查询，删除UDF操作
 
 --0.清理环境
 connect root/TimechoDB@2021;
@@ -59,10 +59,11 @@ CREATE USER user01 'pass123456789';
 CREATE USER user02 'pass123456789';
 CREATE USER user03 'pass123456789';
 list user;
+<<CHECKCODE;
 
---2. 授予普通用户USE_CQ权限
-GRANT USE_UDF ON root.** TO USER user01;
-GRANT USE_UDF ON root.** TO USER user02 WITH GRANT OPTION;
+--2. 授予普通用户SYSTEM权限
+GRANT SYSTEM ON root.** TO USER user01;
+GRANT SYSTEM ON root.** TO USER user02 WITH GRANT OPTION;
 list privileges of user user01;
 list privileges of user user02;
 
@@ -74,7 +75,7 @@ drop function example_01;
 
 --4.用户user02：执行CQ权限
 connect user02/pass123456789;
-GRANT USE_UDF ON root.** TO USER user03;
+GRANT SYSTEM ON root.** TO USER user03;
 CREATE FUNCTION example_02 AS 'org.apache.iotdb.udf.UDTFExample';
 show functions;
 drop function example_02;

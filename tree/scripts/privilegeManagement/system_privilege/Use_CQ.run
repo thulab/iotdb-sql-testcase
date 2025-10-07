@@ -23,6 +23,7 @@ CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperatur
 CREATE USER user01 'pass123456789';
 show cqs;
 list user;
+<<CHECKCODE;
 list privileges of user user01;
 
 --2.普通用户创建CQ，查看CQ，删除CQ
@@ -46,7 +47,7 @@ DROP CONTINUOUS QUERY cq2;
 <<NULL;
 
 
-//二、用户赋予USE_CQ权限：分别创建CQ，查询CQ列表，执行CQ查询，删除CQ操作
+//二、用户赋予SYSTEM权限：分别创建CQ，查询CQ列表，执行CQ查询，删除CQ操作
 
 --0.清理环境
 connect root/TimechoDB@2021;
@@ -73,10 +74,11 @@ CREATE USER user01 'pass123456789';
 CREATE USER user02 'pass123456789';
 CREATE USER user03 'pass123456789';
 list user;
+<<CHECKCODE;
 
---2. 授予普通用户USE_CQ权限
-GRANT USE_CQ ON root.** TO USER user01;
-GRANT USE_CQ ON root.** TO USER user02 WITH GRANT OPTION;
+--2. 授予普通用户SYSTEM权限
+GRANT SYSTEM ON root.** TO USER user01;
+GRANT SYSTEM ON root.** TO USER user02 WITH GRANT OPTION;
 list privileges of user user01;
 list privileges of user user02;
 
@@ -88,9 +90,9 @@ SHOW CONTINUOUS QUERIES;
 DROP CONTINUOUS QUERY cq1;
 SHOW CONTINUOUS QUERIES;
 
---4.用户user02：执行CQ权限
+--4.用户user02：执行SYSTEM权限
 connect user02/pass123456789;
-GRANT USE_CQ ON root.** TO USER user03;
+GRANT SYSTEM ON root.** TO USER user03;
 CREATE CONTINUOUS QUERY cq3 RESAMPLE EVERY 10s RANGE 20s BEGIN SELECT min_value(temperature) INTO root.ln.wf01(temperature_min) FROM root.ln.wf01 GROUP BY(3s) FILL(100.0) END;
 SHOW CONTINUOUS QUERIES;
 DROP CONTINUOUS QUERY cq3;
