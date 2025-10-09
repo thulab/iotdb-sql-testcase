@@ -1,0 +1,531 @@
+-- [1]5:create function example as "org.apache.iotdb.udf.UDTFExample"
+STRICT{
+PASS
+}
+-- [1]8:create database root.db
+STRICT{
+PASS
+}
+-- [1]9:create database root.view
+STRICT{
+PASS
+}
+-- [1]10:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]11:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]12:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]13:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.35
+-- [1]14:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+-- [1]15:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.36
+-- [1]16:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]17:select s01,s02 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+---------------------------------------------------------------------------
+1000                 |123                        |456                        |
+---------------------------------------------------------------------------
+2000                 |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]18:select s01,s02 from root.db.d2
+STRICT{
+Time(TIMESTAMP)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+--------------------------------------------------------------------------
+2000                 |789                        |hello                     |
+--------------------------------------------------------------------------
+3000                 |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]19:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]20:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]21:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]22:select c1,c2 from root.view.**
+STRICT{
+Time(TIMESTAMP)      |root.view.v1.c1(INT32)      |root.view.v2.c2(TEXT)      |
+----------------------------------------------------------------------------
+1000                 |123                         |,beijing                   |
+----------------------------------------------------------------------------
+2000                 |1111                        |hello,beijing              |
+----------------------------------------------------------------------------
+3000                 |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]23:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+Time(TIMESTAMP)      |example(root.db.d1.s01)(INT32)      |example(root.db.d2.s01)(INT32)      |root.db.d1.s01(INT32)      |root.db.d2.s01(INT32)      |example(root.view.v1.c1)(INT32)      |root.view.v1.c1(INT32)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |-123                                |null                                |123                        |null                       |-123                                 |123                         |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |-1111                               |-789                                |1111                       |789                        |-1111                                |1111                        |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000                 |null                                |-9                                  |null                       |9                          |null                                 |null                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.8
+-- [1]24:create view root.view.v3(c1) as select example(s01) from root.db.d1
+STRICT{
+PASS
+}
+
+-- [1]25:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+Time(TIMESTAMP)      |example(root.db.d1.s01)(INT32)      |example(root.db.d2.s01)(INT32)      |root.db.d1.s01(INT32)      |root.db.d2.s01(INT32)      |example(root.view.v1.c1)(INT32)      |example(root.view.v3.c1)(INT32)      |root.view.v1.c1(INT32)      |root.view.v3.c1(INT32)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |-123                                |null                                |123                        |null                       |-123                                 |123                                  |123                         |-123                        |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |-1111                               |-789                                |1111                       |789                        |-1111                                |1111                                 |1111                        |-1111                       |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000                 |null                                |-9                                  |null                       |9                          |null                                 |null                                 |null                        |null                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]26:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |INT32               |null            |null                  |VIEW                |example(root.db.d1|
+                      |                    |                    |                |                      |                    |.s01)             |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]27:select example(s01) ,s01,example(c2),c2 from root.db.*,root.view.*
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: INT32. actual: TEXT.
+}
+-- [1]29:alter view root.view.v3.c1 upsert tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+0
+}
+
+-- [1]30:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+Time(TIMESTAMP)      |example(root.db.d1.s01)(INT32)      |example(root.db.d2.s01)(INT32)      |root.db.d1.s01(INT32)      |root.db.d2.s01(INT32)      |example(root.view.v1.c1)(INT32)      |example(root.view.v3.c1)(INT32)      |root.view.v1.c1(INT32)      |root.view.v3.c1(INT32)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |-123                                |null                                |123                        |null                       |-123                                 |123                                  |123                         |-123                        |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |-1111                               |-789                                |1111                       |789                        |-1111                                |1111                                 |1111                        |-1111                       |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000                 |null                                |-9                                  |null                       |9                          |null                                 |null                                 |null                        |null                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]31:select count(c1) from root.view.* group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]32:select count(c1) from root.view.v3 group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]33:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.* group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Common queries and aggregated queries are not allowed to appear at the same time
+}
+-- [1]35:drop function example
+STRICT{
+PASS
+}
+
+-- [1]36:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |UNKNOWN             |{"city_region":"|{"color":"blue","speed|VIEW                |example(root.db.d1|
+                      |                    |                    |changping","des|":"112"}              |                    |.s01)             |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]37:select c1 from root.view.v3
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+org.apache.iotdb.udf.api.exception.UDFException: Failed to reflect UDF instance, because UDF EXAMPLE has not been registered.
+}
+-- [1]39:select count(c1) from root.view.v3 group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]41:drop database root.db
+STRICT{
+PASS
+}
+-- [1]42:drop database root.view
+STRICT{
+PASS
+}
+-- [1]47:create function example as "org.apache.iotdb.udf.UDTFExample"
+STRICT{
+PASS
+}
+-- [1]50:create database root.db
+STRICT{
+PASS
+}
+-- [1]51:create database root.view
+STRICT{
+PASS
+}
+-- [1]52:create aligned timeseries root.db.d1(s01 INT32,s02 INT64)
+STRICT{
+PASS
+}
+-- [1]53:create timeseries root.db.d2.s01 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]54:create timeseries root.db.d2.s02 with datatype=TEXT
+STRICT{
+PASS
+}
+-- [1]55:insert into root.db.d1(time,s01,s02)aligned values(1000,123,456)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.695
+-- [1]56:insert into root.db.d1(time,s01,s02)aligned values(2000,1111,4444)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]57:insert into root.db.d2(time,s01,s02) values(2000,789,"hello")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.46
+-- [1]58:insert into root.db.d2(time,s01,s02) values(3000,009,"seize the day")
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]59:select s01,s02 from root.db.d1
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s01(INT32)      |root.db.d1.s02(INT64)      |
+---------------------------------------------------------------------------
+1000                 |123                        |456                        |
+---------------------------------------------------------------------------
+2000                 |1111                       |4444                       |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]60:select s01,s02 from root.db.d2
+STRICT{
+Time(TIMESTAMP)      |root.db.d2.s01(INT32)      |root.db.d2.s02(TEXT)      |
+--------------------------------------------------------------------------
+2000                 |789                        |hello                     |
+--------------------------------------------------------------------------
+3000                 |9                          |seize the day             |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]61:create view root.view.v1(c1) as select s01 from root.db.d1
+STRICT{
+PASS
+}
+-- [1]62:create view root.view.v2(c2) as select concat(s02,",beijing") from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]63:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]64:select c1,c2 from root.view.**
+STRICT{
+Time(TIMESTAMP)      |root.view.v1.c1(INT32)      |root.view.v2.c2(TEXT)      |
+----------------------------------------------------------------------------
+1000                 |123                         |,beijing                   |
+----------------------------------------------------------------------------
+2000                 |1111                        |hello,beijing              |
+----------------------------------------------------------------------------
+3000                 |null                        |seize the day,beijing      |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]65:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+Time(TIMESTAMP)      |example(root.db.d1.s01)(INT32)      |example(root.db.d2.s01)(INT32)      |root.db.d1.s01(INT32)      |root.db.d2.s01(INT32)      |example(root.view.v1.c1)(INT32)      |root.view.v1.c1(INT32)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |-123                                |null                                |123                        |null                       |-123                                 |123                         |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |-1111                               |-789                                |1111                       |789                        |-1111                                |1111                        |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000                 |null                                |-9                                  |null                       |9                          |null                                 |null                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]66:create view root.view.v3(c1) as select example(s01) from root.db.d1
+STRICT{
+PASS
+}
+
+-- [1]67:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+Time(TIMESTAMP)      |example(root.db.d1.s01)(INT32)      |example(root.db.d2.s01)(INT32)      |root.db.d1.s01(INT32)      |root.db.d2.s01(INT32)      |example(root.view.v1.c1)(INT32)      |example(root.view.v3.c1)(INT32)      |root.view.v1.c1(INT32)      |root.view.v3.c1(INT32)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |-123                                |null                                |123                        |null                       |-123                                 |123                                  |123                         |-123                        |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2000                 |-1111                               |-789                                |1111                       |789                        |-1111                                |1111                                 |1111                        |-1111                       |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3000                 |null                                |-9                                  |null                       |9                          |null                                 |null                                 |null                        |null                        |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]68:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |INT32               |null            |null                  |VIEW                |example(root.db.d1|
+                      |                    |                    |                |                      |                    |.s01)             |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]69:select example(s01) ,s01,example(c2),c2 from root.db.*,root.view.*
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: INT32. actual: TEXT.
+}
+-- [1]71:alter view root.view.v3.c1 upsert tags(city_region=changping, description='this is a region') attributes(speed=112, color=blue)
+STRICT{
+0
+}
+
+-- [1]72:show view root.view.v3.c1
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |INT32               |{"city_region":"|{"color":"blue","speed|VIEW                |example(root.db.d1|
+                      |                    |                    |changping","des|":"112"}              |                    |.s01)             |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]73:alter view root.view.v3.c1 as select s02 from root.db.d2
+STRICT{
+0
+}
+
+-- [1]74:show view root.view.v3.c1
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |TEXT                |{"city_region":"|{"color":"blue","speed|VIEW                |root.db.d2.s02    |
+                      |                    |                    |changping","des|":"112"}              |                    |                  |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]75:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.*
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+org.apache.iotdb.udf.api.exception.UDFInputSeriesDataTypeNotValidException: the data type of the input series (index: 0) is not valid. expected: INT32. actual: TEXT.
+}
+-- [1]77:select count(c1) from root.view.* group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]79:select count(c1) from root.view.v3 group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]81:select example(s01) ,s01,example(c1),c1 from root.db.*,root.view.* group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Common queries and aggregated queries are not allowed to appear at the same time
+}
+
+-- [1]83:select c1 from root.view.**
+STRICT{
+Time(TIMESTAMP)      |root.view.v1.c1(INT32)      |root.view.v3.c1(TEXT)      |
+----------------------------------------------------------------------------
+1000                 |123                         |null                       |
+----------------------------------------------------------------------------
+2000                 |1111                        |hello                      |
+----------------------------------------------------------------------------
+3000                 |null                        |seize the day              |
+总数目：3
+}
+
+Elapsed Time: 0.0.4
+-- [1]84:select c1,c2 from root.view.** align by device
+STRICT{
+SQLSTATE : 701: ALIGN BY DEVICE: the data types of the same measurement column should be the same across devices.
+}
+-- [1]86:alter view root.view.v3.c1 as select example(s01) from root.db.d1
+STRICT{
+0
+}
+
+-- [1]87:select c1,example(c1) from root.view.v3
+STRICT{
+Time(TIMESTAMP)      |root.view.v3.c1(INT32)      |example(root.view.v3.c1)(INT32)      |
+--------------------------------------------------------------------------------------
+1000                 |-123                        |123                                  |
+--------------------------------------------------------------------------------------
+2000                 |-1111                       |1111                                 |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]88:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |INT32               |{"city_region":"|{"color":"blue","speed|VIEW                |example(root.db.d1|
+                      |                    |                    |changping","des|":"112"}              |                    |.s01)             |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]89:drop function example
+STRICT{
+PASS
+}
+
+-- [1]90:show view root.view.**
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v1.c1       |root.view           |INT32               |null            |null                  |VIEW                |root.db.d1.s01    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v2.c2       |root.view           |TEXT                |null            |null                  |VIEW                |concat(root.db.d2.|
+                      |                    |                    |                |                      |                    |s02, ,beijing)    |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.view.v3.c1       |root.view           |UNKNOWN             |{"city_region":"|{"color":"blue","speed|VIEW                |example(root.db.d1|
+                      |                    |                    |changping","des|":"112"}              |                    |.s01)             |
+                      |                    |                    |cription":"this|                      |                    |                  |
+                      |                    |                    | is a region"}  |                      |                    |                  |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]91:select c1 from root.view.v3
+STRICT{
+SQLSTATE : 701: Error occurred during inferring UDF data type: 
+org.apache.iotdb.udf.api.exception.UDFException: Failed to reflect UDF instance, because UDF EXAMPLE has not been registered.
+}
+-- [1]93:select count(c1) from root.view.v3 group by tags(city_region)
+STRICT{
+SQLSTATE : 701: Views cannot be used in GROUP BY TAGS query yet.
+}
+-- [1]95:drop database root.db
+STRICT{
+PASS
+}
+-- [1]96:drop database root.view
+STRICT{
+PASS
+}

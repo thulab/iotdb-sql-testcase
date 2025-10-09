@@ -1,0 +1,296 @@
+// 数据库管理：创建数据库 | 查看数据库 | 使用数据库 | 删除数据库
+
+connect root/TimechoDB@2021;
+
+
+//一、创建和查看数据库
+--0.清理环境
+DROP DATABASE ln; <<NULL;
+DROP DATABASE sgcc; <<NULL;
+
+--1. 创建数据库
+CREATE DATABASE IF NOT EXISTS ln;
+CREATE DATABASE sgcc;
+
+--2. 查看数据库
+SHOW DATABASES;
+
+--3. 使用数据库
+use ln;
+use sgcc;
+use db;
+<<SQLSTATE;
+
+--4. 删除数据库并查看数据库
+DROP DATABASE ln;
+DROP DATABASE IF EXISTS sgcc ;
+SHOW DATABASES;
+
+
+//二、创建数据库名称字符校验，如字符类型及字符长度
+--0.清理环境
+DROP DATABASE _; <<NULL;
+DROP DATABASE ABC; <<NULL;
+DROP DATABASE data; <<NULL;
+DROP DATABASE test001; <<NULL;
+DROP DATABASE "qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuiop1234"; <<NULL;
+DROP DATABASE root; <<NULL;
+DROP DATABASE time; <<NULL;
+DROP DATABASE timestamp; <<NULL;
+DROP DATABASE "`test1`"; <<NULL;
+DROP DATABASE "123"; <<NULL;
+DROP DATABASE "数据库"; <<NULL;
+
+--1.创建数据库
+--1.0 数据库名称字母大小写不敏感，返回结果统一小写
+--1.1 数据库名称中包含下划线(_)、数字(非开头)、英文字母可以直接创建
+CREATE DATABASE _;
+CREATE DATABASE ABC;
+create database data;
+CREATE DATABASE test001;
+SHOW DATABASES;
+
+--1.2 数据库名称字符长度限制【目前支持64个】
+create database "qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuiop1234";
+create database "qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuiop12345";
+<<SQLSTATE;
+SHOW DATABASES;
+
+--1.3 数据库名称为保留字符：ROOT | TIME | TIMESTAMP
+create database root;
+create database time;
+create database timestamp;
+
+--1.4 名称中包含特殊字符如反引号``or 中文字符 or 数字开头的创建时必须用双引号 "" 括起来
+CREATE DATABASE "`test1`";
+CREATE DATABASE "123";
+CREATE DATABASE "数据库";
+
+--1.5 除此之外，其余字符均不支持
+CREATE DATABASE "sgcc.1W_测试_1";
+<<SQLSTATE;
+CREATE DATABASE "123w.24h";
+<<SQLSTATE;
+CREATE DATABASE "win&one";
+<<SQLSTATE;
+CREATE DATABASE ``;
+<<SQLSTATE;
+CREATE DATABASE 存储;
+<<SQLSTATE;
+CREATE DATABASE "sgcc.w-s1";
+<<SQLSTATE;
+create database .;
+<<SQLSTATE;
+create database ".";
+<<SQLSTATE;
+create database "`.`";
+<<SQLSTATE;
+CREATE DATABASE "db.";
+<<SQLSTATE;
+CREATE DATABASE "a.b";
+<<SQLSTATE;
+CREATE DATABASE "'data'";
+<<SQLSTATE;
+CREATE DATABASE "";
+<<SQLSTATE;
+CREATE DATABASE ""test2"";
+<<SQLSTATE;
+CREATE DATABASE "````x.\";
+<<SQLSTATE;
+CREATE DATABASE "D/?<|>&%$#@()";
+<<SQLSTATE;
+CREATE DATABASE "s//";
+<<SQLSTATE;
+
+
+--2. 查看数据库
+SHOW DATABASES;
+
+--3. 清理环境：删除数据库
+DROP DATABASE _; <<NULL;
+DROP DATABASE ABC; <<NULL;
+DROP DATABASE data; <<NULL;
+DROP DATABASE test001; <<NULL;
+DROP DATABASE "qwertyuiop1234567890一二三四五六七八九十qwertyuiop1234567890qwertyuiop1234"; <<NULL;
+DROP DATABASE root; <<NULL;
+DROP DATABASE time; <<NULL;
+DROP DATABASE timestamp; <<NULL;
+DROP DATABASE "`test1`"; <<NULL;
+DROP DATABASE "123"; <<NULL;
+DROP DATABASE "数据库"; <<NULL;
+
+
+//三、已创建数据库，再次创建相同的名称创建数据库
+--0.清理环境
+DROP DATABASE db;
+<<NULL;
+
+--1. 创建数据库
+CREATE DATABASE db;
+SHOW DATABASES;
+
+--2. 再次创建已有的数据库，进行校验
+CREATE DATABASE DB;
+<<SQLSTATE;
+
+--3.查看数据库
+SHOW DATABASES;
+
+--4.清理环境
+DROP DATABASE db;
+<<NULL;
+
+
+//四、删除不存在的存储组
+--0.清理环境
+DROP DATABASE test;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE TEST;
+
+--2.删除不存在的数据库
+DROP DATABASE data;
+<<SQLSTATE;
+SHOW DATABASES;
+
+--3.清理环境：删除数据库
+DROP DATABASE test;
+
+
+//五、不支持自动创建元数据（自动创建数据库）
+
+-- 通过inser自动创建元数据
+insert into INSERT INTO table1(time,device_id,s1) values(2, 'd1', 'test');
+<<SQLSTATE;
+
+
+//六、分别创建数据库、表、插入数据、查询数据，然后再删除数据库，查询数据库、表和数据是否存在
+--0.清理环境
+DROP DATABASE test;
+<<NULL;
+
+--1.创建数据库并查看数据库
+create database test;
+show databases;
+use test;
+
+--2.创建表
+create table table1(device_id STRING TAG, color STRING ATTRIBUTE, s1 TEXT FIELD, s2 INT32 FIELD, s3 INT64 FIELD, s4 FLOAT FIELD, s5 DOUBLE FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+
+--3.查看数据库下已创建的表，描述表信息
+show tables from test;
+desc table1;
+
+--4.插入数据
+INSERT INTO table1(time,device_id,color,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(1, 'd1', 'red', 'abcd', 1, 1, 1, 1, true, '2021-10-01', 1633046400000, 'abcd', X'abcd');
+
+--5.查询所有列的数据
+select * from table1 order by time;
+
+--6.删除数据库
+drop database test;
+
+--7.查询设备和时间序列，查询数据
+show databases;
+show tables from test;
+<<SQLSTATE;
+desc table1;
+<<SQLSTATE;
+
+--8.再次创建数据库，表
+create database test;
+use test;
+create table table1(device_id STRING TAG, color STRING ATTRIBUTE, s1 TEXT FIELD, s2 INT32 FIELD, s3 INT64 FIELD, s4 FLOAT FIELD, s5 DOUBLE FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+
+--9.查看数据库，展示表，列出表信息
+show databases;
+show tables from test;
+desc table1;
+
+--10.验证之前的数据是否还存在【空列表】
+select * from table1 order by time;
+
+--11.清理环境
+DROP DATABASE test;
+<<NULL;
+
+
+//七、统计数据库数量
+--0.清理环境
+drop database test_DB1;
+<<NULL;
+drop database test_DB2;
+<<NULL;
+drop database test_DB3;
+<<NULL;
+drop database test_DB4;
+<<NULL;
+
+--1.创建数据库
+CREATE DATABASE test_DB1;
+CREATE DATABASE test_DB2 with (ttl=86400000);
+CREATE DATABASE IF NOT EXISTS test_DB3 with (TTL='INF');
+CREATE DATABASE IF NOT EXISTS test_DB4 with (TTL='INF',TIME_PARTITION_INTERVAL=604800000,SCHEMA_REGION_GROUP_NUM=1,DATA_REGION_GROUP_NUM=2);
+
+--2. 查看数据库列表
+show databases;
+show databases details;
+
+--3. 暂不支持统计数据库数量：count
+count databases;
+<<SQLSTATE;
+
+--4.清理环境:删除数据库
+drop database test_DB1;
+<<NULL;
+drop database test_DB2;
+<<NULL;
+drop database test_DB3;
+<<NULL;
+drop database test_DB4;
+<<NULL;
+
+
+//八、不支持删除内置【information_schema】数据库
+
+--1. 查看数据库
+show databases;
+show databases details;
+
+--2. 删除内置的【information_schema】数据库
+drop database information_schema;
+<<SQLSTATE;
+
+//九、创建数据库，然后删除数据，最后验证是否可以创建表
+
+--0.清理环境
+drop database;
+<<NULL;
+
+--1.创建数据库（大小写不敏感）
+create database TEST;
+
+--2. 查看数据库信息
+show databases;
+show databases details;
+
+--3. 查看当前数据库
+SHOW CURRENT_DATABASE;
+
+--4. 指定使用数据库
+use TEST;
+
+--5. 查看当前数据库
+SHOW CURRENT_DATABASE; 
+
+--6. 删除指定的数据库
+drop database TEST;
+
+--7. 验证是否可以创建表
+create table t1(device_id STRING TAG, model_id STRING ATTRIBUTE, boolean BOOLEAN FIELD);
+<<SQLSTATE;
+
+--8. 清理环境
+DROP DATABASE TEST;
+<<NULL;

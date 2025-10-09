@@ -1,0 +1,62 @@
+connect root/TimechoDB@2021;
+-- 1. validate throws exception
+-- 2. beforeStart throws exception
+-- 3. tranform throws exception
+-- 4. terminate throws exception
+-- 5. beforeDestroy throws exception
+
+drop database root.udf;<<NULL;
+sleep 1000;
+
+delete timeseries root.udf.**;<<NULL;
+drop function validate_exp;<<NULL;
+drop function beforeStart_exp;<<NULL;
+drop function transform_exp;<<NULL;
+drop function terminate_exp;<<NULL;
+drop function beforeDestroy_exp;<<NULL;
+
+create database root.udf;<<NULL;
+create timeseries root.udf.exp1.s1 with datatype=int32;
+create timeseries root.udf.exp1.s2 with datatype=int32;
+insert into root.udf.exp1(time,s1,s2) values (1,1,2),(2,2,3),(3,3,4),(4,4,5),(5,5,6);
+
+
+-- 1. validate throws exception
+create function validate_exp as "com.timecho.udf.exception.ExceptionValidate";
+select validate_exp(s1) from root.udf.exp1;
+<<SQLSTATE;
+
+-- 2. beforeStart throws exception
+create function beforeStart_exp as "com.timecho.udf.exception.ExceptionBeforeStart";
+select beforeStart_exp(s1) from root.udf.exp1;
+<<SQLSTATE;
+
+
+-- 3. tranform throws exception
+--create function transform_exp as "com.timecho.udf.exception.ExceptionTransform";
+--select transform_exp(s1) from root.udf.exp1;
+--<<SQLSTATE;
+
+
+-- 4. terminate throws exception
+--create function terminate_exp as "com.timecho.udf.exception.ExceptionTerminate";
+--select terminate_exp(s1) from root.udf.exp1;
+--<<SQLSTATE;
+
+
+-- 5. beforeDestroy throws exception
+create function beforeDestroy_exp as "com.timecho.udf.exception.ExceptionBeforeDestroy";
+select beforeDestroy_exp(s1) from root.udf.exp1;
+<<SQLSTATE;
+
+-- cleanup
+delete timeseries root.udf.**;
+drop function validate_exp;
+drop function beforeStart_exp;
+--drop function transform_exp;
+--drop function terminate_exp;
+drop function beforeDestroy_exp;
+
+
+
+

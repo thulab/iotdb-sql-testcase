@@ -1,0 +1,91 @@
+connect root/TimechoDB@2021;
+// 4. 转授 权限
+
+DROP USER user_transfer;
+<<NULL;
+DROP USER user_02;
+<<NULL;
+
+-- 创建用户并授权
+CREATE USER user_transfer 'pass123456789';
+-- 转授对象
+CREATE USER user_02 'pass123456789';
+GRANT SYSTEM, read ON root.** TO USER user_transfer WITH GRANT OPTION;
+LIST PRIVILEGES OF USER user_transfer;
+
+-- 换用户
+connect user_transfer/pass123456789;
+
+-- 无需授权
+SHOW VERSION;
+<<CHECKCODE;
+
+-- 1. maintain
+show cluster;
+<<CHECKCODE;
+show cluster details;
+<<CHECKCODE;
+show variables;
+SHOW QUERY PROCESSLIST;
+<<CHECKCODE;
+kill all queries;
+
+-- 2.仅root用户拥有的权限: root 用户
+SHOW REGIONS;
+<<CHECKCODE;
+SHOW SCHEMA REGIONS;
+<<CHECKCODE;
+SHOW DATA REGIONS;
+<<CHECKCODE;
+FLUSH;
+CLEAR CACHE;
+--【2024年2月5日，由于手动合并命令会导致性能问题，故移除掉】
+--MERGE;
+--<<SQLSTATE;
+SET SYSTEM TO READONLY;
+SET SYSTEM TO RUNNING;
+LOAD CONFIGURATION;
+<<SQLSTATE;
+show confignodes;
+show datanodes;
+
+GRANT SYSTEM ON root.** TO USER user_02;
+LIST PRIVILEGES OF USER user_02;
+<<SQLSTATE;
+
+-- 换用户2
+connect user_02/pass123456789;
+
+-- 1. maintain
+SHOW CLUSTER;
+<<CHECKCODE;
+SHOW CLUSTER DETAILS;
+<<CHECKCODE;
+SHOW VARIABLES;
+SHOW QUERY PROCESSLIST;
+<<CHECKCODE;
+KILL ALL QUERIES;
+
+-- 2.仅root用户拥有的权限: root 用户
+SHOW REGIONS;
+<<CHECKCODE;
+SHOW SCHEMA REGIONS;
+<<CHECKCODE;
+SHOW DATA REGIONS;
+<<CHECKCODE;
+FLUSH;
+CLEAR CACHE;
+MERGE;
+<<SQLSTATE;
+SET SYSTEM TO READONLY;
+SET SYSTEM TO RUNNING;
+LOAD CONFIGURATION;
+<<SQLSTATE;
+show confignodes;
+show datanodes;
+
+-- 清理
+connect root/TimechoDB@2021;
+LIST PRIVILEGES OF USER user_02;
+DROP USER user_transfer;
+DROP USER user_02;

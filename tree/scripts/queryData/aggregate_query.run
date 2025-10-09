@@ -1,0 +1,880 @@
+//分段分组聚合
+//一.聚合查询和原始数据查询不能混合使用
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1.1,24);
+insert into root.sg.d1(time,s1,s2) values(10,14.33,15);
+insert into root.sg.d1(time,s1,s2) values(36,22.66,75);
+insert into root.sg.d1(time,s1,s2) values(50,18.18,21);
+insert into root.sg.d1(time,s1,s2) values(80,16.18,24);
+insert into root.sg.d1(time,s1,s2) values(110,11.22,34);
+insert into root.sg.d1(time,s1,s2) values(120,14.13,15);
+
+--4. 聚合查询和原始数据查询混合使用校验
+select s1, count(s1) from root.sg.d1;
+<<SQLSTATE;
+select sin(s1), count(s2) from root.sg.d1;
+<<SQLSTATE;
+select s1, count(s2) from root.sg.d1 group by ([10,100),10ms);
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//二、内置聚合函数查询-数据类型不做限制
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d1.s5 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d1.s6 with datatype=boolean,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s3 with datatype=Boolean,encoding=RLE;
+create timeseries root.sg.d2.s4 with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,NaN,0,10,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.5,1.2,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,1.1,NaN,5,0,'test',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,1.1,1.3,null,10,'AaBbC',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,3.2,NaN,3,0,'V1',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.5,1.2,1,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.2,NaN,1,0,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,-1.0,1.2,0,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,2.3,NaN,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,7.8,43.1,6,0,'V2',false);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(1,1,2,TRUE,'test');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(2,3,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(3,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(4,0,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(5,13,32,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(6,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(7,111,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(8,13,2,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(9,255,32,TRUE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(10,22,26,null,'18');
+
+--4. 统计指定时间序列下的sensor的数据点个数
+select count(s1) from root.sg.d1;
+select count(s2) from root.sg.d1;
+select count(s3) from root.sg.d1;
+select count(s4) from root.sg.d1;
+select count(s3) from root.sg.d2;
+select count(s4) from root.sg.d2;
+
+--5. 统计特定sensor下的全部数据点个数
+select count(s1) from root.sg.**;
+select count(s2) from root.sg.**;
+select count(s3) from root.sg.**;
+select count(s4) from root.sg.**;
+
+--6. 统计全部sensor的数据点个数
+select count(*) from root.sg.**;
+
+--7. 统计按level层级的时间序列
+select count(s1) from root.*.* group by level = 1;
+select count(s2) from root.*.* group by level = 1;
+select count(s3) from root.*.* group by level = 1;
+select count(s4) from root.*.* group by level = 1;
+
+--8. 统计按level层级的全部时间序列，
+select count(s1) from root.** group by level = 1;
+select count(s2) from root.** group by level = 1;
+select count(s3) from root.** group by level = 1;
+select count(s4) from root.** group by level = 1;
+
+--9. first_value特定时间序列的第一个值
+select first_value(s1) from root.sg.d1;
+select first_value(s2) from root.sg.d1;
+select first_value(s3) from root.sg.d1;
+select first_value(s4) from root.sg.d1;
+select first_value(s3) from root.sg.d2;
+select first_value(s4) from root.sg.d2;
+
+--10. first_value特定存储组下的所有的sensor第一个值，level层级查询
+select first_value(s1) from root.sg.d1 group by level = 1;  
+select first_value(s2) from root.sg.d1 group by level = 1; 
+select first_value(s3) from root.sg.d1 group by level = 1; 
+select first_value(s4) from root.sg.d1 group by level = 1; 
+
+--11. last_value特定时间序列的最后的值
+select last_value(s1) from root.sg.d1;
+select last_value(s2) from root.sg.d1;
+select last_value(s3) from root.sg.d1;
+select last_value(s4) from root.sg.d1;
+select last_value(s3) from root.sg.d2;
+select last_value(s4) from root.sg.d2;
+
+--12. last_value特定存储组的所有指定的sensor最后的值，level层级查询
+select last_value(s1) from root.sg.d1 group by level = 1; 
+select last_value(s2) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d1 group by level = 1; 
+select last_value(s4) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d2 group by level = 1; 
+select last_value(s4) from root.sg.d2 group by level = 1; 
+
+--13. min_time特定时间序列的最小时间
+select min_time(s1) from root.sg.d1;
+select min_time(s2) from root.sg.d1;
+select min_time(s3) from root.sg.d1;
+select min_time(s4) from root.sg.d1;
+select min_time(s3) from root.sg.d2;
+select min_time(s4) from root.sg.d2;
+
+--14. min_time特定存储组下的所有指定的sensor的最小时间，level层级查询
+select min_time(s1) from root.sg.** group by level = 1;
+select min_time(s2) from root.sg.** group by level = 1;
+select min_time(s3) from root.sg.** group by level = 1;
+select min_time(s4) from root.sg.** group by level = 1;
+
+--15. max_time特定时间序列的最大时间
+select max_time(s1) from root.sg.d1;
+select max_time(s2) from root.sg.d1;
+select max_time(s3) from root.sg.d1;
+select max_time(s4) from root.sg.d1;
+select max_time(s3) from root.sg.d2;
+select max_time(s4) from root.sg.d2;
+
+--16. max_time特定存储组下的所有指定的sensor的最大时间，level层级查询
+select max_time(s1) from root.sg.** group by level = 1;   
+select max_time(s2) from root.sg.** group by level = 1;
+select max_time(s3) from root.sg.** group by level = 1;
+select max_time(s4) from root.sg.** group by level = 1;
+
+--17. COUNT_IF求数据点连续满足某一给定条件，且满足条件的数据点个数（用keep表示）满足指定阈值的次数。
+--不使用ignoreNull参数(忽略null)
+select count_if(s3=0 & s4=0, 3), count_if(s3=1 & s4=0, 3) from root.sg.d1;
+--使用ignoreNull参数
+select count_if(s3=0 & s4=0, 3, 'ignoreNull'='false'), count_if(s3=1 & s4=0, 3, 'ignoreNull'='true') from root.sg.d1;
+ 
+--18.TIME_DURATION：求某一列最大一个不为NULL的值所在时间戳与最小一个不为NULL的值所在时间戳的时间戳差
+select time_duration(*) from root.sg.* where time >= 2;
+select time_duration(s1),time_duration(s2) from root.sg.d2 where time > 2 and time <= 9;
+select time_duration(*) from root.sg.** group by ([0,10),2ms);
+select time_duration(s3),time_duration(s4) from root.sg.d2 group by ((1,10],5ms);
+select time_duration(s1) from root.sg.** group by ((0,11],5ms) having count(s1) > 4;
+select time_duration(*) from root.sg.** align by device;
+select time_duration(*) from root.sg.** align by time;
+
+--19. MODE： 求众数。
+select mode(s1),mode(s2),mode(s3),mode(s4),mode(s5),mode(s6) from root.sg.d1;
+select mode(*) from root.sg.d1;
+select mode(*) from root.**;
+
+--20. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//三、聚合函数查询-数据类型相同
+
+----0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d2.s3 with datatype=double,encoding=PLAIN;
+create timeseries root.sg.d2.s4 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d2.s5 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d2.s6 with datatype=boolean,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据并数据查询
+insert into root.sg.d1(time,s1,s2) values(1,1.1,0.0);
+insert into root.sg.d1(time,s1,s2) values(2,1.1,1.1);
+insert into root.sg.d1(time,s1,s2) values(3,1.1,null);
+insert into root.sg.d1(time,s1,s2) values(4,1.1,0.0);
+insert into root.sg.d1(time,s1,s2) values(5,2.2,1.1);
+insert into root.sg.d1(time,s1,s2) values(6,2.1,0.1);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,'\\',-1.4,1,100,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,10.12,'001',2.54,2,25,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,'abctest001',11.0,36,120,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(4,-1.15,'null',2.1,25,1,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(5,1001,'Waitamoment!',0.11,4,55,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(6,252.1,'!!!Please001@#',0.00,0,100,FALSE);
+
+select * from root.sg.**;
+
+--4. sum特定时间序列查询
+select sum(s1) from root.sg.d1;
+
+--5. sum特定存储组下的所有指定的sensor求和，level层级查询
+select sum(s1) from root.sg.** group by level = 2; 
+
+--6. avg特定时间序列查询
+select avg(s1) from root.sg.d1;
+
+--7. avg特定存储组下的所有指定的sensor平均值，level层级查询
+select avg(s1) from root.sg.** group by level = 1;
+
+--8. max_value特定时间序列的最大值
+select max_value(s1) from root.sg.d1;
+
+--9. max_value特定存储组下的指定的sensor的最大值，level层级查询 
+select max_value(s1) from root.sg.** group by level = 1;
+
+--10. min_value求特定时间序列的最小值查询
+select min_value(s1) from root.sg.d1;
+
+--11. min_value求特定存储组下的所有指定的sensor最小值，level层级查询
+select min_value(s1) from root.sg.** group by level = 1;
+
+--12. extreme求特定时间序列的极值
+select extreme(s1) from root.sg.d1;
+
+--13. extreme求特定存储组下的所有指定的sensor极值，level层级查询
+select extreme(s1) from root.sg.** group by level = 1; 
+
+--14. replace 字符串处理函数
+--14.1 缺少要替换的目标子串
+select s2, replace(s2,'test') from root.sg.d2;
+<<SQLSTATE; 
+--14.2 FlOAT数据类型校验
+show timeseries root.sg.d2.s1;
+select replace(s1,'1','10') from root.sg.d2;
+<<SQLSTATE;
+--14.3 DOUBLE数据类型校验
+show timeseries root.sg.d2.s3;
+select replace(s3,'0','6') from root.sg.d2;
+<<SQLSTATE;
+--14.4 INT32数据类型校验
+show timeseries root.sg.d2.s4;
+select replace(s4,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.5 INT64数据类型校验
+show timeseries root.sg.d2.s5;
+select replace(s5,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.6 BOOLEAN数据类型校验
+show timeseries root.sg.d2.s6;
+select replace(s6,'false','true') from root.sg.d2;
+<<SQLSTATE;
+--14.7 TEXT数据类型校验
+show timeseries root.sg.d2.s2;
+select s2, replace(s2,'\\','V1') from root.sg.d2; 
+select s2, replace(s2,'Waitamoment','Wait a moment') from root.sg.d2;
+select s2, replace(s2,'!','') from root.sg.d2;
+select s2, replace(s2,'null','test') from root.sg.d2;
+select s2, replace(s2,'\\','null') from root.sg.d2;
+
+--14. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//四、分层聚合函数
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create database root.sgcc;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sgcc.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf02.wt02.hardware with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.**;
+show timeseries root.**;
+
+--3. 插入数据
+insert into root.sgcc.wf01.wt01(time,status) values(1509525000000,FALSE);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509321600000,FALSE,18.32);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509408000000,TRUE,15.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509523800000,TRUE,24.13);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525300000,FALSE,21.12);
+insert into root.ln.wf02.wt02(time,status,hardware) values(1509525000000,FALSE,'V001');
+insert into root.ln.wf02.wt02(time,stauts,hardware) values(1509525300000,TRUE,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
+
+--4. 路径层级分组聚合
+--4.1 统计不同存储组下status序列的数据点个数
+select count(status) from root.** group by level = 1;
+--4.2 统计不同设备下status序列的数据点个数，规定level=3
+select count(status) from root.** group by level = 3;
+--4.3 统计不同database下的不同设备中的status序列的数据点个数
+select count(status) from root.** group by level = 1, 3;
+--4.4 查询所有序列下的temperature的最大值
+select max_value(temperature) from root.** group by level = 0;
+--4.5 某一层级查询：统计所有sensor的总数据点数
+select count(*) from root.ln.** group by level = 2;
+--4.6 多个层级查询:统计sensor数据点个数
+select count(status) from root.** group by level = 1, 3;
+select count(*) from root.** group by level = 1, 3;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//五、时间区间分段聚合
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
+
+--4. 未指定滑动步长，滑动步长将会被默认设置为跟时间间隔参数相同
+select count(status), max_value(temperature) from root.ln.wf01.wt01 group by ([1509465600000, 1510066800000),1d);
+
+--5. 指定滑动步长
+select count(status), max_value(temperature) from root.ln.wf01.wt01 group by ([1509465600000, 1510066800000), 3h, 1d); 
+
+--6. 按自然月时间区间分组聚合：where条件
+select count(status) from root.ln.wf01.wt01 where time > 1509465600000 group by([1509465600000, 1573138800000), 1mo, 2mo);
+
+--7. 带值过滤：GROUP BY查询
+select count(status) from root.ln.wf01.wt01 group by([1509379200000, 1573138800000), 1mo, 2mo);
+
+--8. 带值过滤：左开右闭区间查询
+select count(status) from root.ln.wf01.wt01 group by ((1509465600000, 1510066800000],1d);
+
+--9.新增1种写法：带time关键字
+select avg(temperature), count(status) from root.ln.wf01.wt01 group by time ([1509465600000, 1510066800000),3h, 1d);
+
+--10. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//六、时间区间和路径层级混合聚合查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509476400000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509552000000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,26.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,TRUE,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,FALSE,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,FALSE,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
+
+--4. 滑动Step进行统计降采样数据点
+select count(status) from root.ln.wf01.wt01 group by ([1509465600000, 1510066800000), 3h, 1d), level=1;
+
+--5. 统计降采样后的数据点个数
+select count(status) from root.ln.wf01.wt01 group by ((1509465600000, 1510066800000],1d), level=1;
+
+--6. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//七、标签聚合查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.factory1;
+create timeseries root.factory1.d1.temperature with datatype=FLOAT tags(city=Beijing, workshop=w1);
+create timeseries root.factory1.d2.temperature with datatype=FLOAT tags(city=Beijing, workshop=w1);
+create timeseries root.factory1.d3.temperature with datatype=FLOAT tags(city=Beijing, workshop=w2);
+create timeseries root.factory1.d4.temperature with datatype=FLOAT tags(city=Beijing, workshop=w2);
+create timeseries root.factory1.d5.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w1);
+create timeseries root.factory1.d6.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w1);
+create timeseries root.factory1.d7.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w2);
+create timeseries root.factory1.d8.temperature with datatype=FLOAT;
+create timeseries root.factory1.d9.temperature with datatype=FLOAT;
+
+--2. 查询存储组和时间序列
+show databases root.factory1;
+show timeseries root.factory1.**;
+
+--3. 插入数据
+insert into root.factory1.d1(time, temperature) values(1000, 104.0);
+insert into root.factory1.d1(time, temperature) values(3000, 104.2);
+insert into root.factory1.d1(time, temperature) values(5000, 103.3);
+insert into root.factory1.d1(time, temperature) values(7000, 104.1);
+insert into root.factory1.d2(time, temperature) values(1000, 104.4);
+insert into root.factory1.d2(time, temperature) values(3000, 103.7);
+insert into root.factory1.d2(time, temperature) values(5000, 103.3);
+insert into root.factory1.d2(time, temperature) values(7000, 102.9);
+insert into root.factory1.d3(time, temperature) values(1000, 103.9);
+insert into root.factory1.d3(time, temperature) values(3000, 103.8);
+insert into root.factory1.d3(time, temperature) values(5000, 102.7);
+insert into root.factory1.d3(time, temperature) values(7000, 106.9);
+insert into root.factory1.d4(time, temperature) values(1000, 103.9);
+insert into root.factory1.d4(time, temperature) values(5000, 102.7);
+insert into root.factory1.d4(time, temperature) values(7000, 106.9);
+insert into root.factory1.d5(time, temperature) values(1000, 112.9);
+insert into root.factory1.d5(time, temperature) values(7000, 113.0);
+insert into root.factory1.d6(time, temperature) values(1000, 113.9);
+insert into root.factory1.d6(time, temperature) values(3000, 113.3);
+insert into root.factory1.d6(time, temperature) values(5000, 112.7);
+insert into root.factory1.d6(time, temperature) values(7000, 112.3);
+insert into root.factory1.d7(time, temperature) values(1000, 101.2);
+insert into root.factory1.d7(time, temperature) values(3000, 99.3);
+insert into root.factory1.d7(time, temperature) values(5000, 100.1);
+insert into root.factory1.d7(time, temperature) values(7000, 99.8);
+insert into root.factory1.d8(time, temperature) values(1000, 50.0);
+insert into root.factory1.d8(time, temperature) values(3000, 52.1);
+insert into root.factory1.d8(time, temperature) values(5000, 50.1);
+insert into root.factory1.d8(time, temperature) values(7000, 50.5);
+insert into root.factory1.d9(time, temperature) values(1000, 50.3);
+insert into root.factory1.d9(time, temperature) values(3000, 52.1);
+
+--4. 单标签聚合查询
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY TAGS(city);
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY TAGS(workshop);
+
+--5. 多标签聚合查询
+SELECT avg(temperature) FROM root.factory1.** GROUP BY TAGS(city, workshop);
+
+--6. 基于时间区间的标签聚合查询
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY ([1000, 10000), 5s), TAGS(city, workshop);
+
+--7.暂不支持 HAVING 子句过滤查询结果
+SELECT COUNT(temperature) FROM root.** GROUP BY ([1000, 10000), 5s), TAGS(city, workshop) having count(temperature) > 5;
+<<SQLSTATE;
+
+--8. 暂不支持 LIMIT，OFFSET，SLIMIT，SOFFSET
+SELECT COUNT(temperature) FROM root.** GROUP BY TAGS(city) LIMIT 10 OFFSET 1 SLIMIT 1 SOFFSET 0;
+<<SQLSTATE;
+
+--9. 暂不支持 ALIGN BY DEVICE
+SELECT COUNT(temperature) FROM root.** GROUP BY TAGS(city) ALIGN BY DEVICE;
+<<SQLSTATE;
+
+--10. 暂不支持聚合函数内部包含表达式，例如 count(s+1)
+SELECT AVG(temperature+1) FROM root.factory1.** GROUP BY TAGS(city);
+<<SQLSTATE;
+
+--11. 不支持值过滤条件聚合，和分层聚合查询行为保持一致
+SELECT AVG(temperature) FROM root.factory1.** where temperature > 12 GROUP BY TAGS(city);
+<<SQLSTATE;
+
+--12. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//八、聚合结果查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.test;
+create timeseries root.test.d1.s1 with datatype=FLOAT, encoding=RLE;
+create timeseries root.test.d1.s2 with datatype=INT64, encoding=RLE;
+create aligned timeseries root.test.d2(s1 FLOAT encoding=RLE compressor=SNAPPY, s2 INT32 encoding=RLE compressor=SNAPPY );
+
+--2. 查看存储组和时间序列
+show databases root.test;
+show timeseries root.test.**;
+show devices;
+
+--3. 插入数据
+insert into root.test.d1(time,s1,s2) values(1509321600000,18.32,11);
+insert into root.test.d1(time,s1,s2) values(1509408000000,15.99,12);
+insert into root.test.d1(time,s1,s2) values(1509465600000,25.99,13);
+insert into root.test.d1(time,s1,s2) values(1509472800000,25.99,14);
+insert into root.test.d1(time,s1,s2) values(1509476400000,25.99,15);
+insert into root.test.d1(time,s1,s2) values(1509523800000,24.13,16);
+insert into root.test.d1(time,s1,s2) values(1509525300000,21.12,17);
+insert into root.test.d1(time,s1,s2) values(1509552000000,26.92,18);
+insert into root.test.d1(time,s1,s2) values(1509559200000,26.92,19);
+insert into root.test.d1(time,s1,s2) values(1509638400000,26.0,12);
+insert into root.test.d1(time,s1,s2) values(1509724800000,23.29,13);
+insert into root.test.d1(time,s1,s2) values(1509811200000,24.19,20);
+insert into root.test.d1(time,s1,s2) values(1509897600000,25.99,25);
+insert into root.test.d1(time,s1,s2) values(1509908400000,20.19,22);
+insert into root.test.d1(time,s1,s2) values(1509984000000,21.12,27);
+insert into root.test.d1(time,s1,s2) values(1510069800000,22.12,18);
+insert into root.test.d1(time,s1,s2) values(1510069920000,26.92,18);
+insert into root.test.d1(time,s1,s2) values(1510070100000,23.99,26);
+insert into root.test.d1(time,s1,s2) values(1510070370000,26.0,28);
+insert into root.test.d1(time,s1,s2) values(1510070400000,23.29,33);
+insert into root.test.d1(time,s1,s2) values(1541433600000,20.99,20);
+insert into root.test.d1(time,s1,s2) values(1572883200000,24.19,32);
+insert into root.test.d1(time,s1,s2) values(1573056000000,20.19,22);
+insert into root.test.d2(time,s1,s2) aligned values(1509321600000,1.1,1);
+insert into root.test.d2(time,s1,s2) aligned values(1509408000000,15.99,12);
+insert into root.test.d2(time,s1,s2) aligned values(1509465600000,0.0,13);
+insert into root.test.d2(time,s1,s2) aligned values(1509472800000,25.99,14);
+insert into root.test.d2(time,s1,s2) aligned values(1509476400000,25.99,15);
+insert into root.test.d2(time,s1,s2) aligned values(1509523800000,24.13,16);
+insert into root.test.d2(time,s1,s2) aligned values(1509525300000,21.12,17);
+insert into root.test.d2(time,s1,s2) aligned values(1509559200000,15.1,10);
+insert into root.test.d2(time,s1,s2) aligned values(1509638400000,26.0,12);
+insert into root.test.d2(time,s1,s2) aligned values(1509724800000,23.29,13);
+insert into root.test.d2(time,s1,s2) aligned values(1509811200000,2.0,0);
+insert into root.test.d2(time,s1,s2) aligned values(1509897600000,-1.2,2);
+insert into root.test.d2(time,s1,s2) aligned values(1509908400000,20.19,22);
+insert into root.test.d2(time,s1,s2) aligned values(1509984000000,21.12,27);
+insert into root.test.d2(time,s1,s2) aligned values(1510069800000,-2.3,-1);
+insert into root.test.d2(time,s1,s2) aligned values(1510069920000,26.92,18);
+insert into root.test.d2(time,s1,s2) aligned values(1510070100000,-1.5,-2);
+
+--4. 聚合结果查询
+--4.1 查询所有数据
+select ** from root;
+--4.2 使用having聚合结果过滤
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having count(s2) > 2;
+select count(s1), count(s2) from root.** group by ([1509465600000,1509552000000),1h) having count(s2) > 1 align by device;
+--4.3 HAVING子句中的过滤条件必须由聚合值构成，原始序列不能单独出现。
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h) having sum(s1) > s1;
+<<SQLSTATE;
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h) having s1 > 1;
+<<SQLSTATE;
+--4.4 GROUP BY LEVEL结果进行过滤时，SELECT和HAVING中出现的PATH只能有一级
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having sum(d1.s1) > 1;
+<<SQLSTATE;
+select count(d1.s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having sum(s1) > 1;
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//九、差值分段聚合
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(0,4.5,9.0,0.0,45.0,9.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,null,19.0,10.0,145.0,19.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(20,24.5,29.0,null,245.0,29.0,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(30,34.5,null,30.0,345.0,null,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(40,44.5,49.0,40.0,445.0,49.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(50,null,59.0,50.0,545.0,59.0,6.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(60,64.5,69.0,60.0,645.0,69.0,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(70,74.5,79.0,null,null,79.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(80,84.5,89.0,80.0,845.0,89.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(90,94.5,99.0,90.0,945.0,99.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(150,66.5,77.0,90.0,945.0,99.0,9.25);
+
+--2.delta=0时的等值事件分段
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6);
+
+--3.指定ignoreNull为false
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6, ignoreNull=false);
+
+--4.delta!=0时的差值事件分段
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6, 4);
+
+--5.group by子句中的controlExpression同样支持列的表达式
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6+s5, 10);
+
+--6.使用通配符拼接后出现多列，进行校验
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(*);
+<<SQLSTATE;
+
+--7.当前暂不支持与GROUP BY LEVEL搭配使用
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6) group by level=2;
+<<SQLSTATE;
+
+--8.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//十、条件分段聚合
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+create timeseries root.sg.beijing.car01.soc with datatype=FLOAT;
+create timeseries root.sg.beijing.car01.charging_status with datatype=INT32;
+create timeseries root.sg.beijing.car01.vehicle_status with datatype=INT32;
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(1,14.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(2,16.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(3,16.0,0,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(4,16.0,0,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(5,18.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(6,24.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(7,36.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(8,36.0,null,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(9,45.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(10,60.0,1,1);
+
+--2.查看设备和时间序列，执行数据查询
+show devices;
+show timeseries;
+select * from root.**;
+
+--3.查询至少连续两行以上的charging_status=1的数据
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true);
+
+--4.查询两行的charging_status=0的数据
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=0,KEEP=2,ignoringNull=true);
+
+--5.ignoreNull不添加，自动默认为true
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(soc>=24.0,KEEP<=10);
+
+--6.当设置ignoreNull为false时，遇到null值为将其视为一个不满足条件的行，会结束正在计算的分组。
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=false);
+
+--7.与ALIGN BY DEVICE搭配使用
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true) align by device;
+
+--8.统计一段时间的时长：group by variation和group by  condition共同使用
+select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by variation(charging_status,0,ignoreNull=false) having first_value(charging_status) = 1;
+select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by condition(charging_status = 1, keep >= 2, ignoreNull=false);
+
+--9.当前暂不支持与GROUP BY LEVEL搭配使用
+select first_value(soc), last_value(soc) from root.sg.beijing.car01 group by condition(charging_status = 1, keep > = 2, ignoreNull=false ) and level = 2;
+<<SQLSTATE;
+
+--10.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//十一、会话分段聚合
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(1000,35.7,11,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(2000,35.8,22,true);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(3000,35.4,33,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(4000,36.4,44,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(5000,36.8,55,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(10000,36.8,110,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(20000,37.8,220,true);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(30000,37.5,330,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(40000,37.4,440,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(50000,37.9,550,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(100000,38.0,110,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(150000,38.8,220,true);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(200000,38.6,330,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(260000,38.4,440,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(320000,38.3,550,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(400000,null,0,null);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(470000,null,0,null);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(480000,null,0,null);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(86881000,38.2,110,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(86882000,37.5,220,true);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(86883000,37.4,330,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(86884000,36.8,440,false);
+insert into root.ln.wf01.wt01(time,temperature,hardware,status) values(86885000,37.4,550,false);
+
+--2.查看设备和时间序列，执行数据查询
+show devices;
+show timeseries;
+select * from root.**;
+
+--3.按1天时间段进行统计
+select __endTime,count(*) from root.** group by session(1d);
+
+--4.和HAVING、ALIGN BY DEVICE共同使用
+select __endTime,sum(hardware) from root.ln.wf01.wt01 group by session(50s) having sum(hardware)>0 align by device;
+
+--5.按1分钟进行会话分段聚合
+select avg(temperature),count(status),sum(hardware) from root.ln.wf01.wt01 group by session(1m);
+
+--6.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+//十二、点数分段聚合
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+insert into root.sg.d1(time,s1,s2) values(1,14,1);
+insert into root.sg.d1(time,s1,s2) values(2,16,1);
+insert into root.sg.d1(time,s1,s2) values(3,16,0);
+insert into root.sg.d1(time,s1,s2) values(4,16,0);
+insert into root.sg.d1(time,s1,s2) values(5,18,1);
+insert into root.sg.d1(time,s1,s2) values(6,24,1);
+insert into root.sg.d1(time,s1,s2) values(7,36,1);
+insert into root.sg.d1(time,s1,s2) values(8,36,null);
+insert into root.sg.d1(time,s1,s2) values(9,45,1);
+insert into root.sg.d1(time,s1,s2) values(10,60,1);
+
+--2.查看设备和时间序列，执行数据查询
+show devices;
+show timeseries;
+select * from root.**;
+
+--3.group by count 查询
+select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,2);
+select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,3) align by device;
+
+--4. ignoreNull为TRUE和false验证
+select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=false);
+select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=true);
+
+--5.当前暂不支持与【GROUP BY LEVEL】搭配使用
+select count(s2),first_value(s1) from root.sg.d1 group by count(s2,2),level=2;
+<<SQLSTATE;
+
+--6.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//十三、月份分段聚合【GROUP BY MONTH】
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 准备数据
+insert into root.sg.d1(time,s1,s2) values(1640995200000,11,11);
+insert into root.sg.d1(time,s1,s2) values(1641340800000,12,12);
+insert into root.sg.d1(time,s1,s2) values(1643846400000,13,13);
+insert into root.sg.d1(time,s1,s2) values(1649116800000,14,14);
+insert into root.sg.d1(time,s1,s2) values(1651708800000,15,15);
+insert into root.sg.d1(time,s1,s2) values(1657152000000,17,17);
+insert into root.sg.d1(time,s1,s2) values(1661990400000,22,23);
+
+--2. group by month查询
+select s1, s2 from root.sg.d1;
+select sum(*) from root.sg.d1 group by([1646006400000,1672444800000),7w,2mo);
+select __endTime,avg(*) from root.sg.d1 group by([1640995200000,1672444800000),3mo);
+select count(*) from root.sg.d1 group by([1640995200000,1672444800000),3mo) limit 2 offset 1;
+select count(*) from root.sg.d1 group by([1640995200000,1672444800000),1mo,3mo) limit 2 offset 2 slimit 1 soffset 1;
+
+--3.清理环境
+delete database root.**;
+<<NULL;

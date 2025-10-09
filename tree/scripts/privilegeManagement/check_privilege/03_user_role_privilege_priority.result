@@ -1,0 +1,118 @@
+-- [1]19:CREATE USER user01 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]20:CREATE ROLE manager
+STRICT{
+PASS
+}
+-- [1]22:list user
+STRICT{
+PASS
+}
+
+-- [1]24:list role
+STRICT{
+Role(TEXT)      |
+----------------
+manager         |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]28:LIST PRIVILEGES OF ROLE manager
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]29:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]32:GRANT WRITE_DATA ON root.** TO USER user01
+STRICT{
+PASS
+}
+
+-- [1]35:LIST ROLE OF USER user01
+STRICT{
+Role(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+-- [1]38:GRANT ROLE manager TO user01
+STRICT{
+PASS
+}
+
+-- [1]41:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]44:LIST PRIVILEGES OF ROLE manager
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]46:create timeseries root.sg.d1.s1 with datatype=INT32
+STRICT{
+PASS
+}
+
+-- [1]51:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]51:insert into root.sg.d1(time,s1) values(1,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.83
+
+-- [1]52:select * from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(INT32)      |
+-----------------------------------------------
+1                    |1                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.33
+-- [1]57:REVOKE WRITE_DATA ON root.** FROM USER user01
+STRICT{
+PASS
+}
+
+-- [1]58:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]61:insert into root.sg.d1(time,s1) values(2,2)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s1]
+}

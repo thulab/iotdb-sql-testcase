@@ -1,0 +1,81 @@
+// 系统表：内置一个名为【INFORMATION_SCHEMA】的数据库
+// 存储IoTDB运行时信息
+// 对于用户：只读，无法在此基础上创建表
+// 不支持修改表结构或内容
+
+connect root/TimechoDB@2021;
+
+--0.清理数据：
+drop database test;
+<<NULL;
+
+--1. 查询系统库信息
+show databases;
+show databases details;
+
+--2. 创建数据库
+create database test;
+
+--3. 指定数据库
+use test;
+
+--4. 创建表
+create table table_1
+(
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	float FLOAT FIELD
+);
+
+--5. 查看表
+show tables;
+
+--6. 展示表结构信息
+desc table_1;
+
+--7. 数据写入
+insert into table_1(time, device_id, model_id, float) values(1,'d1','m1',1.1);
+insert into table_1(time, device_id, model_id, float) values(2,'d1','m1',2.2);
+insert into table_1(time, device_id, model_id, float) values(3,'d2','m2',3.3);
+
+--8. 数据查询
+select * from table_1 order by time;
+
+--9.查询数据库列表信息
+show databases;
+show databases details;
+
+--10. 指定系统库
+use information_schema;
+
+--11. 查看系统表信息 
+show tables;
+show tables from information_schema;
+show tables in information_schema;
+
+--12. 不支持修改表结构或内容
+ALTER TABLE databases set properties TTL=3600000;
+<<SQLSTATE;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS a TAG;
+<<SQLSTATE;
+ALTER TABLE columns set properties TTL=3600000;
+<<SQLSTATE;
+ALTER TABLE queries ADD COLUMN IF NOT EXISTS a TAG;
+<<SQLSTATE;
+
+--13. 系统表查询
+select * from information_schema.databases;
+select * from information_schema.databases where database like '%schema%';
+select * from information_schema.tables;
+select table_name from information_schema.tables where "ttl(ms)" = 'INF' and database = 'test';
+select * from information_schema.columns;
+select column_name from information_schema.columns where database = 'test' and table_name = 'table_1' and category = 'ATTRIBUTE' and datatype = 'STRING';
+select * from information_schema.queries;
+<<CHECKCODE;
+select * from information_schema.queries where elapsed_time > 0.01;
+<<CHECKCODE;
+
+
+-- 清理数据：
+drop database test;
+<<NULL;

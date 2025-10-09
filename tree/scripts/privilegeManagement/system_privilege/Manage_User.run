@@ -1,0 +1,156 @@
+//MANAGE_USER
+//create/delete/alter/list user
+//允许用户创建、删除、修改、查看用户。
+
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER qwertyuiop@1234567890=qwertyuiop;
+<<NULL;
+DROP USER `maker@01`;
+<<NULL;
+DROP USER `maker^01`;
+<<NULL;
+DROP USER `maker&01`;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DROP ROLE staff;
+<<NULL;
+
+--1. 创建用户和角色
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
+CREATE ROLE manager;
+CREATE ROLE staff;
+
+--2.列出用户和列出角色
+list user;
+<<CHECKCODE;
+list role;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+LIST PRIVILEGES OF USER user03;
+
+--4. 赋予普通用户角色
+GRANT ROLE manager TO user01;
+GRANT ROLE staff TO user02; 
+
+--5. 列出指定角色下所有用户
+LIST USER OF ROLE manager;
+<<CHECKCODE;
+LIST USER OF ROLE staff;
+<<CHECKCODE;
+
+--6. 列出指定用户下所有角色
+LIST ROLE OF USER user01;
+LIST ROLE OF USER user02;
+LIST ROLE OF USER user03;
+
+
+--7..赋予普通用户权限
+GRANT SECURITY ON root.** TO USER user01;
+GRANT SECURITY ON root.** TO USER user02 WITH GRANT OPTION;
+
+--8.列出用户所有权限
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+
+--9. user01用户登录
+connect user01/pass123456789;
+create user `maker@01` 'Pa&1abc01234';
+create user `qwertyuiop@1234567890=qwertyuiop` 'qwertyuiop@1234567890=qwertyuiop';
+LIST USER;
+<<CHECKCODE;
+lIST USER OF ROLE manager;
+<<CHECKCODE;
+lIST USER OF ROLE staff;
+<<CHECKCODE;
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+LIST PRIVILEGES OF USER user03;
+DROP USER `maker@01`;
+LIST USER;
+<<CHECKCODE;
+DROP USER `root`;
+<<SQLSTATE;
+ALTER USER `qwertyuiop@1234567890=qwertyuiop` SET PASSWORD 'pass123456789';
+ALTER USER user01 SET PASSWORD '123456789012';
+connect user01/123456789012;
+
+--10. user02用户登录
+connect user02/pass123456789;
+GRANT SECURITY ON root.** TO USER user03;
+create user `maker&01` 'pas_@Wd_password';
+LIST USER;
+<<CHECKCODE;
+lIST USER OF ROLE manager;
+<<CHECKCODE;
+lIST USER OF ROLE staff;
+<<CHECKCODE;
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+LIST PRIVILEGES OF USER user03;
+ALTER USER `maker&01` SET PASSWORD 'pass123456789';
+DROP USER user02;
+<<SQLSTATE;
+
+--11. user03用户登录
+connect user03/pass123456789;
+create user `maker^01` 'pass_@Word12';
+LIST USER;
+<<CHECKCODE;
+lIST USER OF ROLE manager;
+<<CHECKCODE;
+lIST USER OF ROLE staff;
+<<CHECKCODE;
+LIST PRIVILEGES OF USER user01;
+LIST PRIVILEGES OF USER user02;
+LIST PRIVILEGES OF USER user03;
+ALTER USER `maker^01` SET PASSWORD 'pass123456789';
+DROP USER `maker^01`;
+
+--12. 用户qwertyuiop@1234567890=qwertyuiop登录
+connect qwertyuiop@1234567890=qwertyuiop/pass123456789;
+create user `maker*01` 'pass_@Word12d';
+<<SQLSTATE;
+LIST USER;
+<<CHECKCODE;
+lIST USER OF ROLE manager;
+<<CHECKCODE;
+LIST PRIVILEGES OF USER user01;
+<<SQLSTATE;
+ALTER USER user01 SET PASSWORD 'password1234';
+<<SQLSTATE;
+DROP USER user01;
+<<SQLSTATE;
+
+--13. 清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DROP USER `qwertyuiop@1234567890=qwertyuiop`;
+<<NULL;
+DROP USER `maker@01`;
+<<NULL;
+DROP USER `maker^01`;
+<<NULL;
+DROP USER `maker&01`;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DROP ROLE staff;
+<<NULL;

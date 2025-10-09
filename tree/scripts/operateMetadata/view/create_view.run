@@ -1,0 +1,529 @@
+connect root/TimechoDB@2021;
+//tc1 developer doc
+drop database root.view;<<null;
+drop database root.db;<<null;
+delete from root.__system.**.`database=root.db`.**;<<null;
+create database root.view;
+create database root.db;
+create timeseries root.db.0800200A8C6D.xvjeifg with datatype=INT32;
+insert into root.db.0800200A8C6D(time,xvjeifg)values (1,1);
+insert into root.db.0800200A8C6D(time,xvjeifg)values (2,2);
+flush;
+create view root.view.t1.c1 as select xvjeifg from root.db.0800200A8C6D;
+select * from root.view.t1;
+select * from root.db.**;
+show timeseries root.db.**;
+show timeseries root.view.**;
+//tc2 from system database
+create view root.view.v2.c1 as select sum(value) from root.__system.**;<<sqlstate;
+show timeseries root.view.v2.c1;
+select c1 from root.view.v2;
+drop database root.view;
+drop database root.db;
+show databases root.view;
+show databases root.db;
+//tc3 view name same as ts
+create database root.db;
+create timeseries root.db.t1.col1 with datatype=INT32;
+insert into root.db.t1(time,col1)values (1,1);
+insert into root.db.t1(time,col1)values (2,2);
+create view root.db.t1.col1 as select col1 from root.db.t1; 
+<<sqlstate;
+show timeseries root.db.t1.**;
+drop database root.db;
+//tc4 view name same as view 
+create database root.db;
+create timeseries root.db.t1.col1 with datatype=INT32;
+create timeseries root.db.t1.col2 with datatype=INT32;
+insert into root.db.t1(time,col1,col2)values (1,1,11);
+insert into root.db.t1(time,col1,col2)values (2,2,22);
+create view root.db.t1.v1 as select col1 from root.db.t1;
+select v1,col1,col2 from root.db.t1;
+create view root.db.t1.v1 as select col2 from root.db.t1;
+<<sqlstate;
+show timeseries root.db.t1.**;
+drop database root.db;
+//tc5 view name and ts have same dev name ; normal dev 
+create database root.db;
+create timeseries root.db.t1.col1 with datatype=INT32;
+create timeseries root.db.t1.col2 with datatype=INT32;
+insert into root.db.t1(time,col1,col2)values (1,1,11);
+insert into root.db.t1(time,col1,col2)values (2,2,22);
+create view root.db.t1.v1 as select col1 from root.db.t1;
+create aligned view root.db.t1.v2 as select col1 from root.db.t1;
+<<sqlstate;
+create aligned timeseries root.db.t1.v2 as select col1 from root.db.t1;
+<<sqlstate;
+create aligned timeseries root.db.t1(v2 FLOAT encoding=PLAIN compressor=SNAPPY);
+<<sqlstate;
+select v1,col1,col2 from root.db.t1;
+show timeseries root.db.t1.**;
+drop database root.db;
+
+//tc6 view name and ts have same dev name ; aligned dev
+create database root.db;
+create aligned timeseries root.db.t1(col1 FLOAT encoding=PLAIN compressor=SNAPPY,col2 INT32 encoding=PLAIN compressor=SNAPPY);
+insert into root.db.t1(time,col1,col2)aligned values (1,1,11);
+insert into root.db.t1(time,col1,col2)aligned values (2,2,22);
+create view root.db.t1.v1 as select col1 from root.db.t1;
+select v1,col1,col2 from root.db.t1;
+show timeseries root.db.t1.**;
+show devices root.db.*;
+show view;
+count timeseries root.db.**;
+insert into root.db.t1(time,v1) values(3,3);
+insert into root.db.t1(time,v1) aligned values(4,4);
+select v1 from root.db.t1;
+drop database root.db;
+
+//tc7 view name and ts have same dev name; set template to this dev
+create database root.db;
+create schema template t1(s_0 DOUBLE compressor=SNAPPY ,s_1  DOUBLE ENCODING=RLE compressor=LZ4 ,s_2  DOUBLE ENCODING=TS_2DIFF compressor=GZIP,s_3 DOUBLE ENCODING=GORILLA compressor=ZSTD,s_4 DOUBLE compressor=ZSTD,s_5 DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,s_6 DOUBLE compressor=LZ4,s_7 DOUBLE compressor=GZIP,s_8 DOUBLE compressor=ZSTD,s_9 DOUBLE compressor=ZSTD,s_10 DOUBLE compressor=SNAPPY,s_11 DOUBLE compressor=UNCOMPRESSED);
+set  schema template t1 to root.db;
+//tc7.1 ts does not exist
+create view root.db.t1.v0 as select s_0 from root.db.t1;
+<<sqlstate;
+create timeseries root.db.t1.s_0 with datatype=DOUBLE,compressor=SNAPPY;
+<<sqlstate;
+insert into root.db.t1(time,s_1) values (1,1.1);
+create view root.db.t1.v0 as select s_0 from root.db.t1;<<sqlstate;
+show timeseries root.db.t1.*;
+select v0 from root.db.t1;
+show view;
+//tc8 view name and ts have same dev name; dev is aligned;
+insert into root.db.t2(time,s_1)aligned values (1,1.1);
+show devices root.db.*;
+drop database root.db;
+drop schema template t1;
+show schema templates;
+
+//tc8 view name and ts have same dev name; dev is aligned; set template to this dev;
+create database root.db;
+create schema template t1 aligned(s_0 DOUBLE compressor=SNAPPY ,s_1  DOUBLE ENCODING=RLE compressor=LZ4 ,s_2  DOUBLE ENCODING=TS_2DIFF compressor=GZIP,s_3 DOUBLE ENCODING=GORILLA compressor=ZSTD,s_4 DOUBLE compressor=ZSTD,s_5 DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,s_6 DOUBLE compressor=LZ4,s_7 DOUBLE compressor=GZIP,s_8 DOUBLE compressor=ZSTD,s_9 DOUBLE compressor=ZSTD,s_10 DOUBLE compressor=SNAPPY,s_11 DOUBLE compressor=UNCOMPRESSED);
+set  schema template t1 to root.db;
+show devices root.db.**;
+create view root.db.t1.v0 as select s_0 from root.db.t1;
+<<sqlstate;
+insert into root.db.t1(time,s_1)aligned values (1,1.1);
+show devices root.db.**;
+count timeseries root.db.t1.*;
+create view root.db.t1.v0 as select s_0 from root.db.t1;<<sqlstate;
+count timeseries root.db.t1.*;
+select v0 from root.db.t1;
+show view;
+insert into root.db.t1(time,v0)aligned values(2,2.2);
+select v0 from root.db.t1 order by time desc;
+// tc8.1 create view ,the name same as view
+create view root.db.t1.v0 as select s_1 from root.db.t1;
+<<sqlstate;
+drop database root.db;
+drop schema template t1;
+show schema templates;
+show databases root.db;
+
+//tc9 set template to root.db ; ts dev and view des is not same
+create database root.db;
+create schema template t1(s_0 DOUBLE compressor=SNAPPY ,s_1  DOUBLE ENCODING=RLE compressor=LZ4 ,s_2  DOUBLE ENCODING=TS_2DIFF compressor=GZIP,s_3 DOUBLE ENCODING=GORILLA compressor=ZSTD,s_4 DOUBLE compressor=ZSTD,s_5 DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,s_6 DOUBLE compressor=LZ4,s_7 DOUBLE compressor=GZIP,s_8 DOUBLE compressor=ZSTD,s_9 DOUBLE compressor=ZSTD,s_10 DOUBLE compressor=SNAPPY,s_11 DOUBLE compressor=UNCOMPRESSED);
+set  schema template t1 to root.db;
+insert into root.db.t1(time,s_1) values (1,1.1);
+create view root.db.t1.v0 as select s_not_exist from root.db.t1;
+<<sqlstate;
+create view root.db.dev_of_view1.col0 as select s_0 from root.db.t1;<<sqlstate;
+show timeseries root.db.dev_of_view1.*;
+select col0 from root.db.dev_of_view1;
+insert into root.db.dev_of_view1(time,col0) values(1,101.1);
+select col0 from root.db.dev_of_view1;
+show devices root.db.**;
+//tc9.1 create view again ,source ts is the same with view1
+create view root.db.dev_of_view2.col0 as select s_0 from root.db.t1;<<sqlstate;
+insert into root.db.dev_of_view2(time,col0) values(2,202.1);
+select col0 from root.db.dev_of_view2;
+select col0 from root.db.dev_of_view1;
+select s_0 from root.db.t1;
+drop database root.db;
+drop schema template t1;
+
+//tc10 ts dev and view des is not same ,normal
+create database root.db;
+create aligned timeseries root.db.t1(s_0 DOUBLE compressor=SNAPPY ,s_1  DOUBLE ENCODING=RLE compressor=LZ4 ,s_2  DOUBLE ENCODING=TS_2DIFF compressor=GZIP,s_3 DOUBLE ENCODING=GORILLA compressor=ZSTD,s_4 DOUBLE compressor=ZSTD,s_5 DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,s_6 DOUBLE compressor=LZ4,s_7 DOUBLE compressor=GZIP,s_8 DOUBLE compressor=ZSTD,s_9 DOUBLE compressor=ZSTD,s_10 DOUBLE compressor=SNAPPY,s_11 DOUBLE compressor=UNCOMPRESSED);
+insert into root.db.t1(time,s_0,s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11)aligned values(1,1.1,1.1,1.1,1.1,1.1,1.1,1.1,1.1,1.1,1.1,1.1,1.1);
+insert into root.db.t1(time,s_0,s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11)aligned values(2,2.1,2.1,2.1,2.1,2.1,2.1,2.1,2.1,2.1,2.1,2.1,2.1);
+insert into root.db.t1(time,s_0,s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11)aligned values(3,3.1,3.1,3.1,3.1,3.1,3.1,3.1,3.1,3.1,3.1,3.1,3.1);
+insert into root.db.t1(time,s_0,s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11)aligned values(4,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1);
+create view root.db.view1.col0,root.db.view1.col1 as select s_0,s_1 from root.db.t1;
+select col0,col1,col2 from root.db.view1;
+select s_0,s_1,s_2,s_5,s_9,s_10,s_11 from root.db.t1;
+show view;
+show devices root.db.*;
+//tc11 drop view
+drop view root.db.view1.col0;
+show view;
+select * from root.db.view1;
+create view root.db.view1.col0 as select s_0 from root.db.t1;
+insert into root.db.view1(time,col0,col1) values(5,5.1,5.1);
+insert into root.db.view1(time,col0,col1)aligned values(5,5.1,5.1);
+select col0,col1 from root.db.view1;
+drop database root.db;
+// tc12 developer doc create sql
+create database root.db;
+drop database root.view;<<null;
+create database root.view;
+CREATE VIEW root.view.device.status AS SELECT s01 FROM root.db.device;<<sqlstate;
+create timeseries root.db.device.s01 with datatype=INT32;
+insert into root.db.device(time,s01) values(1,null);
+CREATE VIEW root.view.device.status AS SELECT s01 FROM root.db.device;
+show view root.view.device.status;
+select status,s01 from root.*.device.*;
+insert into root.db.device(time,s01) values(1,1);
+select s01 into root.view.device(status) from root.db.device;
+select s01 from root.db.device;
+select status from root.view.device;
+drop database root.db;
+drop database root.view;
+//tc13 developer doc create sql ,same dev
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+CREATE VIEW root.db.device.status AS SELECT s01 FROM root.db.device;
+insert into root.db.device(time,s01,status) values(1,1,2);<<sqlstate;
+select s01,status from root.db.device;
+insert into root.db.device(time,status,s01) values(1,1,2);<<sqlstate;
+select s01,status from root.db.device;
+drop database root.db;
+//tc14 developer doc create sql , no select from
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+CREATE VIEW root.db.device.status AS root.db.device.s01;
+insert into root.db.device(time,s01,status) values(1,1,2);<<sqlstate;
+select s01,status from root.db.device;
+delete from root.db.device.**;
+select s01,status from root.db.device;
+drop database root.db;
+//tc15 expand no select from , use path pattern
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+CREATE VIEW root.db.device.status AS root.db.*.s01;
+<<sqlstate;
+CREATE VIEW root.db.device.status AS root.db.**;
+<<sqlstate;
+CREATE VIEW root.db.device.status AS root.**;
+<<sqlstate;
+show view;
+drop database root.db;
+//tc16 developer doc create sql, expression
+create database root.db;
+create timeseries root.db.d01.temperature01 with datatype=float; 
+create timeseries root.db.d01.temperature02 with datatype=float; 
+create timeseries root.db.d01.s01 with datatype=float; 
+CREATE VIEW root.db.d01.avg_temperature AS SELECT (temperature01 + temperature02) / 2 FROM root.db.d01;
+insert into root.db.d01(time,temperature01,temperature02)values(1,1.2,2.2);
+select temperature01,temperature02,avg_temperature from root.db.d01;
+alter view root.db.d01.avg_temperature as select temperature01/temperature02 FROM root.db.d01;
+insert into root.db.d01(time,temperature01,temperature02)values(2,2.2,0.0);
+select temperature01,temperature02,avg_temperature from root.db.d01;
+select temperature01,temperature02,cast(avg_temperature as INT32) from root.db.d01;
+<<sqlstate;
+CREATE VIEW root.view.device.avg_temp_copy AS root.db.d01.avg_temperature;
+<<sqlstate;
+drop database root.db;
+
+//tc17 developer doc 3.1.4 ,multiple view columns
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32; 
+create timeseries root.db.device.s02 with datatype=INT32; 
+CREATE VIEW root.db.device.status, root.db.device.sub.hardware AS SELECT s01,s02 FROM root.db.device;
+insert into root.db.device(time,s01,s02,status) values(1,1,1,2);<<sqlstate;
+insert into root.db.device.sub(time,hardware) values(2,22);
+select hardware,status,s01,s02 from root.db.**;
+show view root.db.**;
+delete timeseries root.db.**;
+show view root.db.**;
+show timeseries root.db.**;
+drop database root.db;
+//tc18 delete timeseries view_name can also delete the view 
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+create timeseries root.db.device.s02 with datatype=INT32;
+CREATE VIEW root.db.device.status, root.db.device.sub.hardware AS SELECT s01,s02 FROM root.db.device;
+insert into root.db.device(time,s01,s02,status) values(1,1,1,2);<<sqlstate;
+insert into root.db.device.sub(time,hardware) values(2,22);
+show timeseries root.db.device.sub.hardware;
+show view root.db.device.sub.hardware;
+count timeseries root.db.**;
+delete timeseries root.db.device.sub.hardware;
+show timeseries root.db.device.sub.hardware;
+show view root.db.device.sub.hardware;
+count timeseries root.db.**;
+show view root.db.device.status;
+show timeseries root.db.device.status;
+drop view root.db.device.*;
+show view root.db.device.status;
+show timeseries root.db.device.status;
+count timeseries root.db.**;
+drop database root.db;
+//tc19 developer doc 3.1.4 ,multiple view columns
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+create timeseries root.db.device.s02 with datatype=INT32;
+CREATE VIEW root.db.device(status, sub.hardware) AS SELECT s01,s02 FROM root.db.device;
+insert into root.db.device(time,s01,s02,status) values(1,1,1,2);<<sqlstate;
+insert into root.db.device.sub(time,hardware) values(2,22);
+show timeseries root.db.device.sub.hardware;
+show view root.db.device.sub.hardware;
+count timeseries root.db.**;
+delete timeseries root.db.device.sub.hardware;
+show timeseries root.db.device.sub.hardware;
+show view root.db.device.sub.hardware;
+count timeseries root.db.**;
+show view root.db.device.status;
+show timeseries root.db.device.status;
+drop view root.db.device.*;
+show view root.db.device.status;
+show timeseries root.db.device.status;
+count timeseries root.db.**;
+drop database root.db;
+
+//tc20 developer doc 3.1.4 ,multiple view columns
+create database root.db;
+create timeseries root.db.device.s01 with datatype=INT32;
+create timeseries root.db.device.s02 with datatype=INT32;
+CREATE VIEW root.db.device.status AS SELECT s01 FROM root.db.device;
+CREATE VIEW root.db.device.sub.hardware AS SELECT s02 FROM root.db.device;
+insert into root.db.device(time,s01,s02,status) values(1,1,1,2);<<sqlstate;
+insert into root.db.device.sub(time,hardware) values(2,22);
+select sub.hardware,status,s01,s02 from root.db.device;
+//tc21 developer doc 3.1.4 ,multiple view columns
+// same view name ,sqlstate
+CREATE VIEW root.db.device.status, root.db.device.sub.hardware AS root.db.device.s01, root.db.device.s02;
+<<sqlstate;
+drop view root.db.device.**;
+show view;
+CREATE VIEW root.db.device.status, root.db.device.sub.hardware AS root.db.device.s01, root.db.device.s02;
+select sub.hardware,status,s01,s02 from root.db.device;
+// tc22 drop view root.**
+drop view root.**;
+show view;
+show timeseries root.db.device.s01;
+show timeseries root.db.device.s02;
+// tc23 developer doc 3.1.4 ,multiple view columns
+CREATE VIEW root.db.device(status, sub.hardware) AS root.db.device(s01, s02);
+show view root.db.device.status;
+show view root.db.device.sub.*;
+select sub.hardware,status,s01,s02 from root.db.device;
+insert into root.db.device(time,status,sub.hardware) values(3,3,3);
+<<sqlstate;
+insert into root.db.device(time,status,`sub.hardware`) values(4,4,4);
+select `sub.hardware`,sub.hardware from root.db.device;
+drop view root.db.device.`sub.hardware`;
+<<sqlstate;
+show timeseries root.db.device.`sub.hardware`;
+drop view root.db.device.is_not_exist;
+<<sqlstate;
+drop database root.db;
+// tc24 same name s01,s02 from root.db.d01,root.db.d02
+drop database root.view;<<null;
+create database root.db;
+create database root.view;
+create timeseries root.db.d01.s01 with datatype=INT32;
+create timeseries root.db.d01.s02 with datatype=INT64;
+create timeseries root.db.d02.s01 with datatype=BOOLEAN;
+create timeseries root.db.d02.s02 with datatype=TEXT;
+CREATE VIEW root.view.d(alpha, beta, gamma) AS SELECT s01, s02 FROM root.db.d01, root.db.d02;
+<<sqlstate;
+CREATE VIEW root.view.d(alpha, beta, gamma,delta) AS SELECT s01, s02 FROM root.db.d01, root.db.d02;
+show view root.view.d.*;
+insert into root.db.d01(time,s01,s02) values(1,1,1);
+insert into root.db.d02(time,s01,s02) values(2,true,"hello");
+select alpha, beta, gamma,delta from root.view.d;
+show view root.view.d.delta;
+delete timeseries root.db.d02.s02;
+show view root.view.d.delta;
+drop view root.view.d.delta;
+show view root.view.d.delta;
+create timeseries root.db.d02.s02 with datatype=TEXT;
+show view root.view.d.*;
+show view root.view.d.gamma;
+delete timeseries root.db.d01.s02;
+show view root.view.d.gamma;
+show view;
+drop view root.view.d.gamma;
+show view;
+drop database root.db;
+drop database root.view;
+// tc25 developer doc 3.1.5
+create database root.db;
+create database root.view;
+create timeseries root.db.d01.temperature with datatype=INT32;
+create timeseries root.db.d01.speed with datatype=INT64;
+create timeseries root.db.d02.temperature with datatype=INT32;
+create timeseries root.db.d02.s02 with datatype=INT64;
+create timeseries root.db.d02.s03 with datatype=INT64;
+
+create timeseries root.db.d03.temperature with datatype=TEXT;
+create timeseries root.db.d03.c02 with datatype=INT64;
+create timeseries root.db.d03.c03 with datatype=INT64;
+
+create timeseries root.db.d04.temperature with datatype=TEXT;
+create timeseries root.db.d04.d02 with datatype=INT64;
+create timeseries root.db.d04.d03 with datatype=INT64;
+
+create timeseries root.db.d05.temperature with datatype=float;
+create timeseries root.db.d06.temperature with datatype=double;
+insert into root.db.d01(time,temperature,speed) values(1,20,80);
+insert into root.db.d06(time,temperature) values(1685583924366,30);
+SELECT temperature FROM root.db.** align by device;
+<<sqlstate;
+CREATE VIEW root.db.view(${2}_temperature) AS SELECT temperature FROM root.db.*;
+show view;
+CREATE VIEW root.db.view(${2}_${3}) AS SELECT temperature from root.db.*;<<sqlstate;
+CREATE VIEW root.db.view2(${3}) AS SELECT temperature FROM root.db.d01;
+show view;
+select * from root.db.view;
+select * from root.db.view2;
+
+create timeseries root.db.d07.temperature with datatype=double;
+show view;
+delete timeseries root.db.d04.temperature;
+show view;
+select * from root.db.view;<<sqlstate;
+drop database root.db;
+drop database root.view;
+// tc26 select Constant string from ts
+create database root.db;
+create timeseries root.db.d01.speed with datatype=INT64;
+insert into root.db.d01(time,speed) values(1,100);
+insert into root.db.d01(time,speed) values(2,200);
+create view root.db.d01(v_speed_constant,v_speed_act) as select 100 ,speed from root.db.d01;
+<<sqlstate;
+show view;
+count timeseries root.db.**;
+create view root.db.d01(v_speed_constant,v_speed_act) as select * from root.db.d01;
+<<sqlstate;
+create view root.db.d01(v_speed) as select * from root.db.d01;
+count timeseries root.db.**;
+select * from root.db.d01;
+drop database root.db;
+// tc27 dev name same as aligned dev
+create database root.db;
+create aligned timeseries root.db.d_aligned(s01 INT32 encoding=TS_2DIFF compressor=ZSTD ,s01 INT32 encoding=GORILLA compressor=GZIP );
+<<sqlstate;
+create aligned timeseries root.db.d_aligned(s01 INT32 encoding=TS_2DIFF compressor=ZSTD ,s02 INT32 encoding=GORILLA compressor=GZIP );
+create view root.db.d_aligned(v1) as root.db.d_aligned(s01);
+insert into root.db.d_aligned(time,v1) values(1,100);
+
+create timeseries root.db.d_normal.speed with datatype=INT64;
+create view root.db.d_aligned(v2) as root.db.d_normal(speed);
+show view root.db.d_aligned.*;
+select v1,v2,s01,s02 from root.db.d_aligned;
+select * from root.db.d_normal;
+insert into root.db.d_aligned(time,v2,v1) values(1,200,100);
+
+insert into root.db.d_aligned(time,v2,v1)aligned values(1,200,100);
+
+insert into root.db.d_aligned(time,v2,v1) values(1,200,100);
+
+select v1,v2,s01,s02 from root.db.d_aligned;
+select * from root.db.d_normal;
+show timeseries root.db.**;
+drop database root.db;
+// tc28 view from diff db
+create database root.db1;
+create database root.db2;
+create database root.db3;
+create database root.db4;
+create database root.db5;
+create database root.db6;
+create database root.db7;
+create database root.db8;
+create database root.db9;
+create database root.db10;
+create timeseries root.db1.d01.s01 with datatype=INT32;
+create timeseries root.db2.d01.s01 with datatype=INT32;
+create timeseries root.db3.d01.s01 with datatype=INT32;
+create timeseries root.db4.d01.s01 with datatype=INT32;
+create timeseries root.db5.d01.s01 with datatype=INT32;
+create timeseries root.db6.d01.s01 with datatype=INT32;
+create timeseries root.db7.d01.s01 with datatype=INT32;
+create timeseries root.db8.d01.s01 with datatype=INT32;
+create timeseries root.db9.d01.s01 with datatype=INT32;
+create timeseries root.db10.d01.s01 with datatype=INT32;
+create view root.view.v1(col1,col2,col3,col4,col5,col6,col7,col8,col9,col10) as root.db1.d01.s01,root.db2.d01.s01,root.db3.d01.s01,root.db4.d01.s01,root.db5.d01.s01,root.db6.d01.s01,root.db7.d01.s01,root.db8.d01.s01,root.db9.d01.s01,root.db10.d01.s01;
+show view root.view.*;
+show timeseries root.db*.**;
+insert into root.view.v1(time,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10) values(1,1,2,3,4,5,6,7,8,9,10);
+select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.view.**,root.db*.**;
+select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.view.**,root.db*.** align by device;
+<<sqlstate;
+select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.db*.** align by device;
+show devices root.view.*;
+drop database root.db*;
+drop database root.view;
+
+// tc29 view from diff db aligned
+create database root.db1;
+create database root.db2;
+create database root.db3;
+create database root.db4;
+create database root.db5;
+create database root.db6;
+create database root.db7;
+create database root.db8;
+create database root.db9;
+create database root.db10;
+create aligned timeseries root.db1.d01(s01 INT32);  
+create aligned timeseries root.db2.d01(s01 INT32);
+create aligned timeseries root.db3.d01(s01 INT32);
+create aligned timeseries root.db4.d01(s01 INT32);
+create aligned timeseries root.db5.d01(s01 INT32);
+create aligned timeseries root.db6.d01(s01 INT32);
+create aligned timeseries root.db7.d01(s01 INT32);
+create aligned timeseries root.db8.d01(s01 INT32);
+create aligned timeseries root.db9.d01(s01 INT32);
+create aligned timeseries root.db10.d01(s01 INT32);
+
+create view root.view.v1(col1,col2,col3,col4,col5,col6,col7,col8,col9,col10) as root.db1.d01.s01,root.db2.d01.s01,root.db3.d01.s01,root.db4.d01.s01,root.db5.d01.s01,root.db6.d01.s01,root.db7.d01.s01,root.db8.d01.s01,root.db9.d01.s01,root.db10.d01.s01;
+
+insert into root.view.v1(time,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10) values(1,1,2,3,4,5,6,7,8,9,10);
+
+insert into root.view.v1(time,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10) aligned values(1,1,2,3,4,5,6,7,8,9,10);
+select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.db*.** align by device;
+show devices root.view.*;
+show devices root.db*.*;
+drop database root.db*;
+drop database root.view;
+show devices root.db*.*;
+show devices root.view.*;
+// tc30 view same db placehold
+
+drop database root.db;<<null;
+
+create database root.db;
+create aligned timeseries root.db.d1(s01 INT32,s02 INT64,s03 boolean,s04 float,s05 double,s06 text);
+create timeseries root.db.d2.s01 with datatype=INT32;
+create timeseries root.db.d2.s02 with datatype=INT64;
+create timeseries root.db.d2.s03 with datatype=boolean;
+create timeseries root.db.d2.s04 with datatype=float;
+create timeseries root.db.d2.s05 with datatype=double;
+create timeseries root.db.d2.s06 with datatype=TEXT;
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06) aligned values(1,1,1,true,1,1,"aligned 1");
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06) aligned values(2,2,2,false,2,2,"aligned row 2");
+insert into root.db.d1(time,s01,s02,s03,s04,s05,s06) aligned values(3,3,3,true,3,3,"aligned row 3");
+
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(1,1,1,true,1,1,"normal 1");
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(2,2,2,false,2,2,"normal row 2");
+insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(3,3,3,true,3,3,"normal row 3");
+create view root.db.${2}(${2}_${3}) as select s01,s02,s03,s04,s05,s06 from root.db.*;
+create view root.db.${2}(${2}_${3}) as select * from root.db.*;
+<<sqlstate;
+select d1_s04,d1_s01,d1_s03,d2_s02,d2_s05,d2_s06 from root.db.**;
+select d1_s01,d1_s02,d1_s03,d1_s04,d1_s05,d1_s06 into aligned root.db.d1(s01,s02,s03,s04,s05,s06) from root.db.d1;
+drop view root.db.**;
+create view root.db.${2}(${2}_${3}) as select s01,s01,s01,s01,s01,s01 from root.db.d1;
+<<sqlstate;
+create view root.db.d1(c1,c2,c3,c4,c5,c6) as select s06,s06,s06,s01,s01,s01 from root.db.d1;
+insert into root.db.d1(time,c1,c2,c3,c4,c5,c6)aligned values(1000,"str c1","str c2","str c3",77,88,99);
+<<sqlstate;
+insert into root.db.d1(time,c1,c2,c3,c4,c5,c6) values(2000,"str c1","str c2","str c3",77,88,99);
+<<sqlstate;
+select * from root.db.d1;
+select s01,s02,s03,s04,s05,s06,c1,c2,c3,c4,c5,c6 from root.db.d1;
+drop database root.db;

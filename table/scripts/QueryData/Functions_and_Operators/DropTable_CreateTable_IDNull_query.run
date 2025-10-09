@@ -1,0 +1,48 @@
+// drop table之后，再创建同名的table，查询结果返回异常
+// 删除表时涉及到 deviceId 为 null 的情况,查询结果集显示正常。
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1(device_id string TAG, model_id string TAG, int32 INT32 FIELD);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 插入数据
+insert into table_1(time, device_id, int32) values(1, 'd1', 1);
+insert into table_1(time, model_id, int32) values(2, '', 2);
+
+--7. 执行flush
+flush;
+
+--8. 查询数据
+select * from table_1 order by time;
+
+--9. 删除表，再创建表
+drop table table_1;
+show tables;
+create table table_1(device_id string TAG, model_id string TAG, int32 INT32 FIELD);
+
+--10. 重复上面的操作：插入数据，然后执行数据查询
+insert into table_1(time, device_id, int32) values(1, 'd1', 1);
+insert into table_1(time, model_id, int32) values(2, '', 2);
+flush;
+select * from table_1 order by time;
+
+--清理数据：
+drop database test_db;
+<<NULL;
+

@@ -1,0 +1,271 @@
+// 非关联标量子查询
+//  搭配：where + having + select + from 
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    remark STRING ATTRIBUTE,
+    name TEXT FIELD,
+    Gender TEXT FIELD,
+	Status BOOLEAN FIELD,
+	employee_id INT32 FIELD,
+	salary DOUBLE FIELD,
+	date_of_birth DATE FIELD,
+	Contac_info string FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    dep_description STRING ATTRIBUTE,
+    dep_name TEXT FIELD,
+    dep_phone TEXT FIELD,
+	dep_status BOOLEAN FIELD,
+	dep_member INT32 FIELD
+);
+
+create table customers
+(
+	customer_id STRING TAG,
+	remark STRING ATTRIBUTE,
+	customer_name TEXT,
+	region TEXT,
+	order_id INT64
+);
+
+create table orders
+(
+	customer_id STRING TAG,
+	employee_id INT32,
+	project_id STRING TAG,
+	project_name STRING ATTRIBUTE,
+	order_id INT64,
+	order_amount FLOAT	
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+desc orders;
+desc customers;
+
+--6. 数据写入
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1, 'D001', 'good', 'Mary','Female', false, 1223, 5500.22, '1988-10-12', '133-1212-1234');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(2, 'D001', 'great', 'John', 'Male', true, 0012, 8822, '1985-06-15', '130-1002-1334');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(3, 'D002', 'excellent', 'Nancy', 'Female', true, 0112, 10002, '1983-08-15', '135-1302-1354');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(4, 'D002', 'good', 'Jack', 'Male', false, 12212, 7000, '1990-03-26', '138-1012-1353');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(5, 'D003', 'great', 'Linda', 'Female', false, 10212, 5600, '1995-06-15', '150-2003-1355');
+
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1, 'D001', 'goods','销售部', '010-2271-2120', false, 1223);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(2, 'D001', 'goods','销售部', '010-2271-2120', false, 0012);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(3, 'D002', 'service','客服部', '010-2077-2520', true, 0112);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(4, 'D002', 'service','客服部', '010-2077-2520', true, 2012);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(5, 'D003', 'IT','研发部', '010-3272-2310', true, 0212);
+
+insert into orders(time, customer_id, employee_id, project_id, project_name, order_id, order_amount) values
+(1, 'C111000111', 12, 'P1001001', 'chair', 111122223333, 5000.89),
+(2, 'C332113221', 2012, 'P2002021', 'table', 222333445881,1860.5),
+(3, 'C113344421', 212, 'P3893001', 'mirror', 66788843922,3699.88),
+(4, 'C223321123', 1223, 'P0010100', 'clothes', 7263722222,8888.88),
+(5, 'C123532982', 112, 'P3983819', 'shoes',22238472992, 9999.9);
+
+insert into customers(time,customer_id, remark, customer_name, region, order_id) values
+(1, 'C111000111', 'A', 'Helen', 'Beijing', 22238472992),
+(2, 'C332113221', 'A', 'Mike', 'Shanghai', 111122223333),
+(3, 'C113344421', 'B', 'John', 'Hebei', 66788843922),
+(4, 'C223321123', 'A', 'Jack', 'Guangzhou', 7263722222),
+(5, 'C123532982', 'B', 'Amy', 'Tianjin', 222333445881);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+select * from orders order by time;
+select * from customers order by time;
+
+--8. 非关联标量子查询
+--8.1 select子句中使用
+select 
+	count((select max(salary) from employees where department_id='D002')) as count_salary_result
+		from employees where department_id='D002';
+
+select
+    employee_id,
+    name,
+    salary,
+    (select avg(salary) from employees) AS avg_salary
+FROM 
+    employees
+order by employee_id;
+	
+select
+	order_amount + 
+		(select max(order_id) from orders where project_id= 'P3893001')
+		as sum_result
+		from orders where project_id= 'P3893001';
+	
+--8.2 where 子句中使用
+select
+	department_id,
+	dep_name,
+	dep_phone,
+	dep_member
+from 
+	departments
+where
+	dep_member < (select max(dep_member) from departments)
+order by department_id,dep_name,dep_member;
+	
+select salary from employees
+	where remark <> 'good'
+		and salary >= (select min(salary) from employees where department_id='D001')
+order by salary;
+
+select customer_id,
+	(select count(*) from orders
+		where orders.order_id = customers.order_id) as order_count
+from
+	customers;
+
+select
+	order_id,
+	order_amount,
+	(select avg(order_amount) from orders) as avg_order_amount
+from 
+	orders
+where 
+	order_amount > (select avg(order_amount) from orders)
+order by order_id;
+	
+select 
+    employee_id,
+    name,
+    salary,
+    department_id
+from 
+    employees
+where 
+    salary > (select avg(salary) from employees where department_id = employees.department_id)
+    and salary < (select max(salary) from employees);
+	
+select 
+    project_id,
+    project_name,
+    order_amount
+FROM 
+    orders
+WHERE 
+    order_amount = (select min(order_amount) from orders);
+
+--8.3 having子句中使用
+select 
+	customer_id,
+	project_name,
+	round(sum(order_amount),2) as total_amount
+from
+	orders
+group by 	
+	customer_id,project_name
+having
+	sum(order_amount) + 1000 < (select max(order_amount)+min(order_amount) from orders);
+	
+--8.4 在CASE表达式中使用
+select
+	department_id,
+	name,
+	remark,
+	salary,
+	case 
+		when salary > (select avg(salary) from employees) then 'Above Average'
+		else 'Below Average'
+	end as comment
+from 
+	employees
+order by department_id,name;
+	
+--8.5 在order by 子句中使用
+select 
+	project_id,
+	project_name,
+	order_amount,
+	round(order_amount - (select avg(order_amount) from orders),3) as amount_diff
+from
+	orders
+order by
+		amount_diff desc;
+
+
+--9. 特殊情况检查(子查询返回的值为 1，结果集为空集)
+--9/1 空列表
+select 
+	customer_id,
+	remark
+from 
+	customers 
+where
+	region = 'Beijing'
+and
+	customer_id = (select customer_id from orders limit 1);
+	
+--9.2 如果返回的值不止一行，则会报错	
+select
+	time,
+	dep_name,
+	dep_member
+from 
+	departments
+where
+	department_id = 'D001' 
+and 
+	time = (select time from employees);
+<<SQLSTATE;
+
+--9.3 不支持在INSERT语句中使用
+insert into orders(time,employee_id) values
+	(6, (select max(order_amount) from orders));
+<<SQLSTATE;
+
+--9.4 不支持在DELETE语句中使用	
+delete from employees
+	where department_id = (select department_id from employees);
+<<SQLSTATE;
+
+
+		
+--清理数据：
+drop database test_db;
+<<NULL;

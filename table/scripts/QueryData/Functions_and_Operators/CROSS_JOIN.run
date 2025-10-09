@@ -1,0 +1,151 @@
+// CROSS JOIN ：交叉连接
+// 返回左表N行记录和右表M行记录的：N*M两种组合
+
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table students
+(
+    region STRING TAG,
+	student_id INT32 FIELD,
+	name STRING FIELD,
+	genders text FIELD,
+    date_of_birth DATE FIELD 
+);
+
+create table teachers
+(
+    region STRING TAG,
+	teacher_id INT32 FIELD,
+    course_id INT32 FIELD,
+    age INT32 FIELD
+);
+
+create table courses
+(
+    course_region STRING TAG,
+    course_id INT32 FIELD,
+    course_name STRING FIELD,
+    teacher_id INT32 FIELD
+);
+
+create table grades
+(
+    grade_id STRING TAG,
+	course_id INT32 FIELD,
+	student_id INT32 FIELD,
+	score INT32 FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc students;
+desc teachers;
+desc courses;
+desc grades;
+
+--6. 分别插入数据
+insert into students(time,region,student_id,name,genders,date_of_birth) values
+(1,'haidian',1,'Lucy','女','2015-10-10'),
+(2,'haidian',2,'Jack','男','2015-09-24'),
+(3,'chaoyang',3,'Sam','男','2014-07-20'),
+(4,'chaoyang',4,'Lily','女','2015-03-28'),
+(5,'xicheng',5,'Helen','女','2016-01-22'),
+(6,'changping',6,'Nancy','女','2017-12-20'),
+(7,'changping',7,'Mike','男','2016-11-22'),
+(8,'shunyi',8,'Bob','男','2016-05-12');
+
+insert into teachers(time,region,teacher_id,course_id,age) values
+(1,'haidian',1001,10000001,25),
+(2,'haidian',1002,10000002,26),
+(3,'chaoyang',1003,10000003,28),
+(4,'chaoyang',1004,10000004,27),
+(5,'xicheng',1005,10000005,26);
+
+insert into courses(time,course_region,course_id,course_name,teacher_id) values
+(1,'Math',10000001,'数学',1001),
+(2,'CHIN',10000002,'语文',1002),
+(3,'ENG',10000003,'英语',1003),
+(4,'PE',10000004,'体育',1004),
+(5,'HIST',10000005,'历史',1005);
+
+insert into grades(time,grade_id,course_id,student_id,score) values
+(1,1111,10000001,1,99),
+(2,1112,10000002,2,90),
+(3,1113,10000003,3,85),
+(4,1114,10000004,4,89),
+(5,1115,10000005,5,98),
+(6,1113,10000003,6,55),
+(7,1114,10000004,7,60),
+(8,1115,10000005,8,100),
+(9,1114,10000001,2,99),
+(10,1115,10000002,1,95);
+
+--7. 分别查询表数据
+select * from students order by time;
+select * from teachers order by time;
+select * from courses order by time;
+select * from grades order by time;
+
+--8. 显式的交叉连接
+select s.*,g.* from students s 
+CROSS JOIN 
+	grades g
+where region='haidian'
+order by s.time,g.time
+limit 5 offset 3;
+
+select s.*, c.*,t.*,g.*
+from students s
+CROSS JOIN courses c
+CROSS JOIN teachers t
+CROSS JOIN grades g
+where s.region='xicheng'
+order by s.time,c.time,t.time,g.time,c.course_region,c.course_id
+limit 5 offset 5;
+
+select 
+s.time as stu_time,
+s.region as stu_region,
+s.name as s_name,
+t.region as teacher_region,
+t.teacher_id as teacher_id,
+c.course_id as c_id,
+g.score as stu_score
+from students s
+CROSS JOIN teachers t
+CROSS JOIN courses c
+CROSS JOIN grades g
+where s.region='haidian' and s.time > 1 and g.time < 10
+order by stu_score,teacher_region,teacher_id,c_id
+limit 6 offset 3;
+
+
+--9. 隐式的交叉连接
+select t.*, c.*, g.*
+from teachers t, courses c, grades g
+where t.teacher_id=1001
+order by t.time,c.time,g.time
+limit 5 offset 4;
+
+select student_id, name,course_name,teacher_id
+from students,courses
+order by courses.time,student_id, teacher_id
+limit 3 offset 3;
+
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

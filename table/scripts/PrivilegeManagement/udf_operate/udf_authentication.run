@@ -1,0 +1,123 @@
+connect root/TimechoDB@2021;
+
+drop function pattern_match;
+<<NULL;
+
+--0.清理环境
+drop function contain_null;
+<<NULL;
+drop database test_udf_authentication;
+<<NULL;
+drop user user1;
+<<NULL;
+drop user user2;
+<<NULL;
+drop user user3;
+<<NULL;
+drop user user4;
+<<NULL;
+
+--1.准备数据
+CREATE DATABASE test_udf_authentication;
+USE test_udf_authentication;
+CREATE TABLE t1(device_id STRING TAG, s1 TEXT FIELD, s2 INT32 FIELD);
+INSERT INTO t1(time, device_id, s1, s2) VALUES (1, 'd1', 'a', 1), (2, 'd1', null, 2), (3, 'd1', 'c', null);
+
+--2.root用户的UDF鉴权
+// 创建UDF鉴权
+CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction';
+// 展示UDF鉴权
+SHOW functions;
+// 执行UDF鉴权
+SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time;
+// 删除UDF鉴权
+DROP function contain_null;
+
+
+--3.创建用户并授权
+create user user1 'pass123456789';
+create user user2 'pass123456789';
+create user user3 'pass123456789';
+create user user4 'pass123456789';
+list user;
+<<CHECKCODE;
+grant all to user user1;
+grant SELECT ON DATABASE test_udf_authentication to user user2;
+grant SELECT ON TABLE t1 to user user3;
+list privileges of user user1;
+list privileges of user user2;
+list privileges of user user3;
+list privileges of user user4;
+
+--4.带有全部权限的用户鉴权
+connect user1/pass123456789;
+USE test_udf_authentication;
+// 创建UDF鉴权
+CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction';
+// 展示UDF鉴权
+SHOW functions;
+// 执行UDF鉴权
+SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time;
+// 删除UDF鉴权
+DROP function contain_null;
+
+--5.带有数据库权限的用户鉴权
+connect user2/pass123456789;
+USE test_udf_authentication;
+// 创建UDF鉴权
+CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction';
+<<SQLSTATE;
+// 展示UDF鉴权
+SHOW functions;
+// 执行UDF鉴权
+SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time;
+<<SQLSTATE;
+// 删除UDF鉴权
+DROP function contain_null;
+<<SQLSTATE;
+
+--6.带有表权限的用户鉴权
+connect user3/pass123456789;
+USE test_udf_authentication;
+// 创建UDF鉴权
+CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction';
+<<SQLSTATE;
+// 展示UDF鉴权
+SHOW functions;
+// 执行UDF鉴权
+SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time;
+<<SQLSTATE;
+// 删除UDF鉴权
+DROP function contain_null;
+<<SQLSTATE;
+
+--7.无权限的用户鉴权
+connect user4/pass123456789;
+USE test_udf_authentication;
+<<SQLSTATE;
+// 创建UDF鉴权
+CREATE FUNCTION contain_null AS 'org.apache.iotdb.testcase.TestScalarFunction';
+<<SQLSTATE;
+// 展示UDF鉴权
+SHOW functions;
+// 执行UDF鉴权
+SELECT time, device_id, s1, s2, contain_null(s1, s2) as contain_null, contain_null(s1) as s1_isnull, contain_null(s2) as s2_isnull FROM t1 order by time;
+<<SQLSTATE;
+// 删除UDF鉴权
+DROP function contain_null;
+<<SQLSTATE;
+
+--8.清理环境
+connect root/TimechoDB@2021;
+drop function contain_null;
+<<NULL;
+drop database test_udf_authentication;
+<<NULL;
+drop user user1;
+<<NULL;
+drop user user2;
+<<NULL;
+drop user user3;
+<<NULL;
+drop user user4;
+<<NULL;

@@ -1,0 +1,66 @@
+//创建普通用户
+//创建角色，赋予权限
+//将角色赋予用户，执行权限操作
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+
+--1. 分别创建用户和角色
+CREATE USER user01 'pass123456789';
+CREATE ROLE manager;
+
+--2. 列出用户和列出角色
+list user;
+<<CHECKCODE;
+list role;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出角色所有权限 | 列出用户所有角色）
+LIST PRIVILEGES OF ROLE manager;
+LIST PRIVILEGES OF USER user01;
+
+--4. 赋予角色权限
+GRANT SYSTEM ON root.** TO ROLE manager;
+
+--5.列出角色所有权限
+LIST PRIVILEGES OF ROLE manager;
+
+--6. 列出用户下所有角色
+LIST ROLE OF USER user01;
+
+--7.赋予用户角色
+GRANT ROLE manager TO user01;
+
+--8. 列出用户拥有的权限
+LIST PRIVILEGES OF USER user01;
+
+--9. user01登录，执行权限操作（创建数据库）
+connect user01/pass123456789;
+LIST PRIVILEGES OF USER user01;
+CREATE DATABASE root.db;
+
+--10. root登录，查看已创建的数据库
+connect root/TimechoDB@2021;
+SHOW DATABASES root.db;
+
+--11. user01登录，执行权限操作（删除数据库）
+connect user01/pass123456789;
+delete DATABASE root.db;
+
+--12. root登录，查看数据库列表
+connect root/TimechoDB@2021;
+SHOW DATABASES;
+
+--13.清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP ROLE manager;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;

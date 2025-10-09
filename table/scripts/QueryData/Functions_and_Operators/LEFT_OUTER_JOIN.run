@@ -1,0 +1,344 @@
+// LEFT [OUTER] JOIN 左外连接
+// 返回左表中的所有记录，以及右表中与左表满足连接条件的记录
+// 右表中没有与左表匹配的记录返回NULL值
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table t1(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t2(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t3(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+
+--4.查看表
+show tables;
+
+--5.展示表结构信息
+desc t1;
+desc t2;
+desc t3;
+
+--6. 数据写入
+insert into t1(time, id, temperature, status, duration) values(1000, 'd1', 22.2, false, 3600000);
+insert into t1(time, id, temperature, status, duration) values(2000, 'd2', 20.1, true, 86400000);
+insert into t1(time, id, temperature, status, duration) values(3000, 'd1', 19.2, false, 43200000);
+insert into t1(time, id, temperature, status, duration) values(4000, 'd2', 23.11, true, 604800000);
+insert into t1(time, id, temperature, status, duration) values(5000, 'd1', 25.13, false, 432000000);
+insert into t1(time, id, temperature, status, duration) values(6000, 'd2', 24.4, true, 2592000000);
+
+insert into t2(time, id, temperature, status, duration) values(1000, 'd1', 32.1, false, 3600000);
+insert into t2(time, id, temperature, status, duration) values(3000, 'd2', 20.1, true, 86400000);
+insert into t2(time, id, temperature, status, duration) values(4000, 'd1', 19.9, true, 43200000);
+insert into t2(time, id, temperature, status, duration) values(6000, 'd2', 22.3, true, 604800000);
+insert into t2(time, id, temperature, status, duration) values(8000, 'd1', 26.3, false, 432000000);
+insert into t2(time, id, temperature, status, duration) values(9000, 'd2', 24.5, true, 2592000000);
+
+insert into t3(time, id, temperature, status, duration) values(1000, 'd1', 26.2, false, 3600000);
+insert into t3(time, id, temperature, status, duration) values(5000, 'd2', 20.1, true, 86400000);
+insert into t3(time, id, temperature, status, duration) values(8000, 'd1', 19.9, false, 43200000);
+insert into t3(time, id, temperature, status, duration) values(9000, 'd2', 24.4, true, 604800000);
+insert into t3(time, id, temperature, status, duration) values(10000, 'd1', 25.5, false, 259200000);
+insert into t3(time, id, temperature, status, duration) values(20000, 'd2', 26.4, false, 432000000);
+
+
+--7. 数据查询
+select * from t1 order by time;
+select * from t2 order by time;
+select * from t3 order by time;
+
+
+--8. LEFT [OUTER] JOIN 查询
+--8.1 基本左连接
+select * from t1 
+LEFT OUTER JOIN
+	t2 USING(time)
+LEFT OUTER JOIN 
+	t3 USING(time)
+order by time;
+
+
+select * from t1 
+LEFT OUTER JOIN
+	t2 USING(time,id,status)
+LEFT OUTER JOIN 
+	t3 USING(time,id,status)
+order by time;
+
+
+select t1.time as time1, t1.id as d1, t1.temperature as temper1, t1.status as status1, t1.duration as duration1,
+	   t2.time as time2, t2.id as d2, t2.temperature as temper2, t2.status as status2, t2.duration as duration2,
+	   t3.time as time3, t3.id as d3, t3.temperature as temper3, t3.status as status3, t3.duration as duration3
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.time = t2.time 
+LEFT JOIN
+    t3 ON t2.time = t3.time
+order by t1.time;
+
+
+--8.2 左连接+过滤条件
+select t1.time as time1, t1.id as d1, t1.temperature as temper1, t1.status as status1, t1.duration as duration1,
+	   t2.time as time2, t2.id as d2, t2.temperature as temper2, t2.status as status2, t2.duration as duration2,
+	   t3.time as time3, t3.id as d3, t3.temperature as temper3, t3.status as status3, t3.duration as duration3
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.time = t2.time 
+LEFT JOIN
+    t3 ON t2.time = t3.time
+where 
+	t1.temperature > 21
+order by t1.time;
+
+
+select t1.time as time1, t1.id as d1, t1.temperature as temper1, t1.status as status1, t1.duration as duration1,
+	   t2.time as time2, t2.id as d2, t2.temperature as temper2, t2.status as status2, t2.duration as duration2,
+	   t3.time as time3, t3.id as d3, t3.temperature as temper3, t3.status as status3, t3.duration as duration3
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.time = t2.time 
+LEFT JOIN
+    t3 ON t2.time = t3.time
+where 
+	t1.status = false
+order by t1.time;
+
+
+select t1.time as time1, t1.id as d1, t1.temperature as temper1, t1.status as status1, t1.duration as duration1,
+	   t2.time as time2, t2.id as d2, t2.temperature as temper2, t2.status as status2, t2.duration as duration2,
+	   t3.time as time3, t3.id as d3, t3.temperature as temper3, t3.status as status3, t3.duration as duration3
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.time = t2.time 
+LEFT JOIN
+    t3 ON t2.time = t3.time
+where 
+	t1.duration -10000000 <= 43200000
+order by t1.time;
+
+
+--8.3 左连接并选择特定列
+select t1.time as time1, t1.temperature as temper1, t1.duration as duration1,
+	   t2.time as time2, t2.temperature as temper2, t2.duration as duration2,
+	   t3.time as time3, t3.temperature as temper3, t3.duration as duration3
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.status = t2.status 
+LEFT JOIN
+    t3 ON t2.status = t3.status
+order by t1.time, t2.time, t3.time;
+
+
+--8.4 左连接并使用聚合函数
+select t1.time as time1, COUNT(t1.id) as count_t1_id, ROUND(AVG(t1.temperature),2) as avg_t1_temp, COUNT(t1.status) as count_t1_status, MIN(t1.duration) as min_t1_duration,
+	   t2.time as time2, COUNT(t2.id) as count_t2_id, ROUND(AVG(t2.temperature),2) as avg_t2_temp, COUNT(t2.status) as count_t2_status, MIN(t2.duration) as min_t2_duration,
+	   t3.time as time3, COUNT(t3.id) as count_t3_id, ROUND(AVG(t3.temperature),2) as avg_t3_temp, COUNT(t3.status) as count_t3_status, MIN(t3.duration) as min_t3_duration
+from 
+	t1 
+LEFT JOIN 
+	t2 ON t1.time = t2.time 
+LEFT JOIN
+    t3 ON t2.time = t3.time
+group by t1.time,t2.time,t3.time
+order by t1.time;
+
+
+select
+    t1.time AS time1, 
+    ROUND(AVG(t1.temperature),2) AS avg_temper1,
+    t2.time AS time2, 
+    ROUND(AVG(t2.temperature),2) AS avg_temper2,
+    t3.time AS time3, 
+    ROUND(AVG(t3.temperature),2) AS avg_temper3
+from 
+    t1
+LEFT JOIN 
+    t2 ON t1.time = t2.time
+LEFT JOIN 
+    t3 ON t1.time = t3.time
+WHERE 
+    t1.status = false
+GROUP BY 
+    t1.time, t2.time, t3.time
+ORDER BY 
+    t1.time;
+	
+
+--8.5 左连接并使用子查询
+select 
+    t1.time AS time1, 
+    t1.id AS d1, 
+    t1.temperature AS temper1, 
+    t1.status AS status1, 
+    t1.duration AS duration1,
+    t2.time AS time2, 
+    t2.id AS d2, 
+    t2.temperature AS temper2, 
+    t2.status AS status2, 
+    t2.duration AS duration2
+FROM 
+    t1
+LEFT JOIN 
+    (SELECT * FROM t2 WHERE temperature = (SELECT MAX(temperature) FROM t2)) t2 ON t1.time = t2.time
+ORDER BY 
+    t1.time;
+	
+	
+select 
+    t2.time AS time1, 
+    t2.id AS d1, 
+    t2.temperature AS temper1, 
+    t2.status AS status1, 
+    t2.duration AS duration1,
+    t3.time AS time2, 
+    t3.id AS d2, 
+    t3.temperature AS temper2, 
+    t3.status AS status2, 
+    t3.duration AS duration2
+from
+    t2
+LEFT JOIN 
+    (select * from t3 WHERE duration = (SELECT MIN(duration) FROM t3)) t3 ON t2.time = t3.time
+ORDER BY 
+    t2.time;
+	
+
+select 
+    t1.time AS time1, 
+    t1.id AS d1, 
+    t1.temperature AS temper1, 
+    t1.status AS status1, 
+    t1.duration AS duration1,
+    t2.time AS time2, 
+    t2.id AS d2, 
+    t2.temperature AS temper2, 
+    t2.status AS status2, 
+    t2.duration AS duration2
+from 
+    t1
+LEFT JOIN 
+    (SELECT * FROM t2 WHERE temperature = (SELECT MAX(temperature) FROM t2)) t2 ON t1.time = t2.time
+WHERE 
+    t1.temperature < 25
+ORDER BY 
+    t1.time;
+	
+--8.6 左连接并使用CASE语句
+select 
+    t1.time AS time1, 
+    t1.id AS d1, 
+    t1.temperature AS temper1, 
+    t1.status AS status1, 
+    t1.duration AS duration1,
+    t2.time AS time2, 
+    t2.id AS d2, 
+    t2.temperature AS temper2, 
+    t2.status AS status2, 
+    t2.duration AS duration2,
+    CASE 
+        WHEN t2.temperature IS NULL THEN 'No Data'
+        WHEN t2.temperature > 20 THEN 'High'
+        ELSE 'Low'
+    END AS temper2_status
+from 
+    t1
+LEFT JOIN 
+    t2 ON t1.time = t2.time
+ORDER BY 
+    t1.time;
+	
+	
+select 
+    t2.time AS time1, 
+    t2.id AS d1, 
+    t2.temperature AS temper1, 
+    t2.status AS status1, 
+    t2.duration AS duration1,
+    t3.time AS time2, 
+    t3.id AS d2, 
+    t3.temperature AS temper2, 
+    t3.status AS status2, 
+    t3.duration AS duration2,
+    CASE 
+        WHEN t3.duration >= 604800000 THEN 'LONG TIME'
+        WHEN t3.duration > 86400000 THEN 'MEDIUM TIME'
+		WHEN t3.duration IS NULL THEN 'NO DATA'
+        ELSE 'SHORT TIME'
+    END AS t3_duration
+from 
+    t2
+LEFT JOIN 
+    t3 ON t2.time = t3.time
+ORDER BY 
+    t2.time;
+	
+
+--8.7 左连接并使用EXISTS
+select 
+    t1.time AS time1, 
+    t1.id AS d1, 
+    t1.temperature AS temper1, 
+    t1.status AS status1, 
+    t1.duration AS duration1,
+    t2.time AS time2, 
+    t2.id AS d2, 
+    t2.temperature AS temper2, 
+    t2.status AS status2, 
+    t2.duration AS duration2
+from
+    t1
+LEFT JOIN 
+    t2 ON t1.time = t2.time
+WHERE 
+    EXISTS (SELECT 1 FROM t2 WHERE t2.time = t1.time)
+ORDER BY 
+    t1.time;
+	
+	
+select 
+    t2.time AS time1, 
+    t2.id AS d1, 
+    t2.temperature AS temper1, 
+    t2.status AS status1, 
+    t2.duration AS duration1,
+    t3.time AS time2, 
+    t3.id AS d2, 
+    t3.temperature AS temper2, 
+    t3.status AS status2, 
+    t3.duration AS duration2
+from
+    t2
+LEFT JOIN 
+    t3 ON t2.time = t3.time
+WHERE 
+    EXISTS (SELECT 1 FROM t3 WHERE t2.status = t3.status)
+ORDER BY 
+    t2.time;
+	
+--9. 语法暂不支持
+select 
+	t1.id as id1,
+	t2.id as id2
+from 
+	t1 
+LEFT OUTER JOIN
+	t2 ON t1.time = 4000;
+<<SQLSTATE;
+	
+	
+--清理环境
+drop database test_db;
+<<NULL;

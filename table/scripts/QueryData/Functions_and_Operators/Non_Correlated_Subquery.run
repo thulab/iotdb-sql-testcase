@@ -1,0 +1,108 @@
+// 支持非关联子查询
+//
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    remark STRING ATTRIBUTE,
+    name TEXT FIELD,
+    Gender TEXT FIELD,
+	Status BOOLEAN FIELD,
+	employee_id INT32 FIELD,
+	salary DOUBLE FIELD,
+	date_of_birth DATE FIELD,
+	Contac_info string FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    dep_description STRING ATTRIBUTE,
+    dep_name TEXT FIELD,
+    dep_phone TEXT FIELD,
+	dep_status BOOLEAN FIELD,
+	dep_member INT32 FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc employees;
+desc departments;
+
+--6. 数据写入
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1704874210000, 'D001', 'good', 'Mary','Female', false, 1223, 5500.22, '1988-10-12', '133-1212-1234');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1706698230000, 'D001', 'great', 'John', 'Male', true, 0012, 8822, '1985-06-15', '130-1002-1334');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1708868070000, 'D002', 'excellent', 'Nancy', 'Female', true, 0112, 10002, '1983-08-15', '135-1302-1354');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1711437332000, 'D002', 'good', 'Jack', 'Male', false, 2012, 7000, '1990-03-26', '138-1012-1353');
+insert into employees(
+time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1719754343000, 'D003', 'great', 'Linda', 'Female', false, 0212, 5600, '1995-06-15', '150-2003-1355');
+
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1704874210000, 'D001', 'goods','销售部', '010-2271-2120', false, 1223);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1706698230000, 'D001', 'goods','销售部', '010-2271-2120', false, 0012);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1708868070000, 'D002', 'service','客服部', '010-2077-2520', true, 0112);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1711437332000, 'D002', 'service','客服部', '010-2077-2520', true, 2012);
+insert into departments(
+time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member) values
+(1719754343000, 'D003', 'IT','研发部', '010-3272-2310', true, 0212);
+
+--7. 原始数据查询
+select * from employees order by time;
+select * from departments order by time;
+
+--8. 非关联子查询
+--8.1 列子查询
+select name from employees where department_id IN (select department_id FROM departments WHERE department_id = 'D002');
+
+--8.2 标量子查询
+select name from employees where salary = (select max(salary) from employees);
+
+--8.3 表子查询
+
+select department_id, name, max_salary from(select department_id, name,max(salary) as max_salary, count(employee_id) as count_employ from employees group by department_id,name);
+
+select department_id, dep_member from(select department_id, dep_description, dep_member from departments where dep_name='客服部') where dep_description='service';
+
+select department_id, dep_member, avg_members from(select department_id, dep_member, AVG(dep_member) as avg_members from departments group by department_id,dep_member) as subquery where dep_member = avg_members;
+
+select department_id, name, remark from (select department_id,remark,name,employee_id,salary from employees) where salary > 8000 order by department_id;
+
+select department_id, name, gender, remark, salary from (select department_id, employee_id, name, gender, remark,salary from (select * from employees order by time)) where salary > 5000 and salary < 6000 order by department_id;
+
+select name, remark from(select department_id, name, gender, remark, salary from (select department_id, employee_id, name, gender, remark,salary from (select * from employees order by time))) where salary > 5000 and salary < 6000 order by name;
+
+select name from (select name, avg(salary) from (select department_id, name, gender, remark, salary from (select department_id, employee_id, name, gender, remark,salary from (select * from employees))) where salary > 5000 and salary < 10000 group by name) order by name;
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

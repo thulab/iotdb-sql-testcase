@@ -1,0 +1,286 @@
+connect root/TimechoDB@2021;
+//一、显示创建元数据时间序列
+
+--0.清理环境
+drop database root.db;<<NULL;
+
+--1.创建时间序列
+create timeseries root.db.d01.234w with datatype=FLOAT,encoding=RLE,compressor=ZSTD;
+
+--2.分别查看数据库，设备，时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3.插入数据
+insert into root.db.d01(time,234w) values(1,1.1);
+insert into root.db.d01(time,234w) values(2,2.1);
+insert into root.db.d01(time,234w) values(3,3.1);
+
+--4.查询数据
+select * from root.db.d01;
+flush;
+select * from root.db.d01;
+
+--5.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//二、自动创建元数据
+
+--0.清理环境
+drop database root.db;<<NULL;
+
+--1.通过插入数据，自动创建元数据
+insert into root.db.d01(time,234w) values(1,1.1);
+insert into root.db.d01(time,234w) values(2,2.1);
+insert into root.db.d01(time,234w) values(3,3.1);
+
+--2.分别查看数据库，设备，时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3.查询数据
+select * from root.db.d01;
+flush;
+select * from root.db.d01;
+
+--4.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//三、显示创建元数据 db 设备 序列包含特殊字符
+
+--0.清理环境
+drop database root.db;<<null;
+drop database root.1d;<<null;
+
+--1.创建时间序列
+create timeseries root.1d.2w.3US with datatype=FLOAT,encoding=RLE,compressor=ZSTD;
+
+--2.分别查看数据库，设备，时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3.插入数据
+insert into root.1d.2w(time,3US) values(1,1.1);
+insert into root.1d.2w(time,3US) values(2,2.1);
+insert into root.1d.2w(time,3US) values(3,3.1);
+
+--4.查询数据
+select * from root.1d.2w;
+flush;
+select * from root.1d.2w;
+
+--5.清理环境
+drop database root.1d;
+<<NULL;
+
+
+//四、对齐序列 db 设备 序列包含特殊字符
+
+--0.清理环境
+drop database root.1Y;<<null;
+
+--1.创建时间序列
+create ALIGNED timeseries root.1Y.2MO(1Y DOUBLE compressor=SNAPPY,2MO DOUBLE ENCODING=RLE compressor=LZ4,3W DOUBLE ENCODING=TS_2DIFF compressor=GZIP,4D DOUBLE ENCODING=GORILLA compressor=ZSTD,5H DOUBLE ENCODING=RLE compressor=LZMA2,6M DOUBLE ENCODING=CHIMP compressor=UNCOMPRESSED,7S DOUBLE ENCODING=SPRINTZ compressor=LZ4,8MS DOUBLE ENCODING=RLBE compressor=GZIP,9US DOUBLE compressor=ZSTD,10NS DOUBLE compressor=LZMA2,11ns DOUBLE compressor=SNAPPY,12us DOUBLE compressor=UNCOMPRESSED);
+
+--2.分别查看数据库，设备，时间序列
+show databases;
+show devices;
+show timeseries;
+
+--3.插入数据
+insert into root.1Y.2MO(time,1Y) ALIGNED values(1,1.1);
+insert into root.1Y.2MO(time,2MO) ALIGNED values(1,1.1);
+insert into root.1Y.2MO(time,3W) ALIGNED values(2,2.1);
+insert into root.1Y.2MO(time,4D) ALIGNED values(2,2.1);
+insert into root.1Y.2MO(time,5H) ALIGNED values(3,3.1);
+insert into root.1Y.2MO(time,6M) ALIGNED values(3,3.1);
+insert into root.1Y.2MO(time,7S) ALIGNED values(4,4.1);
+insert into root.1Y.2MO(time,8MS) ALIGNED values(4,4.1);
+insert into root.1Y.2MO(time,9US) ALIGNED values(5,5.1);
+insert into root.1Y.2MO(time,10NS) ALIGNED values(5,5.1);
+insert into root.1Y.2MO(time,11ns) ALIGNED values(6,6.1);
+insert into root.1Y.2MO(time,12us) ALIGNED values(6,6.1);
+
+--4.查询数据
+select * from root.1Y.2MO;
+flush;
+select * from root.1Y.2MO;
+
+--5.清理环境
+drop database root.1Y;
+<<NULL;
+
+
+//五、大小写
+
+--0.清理环境
+drop database root.1Y;<<null;
+
+--1.创建时间序列
+create ALIGNED timeseries root.1Y.2MO(1MO int32 compressor=SNAPPY,1mo int64 ENCODING=RLE compressor=LZ4,1MO int32 compressor=SNAPPY);
+<<sqlstate;
+create ALIGNED timeseries root.1Y.2MO(1MO int32 compressor=SNAPPY,1mo int64 ENCODING=RLE compressor=LZ4);
+
+--2.插入数据
+insert into root.1Y.2MO(time,1mo,1MO) ALIGNED values(1,2,2);
+
+--3.查询数据
+select * from root.1Y.2MO;
+flush;
+select * from root.1Y.2MO;
+
+--4.清理环境
+drop database root.1Y ;
+<<NULL;
+
+
+//六、template
+
+--0.清理环境
+delete timeseries of schema template 1MO from root.1MO.1MO;
+<<NULL;
+unset schema template 1MO from root.sg1.d1;
+<<NULL;
+drop schema template 1MO;
+<<NULL;
+delete database root.**;
+<<NULL;
+
+--1.创建模板template
+create device template root.1Y(1MO int32 compressor=SNAPPY,1mo int64 ENCODING=RLE compressor=LZ4,1MO int32 compressor=SNAPPY);
+<<sqlstate;
+create device template 1MO(1MO int32 compressor=SNAPPY,1mo int64 ENCODING=RLE compressor=LZ4,1MP int32 compressor=SNAPPY);
+
+--2.查看模板
+show schema templates;
+show device templates;
+show nodes in schema template 1MO;
+show nodes in device template 1MO;
+
+--3.创建数据库
+create database root.1MO;
+
+--4.挂载模板
+set device template 1MO to root.1MO.1MO;
+show paths set device template 1MO;
+
+--5.激活模板
+create timeseries using device template on root.1MO.1MO;
+show paths using device template 1MO;
+
+--6.插入数据
+insert into root.1MO.1MO(time,1mo,1MO)  values(1,2,2);
+insert into root.1MO.1MO(time,1mo,1MO)  values(2,20,20);
+
+--7.查询数据
+select * from root.1MO.1MO;
+flush;
+select * from root.1MO.1MO;
+
+--8.删除数据库，删除模板校验
+drop database root.1MO;
+drop device template 1MO;
+show databases root.1MO;
+show schema templates;
+show device templates;
+
+--9.清理环境
+delete timeseries of schema template 1MO from root.1MO.1MO;
+<<NULL;
+unset schema template 1MO from root.sg1.d1;
+<<NULL;
+drop schema template 1MO;
+<<NULL;
+delete database root.**;
+<<NULL;
+
+
+//七、 0 以及前缀没数字
+
+--0.清理环境
+delete timeseries of schema template 0MO from root.0MO.0MO;
+<<NULL;
+delete timeseries of schema template MO from root.MO.MO;
+<<NULL;
+unset schema template 0MO from from root.0MO.0MO;
+<<NULL;
+unset schema template MO from from root.MO.MO;
+<<NULL;
+drop schema template 0MO;<<null;
+drop schema template MO;<<null;
+drop database root.0MO;<<null;
+drop database root.MO;<<null;
+
+--1.创建模板template
+create device template 0MO(0MO int32 compressor=SNAPPY,0mo int64 ENCODING=RLE compressor=LZ4);
+create device template MO(MO int32 compressor=SNAPPY,mo int64 ENCODING=RLE compressor=LZ4);
+show nodes in schema template 0MO;
+show nodes in device template 0MO;
+show nodes in schema template MO;
+show nodes in device template MO;
+
+--2.创建数据库
+create database root.0MO;
+create database root.MO;
+
+--3.挂载模板
+set device template 0MO to root.0MO.0MO;
+set device template MO to root.0MO.0MO;<<sqlstate;
+set device template 0MO to root.0MO.0MO;<<sqlstate;
+set device template MO to root.MO.MO;
+show paths set device template 0MO;
+show paths set schema template MO;
+
+--4.激活模板
+create timeseries using device template on root.0MO.0MO;
+create timeseries using schema template on root.MO.MO;
+show paths using schema template 0MO;
+show paths using device template 0MO;
+show paths using schema template MO;
+show paths using device template MO;
+
+--5.插入数据
+insert into root.MO.MO(time,mo,MO)  values(1,2,2);
+insert into root.MO.MO(time,mo,MO)  values(2,20,20);
+insert into root.0MO.0MO(time,0mo,0MO)  values(1,2,2);
+insert into root.0MO.0MO(time,0mo,0MO)  values(2,20,20);
+
+--6.数据查询
+select * from root.0MO.0MO;
+select * from root.MO.MO;
+flush;
+select * from root.0MO.0MO;
+select * from root.MO.MO;
+
+--7.删除数据库，删除模板校验
+drop database root.0MO;
+drop database root.MO;
+drop device template 0MO;
+drop schema template MO;
+
+--8.查看数据库和模板
+show databases root.0MO;
+show databases root.MO;
+show schema templates;
+show device templates;
+
+--9.清理环境
+delete timeseries of device template 0MO from root.0MO.0MO;
+<<NULL;
+delete timeseries of device template MO from root.MO.MO;
+<<NULL;
+unset device template 0MO from from root.0MO.0MO;
+<<NULL;
+unset device template MO from from root.MO.MO;
+<<NULL;
+drop device template 0MO;<<null;
+drop device template MO;<<null;
+drop database root.0MO;<<null;
+drop database root.MO;<<null;

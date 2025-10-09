@@ -1,0 +1,107 @@
+connect root/TimechoDB@2021;
+
+// 单独权限check: read_schema
+
+-- prepare
+-- 创建用户并授权
+CREATE USER user_01 'pass123456789';
+GRANT read_schema ON root.** TO USER user_01;
+LIST PRIVILEGES OF USER user_01;
+
+
+-- 创建数据库
+create database root.sg;
+create database root.sg1;
+
+-- 创建模版
+create schema template t1 (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+-- 挂载
+set schema template t1 to root.sg;
+set schema template t1 to root.sg1;
+-- 激活
+create timeseries of schema template on root.sg.d1;
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+select * from root.sg.** align by device;
+
+
+connect user_01/pass123456789;
+LIST PRIVILEGES OF USER user_01;
+
+-- 仅root拥有权限
+-- 查看所有模版
+show schema templates;
+<<SQLSTATE;
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+<<SQLSTATE;
+-- 查看挂载的节点
+show paths set schema template t1;
+<<SQLSTATE;
+-- 挂载
+set schema template t1 to root.sg2;
+<<SQLSTATE;
+-- 卸载
+unset schema template t1 from root.sg;
+<<SQLSTATE;
+-- 创建模版
+create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+<<SQLSTATE;
+-- 删除模版
+drop schema template t1;
+<<SQLSTATE;
+-- 修改模版
+alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
+<<SQLSTATE;
+
+
+-- write_schema 权限
+-- 激活
+create timeseries of schema template on root.sg.d2;
+<<SQLSTATE;
+create timeseries using schema template on root.sg.d3;
+<<SQLSTATE;
+-- 解除
+deactivate schema template t1 from root.sg.d1;
+<<SQLSTATE;
+-- 写入激活
+insert into root.sg.d4(time, s_name, s_status, s_lat, s_lon) values (11, 'brown', true, 23.5, 1435.11);
+<<SQLSTATE;
+-- 路径外写入激活
+insert into root.sg1.d4(time, s_name, s_status, s_lat, s_lon) values (12, 'brown', true, 213.5, 185.11);
+<<SQLSTATE;
+
+
+-- write_data 权限
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+<<SQLSTATE;
+
+-- extend template 权限
+insert into root.sg.d1(time, s_lon2) values (1, 109.36);
+<<SQLSTATE;
+
+-- read_schema 权限
+-- 判断节点是否使用了模版
+show child nodes root.sg.d1;
+-- 查看已激活的节点
+show paths using schema template t1;
+
+-- read_data 权限
+select * from root.sg.** align by device;
+select * from root.sg.**;
+
+
+-- 清理
+connect root/TimechoDB@2021;
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+
+drop database root.**;
+<<NULL;
+drop schema template t1;
+<<NULL;
+DROP USER user_01;
+<<NULL;
+

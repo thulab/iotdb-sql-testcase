@@ -1,0 +1,342 @@
+-- [1]18:set configuration "trusted_uri_pattern"='.*'
+STRICT{
+PASS
+}
+-- [1]28:CREATE STATELESS TRIGGER 123 AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 extraneous input '123' expecting {ID, QUOTED_ID}
+}
+-- [1]34:CREATE STATELESS TRIGGER 'window_avg_alerter' AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 extraneous input ''window_avg_alerter'' expecting {ID, QUOTED_ID}
+}
+-- [1]40:CREATE STATELESS TRIGGER "window_avg_alerter" AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 extraneous input '"window_avg_alerter"' expecting {ID, QUOTED_ID}
+}
+-- [1]46:CREATE STATELESS TRIGGER AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:31 missing {AFTER, BEFORE} at 'INSERT'
+}
+-- [1]52:CREATE STATELESS TRIGGER ‘n2’ AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:25 token recognition error at: '‘'
+}
+
+-- [1]56:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]64:CREATE STATELESS TRIGGER `` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]70:CREATE STATELESS TRIGGER no_quote AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]76:CREATE STATELESS TRIGGER _12ab AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]82:CREATE STATELESS TRIGGER 12ab AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]88:CREATE STATELESS TRIGGER `window.avg.alerter` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]94:CREATE STATELESS TRIGGER `window_avg_alerter` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]100:CREATE STATELESS TRIGGER `1` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]106:CREATE STATELESS TRIGGER `触发器` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]111:CREATE STATEful TRIGGER `stateful trigger` after INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]118:CREATE STATELESS TRIGGER `window#avg*alerter` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]124:CREATE STATELESS TRIGGER `window$avg\talerter` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]130:CREATE STATELESS TRIGGER `null` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]136:CREATE STATELESS TRIGGER select AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' with ('remote_ip'='127.0.0.1')
+STRICT{
+PASS
+}
+-- [1]140:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]141:INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]143:select count(*) from root.ln.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]150:drop trigger 1
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:13 mismatched input '1' expecting {ID, QUOTED_ID}
+}
+-- [1]152:drop trigger "window_avg_alerter"
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:13 mismatched input '"window_avg_alerter"' expecting {ID, QUOTED_ID}
+}
+-- [1]154:drop trigger 'window_avg_alerter'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:13 mismatched input ''window_avg_alerter'' expecting {ID, QUOTED_ID}
+}
+-- [1]156:drop trigger
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input '<EOF>' expecting {ID, QUOTED_ID}
+}
+-- [1]159:drop trigger ``
+STRICT{
+PASS
+}
+-- [1]161:drop trigger no_quote
+STRICT{
+PASS
+}
+-- [1]162:drop trigger _12ab
+STRICT{
+PASS
+}
+-- [1]163:drop trigger 12ab
+STRICT{
+PASS
+}
+-- [1]164:drop trigger window_avg_alerter
+STRICT{
+PASS
+}
+-- [1]166:drop trigger `window.avg.alerter`
+STRICT{
+PASS
+}
+-- [1]168:drop trigger `1`
+STRICT{
+PASS
+}
+-- [1]170:drop trigger `触发器`
+STRICT{
+PASS
+}
+-- [1]172:drop trigger `stateful trigger`
+STRICT{
+PASS
+}
+-- [1]174:drop trigger `window#avg*alerter`
+STRICT{
+PASS
+}
+-- [1]175:drop trigger `window$avg\talerter`
+STRICT{
+PASS
+}
+-- [1]178:DROP TRIGGER select
+STRICT{
+PASS
+}
+-- [1]178:drop trigger null
+STRICT{
+PASS
+}
+-- [1]180:drop trigger `null`
+STRICT{
+SQLSTATE : 1301: Failed to drop trigger [null], this trigger has not been created
+}
+
+-- [1]182:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]193:CREATE STATELESS TRIGGER `alert-error` AFTER INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "looo" = '5' )
+STRICT{
+PASS
+}
+-- [1]195:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]196:INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]199:select count(*) from root.ln.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]200:drop trigger `alert-error`
+STRICT{
+PASS
+}
+-- [1]215:CREATE  TRIGGER `window_avg_alerter01` AFTER INSERT on root.triggertest.d1 AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "lo" = '0',   'hi' = "10.0" )
+STRICT{
+SQLSTATE : 701: Please specify trigger type: STATELESS or STATEFUL.
+}
+-- [1]227:CREATE STATE TRIGGER `window_avg_alerter01` AFTER INSERT ON root.triggertest.d1 AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "lo" = '0',   'hi' = "10.0" )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:7 no viable alternative at input 'CREATE STATE'
+}
+-- [1]238:CREATE stateless TRIGGER `window_avg_alerter01` AFTER delete ON root.triggertest.d1 AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "lo" = '0',   'hi' = "10.0" )
+STRICT{
+SQLSTATE : 701: Trigger does not support DELETE as TRIGGER_EVENT for now.
+}
+-- [1]249:CREATE STATELESS TRIGGER `window_avg_alerter01` AFTER INSERT AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "lo" = '0',   'hi' = "10.0" )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:61 mismatched input 'AS' expecting ON
+}
+-- [1]259:CREATE STATELESS TRIGGER `window_avg_alerter01` AFTER INSERT on root.root AS 'org.example.DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   "lo" = '0',   'hi' = "10.0" )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:69 extraneous input 'root' expecting {ID, QUOTED_ID}
+}
+-- [1]268:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10' )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:72 mismatched input 'WITH' expecting {AS, '.'}
+}
+-- [1]278:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 AS org.example.DoubleValueMonitor WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10' )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:75 mismatched input 'org' expecting {AS, '.'}
+}
+-- [1]288:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 AS 'DoubleValueMonitor' WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10' )
+STRICT{
+SQLSTATE : 1303: Failed to load class 'DoubleValueMonitor', because it's not found in jar file or is invalid: 
+}
+-- [1]299:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 AS '' WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10',   "hi" = "80" )
+STRICT{
+SQLSTATE : 1303: Failed to load class '', because it's not found in jar file or is invalid: 
+}
+-- [1]306:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 AS 'org.example.DoubleValueMonitor' WITH ()
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:114 mismatched input ')' expecting {ID, QUOTED_ID}
+}
+-- [1]316:CREATE STATELESS TRIGGER `alert02` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10',   hi = 80 )
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]327:CREATE STATELESS TRIGGER `alert02` before INSERT ON root.triggertest.d1 WITH (   "remote_ip" = '127.0.0.1',   'lo' = '10',   hi = 80 ) AS 'org.example.DoubleValueMonitor'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:72 mismatched input 'WITH' expecting {AS, '.'}
+}
+-- [1]337:cREATE STATELESS TRIGGER `alert02` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 WITH （   "remote_ip" = '127.0.0.1',   'lo' = '10',   hi = 80 ）
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]345:cREATE STATELESS TRIGGER `alert02` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 WITH ( "remote_ip" = '127.0.0.1','lo'='abc')
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]355:CREATE STATELESS TRIGGER `using01` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI file:///data/nginx/stateful-test-0.14-snapshot.jar
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]362:CREATE STATELESS TRIGGER `using02` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING 'file:///data/nginx/double-value-monitor-0.14-SNAPSHOT.jar'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]369:CREATE STATELESS TRIGGER `using03` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI "file:///data/nginx/stateful-test.jar"
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]376:CREATE STATELESS TRIGGER `using04` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI ''
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]382:CREATE STATELESS TRIGGER `using05` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]389:CREATE STATELESS TRIGGER `using06` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI null
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]396:CREATE STATELESS TRIGGER `using07` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI 'file://'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]403:CREATE STATELESS TRIGGER `using08` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI '/data/nginx/double-value-monitor-0.14-SNAPSHOT.jar'
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]410:CREATE STATELESS TRIGGER `using09` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI `file:///data/nginx/double-value-monitor-0.14-SNAPSHOT.jar`
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+-- [1]417:CREATE STATELESS TRIGGER `using10` before INSERT AS 'org.example.DoubleValueMonitor' ON root.triggertest.d1 USING URI "https://apache-iotdb.feishu.cn/docx/doxcn8DbAHGeQUuwtOaOgsRIBlc"
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:49 mismatched input 'AS' expecting ON
+}
+
+-- [1]420:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]428:CREATE STATELESS TRIGGER `exception-onCreate` before INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.ExceptionOnCreateTrigger'
+STRICT{
+SQLSTATE : 1300: org.apache.iotdb.commons.trigger.exception.TriggerManagementException: Fail to create triggerInstance [exception-onCreate] on Data Nodes
+}
+-- [1]437:CREATE STATELESS TRIGGER `stop-error` AFTER INSERT ON root.triggertest.ddd.s1 AS 'com.timecho.test.ExceptionOnStopTrigger'
+STRICT{
+PASS
+}
+-- [1]438:drop trigger `stop-error`
+STRICT{
+PASS
+}
+-- [1]447:CREATE STATELESS TRIGGER `empty-jar` AFTER INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.ExceptionOnStopTrigger' Using uri "file:///data/nginx/zero.jar"
+STRICT{
+SQLSTATE : 1304: Failed to get executable for Trigger 'file:///data/nginx/zero.jar', please check the URI.
+}
+-- [1]455:CREATE STATELESS TRIGGER `getFailureStrategy` AFTER INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.ExceptionTrigger'
+STRICT{
+PASS
+}
+-- [1]456:insert into root.triggertest.d1(time, s1) values (1, 2)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]458:drop trigger getFailureStrategy
+STRICT{
+PASS
+}
+-- [1]462:create stateless trigger `unimplement_trigger` before insert on root.sg.d1.* as 'com.timecho.test.UnImplementTrigger'
+STRICT{
+SQLSTATE : 1303: Failed to load class 'com.timecho.test.UnImplementTrigger', because it's not found in jar file or is invalid: 
+}

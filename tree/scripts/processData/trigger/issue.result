@@ -1,0 +1,107 @@
+-- [1]7:set configuration "trusted_uri_pattern"='.*'
+STRICT{
+PASS
+}
+-- [1]12:CREATE TIMESERIES root.triggertest.dev1.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA
+STRICT{
+PASS
+}
+-- [1]13:CREATE TIMESERIES root.triggertest.dev1.s_2 WITH DATATYPE=INT64, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]14:CREATE TIMESERIES root.triggertest.dev1.s_3 WITH DATATYPE=float, ENCODING=RLE
+STRICT{
+PASS
+}
+-- [1]15:CREATE TIMESERIES root.triggertest.dev1.s_4 WITH DATATYPE=double, ENCODING=TS_2DIFF
+STRICT{
+PASS
+}
+-- [1]16:CREATE TIMESERIES root.triggertest.dev1.s_5 WITH DATATYPE=text, ENCODING=DICTIONARY
+STRICT{
+PASS
+}
+-- [1]17:CREATE TIMESERIES root.triggertest.dev1.s_6 WITH DATATYPE=boolean, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]27:CREATE STATELESS TRIGGER trig1 AFTER INSERT ON root.triggertest.dev1.s_1 AS 'TriggerTest' WITH (   'ts_type' = 'int32',   'remote_ip' = '127.0.0.1',   'trig_name'='trig1' )
+STRICT{
+PASS
+}
+-- [1]37:CREATE STATELESS TRIGGER trig2 AFTER INSERT ON root.triggertest.dev1.s_2 AS 'TriggerTest' WITH (   'ts_type' = 'int64',   'remote_ip' = '127.0.0.1',   'trig_name'='trig2' )
+STRICT{
+PASS
+}
+-- [1]38:insert into root.triggertest.dev1(time,s_1,s_2) values(1,100,200)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+-- [1]39:insert into root.triggertest.dev1(time,s_1,s_2) values(2,300,405)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]42:select s_1,s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.dev1.s_1(INT32)      |root.triggertest.dev1.s_2(INT64)      |root.triggertest.dev1.s_3(FLOAT)      |root.triggertest.dev1.s_4(DOUBLE)      |root.triggertest.dev1.s_5(TEXT)      |root.triggertest.dev1.s_6(BOOLEAN)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |100                                   |200                                   |null                                  |null                                   |null                                 |null                                    |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |300                                   |405                                   |null                                  |null                                   |null                                 |null                                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]44:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]49:insert into root.triggertest.dev1(time,s_2) values(100,1600)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]52:select s_2,s_3,s_4,s_5,s_6 from root.triggertest.dev1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.dev1.s_2(INT64)      |root.triggertest.dev1.s_3(FLOAT)      |root.triggertest.dev1.s_4(DOUBLE)      |root.triggertest.dev1.s_5(TEXT)      |root.triggertest.dev1.s_6(BOOLEAN)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |200                                   |null                                  |null                                   |null                                 |null                                    |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |405                                   |null                                  |null                                   |null                                 |null                                    |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+100                  |1600                                  |null                                  |null                                   |null                                 |null                                    |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]54:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]55:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.23
+-- [1]57:drop trigger trig1
+STRICT{
+PASS
+}
+-- [1]58:drop trigger trig2
+STRICT{
+PASS
+}

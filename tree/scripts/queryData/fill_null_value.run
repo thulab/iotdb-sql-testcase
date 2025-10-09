@@ -1,0 +1,307 @@
+//结果集补空值：FILL '(' PREVIOUS | LINEAR | constant ')'
+//一、查询补充值：Previous
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525120000,TRUE,15.5);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525240000,FALSE,18.88);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525300000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525360000,null,26.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525470000,TRUE,27.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509525490000,null,28.92);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509559200000,FALSE,null);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509638400000,TRUE,26.0);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509724800000,TRUE,23.29);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509811200000,null,24.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509897600000,FALSE,20.19);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509908400000,FALSE,null);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509984000000,null,22.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069800000,FALSE,20.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510069920000,FALSE,21.22);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070100000,TRUE,null);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070370000,TRUE,28.12);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1510070400000,TRUE,23.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541174400000,null,20.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1541433600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1572883200000,TRUE,19.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
+
+--4. 原始数据查询previous填充
+--4.1 根据时间范围查询时，某行某列有空值，通过fill进行填充
+select status, temperature from root.ln.wf01.wt01;
+select temperature, status from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(previous,1d);
+select temperature, status from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(previous);
+--4.2 V1.0.x不再支持旧语法：无有效时间范围参数T，返回空列表
+select temperature from root.ln.wf01.wt01 where time = 1509525500000 fill(previous, 10m);
+
+--5. 在指定的有效时间范围内没有值，系统不会填充空值,为null
+select * from root.ln.wf01.wt01 where time = 1509811200000 fill(previous); 
+
+--6. group by 下的fill
+select status from root.ln.wf01.wt01;
+--6.1 count 不统计null值
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m);
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+--6.2 除count，其他聚合函数补空值
+select temperature from root.ln.wf01.wt01;
+select last_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select min_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select max_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select min_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select max_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select first_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select extreme(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select sum(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+select avg(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(previous);
+
+--7. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//二、查询补充值：Linear填充
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create database root.db;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.ID with datatype=INT64,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525120000,9,TRUE,15.5,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525300000,10,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525360000,11,null,25.99,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525470000,null,TRUE,25.99,'V002');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525490000,12,null,26.92,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509559200000,13,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509638400000,14,TRUE,26.0,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509724800000,null,TRUE,23.29,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509811200000,16,null,24.19,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509897600000,17,FALSE,20.19,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509908400000,18,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509984000000,19,null,22.12,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510069800000,20,FALSE,20.12,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510069920000,21,FALSE,21.22,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070100000,22,TRUE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070370000,23,TRUE,28.12,'V002');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070400000,null,TRUE,23.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1541174400000,25,null,20.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1541433600000,26,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1572883200000,null,TRUE,19.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1573056000000,28,TRUE,24.19,'V002');
+
+insert into root.db.d1(time,s1) values(0,0.0),(8,8.0);
+insert into root.db.d2(time,s1) values(2,20.0),(8,80.0);
+
+
+--4. linear补空值
+--4.1 原始查询
+select ID,temperature from root.ln.wf01.wt01;
+select ID,temperature from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(linear,1d);
+<<SQLSTATE;
+select ID,temperature from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(linear);
+--4.2 fill填充时，关于BOOLEAN或TEXT不支持Linear填充,返回原始值列表
+select hardware,status from root.ln.wf01.wt01;
+select hardware,status from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(linear);
+
+--4.3 V1.x.x不再支持旧语法：无有效时间范围参数T
+select temperature from root.ln.wf01.wt01 where time = 1509525410000 fill(linear,1m,1m);
+<<SQLSTATE;
+select temperature from root.ln.wf01.wt01 where time = 1509525410000 fill(linear,1m);
+<<SQLSTATE;
+select temperature from root.ln.wf01.wt01 where time = 1509525410000 fill(linear);
+
+--5. group by 下的fill
+select ID,temperature,status,hardware from root.ln.wf01.wt01;
+--5.1 count 不统计null值
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m);
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select count(hardware) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m);
+select count(hardware) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+--5.2 除count，其他聚合函数补空值
+select temperature from root.ln.wf01.wt01;
+select last_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select min_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select max_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select min_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select max_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select first_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select extreme(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select sum(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+select avg(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(linear);
+
+--6. FILL(LINEAR) + align by device
+select * from root.db.** align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) align by device;
+--6.1 降采样查询 order by device
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by device align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by device align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by device desc align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by device desc align by device;
+--6.2 降采样查询 order by time
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by time align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by time align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) order by time desc align by device;
+select max_value(s1) from root.db.d1, root.db.d2 group by([0,10),2ms) fill(linear) order by time desc align by device;
+
+
+--7. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//三、查询补充值：Value 填充
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.ID with datatype=INT64,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525120000,9,TRUE,15.5,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525300000,10,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525360000,11,null,25.99,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525470000,null,TRUE,25.99,'V002');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509525490000,12,null,26.92,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509559200000,13,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509638400000,14,TRUE,26.0,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509724800000,null,TRUE,23.29,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509811200000,16,null,24.19,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509897600000,17,FALSE,20.19,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509908400000,18,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1509984000000,19,null,22.12,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510069800000,20,FALSE,20.12,null);
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510069920000,21,FALSE,21.22,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070100000,22,TRUE,null,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070370000,23,TRUE,28.12,'V002');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1510070400000,null,TRUE,23.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1541174400000,25,null,20.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1541433600000,26,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1572883200000,null,TRUE,19.99,'V001');
+insert into root.ln.wf01.wt01(time,ID,status,temperature,hardware) values(1573056000000,28,TRUE,24.19,'V002');
+
+--4. 常量填充：使用指定常量填充，数据类型不一致将不填充【原始查询填充】
+select ID,temperature,status,hardware from root.ln.wf01.wt01;
+select * from root.ln.wf01.wt01 where time>=1509525120000 and time < 1573056000000 fill(10.11);
+select * from root.ln.wf01.wt01 where time>=1509525360000 and time < 1510070370000 fill('test');
+select * from root.ln.wf01.wt01 where time>=1509525360000 and time < 1510070370000 fill(true);
+select * from root.ln.wf01.wt01 where time>=1509525360000 and time < 1510070370000 fill(1);
+select * from root.ln.wf01.wt01 where time>=1509525360000 and time < 1510070370000 fill(0);
+select * from root.ln.wf01.wt01 where time >= 1509525200000 and time <= 1541433700000 fill(111,1d);
+<<SQLSTATE;
+
+--5. group by 下的fill
+select ID,temperature,status,hardware from root.ln.wf01.wt01;
+--5.1 count 不统计null值
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m);
+select count(status) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(1);
+select count(hardware) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m);
+select count(hardware) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(0);
+--5.2 除count，其他聚合函数补空值
+select temperature from root.ln.wf01.wt01;
+select last_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(11.11);
+select min_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(0.0);
+select max_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(100.1);
+select min_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(1000);
+select max_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(3600000);
+select first_value(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(2.2);
+select extreme(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(111111);
+select sum(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(1);
+select avg(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(100.11);
+--5.3 查询的聚合函数与对应的填充值不匹配时，查询不填充空值
+select min_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill('test');
+select max_time(temperature) from root.ln.wf01.wt01 group by([1509525000000,1509525600000),1m) fill(false);
+
+--6. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+
+//四、 降采样补空值
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.ln.wf01.wt01.hardware with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.ln;
+show timeseries root.ln.**;
+
+--3. 插入数据
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525300000,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525360000,null,25.99,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525470000,TRUE,25.99,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509525490000,null,26.92,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509559200000,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509638400000,TRUE,26.0,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509724800000,TRUE,23.29,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509811200000,null,24.19,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509897600000,FALSE,20.19,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509908400000,FALSE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1509984000000,null,22.12,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510069800000,FALSE,20.12,null);
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510069920000,FALSE,21.22,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070100000,TRUE,null,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070370000,TRUE,28.12,'V002');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1510070400000,TRUE,23.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1541174400000,null,20.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1541433600000,TRUE,25.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1572883200000,TRUE,19.99,'V001');
+insert into root.ln.wf01.wt01(time,status,temperature,hardware) values(1573056000000,TRUE,24.19,'V002');
+
+--4. group by
+SELECT last_value(temperature) FROM root.ln.wf01.wt01 GROUP BY([1509811200000, 1509854400000),1h) FILL (PREVIOUS);
+SELECT last_value(temperature) FROM root.ln.wf01.wt01 GROUP BY([1509551400000, 1509897600000),10h) FILL (LINEAR);
+SELECT last_value(temperature) FROM root.ln.wf01.wt01 GROUP BY([1510069800000, 1510070340000),1m) FILL (20.0);
+SELECT last_value(hardware) FROM root.ln.wf01.wt01 GROUP BY([1510069800000, 1510070340000),1m) FILL ('test');
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

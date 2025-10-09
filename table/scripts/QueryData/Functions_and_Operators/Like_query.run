@@ -1,0 +1,193 @@
+//数据查询：模式匹配LIKE
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table Table_A
+(
+	region STRING TAG,
+	device_id STRING TAG,
+	color STRING ATTRIBUTE,
+	s0 BOOLEAN FIELD,
+	s1 TEXT FIELD,
+	s2 INT32 FIELD,
+	s3 INT64 FIELD,
+	s4 FLOAT FIELD,
+	s5 DOUBLE FIELD,
+	s6 BOOLEAN FIELD,
+	s7 DATE FIELD,
+	s8 TIMESTAMP FIELD,
+	s9 STRING FIELD,
+	s10 BLOB FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc Table_A;
+
+--6. 数据写入
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+1, '北京', 'device_A1', 'red', false, 'China', 10, 100, 11.1, 8.8, true, '2021-10-01', 1633046400000, 'Smile', X'abcd'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+2, '北京', 'device_B2', 'black', true, 'America', 5, 121, 222.1, 12.2, false, '2022-10-01', 1724049989000, 'Sad', X'24ad'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+3, '北京', 'device_C3', 'yellow', true, 'Africa', 13, 250, 1.1, 333.3, true, '2023-11-01', 1704046789000, 'laugh', X'a2cd'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+4, '北京', 'device_D4', 'green', false, 'Europe', 4, 6, 21.1, 44.2, false, '2023-09-01', 1703047789000, 'Cry', X'24'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+5, '上海', 'device_E5', 'white', false, 'England', 122, 110, 2.2, 9.9, false, '2022-11-01', 1701047739000, 'LOVELY', X'cd'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+6, '上海', 'device_F6', 'orange', false, 'Canada', 8, 999, 123.1, 0.101, true, '2002-01-01', 1724049989000, 'Awkward', X'4d'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+7, '上海', 'device_AA', 'blue', true, 'Africa', 0, 110, 22.2, 1.8, true, '2023-06-01', 1643046400000, 'disappointING', X'ac'
+ );
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+8, '浙江', 'device_BB', 'purple', true, 'Australia', 555, 1001, 202.1, 1.2, false, '2002-10-01', 1653046400000, 'happy_and_satisfied', X'abcdef'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+9, '浙江', 'device_CC', 'Green', false, 'Swiss', 1110, 888, 10.1, 11.1, true, '2023-11-11', 1699685189000, 'FRIENDly', X'ce'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+10, '广州', 'device_dd', 'Pink', false, 'Japan', 111, 222, 22.5, 13.3, true, '2020-10-11', 1702277189000, 'SOB', X'ae'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+11, '广州', 'device_Ee', 'Grey', null, 'South Korea', 111, 20, 2, 11.3, true, null, 1702277189000, 'unhappy', X'ae'
+);
+INSERT INTO Table_A(
+time, region, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10
+) values(
+12, '广州', 'device_fF', 'null', true, 'Singapore', null, 22, 2.5, 13.3, true, null, 1702277189000, 'sorrow', X'ae'
+);
+ 
+--7. 原始数据查询：
+select * from Table_A order by time;
+
+--8. LIKE查询（V1.3.x.x 旧语法）
+--8.1 非TEXT|String 数据类型匹配查询
+select s0, s0 like '%al%' from table_a; <<SQLSTATE;
+select s2, s2 like '_2' from table_a; <<SQLSTATE;
+select s3, s3 like '%11' from table_a; <<SQLSTATE;
+select s4, s4 like '%2%' from table_a; <<SQLSTATE;
+select s5, s5 like '%2%' from table_a; <<SQLSTATE;
+select s7, s7 like '%2020%' from table_a; <<SQLSTATE;
+select s8, s8 like '%1%' from table_a; <<SQLSTATE;
+select s10, s10 like '%d' from table_a; <<SQLSTATE;
+
+--8.2 TEXT | String 数据类型匹配查询
+select * from table_a where s1 like '%ia' order by time;
+select s1, s1 like '%ca' as like_result from table_a order by time;
+select s9, s9 like 'S_i__' as like_result from table_a order by time;
+select s9, s9 like '%\_%_%' as like_result from table_a order by time limit 5;
+select color, color like '%e%', s1, s1 like '_h_n_' as like_result from table_a order by time;
+select device_id, device_id like 'a', s9, s9 like '%VE%' as like_result from table_a order by time;
+select color, color like '_l_e',s9, s9 like 'happy\_%' as like_result from table_a order by time;
+
+--8.3 NOT LIKE 查询：TEXT | String 数据类型匹配查询
+select device_id, device_id not like '%e%' as like_result1, s9, s9 not like '%Y%' as like_result2 
+	from table_a order by time;
+select device_id, device_id like '%B' as like_result1, color, color like '__ee_' as like_result2, s9, s9 not like '%ow' as like_result3 from table_a order by time;
+select s1, s1 not like '%E' as like_result1, s9, s9 not like '_o_' as like_result2 from table_a order by time offset 3 limit 5;
+
+--9. LIKE查询（V2.0.0.1起新语法）
+--9.1 非TEXT|String 数据类型匹配查询
+select * from table_a where s2 like '%0%'; <<SQLSTATE;
+select * from table_a where s3 like '2%'; <<SQLSTATE;
+select * from table_a where s4 like '%5'; <<SQLSTATE;
+select * from table_a where s5 like '%11'; <<SQLSTATE;
+select * from table_a where s6 like '%al%'; <<SQLSTATE; 
+select * from table_a where s7 like '%2022%'; <<SQLSTATE;
+select * from table_a where s8 like '%2023-11-11%'; <<SQLSTATE;
+select * from table_a where s10 like '0x__'; <<SQLSTATE;
+
+--9.2 TEXT | String 数据类型匹配查询
+select * from table_a where s1 like 'E%' order by time; 
+select * from table_a where s1 like 'C___a' order by time;
+select * from table_a where s1 like '%ca%' order by time;
+select * from table_a where s9 like '%y' order by time;
+select * from table_a where s9 like 'happy\_%' ESCAPE '\' order by time;
+select * from table_a where s9 like '_O_%' order by time;
+select * from table_a where device_id like 'device\_%B%' ESCAPE '\' order by time;
+select * from table_a where color like '%e%' order by time;
+select * from table_a where color like 'G_%y' order by time;
+select * from table_a where device_id like '%A%' and color like '__d' order by time;
+select * from table_a where s1 like '%ca' and s9 like '___gh' order by time;
+select * from table_a where device_id like 'device\_%A_' ESCAPE '\' and s9 like '%ING' order by time;
+
+--9.3 NOT LIKE 查询：TEXT | String 数据类型匹配查询
+select * from table_a where s1 not like '%ca' order by time;
+select * from table_a where s1 not like '%ca' and s9 not like 'happy\_%' ESCAPE '\' order by time;
+select * from table_a where device_id not like '%F%' and s1 not like '%ca' and s9 not like 'happy\_%' ESCAPE '\' order by time;
+select * from table_a where color like '%i%' and s1 not like '__pan' order by time;
+select * from table_a where device_id not like '%A%' and color not like '%ow%' and s1 not like '%S%' and s9 like 'S__' order by time;
+
+--10.regexp_like 查询
+select * from table_a where REGEXP_LIKE(); <<SQLSTATE;
+select REGEXP_LIKE() from table_a; <<SQLSTATE;
+select * from table_a where REGEXP_LIKE(s1,a); <<SQLSTATE;
+select REGEXP_LIKE(s9) from table_a; <<SQLSTATE;
+select * from table_a where REGEXP_LIKE(s1,'^[a-Z]$');  <<SQLSTATE;
+select * from table_a where REGEXP_LIKE(s9, '^a.*', 'i'); <<SQLSTATE;
+select REGEXP_LIKE(s1,'^a.*', 'c') from table_a; <<SQLSTATE;
+
+--11.返回以“A”开头的
+select * from table_a where REGEXP_LIKE(s1, '^A.*') order by time;
+
+--12.返回以“s”开头的
+select * from table_a where REGEXP_LIKE(s9, '^s.*') order by time;
+select time, device_id, s1, s9 from table_a where REGEXP_LIKE(color, '^gr.*$') order by time;
+select s1, regexp_like(s1,'^S.*') as regexp_like_result from table_a order by time;
+select s9, regexp_like(s9,'^[Ss].*') as regexp_like_result from table_a order by time;
+
+--13.匹配特定格式
+select time, device_id, s1 from table_a where REGEXP_LIKE(s1,'^.{2,5}$') order by time;
+select time, device_id, color, s1, s9 from table_a where REGEXP_LIKE(color, '^[A-Z].*') order by time;
+
+select device_id, regexp_like(device_id,'^device.*') as regexp_like_result1, color, regexp_like(color,'^.{4,6}$') as regexp_like_result2 from table_a order by time;
+
+--14. 标识列ID含有中文的
+select * from table_a where region like '%广州%' order by time,device_id;
+select * from table_a where region like '_京' order by time,device_id;
+select * from table_a where region like '上%' order by time,device_id;
+
+-- 清理数据：
+drop database test_db;
+<<NULL

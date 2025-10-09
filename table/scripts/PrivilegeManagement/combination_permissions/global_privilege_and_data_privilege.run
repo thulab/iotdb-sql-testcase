@@ -1,0 +1,1077 @@
+connect root/TimechoDB@2021;
+
+--0.清理环境
+drop user user_1;
+<<NULL;
+drop user no_auth_user;
+<<NULL;
+drop user has_auth_user;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role no_auth_role;
+<<NULL;
+drop role has_auth_role;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop user test_user3;
+<<NULL;
+drop role test_role;
+<<NULL;
+drop role test_role1;
+<<NULL;
+
+--1.普通用户拥有【MANAGE_USER+MANAGE_ROLE+CREATE】权限的鉴权操作，V2.0.7.1统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+<<SQLSTATE;
+show tables from dba1;
+// 14、删除数据库
+connect user_1/pass123456789;
+drop database dba2;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop database dba2;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+show databases;
+// 16、修改表
+connect user_1/pass123456789;
+alter table dba1.t1 add column boolean BOOLEAN;
+<<SQLSTATE;
+alter table dba1.t1 drop column int32;
+<<SQLSTATE;
+alter table dba1.t1 set properties TTL='INF';
+<<SQLSTATE;
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d1',1);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+insert into dba1.t1 values(1000,'d1',1);
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d2',2);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+// 19、删除数据
+delete from dba1.t1;
+<<SQLSTATE;
+drop table dba1.t1;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+
+--2.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--3.普通用户拥有【MANAGE_USER+MANAGE_ROLE+create+drop】权限的鉴权操作，V2.0.7.1统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+grant drop on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+show tables from dba1;
+// 14、删除数据库
+drop database dba2;
+show databases;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+show databases;
+// 16、修改表
+connect user_1/pass123456789;
+alter table dba1.t1 add column boolean BOOLEAN;
+<<SQLSTATE;
+alter table dba1.t1 drop column int32;
+<<SQLSTATE;
+alter table dba1.t1 set properties TTL='INF';
+<<SQLSTATE;
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d1',1);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+insert into dba1.t1 values(1000,'d1',1);
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d2',2);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+// 19、删除数据
+delete from dba1.t1;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+drop table dba1.t1;
+
+--4.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--5.普通用户拥有【MANAGE_USER+MANAGE_ROLE+create+drop+alter】权限的鉴权操作,V2.0.7.1【MANAGE_USER+MANAGE_ROLE】统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+grant drop on any to user user_1;
+grant alter on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+show tables from dba1;
+// 14、删除数据库
+drop database dba2;
+show databases;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+show databases;
+// 16、修改表
+alter table dba1.t1 add column boolean BOOLEAN;
+alter table dba1.t1 drop column int32;
+alter table dba1.t1 set properties TTL='INF';
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+insert into dba1.t1 values(1000,'d1',1);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+insert into dba1.t1 values(1000,'d1',1);
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d2',2);
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+// 19、删除数据
+delete from dba1.t1;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+drop table dba1.t1;
+
+--6.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--7.普通用户拥有【MANAGE_USER+MANAGE_ROLE+create+drop+alter+insert】权限的鉴权操作，V2.0.7.1【MANAGE_USER+MANAGE_ROLE】统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+grant drop on any to user user_1;
+grant alter on any to user user_1;
+grant insert on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+show tables from dba1;
+// 14、删除数据库
+drop database dba2;
+show databases;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+show databases;
+// 16、修改表
+alter table dba1.t1 add column boolean BOOLEAN;
+alter table dba1.t1 drop column int32;
+alter table dba1.t1 set properties TTL='INF';
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+insert into dba1.t1 values(1000,'d1',true);
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+insert into dba1.t1 values(1000,'d1',false);
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+<<SQLSTATE;
+// 19、删除数据
+delete from dba1.t1;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+select * from dba1.t1 order by time;
+connect user_1/pass123456789;
+drop table dba1.t1;
+
+
+--8.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--9.普通用户拥有【MANAGE_USER+MANAGE_ROLE+create+drop+alter+insert+select】权限的鉴权操作，V2.0.7.1【MANAGE_USER+MANAGE_ROLE】统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+grant drop on any to user user_1;
+grant alter on any to user user_1;
+grant insert on any to user user_1;
+grant select on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+show tables from dba1;
+// 14、删除数据库
+drop database dba2;
+show databases;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+show databases;
+// 16、修改表
+alter table dba1.t1 add column boolean BOOLEAN;
+alter table dba1.t1 drop column int32;
+alter table dba1.t1 set properties TTL='INF';
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+insert into dba1.t1 values(1000,'d1',true);
+select * from dba1.t1 order by time;
+insert into dba1.t1 values(1000,'d1',false);
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+// 19、删除数据
+delete from dba1.t1;
+<<SQLSTATE;
+select * from dba1.t1 order by time;
+drop table dba1.t1;
+
+
+--10.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--11.普通用户拥有【MANAGE_USER+MANAGE_ROLE+create+drop+alter+insert+select+delete】权限的鉴权操作，V2.0.7.1【MANAGE_USER+MANAGE_ROLE】统一为【SECURITY】权限
+// 1、创建用户
+create user user_1 'pass123456789';
+list user;
+<<CHECKCODE;
+grant security to user user_1;
+grant create on any to user user_1;
+grant drop on any to user user_1;
+grant alter on any to user user_1;
+grant insert on any to user user_1;
+grant select on any to user user_1;
+grant delete on any to user user_1;
+list privileges of user user_1;
+connect user_1/pass123456789;
+create user u001 'pass12345678';
+list user;
+<<CHECKCODE;
+list privileges of user u001;
+connect u001/pass12345678;
+// 2、修改用户密码
+connect user_1/pass123456789;
+alter user u001 set password 'pass123456789';
+connect u001/pass123456789;
+// 3、查看用户列表
+connect user_1/pass123456789;
+list user;
+<<CHECKCODE;
+// 4、删除用户
+connect user_1/pass123456789;
+drop user u001;
+list user;
+<<CHECKCODE;
+// 5、创建角色
+connect user_1/pass123456789;
+create role role_1;
+// 6、查看角色列表
+list role of user user_1;
+list role;
+// 7、删除角色
+drop role role_1;
+list role;
+// 8、查询运行的查询取消查询
+connect user_1/pass123456789;
+show queries;
+<<CHECKCODE;
+kill all queries;
+// 9、查看变量信息
+show variables;
+<<SQLSTATE;
+// 10、查看version信息
+show version;
+<<SQLSTATE;
+// 11、创建数据库
+create database dba1;
+create database dba2;
+show databases;
+// 12、创建表
+create table dba1.t1(ID TAG, int32 INT32 FIELD);
+create table dba2.t1(ID TAG, int32 INT32 FIELD);
+show tables from dba1;
+show tables from dba2;
+// 13、删除表
+drop table dba2.t1;
+show tables from dba1;
+// 14、删除数据库
+drop database dba2;
+show databases;
+// 15、修改数据库
+connect user_1/pass123456789;
+alter database dba1 set properties ttl=3600000;
+show databases;
+// 16、修改表
+alter table dba1.t1 add column boolean BOOLEAN;
+alter table dba1.t1 drop column int32;
+alter table dba1.t1 set properties TTL='INF';
+show tables from dba1;
+desc dba1.t1;
+// 17、插入或更新数据
+insert into dba1.t1 values(1000,'d1',true);
+select * from dba1.t1 order by time;
+insert into dba1.t1 values(1000,'d1',false);
+select * from dba1.t1 order by time;
+// 18、查询数据
+connect user_1/pass123456789;
+select * from dba1.t1 order by time;
+// 19、删除数据
+delete from dba1.t1;
+select * from dba1.t1 order by time;
+drop table dba1.t1;
+drop database dba1;
+show databases;
+
+--12.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--13.无权限的角色，赋予无权限的用户的鉴权操作
+create user user_1 'pass123456789';
+// （1）root创建一个普通用户：
+create user no_auth_user 'pass123456789';
+// （2）root创建一个角色：
+create role no_auth_role;
+// （3）root将角色赋予用户：
+grant role no_auth_role to no_auth_user;
+list privileges of user no_auth_user;
+list privileges of role no_auth_role;
+// （4）no_auth_user分别执行相关权限操作：
+connect no_auth_user/pass123456789;
+create user testuser1 'pass123456789';
+<<SQLSTATE;
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass12345678';
+<<SQLSTATE;
+drop user user_1;
+<<SQLSTATE;
+create role test_role;
+<<SQLSTATE;
+list role;
+drop role test_role;
+<<SQLSTATE;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+<<SQLSTATE;
+create database test_db;
+<<SQLSTATE;
+create table dba1.test_t1();
+<<SQLSTATE;
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+<<SQLSTATE;
+insert into dba1.test_t1 values(1111,1111);
+<<SQLSTATE;
+select * from dba1.test_1 order by time;
+<<SQLSTATE;
+delete from dba1.test_1;
+<<SQLSTATE;
+drop table dba1.test_1;
+<<SQLSTATE;
+
+--14.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user no_auth_user;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop role role_1;
+<<NULL;
+drop role no_auth_role;
+<<NULL;
+drop role role_2;
+<<NULL;
+drop database dba1;
+<<NULL;
+drop database dba2;
+<<NULL;
+
+--15.有权限的角色，赋予无权限的用户的鉴权操作
+//（1）root创建一个普通用户：
+create user has_auth_user 'pass123456789';
+//（2）root创建一个角色：
+create role has_auth_role;
+//（3）root将角色赋予用户：
+grant role has_auth_role to has_auth_user;
+//（4）root分别将各个权限赋予给角色：
+grant security to role has_auth_role;
+grant create on any to role has_auth_role;
+grant alter on any to role has_auth_role;
+grant insert on any to role has_auth_role;
+grant select on any to role has_auth_role;
+grant delete on any to role has_auth_role;
+grant drop on any to role has_auth_role;
+// （5）root查看指定角色拥有的权限列表：
+list privileges of role has_auth_role;
+list privileges of user has_auth_user;
+//（6）has_auth_user分别执行相关权限操作：
+connect has_auth_user/pass123456789;
+create user user_1 'pass12345678';
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass123456789';
+drop user user_1;
+create role test_role;
+list role;
+drop role test_role;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+<<SQLSTATE;
+create database dba1;
+create table dba1.test_t1();
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+insert into dba1.test_t1 values(1111,1111);
+select * from dba1.test_t1 order by time;
+delete from dba1.test_t1;
+drop table dba1.test_t1;
+drop role has_auth_role;
+drop user has_auth_user;
+<<SQLSTATE;
+
+--16.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user has_auth_user;
+<<NULL;
+drop role has_auth_role;
+<<NULL;
+drop role test_role;
+<<NULL;
+drop database dba1;
+<<NULL;
+
+--17.ALL所有权限（全局权限和数据权限）的鉴权操作
+// 1、赋予普通用户ALL权限，执行相关的权限操作
+create user test_user1 'pass123456789';
+grant ALL to user test_user1;
+list privileges of user test_user1;
+connect test_user1/pass123456789;
+create user user_1 'pass12345678';
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass123456789';
+drop user user_1;
+create role test_role;
+list role;
+drop role test_role;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+create database dba1;
+create table dba1.test_t1();
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+insert into dba1.test_t1 values(1111,1111);
+select * from dba1.test_t1 order by time;
+delete from dba1.test_t1;
+drop table dba1.test_t1;
+drop database dba1;
+// 2、取消普通用户ALL权限，执行相关的权限操作
+connect root/TimechoDB@2021;
+revoke ALL from user test_user1;
+list privileges of user test_user1;
+create user user1 'pass123456789';
+connect test_user1/pass123456789;
+create user user_1 'pass123456789';
+<<SQLSTATE;
+list user;
+<<CHECKCODE;
+alter user user1 set password '123456789012';
+<<SQLSTATE;
+drop user user1;
+<<SQLSTATE;
+create role test_role;
+<<SQLSTATE;
+list role;
+drop role test_role;
+<<SQLSTATE;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+<<SQLSTATE;
+create database dba1;
+<<SQLSTATE;
+create table dba1.test_t1();
+<<SQLSTATE;
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+<<SQLSTATE;
+insert into dba1.test_t1 values(1111,1111);
+<<SQLSTATE;
+select * from dba1.test_t1 order by time;
+<<SQLSTATE;
+delete from dba1.test_t1;
+<<SQLSTATE;
+drop table dba1.test_t1;
+<<SQLSTATE;
+drop database dba1;
+<<SQLSTATE;
+// 3、赋予角色ALL权限，再将角色权限赋予给普通用户，执行相关的权限操作
+connect root/TimechoDB@2021;
+create role test_role1;
+grant ALL to role test_role1;
+grant role test_role1 to test_user1;
+list privileges of role test_role1;
+list privileges of user test_user1;
+connect test_user1/pass123456789;
+create user user_1 'pass12345678';
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass123456789';
+drop user user_1;
+drop user user1;
+create role test_role;
+list role;
+drop role test_role;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+create database dba1;
+create table dba1.test_t1();
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+insert into dba1.test_t1 values(1111,1111);
+select * from dba1.test_t1 order by time;
+delete from dba1.test_t1;
+drop table dba1.test_t1;
+drop database dba1;
+// 4、取消角色ALL权限，执行相关的权限操作
+connect root/TimechoDB@2021;
+revoke ALL from role test_role1;
+list privileges of role test_role1;
+list privileges of user test_user1;
+create user user1 'pass12345678';
+connect test_user1/pass123456789;
+create user user_1 'pass123456789';
+<<SQLSTATE;
+list user;
+<<CHECKCODE;
+alter user user1 set password 'pass123456789';
+<<SQLSTATE;
+drop user user1;
+<<SQLSTATE;
+create role test_role;
+<<SQLSTATE;
+list role;
+drop role test_role;
+<<SQLSTATE;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+<<SQLSTATE;
+create database dba1;
+<<SQLSTATE;
+create table dba1.test_t1();
+<<SQLSTATE;
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+<<SQLSTATE;
+insert into dba1.test_t1 values(1111,1111);
+<<SQLSTATE;
+select * from dba1.test_t1 order by time;
+<<SQLSTATE;
+delete from dba1.test_t1;
+<<SQLSTATE;
+drop table dba1.test_t1;
+<<SQLSTATE;
+drop database dba1;
+<<SQLSTATE;
+// 5、赋予普通用户ALL权限，然后单独赋予其他权限
+connect root/TimechoDB@2021;
+grant all to user test_user1;
+grant security to user test_user1;
+grant create on any to user test_user1;
+grant alter on any to user test_user1;
+grant insert on any to user test_user1;
+grant select on any to user test_user1;
+grant delete on any to user test_user1;
+grant drop on any to user test_user1;
+connect test_user1/pass123456789;
+create user user_1 'pass12345678';
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass123456789';
+drop user user_1;
+drop user user1;
+create role test_role;
+list role;
+drop role test_role;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+create database dba1;
+create table dba1.test_t1();
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+insert into dba1.test_t1 values(1111,1111);
+select * from dba1.test_t1 order by time;
+delete from dba1.test_t1;
+drop table dba1.test_t1;
+drop database dba1;
+// 6、赋予普通用户ALL转授权限，然后赋予其他用户权限，权限功能正常
+connect root/TimechoDB@2021;
+revoke ALL from user test_user1;
+grant all to user test_user1 with grant option;
+create user test_user2 'pass123456789';
+create user test_user3 'pass123456789';
+connect test_user1/pass123456789;
+grant all to user test_user2 with grant option;
+connect test_user2/pass123456789;
+grant all to user test_user3;
+connect test_user3/pass123456789;
+create user user_1 'pass12345678';
+list user;
+<<CHECKCODE;
+alter user user_1 set password 'pass123456789';
+drop user user_1;
+create role test_role;
+list role;
+drop role test_role;
+show queries;
+<<CHECKCODE;
+kill all queries;
+show variables;
+create database dba1;
+create table dba1.test_t1();
+alter table dba1.test_t1 add column int32 INT32 FIELD;
+insert into dba1.test_t1 values(1111,1111);
+select * from dba1.test_t1 order by time;
+delete from dba1.test_t1;
+drop table dba1.test_t1;
+drop database dba1;
+// 7、赋权给一个不存在的用户
+connect root/TimechoDB@2021;
+grant all to user test_no_user;
+<<SQLSTATE;
+// 8、对不存在的用户取消授权
+revoke ALL from user test_no_user;
+<<SQLSTATE;
+// 9、给一个已经有ALL 权限的用户，重复授权 grant all
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+grant all to user test_user1;
+// 10、执行两次revoke取消授权操作
+revoke ALL from user test_user1;
+revoke ALL from user test_user1;
+revoke ALL from user test_user1;
+revoke ALL from user test_user1;
+revoke ALL from user test_user1;
+revoke ALL from user test_user1;
+
+--18.清理环境
+connect root/TimechoDB@2021;
+drop user user_1;
+<<NULL;
+drop user user1;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop user test_user3;
+<<NULL;
+drop role test_role;
+<<NULL;
+drop role test_role1;
+<<NULL;
+drop database dba1;
+<<NULL;

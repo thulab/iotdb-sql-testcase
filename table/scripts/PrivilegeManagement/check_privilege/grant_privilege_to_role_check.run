@@ -1,0 +1,208 @@
+// 授权操作： 授权角色
+// GRANT <privileges> <ON > TO ROLE
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop user user06;
+<<NULL;
+drop user user07;
+<<NULL;
+drop user test_user;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop role role03;
+<<NULL;
+drop role role04;
+<<NULL;
+drop role role05;
+<<NULL;
+drop role role06;
+<<NULL;
+drop database test_db;
+<<NULL;
+drop database db1;
+<<NULL;
+
+
+--1. 准备测试数据
+create user user01 'pass123456789';
+create user user02 'pass123456789';
+create user user03 'pass123456789';
+create user user04 'pass123456789';
+create user user05 'pass123456789';
+create user user06 'pass123456789';
+create role role01;
+create role role02;
+create role role03;
+create role role04;
+create role role05;
+create role role06;
+create database test_db;
+use test_db;
+create table t1(ID TAG, int32 INT32);
+show databases;
+show tables;
+desc t1;
+insert into t1(time, ID, int32) values(1, 'd1', 1);
+select * from t1 order by time;
+
+--2. 新：root赋予角色role01关于【SECURITY】权限；旧：root赋予角色role01关于不指定范围【MANAGE_USER]权限
+grant security to role role01;
+
+--3. root 赋予角色role02关于指定ANY范围【ALTER】的权限
+grant alter on any to role role02;
+
+--4. root 赋予角色role03关于指定DATABASE范围【SELECT】的权限
+grant select on database test_db to role role03;
+
+--5. root 赋予角色role04关于指定TABLE范围【INSERT】的权限
+grant insert on table test_db.t1 to role role04;
+
+--6. root 针对不存在的数据库范围，对于角色role05进行赋权【INSERT】
+grant insert on database db1 to role role05;
+
+--7. root 针对不存在的表范围，对于角色role06进行赋权【ALTER】
+grant alter on table db1.t1 to role role06;
+
+--8. root 对于角色role06重复授权
+grant alter on table db1.t1 to role role06;
+
+--9. root 查看角色拥有的权限列表
+list privileges of role role01;
+list privileges of role role02;
+list privileges of role role03;
+list privileges of role role04;
+list privileges of role role05;
+list privileges of role role06;
+
+--10. 分别将角色赋予给用户
+grant role role01 to user01;
+grant role role02 to user02;
+grant role role03 to user03;
+grant role role04 to user04;
+grant role role05 to user05;
+grant role role06 to user06;
+
+--11. root 查看用户拥有的权限列表
+list privileges of user user01;
+list privileges of user user02;
+list privileges of user user03;
+list privileges of user user04;
+list privileges of user user05;
+list privileges of user user06;
+
+--12. 普通用户user01登录，赋予普通用户user07权限
+connect user01/pass123456789;
+list privileges of user user01;
+create user test_user 'pass123456789';
+list user;
+<<CHECKCODE;
+
+--13. 普通用户user02登录，执行相关权限操作
+connect user02/pass123456789;
+list privileges of user user02;
+show databases;
+use test_db;
+show tables;
+desc t1;
+alter table t1 add column region ATTRIBUTE;
+desc t1;
+
+--13. 普通用户user03登录，执行相关权限操作
+connect user03/pass123456789;
+list privileges of user user03;
+show databases;
+use test_db;
+show tables;
+select * from t1 order by time;
+
+--14. 普通用户user04登录，执行相关权限操作
+connect user04/pass123456789;
+list privileges of user user04;
+show databases;
+use test_db;
+show tables;
+insert into t1(time,id,region,int32) values(2,'d1','Beijing',2);
+
+--15. root 创建数据库和表
+connect root/TimechoDB@2021;
+create database db1;
+create table db1.t1(ID TAG, boolean BOOLEAN);
+
+--16. 普通用户user05登录，执行相关权限操作
+connect user05/pass123456789;
+list privileges of user user05;
+show databases;
+use db1;
+show tables;
+desc t1;
+insert into t1(time,id,boolean) values(1,'d1', false);
+
+--17. 普通用户user06登录，执行相关权限操作
+connect user06/pass123456789;
+list privileges of user user06;
+show databases;
+use db1;
+show tables;
+desc t1;
+alter table t1 add column int32 INT32;
+
+--18. root 登录，验证其他用户操作
+connect root/TimechoDB@2021;
+show databases;
+show tables from test_db;
+show tables from db1;
+desc test_db.t1;
+desc db1.t1;
+select * from test_db.t1 order by time;
+select * from db1.t1 order by time;
+
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop user user06;
+<<NULL;
+drop user user07;
+<<NULL;
+drop user test_user;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+drop role role03;
+<<NULL;
+drop role role04;
+<<NULL;
+drop role role05;
+<<NULL;
+drop role role06;
+<<NULL;
+drop database test_db;
+<<NULL;
+drop database db1;
+<<NULL;

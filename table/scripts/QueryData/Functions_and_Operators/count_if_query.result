@@ -1,0 +1,914 @@
+-- [1]13:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |INF                |1                                   |1                                 |604800000                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]15:use test_db
+STRICT{
+PASS
+}
+-- [1]18:create table t1( id TAG, region attribute, int32 INT32, int64 INT64, float FLOAT, double DOUBLE, boolean BOOLEAN, text TEXT, string STRING, date DATE, timestamp TIMESTAMP, blob BLOB )
+STRICT{
+PASS
+}
+
+-- [1]31:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]32:desc t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+region                |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+--------------------------------------------------------------
+int64                 |INT64               |FIELD               |
+--------------------------------------------------------------
+float                 |FLOAT               |FIELD               |
+--------------------------------------------------------------
+double                |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+boolean               |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+text                  |TEXT                |FIELD               |
+--------------------------------------------------------------
+string                |STRING              |FIELD               |
+--------------------------------------------------------------
+date                  |DATE                |FIELD               |
+--------------------------------------------------------------
+timestamp             |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+blob                  |BLOB                |FIELD               |
+总数目：13
+}
+
+Elapsed Time: 0.0.0
+-- [1]35:insert into t1 values(1,'d1','Beijing',1,1,1.1,1.1,false,'text1','string1','2020-01-10',1577836800000,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.19
+-- [1]36:insert into t1 values(2,null,'Beijing',1,null,2.2,2.2,false,'text1','string2','2020-01-10',null,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.40
+-- [1]37:insert into t1 values(3,'d2',null,null,3,null,3.3,true,null,'string2','2020-02-10',1581292800000,null)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.5
+-- [1]38:insert into t1 values(4,'d1','Beijing',4,3,4.4,null,true,'text4',null,'2020-11-10',null,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.3
+-- [1]39:insert into t1 values(5,null,'shanghai',5,5,5.5,5.5,null,'text1','string3',null,1581292800000,null)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]40:insert into t1 values(6,'d2','shanghai',6,6,5.5,6.6,true,'text6','string2','2022-01-10',1633046400000,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]41:insert into t1 values(7,'d1','Beijing',777,0,155.5,555.5,false,'text6','string3','2022-11-11',1635552000000,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]42:insert into t1 values(8,'d2','shanghai',8888,100,55.5,0.1,true,'text5','string1','2023-11-10',1635724800000,'89504E470')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]45:select * from t1 order by time
+STRICT{
+time(TIMESTAMP)      |id(STRING)      |region(STRING)      |int32(INT32)      |int64(INT64)      |float(FLOAT)      |double(DOUBLE)      |boolean(BOOLEAN)      |text(TEXT)      |string(STRING)      |date(DATE)      |timestamp(TIMESTAMP)      |blob(BLOB)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1              |Beijing             |1                 |1                 |1.1               |1.1                 |false                 |text1           |string1             |2020-01-10      |2020-01-01T08:00:00.000+08|0x38393530344534|
+01+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |3730            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|null            |shanghai            |1                 |null              |2.2               |2.2                 |false                 |text1           |string2             |2020-01-10      |null                      |0x38393530344534|
+02+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |                          |3730            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2              |shanghai            |null              |3                 |null              |3.3                 |true                  |null            |string2             |2020-02-10      |2020-02-10T08:00:00.000+08|null            |
+03+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |                |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1              |Beijing             |4                 |3                 |4.4               |null                |true                  |text4           |null                |2020-11-10      |null                      |0x38393530344534|
+04+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |                          |3730            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|null            |shanghai            |5                 |5                 |5.5               |5.5                 |null                  |text1           |string3             |null            |2020-02-10T08:00:00.000+08|null            |
+05+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |                |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2              |shanghai            |6                 |6                 |5.5               |6.6                 |true                  |text6           |string2             |2022-01-10      |2021-10-01T08:00:00.000+08|0x38393530344534|
+06+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |3730            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1              |Beijing             |777               |0                 |155.5             |555.5               |false                 |text6           |string3             |2022-11-11      |2021-10-30T08:00:00.000+08|0x38393530344534|
+07+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |3730            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2              |shanghai            |8888              |100               |55.5              |0.1                 |true                  |text5           |string1             |2023-11-10      |2021-11-01T08:00:00.000+08|0x38393530344534|
+08+08:00             |                |                    |                  |                  |                  |                    |                      |                |                    |                |:00                       |3730            |
+总数目：8
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]48:select count_if(id is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+6                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]49:select id, count_if(id is not null) as count_if_result from t1 group by id order by id
+STRICT{
+id(STRING)      |count_if_result(INT64)      |
+--------------------------------------------
+d1              |3                           |
+--------------------------------------------
+d2              |3                           |
+--------------------------------------------
+null            |0                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]50:select id, count_if(id is null) as count_if_result from t1 group by id order by id
+STRICT{
+id(STRING)      |count_if_result(INT64)      |
+--------------------------------------------
+d1              |0                           |
+--------------------------------------------
+d2              |0                           |
+--------------------------------------------
+null            |2                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]52:select count_if(region is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+8                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]53:select region, count_if(region is not null) as count_if_result from t1 group by region order by region
+STRICT{
+region(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+Beijing             |3                           |
+------------------------------------------------
+shanghai            |5                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]54:select region, count_if(region is null) as count_if_result from t1 group by region order by region
+STRICT{
+region(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+Beijing             |0                           |
+------------------------------------------------
+shanghai            |0                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]56:select count_if(region is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+8                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]57:select region, count_if(region is not null) as count_if_result from t1 group by region order by region
+STRICT{
+region(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+Beijing             |3                           |
+------------------------------------------------
+shanghai            |5                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]58:select region, count_if(region is null) as count_if_result from t1 group by region order by region
+STRICT{
+region(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+Beijing             |0                           |
+------------------------------------------------
+shanghai            |0                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]60:select count_if(int32 is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]61:select int32, count_if(int32 is not null) as count_if_result from t1 group by int32 order by int32
+STRICT{
+int32(INT32)      |count_if_result(INT64)      |
+----------------------------------------------
+1                 |2                           |
+----------------------------------------------
+4                 |1                           |
+----------------------------------------------
+5                 |1                           |
+----------------------------------------------
+6                 |1                           |
+----------------------------------------------
+777               |1                           |
+----------------------------------------------
+8888              |1                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]62:select int32, count_if(int32 is null) as count_if_result from t1 group by int32 order by int32
+STRICT{
+int32(INT32)      |count_if_result(INT64)      |
+----------------------------------------------
+1                 |0                           |
+----------------------------------------------
+4                 |0                           |
+----------------------------------------------
+5                 |0                           |
+----------------------------------------------
+6                 |0                           |
+----------------------------------------------
+777               |0                           |
+----------------------------------------------
+8888              |0                           |
+----------------------------------------------
+null              |1                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]63:select int32, count_if(int32*2 > 10) as count_if_result from t1 group by int32 order by int32
+STRICT{
+int32(INT32)      |count_if_result(INT64)      |
+----------------------------------------------
+1                 |0                           |
+----------------------------------------------
+4                 |0                           |
+----------------------------------------------
+5                 |0                           |
+----------------------------------------------
+6                 |1                           |
+----------------------------------------------
+777               |1                           |
+----------------------------------------------
+8888              |1                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]65:select count_if(int64 is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]66:select int64, count_if(int64 is not null) as count_if_result from t1 group by int64 order by int64
+STRICT{
+int64(INT64)      |count_if_result(INT64)      |
+----------------------------------------------
+0                 |1                           |
+----------------------------------------------
+1                 |1                           |
+----------------------------------------------
+3                 |2                           |
+----------------------------------------------
+5                 |1                           |
+----------------------------------------------
+6                 |1                           |
+----------------------------------------------
+100               |1                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]67:select int64, count_if(int64 is null) as count_if_result from t1 group by int64 order by int64
+STRICT{
+int64(INT64)      |count_if_result(INT64)      |
+----------------------------------------------
+0                 |0                           |
+----------------------------------------------
+1                 |0                           |
+----------------------------------------------
+3                 |0                           |
+----------------------------------------------
+5                 |0                           |
+----------------------------------------------
+6                 |0                           |
+----------------------------------------------
+100               |0                           |
+----------------------------------------------
+null              |1                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.12
+
+-- [1]68:select int64, count_if(int64+int32 < 100) as count_if_result from t1 group by int64 order by int64
+STRICT{
+int64(INT64)      |count_if_result(INT64)      |
+----------------------------------------------
+0                 |0                           |
+----------------------------------------------
+1                 |1                           |
+----------------------------------------------
+3                 |1                           |
+----------------------------------------------
+5                 |1                           |
+----------------------------------------------
+6                 |1                           |
+----------------------------------------------
+100               |0                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]70:select count_if(float is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]71:select float, count_if(float is not null) as count_if_result from t1 group by float order by float
+STRICT{
+float(FLOAT)      |count_if_result(INT64)      |
+----------------------------------------------
+1.1               |1                           |
+----------------------------------------------
+2.2               |1                           |
+----------------------------------------------
+4.4               |1                           |
+----------------------------------------------
+5.5               |2                           |
+----------------------------------------------
+55.5              |1                           |
+----------------------------------------------
+155.5             |1                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]72:select float, count_if(float is null) as count_if_result from t1 group by float order by float
+STRICT{
+float(FLOAT)      |count_if_result(INT64)      |
+----------------------------------------------
+1.1               |0                           |
+----------------------------------------------
+2.2               |0                           |
+----------------------------------------------
+4.4               |0                           |
+----------------------------------------------
+5.5               |0                           |
+----------------------------------------------
+55.5              |0                           |
+----------------------------------------------
+155.5             |0                           |
+----------------------------------------------
+null              |1                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.11
+
+-- [1]73:select float, count_if(float <= 10) as count_if_result from t1 group by float order by float
+STRICT{
+float(FLOAT)      |count_if_result(INT64)      |
+----------------------------------------------
+1.1               |1                           |
+----------------------------------------------
+2.2               |1                           |
+----------------------------------------------
+4.4               |1                           |
+----------------------------------------------
+5.5               |2                           |
+----------------------------------------------
+55.5              |0                           |
+----------------------------------------------
+155.5             |0                           |
+----------------------------------------------
+null              |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]75:select count_if(double is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]76:select double, count_if(double is not null) as count_if_result from t1 group by double order by double
+STRICT{
+double(DOUBLE)      |count_if_result(INT64)      |
+------------------------------------------------
+0.1                 |1                           |
+------------------------------------------------
+1.1                 |1                           |
+------------------------------------------------
+2.2                 |1                           |
+------------------------------------------------
+3.3                 |1                           |
+------------------------------------------------
+5.5                 |1                           |
+------------------------------------------------
+6.6                 |1                           |
+------------------------------------------------
+555.5               |1                           |
+------------------------------------------------
+null                |0                           |
+总数目：8
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]77:select double, count_if(double is null) as count_if_result from t1 group by double order by double
+STRICT{
+double(DOUBLE)      |count_if_result(INT64)      |
+------------------------------------------------
+0.1                 |0                           |
+------------------------------------------------
+1.1                 |0                           |
+------------------------------------------------
+2.2                 |0                           |
+------------------------------------------------
+3.3                 |0                           |
+------------------------------------------------
+5.5                 |0                           |
+------------------------------------------------
+6.6                 |0                           |
+------------------------------------------------
+555.5               |0                           |
+------------------------------------------------
+null                |1                           |
+总数目：8
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]78:select count_if(int32+int64-float+double > 1000) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+2                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]80:select count_if(boolean is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]81:select boolean, count_if(boolean is not null) as count_if_result from t1 group by boolean order by boolean
+STRICT{
+boolean(BOOLEAN)      |count_if_result(INT64)      |
+--------------------------------------------------
+false                 |3                           |
+--------------------------------------------------
+true                  |4                           |
+--------------------------------------------------
+null                  |0                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]82:select boolean, count_if(boolean is null) as count_if_result from t1 group by boolean order by boolean
+STRICT{
+boolean(BOOLEAN)      |count_if_result(INT64)      |
+--------------------------------------------------
+false                 |0                           |
+--------------------------------------------------
+true                  |0                           |
+--------------------------------------------------
+null                  |1                           |
+总数目：3
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]83:select count_if(boolean != false) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+4                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]84:select count_if(boolean <> true) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+3                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]86:select count_if(text is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]87:select text, count_if(text is not null) as count_if_result from t1 group by text order by text
+STRICT{
+text(TEXT)      |count_if_result(INT64)      |
+--------------------------------------------
+text1           |3                           |
+--------------------------------------------
+text4           |1                           |
+--------------------------------------------
+text5           |1                           |
+--------------------------------------------
+text6           |2                           |
+--------------------------------------------
+null            |0                           |
+总数目：5
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]88:select text, count_if(text is null) as count_if_result from t1 group by text order by text
+STRICT{
+text(TEXT)      |count_if_result(INT64)      |
+--------------------------------------------
+text1           |0                           |
+--------------------------------------------
+text4           |0                           |
+--------------------------------------------
+text5           |0                           |
+--------------------------------------------
+text6           |0                           |
+--------------------------------------------
+null            |1                           |
+总数目：5
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]89:select count_if(text != 'text6') as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+5                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]91:select count_if(string is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]92:select string, count_if(string is not null) as count_if_result from t1 group by string order by string
+STRICT{
+string(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+string1             |2                           |
+------------------------------------------------
+string2             |3                           |
+------------------------------------------------
+string3             |2                           |
+------------------------------------------------
+null                |0                           |
+总数目：4
+}
+
+Elapsed Time: 0.0.13
+
+-- [1]93:select string, count_if(string is null) as count_if_result from t1 group by string order by string
+STRICT{
+string(STRING)      |count_if_result(INT64)      |
+------------------------------------------------
+string1             |0                           |
+------------------------------------------------
+string2             |0                           |
+------------------------------------------------
+string3             |0                           |
+------------------------------------------------
+null                |1                           |
+总数目：4
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]94:select count_if(string != 'string1') as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+5                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]96:select count_if(date is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+7                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]97:select date, count_if(date is not null) as count_if_result from t1 group by date order by date
+STRICT{
+date(DATE)      |count_if_result(INT64)      |
+--------------------------------------------
+2020-01-10      |2                           |
+--------------------------------------------
+2020-02-10      |1                           |
+--------------------------------------------
+2020-11-10      |1                           |
+--------------------------------------------
+2022-01-10      |1                           |
+--------------------------------------------
+2022-11-11      |1                           |
+--------------------------------------------
+2023-11-10      |1                           |
+--------------------------------------------
+null            |0                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]98:select date, count_if(date is null) as count_if_result from t1 group by date order by date
+STRICT{
+date(DATE)      |count_if_result(INT64)      |
+--------------------------------------------
+2020-01-10      |0                           |
+--------------------------------------------
+2020-02-10      |0                           |
+--------------------------------------------
+2020-11-10      |0                           |
+--------------------------------------------
+2022-01-10      |0                           |
+--------------------------------------------
+2022-11-11      |0                           |
+--------------------------------------------
+2023-11-10      |0                           |
+--------------------------------------------
+null            |1                           |
+总数目：7
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]99:select count_if(date != cast('2023-11-10' as DATE)) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+6                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]101:select count_if(timestamp is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+6                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]102:select timestamp, count_if(timestamp is not null) as count_if_result from t1 group by timestamp order by timestamp
+STRICT{
+timestamp(TIMESTAMP)      |count_if_result(INT64)      |
+------------------------------------------------------
+2020-01-01T08:00:00.000+08|1                           |
+:00                       |                            |
+------------------------------------------------------
+2020-02-10T08:00:00.000+08|2                           |
+:00                       |                            |
+------------------------------------------------------
+2021-10-01T08:00:00.000+08|1                           |
+:00                       |                            |
+------------------------------------------------------
+2021-10-30T08:00:00.000+08|1                           |
+:00                       |                            |
+------------------------------------------------------
+2021-11-01T08:00:00.000+08|1                           |
+:00                       |                            |
+------------------------------------------------------
+null                      |0                           |
+总数目：6
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]103:select timestamp, count_if(timestamp is null) as count_if_result from t1 group by timestamp order by timestamp
+STRICT{
+timestamp(TIMESTAMP)      |count_if_result(INT64)      |
+------------------------------------------------------
+2020-01-01T08:00:00.000+08|0                           |
+:00                       |                            |
+------------------------------------------------------
+2020-02-10T08:00:00.000+08|0                           |
+:00                       |                            |
+------------------------------------------------------
+2021-10-01T08:00:00.000+08|0                           |
+:00                       |                            |
+------------------------------------------------------
+2021-10-30T08:00:00.000+08|0                           |
+:00                       |                            |
+------------------------------------------------------
+2021-11-01T08:00:00.000+08|0                           |
+:00                       |                            |
+------------------------------------------------------
+null                      |2                           |
+总数目：6
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]104:select count_if(timestamp != 1635724800000) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+5                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]106:select count_if(blob is not null) as count_if_result from t1
+STRICT{
+count_if_result(INT64)      |
+----------------------------
+6                           |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]107:select blob, count_if(blob is not null) as count_if_result from t1 group by blob order by blob
+STRICT{
+blob(BLOB)      |count_if_result(INT64)      |
+--------------------------------------------
+0x38393530344534|6                           |
+3730            |                            |
+--------------------------------------------
+null            |0                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]108:select blob, count_if(blob is null) as count_if_result from t1 group by blob order by blob
+STRICT{
+blob(BLOB)      |count_if_result(INT64)      |
+--------------------------------------------
+0x38393530344534|0                           |
+3730            |                            |
+--------------------------------------------
+null            |2                           |
+总数目：2
+}
+
+Elapsed Time: 0.0.5
+-- [1]111:select count_if() from t1
+STRICT{
+SQLSTATE : 701: Aggregate functions [count_if] should only have one boolean expression as argument
+}
+-- [1]113:select count_if(id) from t1
+STRICT{
+SQLSTATE : 701: Aggregate functions [count_if] should only have one boolean expression as argument
+}
+-- [1]115:select count_if(id is 'd1') as count_if_result from t1
+STRICT{
+SQLSTATE : 700: line 1:23: mismatched input ''d1''. Expecting: 'DISTINCT', 'NOT', 'NULL'
+}
+-- [1]117:select count_if(boolean is not false) as count_if_result from t1
+STRICT{
+SQLSTATE : 700: line 1:32: mismatched input 'false'. Expecting: 'DISTINCT', 'NULL'
+}
+-- [1]119:select text, count_if(text != 'text6') as count_if_result from t1
+STRICT{
+SQLSTATE : 701: 'text' must be an aggregate expression or appear in GROUP BY clause
+}
+-- [1]121:select count_if(date != '2023-11-10') as count_if_result from t1
+STRICT{
+SQLSTATE : 701: Cannot apply operator: DATE = STRING
+}
+-- [1]123:select count_if(int32, id != 'd1') from t1
+STRICT{
+SQLSTATE : 701: Aggregate functions [count_if] should only have one boolean expression as argument
+}

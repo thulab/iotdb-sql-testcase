@@ -1,0 +1,59 @@
+// 不指定列名，写入数据
+
+connect root/TimechoDB@2021;
+
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	blob BLOB FIELD,
+	timestamp TIMESTAMP FIELD,
+	date DATE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1 values(1, 'd1', 'm1', false, 1, 10, 1.1, 11.11, 'test01', 'string01', X'666D7420', 1704067200000, '2025-01-01');
+insert into table_1 values(2, 'd1', 'm1', true, 2, 20, 2.2, 22.22, 'test02', 'string02', X'FFD8FFE0', 1735776000000, '2025-01-02');
+insert into table_1 values(3, 'd1', 'm1', false, 3, 30, 3.3, 33.33, 'test03', 'string03', X'00010000', 1735876800000, '2025-01-03');
+insert into table_1 values(4, 'd2', 'm2', true, 101, 24, 0.2, 2.22, 'test04', 'string04', X'3674E100', 1735974000000, '2025-01-04');
+insert into table_1 values(5, 'd2', 'm2', false, 202, 38, 1.3, 3.33, 'test05', 'string05', X'00104A46', 1736071200000, '2025-01-05');
+
+--7. 不按desc table展示列顺序，插入数据异常
+insert into table_1 values('m2', false, 22, 3, 1.3, 3.33, 'test06', 'string05', X'00104A48', 1736071200000, '2025-01-06', 6, 'd2');
+<<SQLSTATE;
+insert into table_1 values(true, 22, 1, 1.1, 3.33);
+<<SQLSTATE;
+insert into table_1 values(10, 'd2', 'm2', true, 110);
+<<SQLSTATE;
+
+--8. 数据查询
+select * from table_1 order by time;
+select count(*) as count_result, last(int32) as last_result, max(double)as max_result from table_1 group by device_id order by count_result;
+
+-- 清理数据：
+drop database test_db;
+<<NULL;

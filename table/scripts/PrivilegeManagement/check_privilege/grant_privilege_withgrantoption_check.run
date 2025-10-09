@@ -1,0 +1,139 @@
+// 权限转授操作
+// GRANT <privileges> <ON > TO USER/ROLE [WITH GRANT OPTION]
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop user testuser01;
+<<NULL;
+drop user testuser02;
+<<NULL;
+drop user testuser03;
+<<NULL;
+drop user testuser04;
+<<NULL;
+drop user testuser02_02;
+<<NULL;
+drop user testuser04_04;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+
+
+--1. 准备测试数据
+create user user01 'pass123456789';
+create user testuser01 'pass123456789';
+create user user02 'pass123456789';
+create user testuser02 'pass123456789';
+create user user03 'pass123456789';
+create user testuser03 'pass123456789';
+create user user04 'pass123456789';
+create user user05 'pass123456789';
+create role role01;
+create role role02;
+
+list user;
+<<CHECKCODE;
+list role;
+
+--2. 未有转授权限的普通用户user01,给普通用户testuser01进行赋权
+connect user01/pass123456789;
+list privileges of user user01;
+grant security to user testuser01;
+<<SQLSTATE;
+
+--3. root赋予普通用户user02关于【MANAGE_USER】转授权限,现在统一为【SECURITY】转授权限
+connect root/TimechoDB@2021;
+grant security to user user02 with grant option;
+
+--4. 被授予转授权限的普通用户user02，给普通用户testuser02进行赋权
+connect user02/pass123456789;
+list privileges of user user02;
+grant security to user testuser02;
+
+
+--5. 普通用户testuser02查看自己拥有的权限，执行相关权限操作
+connect testuser02/pass123456789;
+list privileges of user testuser02;
+create user testuser02_02 'pass123456789';
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user user03;
+
+--6. 未有任何权限的角色role01，赋予用户user03后，执行相关权限操作
+connect root/TimechoDB@2021;
+grant role role01 to user03;
+list user of role role01;
+<<CHECKCODE;
+list role of user user03;
+
+connect user03/pass123456789;
+list role of user user03;
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user testuser03;
+
+--7. root赋予角色role02转授权限，再将其赋予普通用户user04，执行相关的权限操作
+connect root/TimechoDB@2021;
+grant security to role role02 with grant option;
+list privileges of role role02;
+grant role role02 to user04;
+list user of role role02;
+<<CHECKCODE;
+list role of user user04;
+
+connect user04/pass123456789;
+list privileges of user user04;
+list role of user user04;
+create user testuser04 'pass123456789';
+grant security to user testuser04;
+list user;
+<<CHECKCODE;
+
+connect testuser04/pass123456789;
+list privileges of user testuser04;
+create user testuser04_04 'pass123456789';
+list user;
+<<CHECKCODE;
+-- 普通用户：有SECURITY 权限可以授权任何权限，否则仅能授予拥有WITH GRANT OPTION 的权限
+grant security to user user05;
+
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user05;
+<<NULL;
+drop user testuser01;
+<<NULL;
+drop user testuser02;
+<<NULL;
+drop user testuser03;
+<<NULL;
+drop user testuser04;
+<<NULL;
+drop user testuser02_02;
+<<NULL;
+drop user testuser04_04;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;

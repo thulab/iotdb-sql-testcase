@@ -1,0 +1,240 @@
+connect root/TimechoDB@2021;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+
+//一、运维命令：SET SYSTEM TO 
+--0.清理环境
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t2 from root.sg2.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+drop schema template t2;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;
+
+--1.默认系统状态
+CREATE USER user01 'pass123456789';
+GRANT SECURITY ON root.** TO USER user01;
+REVOKE SECURITY ON root.** FROM USER user01;
+CREATE DATABASE root.sg1;
+create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+set schema template t1 to root.sg1.d1;
+unset schema template t1 from root.sg1.d1;
+create aligned timeseries root.sg1.d2(s1 INT32, s2 DOUBLE);
+insert into root.sg1.d2(time, s1, s2) aligned values(1, 1, 1);
+select * from root.sg1.d2;
+
+--2.set system to readonly/running 修改系统状态
+SET SYSTEM TO READONLY;
+sleep 5000;
+show cluster;
+<<CHECKCODE;
+CREATE USER user02 'pass123456789';
+GRANT SYSTEM ON root.** TO USER user02;
+REVOKE SYSTEM ON root.** from USER user02;
+CREATE DATABASE root.sg2;
+create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla);
+set schema template t2 to root.sg2.d1;
+unset schema template t2 from root.sg2.d1;
+create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE);
+<<SQLSTATE;
+insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+<<SQLSTATE;
+select * from root.sg1.d2;
+
+SET SYSTEM TO RUNNING;
+sleep 5000;
+show cluster;
+<<CHECKCODE;
+create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE);
+insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3);
+select * from root.sg2.d3;
+
+--3.清理环境
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+unset schema template t1 from root.sg1.d1;
+<<NULL;
+unset schema template t2 from root.sg2.d1;
+<<NULL;
+drop schema template t1;
+<<NULL;
+drop schema template t2;
+<<NULL;
+delete DATABASE root.**;
+<<NULL;
+
+
+//二、运维命令：MERGE | FULL MERGE | CLEAR CACHE | FLUSH
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.创建时间序列和插入数据
+create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE);
+create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE);
+insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1);
+insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1);
+insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1);
+insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1);
+
+--2.触发合并：MERGE和FULL MERGE【2024年2月5日，由于手动合并命令会导致性能问题，故移除掉】
+--MERGE;
+--FULL MERGE;
+
+--3.手动清除缓存
+CLEAR CACHE;
+
+--4.持久化到磁盘上，数据文件封口
+FLUSH;
+FLUSH root.sg1;
+FLUSH root.sg1,root.sg2;
+
+--5.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+
+//三、集群运维命令
+--0.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--1.展示关键参数
+SHOW VARIABLES;
+
+--2.展示ConfigNode信息
+SHOW CONFIGNODES;
+
+--3.展示 DataNode 信息
+create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE;
+create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN;
+insert into root.sg.d1(time,s1) values(1,true),(1000,false);
+insert into root.sg.d2(time,s1) values(1,1.1),(2,3.3);
+insert into root.ln.wf01.wt01(time,temperature) values(1,1),(1000,2);
+SHOW DATANODES;
+
+--4.展示全部节点信息以及全部节点的详细配置信息
+SHOW CLUSTER;
+<<CHECKCODE;
+SHOW CLUSTER DETAILS;
+<<CHECKCODE;
+
+--5.展示Region信息
+SHOW REGIONS;
+<<CHECKCODE;
+SHOW SCHEMA REGIONS;
+<<CHECKCODE;
+SHOW DATA REGIONS;
+<<CHECKCODE;
+show databases;
+show regions of database root.sg;
+<<CHECKCODE;
+show regions of database root.ln;
+<<CHECKCODE;
+show data regions of database root.sg, root.ln;
+<<CHECKCODE;
+show schema regions of database root.sg, root.ln;
+<<CHECKCODE;
+show regions on nodeid 1;
+<<CHECKCODE;
+show regions of database root.sg on nodeid 1;
+<<CHECKCODE;
+
+--5.1展示数据分区所在的Dataregion
+show databases;
+show data regionid where database=root.ln;
+<<CHECKCODE;
+show data regionid where database=root.sg;
+<<CHECKCODE;
+show data regionid where database=root.sg,root.ln;
+<<SQLSTATE;
+show data regionid where database=sg;
+<<SQLSTATE;
+show data regionid where database=root.**;
+<<CHECKCODE;
+show data regionid where database=root.sg and time=1;
+<<CHECKCODE;
+show data regionid where database=root.sg and time=1970-01-08T00:00:00.001;
+<<CHECKCODE;
+show devices;
+<<CHECKCODE;
+show data regionid where device=root.sg.d1;
+<<CHECKCODE;
+show data regionid where device=root.ln;
+<<CHECKCODE;
+show data regionid where device=root.ln.wf01.wt01;
+<<CHECKCODE;
+show data regionid where device=root.sg.d1,root.ln.wf01.wt01;
+<<SQLSTATE;
+show data regionid where device=root.ln.**;
+<<CHECKCODE;
+show data regionid where device=sg.d1;
+<<SQLSTATE;
+show data regionid where device=root.ln.wf01.wt01 and time=1;
+<<CHECKCODE;
+show data regionid where device=root.ln.wf01.wt01 and time=-1;
+<<CHECKCODE;
+show data regionid where device=root.ln.wf01.wt01 and time=1970-01-01T08:00:00.001;
+<<CHECKCODE;
+show data regionid where device=root.ln.wf01.wt01 and time=1969-01-01T08:00:00.001;
+<<CHECKCODE;
+
+--5.2展示元数据分区所在的SchemaRegion
+show schema regionid where database=root.sg;
+<<CHECKCODE;
+show schema regionid where device=root.ln.wf01.wt01;
+<<CHECKCODE;
+
+--6.展示数据库的当前序列槽
+show data seriesslotid where database=root.sg;
+show data seriesslotid where database=root.ln;
+show data seriesslotid where device=root.ln.wf01.wt01;
+<<SQLSTATE;
+show schema seriesslotid where database=root.sg;
+show schema seriesslotid where device=root.sg.d1;
+<<SQLSTATE;
+show schema seriesslotid where database=root.ln;
+
+--7.展示过滤条件下的时间分区
+show timepartition where database=root.sg;
+show timepartition where device=root.ln.wf01.wt01;
+show timePartition where regionid=2;
+show timePartition where regionid=1,2;
+<<SQLSTATE;
+show timepartition where device=root.ln.wf01.wt01 and starttime=0;
+show timepartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000;
+
+--8. 统计过滤条件下的时间分区个数
+count timePartition where database=root.sg;
+count timePartition where device=root.ln.wf01.wt01;
+count timePartition where regionid=2;
+count timePartition where device=root.ln.wf01.wt01 and starttime=0;
+count timePartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000;
+
+--9.查看集群ID
+show clusterid;
+<<CHECKCODE;
+
+--10.清理环境
+delete DATABASE root.**;
+<<NULL;
+
+--11. 显示系统时间
+SHOW CURRENT_TIMESTAMP;
+<<CHECKCODE;
+
+--12. 查看系统激活情况
+show activation;
+<<CHECKCODE;

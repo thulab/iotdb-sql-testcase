@@ -1,0 +1,97 @@
+//一、先创建并挂载模板，然后在挂载模板路径上创建对齐时间序列校验
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+delete timeseries of device template t1 from root.sg1.d1;
+<<NULL;
+unset device template t1 from root.sg1.d1;
+<<NULL;
+drop device template t1;
+<<NULL;
+
+--1. 创建元数据模板
+create device template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+show schema templates;
+show device templates;
+create database root.sg1;
+
+--2. 挂载模板
+set device template t1 to root.sg1.d1;
+show paths set schema template t1;
+show paths set device template t1;
+
+--3. 激活模板
+create timeseries of device template on root.sg1.d1;
+show paths using device template t1;
+show devices root.sg1.**;
+show timeseries;
+show timeseries root.sg1.**;
+
+--4. 插入数据并数据查询
+insert into root.sg1.d1(time, temperature, status) values(1, 1, 1);
+insert into root.sg1.d1(time, temperature, status) values(2, 2, 0), (3, 3, 1);
+select * from root.sg1.d1;
+
+--5. 删除已挂载模板的时间序列
+delete timeseries root.sg1.d1.temperature;
+<<SQLSTATE;
+
+--6. 目标路径上已挂载了模板，在这个路径上创建其他的对齐时间序列校验
+CREATE ALIGNED TIMESERIES root.sg1.d1.GPS(latitude FLOAT encoding=PLAIN compressor=SNAPPY, longitude FLOAT encoding=PLAIN compressor=SNAPPY);
+<<SQLSTATE;
+
+--7. 通过插入数据，校验默认自动创建已有目标路径的时间序列
+insert into root.sg1.d1.GPS(time, latitude, longitude) values(1, 1, 1);
+show timeseries root.sg1.d1.**;
+select temperature,status,latitude,longitude from root.** align by device;
+
+--8. 清理环境
+delete database root.**;
+<<NULL;
+delete timeseries of device template t1 from root.sg1.d1;
+<<NULL;
+unset device template t1 from root.sg1.d1;
+<<NULL;
+drop device template t1;
+<<NULL;
+
+
+//二、目标路径的子树上存在普通时间序列，该路径挂载模板校验
+
+--0.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+delete timeseries of device template k1 from root.sg2.d1;
+<<NULL;
+unset device template k1 from root.sg2.d1;
+<<NULL;
+drop device template k1;
+<<NULL;
+
+--1.插入数据，自动创建元数据
+insert into root.sg2.d1(time,s1,s2) values(1,1.1,false),(2,2.2,true),(3,3.3,false);
+show databases;
+show timeseries;
+show devices;
+
+--2.创建元数据模板
+create device template k1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+show schema templates;
+show device templates;
+
+--3.目标路径上存在普通时间序列，然后执行挂载模板校验
+set device template k1 to root.sg2.d1;
+<<SQLSTATE;
+
+--4.清理环境
+delete database root.**;
+<<NULL;
+delete timeseries of device template k1 from root.sg2.d1;
+<<NULL;
+unset device template k1 from root.sg2.d1;
+<<NULL;
+drop device template k1;
+<<NULL;

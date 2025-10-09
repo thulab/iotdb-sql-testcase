@@ -1,0 +1,212 @@
+//在原有元数据查询的基础上增加新的where子句，查询某段时间内存在的时间序列
+
+connect root/TimechoDB@2021;
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+drop device template t1;
+<<NULL;
+drop device template t2;
+<<NULL;
+unset ttl from root.db.d2;
+<<NULL;
+
+--1.创建对齐时间序列，然后插入数据
+create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle);
+alter timeseries root.sg.d1.s1 upsert alias=huaxia tags(tag1=v1, tag2=v2) attributes(attr1=a1,attr2=a2);
+alter timeseries root.sg.d1.s2 upsert alias=dadi tags(tag3=v3, tag4=v4) attributes(attr3=a3,attr4=a4);
+insert into root.sg.d1(time,s1,s2) values(100,1.1,1),(500,2.2,2),(1200,3.3,3);
+
+--2.创建非对齐时间序列，然后插入数据
+create timeseries root.sg.d2.s1 with datatype=float,encoding=rle;
+create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle;
+insert into root.sg.d2(time,s1,s2) values(1,10.1,10),(100,11.1,5),(1200,3.3,100);
+
+--3.分别创建、挂载、激活对齐序列的元数据模板，然后插入数据
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t1;
+set device template t1 to root.sg.aligned_template;
+show paths set device template t1;
+create timeseries using device template on root.sg.aligned_template;
+show paths using device template t1;
+insert into root.sg.aligned_template(timestamp,temperature,status) values(100,18.8,false),(1000,19.9,true),(2000,20.1,false);
+
+--4.分别创建、挂载、激活非对齐序列的元数据模板，然后插入数据
+create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t2;
+set device template t2 to root.sg.nonaligned_template;
+show paths set device template t2;
+create timeseries using device template on root.sg.nonaligned_template;
+show paths using device template t2;
+set device template t2 to root.sg.d_template;
+create timeseries using device template on root.sg.d_template;
+insert into root.sg.d_template(time,temperature,status) values(200,18.8,false),(500,20.3,true),(2200,21.1,false);
+
+--5.创建视图序列
+create view root.sg.view_d1.calculation as select s1 from root.sg.d1;
+create view root.sg.view_d2.calculation as select s2 from root.sg.d2;
+
+--6. 通过插入数据自动创建序列
+insert into root.db.d1(time,s1,s2) values(100,1.1,true),(200,2.2,false),(300,3.3,true);
+insert into root.db.d2(time,s1,s2) values(300,3.3,true),(500,5.5,false),(1000,10.1,false);
+
+--7.分别查看数据库、设备、时间序列列表
+--7.1 databases不支持时间过滤查询
+count databases;
+count databases where time <= 1000;
+<<SQLSTATE;
+show databases;
+show databases where >=1 and time < 1000;
+<<SQLSTATE;
+
+--7.2 devices 支持时间过滤查询
+count devices;
+count devices where time > 500 and time <= 1500;
+count devices root.sg.** where time = 100;
+count devices root.sg.d1.** where time < 1000;
+count devices root.sg.d1 where time < 1500;
+show devices;
+show devices root.sg.**;
+show devices root.db.**;
+show devices root.sg.d1 where time <= 5000;
+show devices root.sg.d2 where time <= 5000;
+show devices root.sg.d_template where time <= 5000;
+show devices root.db.d1 where time <= 5000;
+show devices root.db.d2 where time <= 5000;
+show devices root.sg.aligned_template where time <= 5000;
+show devices root.sg.d1 where time = 100;
+show devices root.sg.d2 where time = 100;
+show devices root.sg.aligned_template where time = 100;
+
+--7.3 timeseries 支持时间过滤查询
+count timeseries;
+count timeseries where time >= 1 and time < 1200;
+
+show timeseries;
+show timeseries root.sg.**;
+show timeseries root.db.**;
+show timeseries root.sg.d1.s1 where time >=200 and time < 1200;
+show timeseries root.sg.d1.s2 where time >=200 and time < 1200;
+show timeseries root.db.d1.s1 where time >=200 and time < 1200;
+show timeseries root.db.d1.s2 where time >=200 and time < 1200;
+show timeseries root.db.d2.s1 where time >=200 and time < 1200;
+show timeseries root.db.d2.s2 where time >=200 and time < 1200;
+show timeseries root.sg.d_template.temperature where time >=200 and time < 1200;
+show timeseries root.sg.d_template.status where time >=200 and time < 1200;
+show timeseries root.sg.aligned_template.temperature where time >=200 and time < 1200;
+show timeseries root.sg.aligned_template.status where time >=200 and time < 1200;
+
+show latest timeseries root.sg.d1.s1 where time < 1000;
+show latest timeseries root.sg.d1.s2 where time < 1000;
+show latest timeseries root.sg.d2.s1 where time < 1000;
+show latest timeseries root.sg.d2.s2 where time < 1000;
+show latest timeseries root.db.d1.s1 where time < 1000;
+show latest timeseries root.db.d1.s2 where time < 1000;
+show latest timeseries root.db.d2.s1 where time < 1000;
+show latest timeseries root.db.d2.s2 where time < 1000;
+show latest timeseries root.sg.d_template.temperature where time < 1000;
+show latest timeseries root.sg.d_template.status where time < 1000;
+show latest timeseries root.sg.aligned_template.temperature where time < 1000;
+show latest timeseries root.sg.aligned_template.status where time < 1000;
+
+show timeseries root.sg.d1.s1 where time <2000 limit 10;
+show timeseries root.sg.d1.s2 where time <2000 limit 10;
+show timeseries root.sg.d2.s1 where time <2000 limit 10;
+show timeseries root.sg.d2.s2 where time <2000 limit 10;
+show timeseries root.db.d1.s1 where time <2000 limit 10;
+show timeseries root.db.d1.s2 where time <2000 limit 10;
+show timeseries root.db.d2.s1 where time <2000 limit 10;
+show timeseries root.db.d2.s2 where time <2000 limit 10;
+show timeseries root.sg.d_template.temperature where time <2000 limit 10;
+show timeseries root.sg.d_template.status where time <2000 limit 10;
+
+--7.4 模板序列
+show devices root.sg.*template;
+show devices root.sg.d_template where time < 1200;
+show devices root.sg.aligned_template where time < 1200;
+count devices root.sg.*template;
+count devices root.sg.*template where time >= 100 and time < 1000;
+
+--7.5 视图不支持时间过滤查询
+show view;
+show view where time < 1000;
+<<SQLSTATE;
+show devices root.sg.view_d1;
+show devices root.sg.view_d1 where time < 1200;
+count devices root.sg.view*;
+count devices root.sg.view* where time < 1000;
+
+--7.6 时间序列不支持数据类型和时间条件过滤，groupuplevel结合
+show timeseries where datatype=FLOAT;
+show timeseries where time <2000 and datatype=FLOAT;
+<<SQLSTATE;
+
+count timeseries group by level=1;
+count timeseries where time < 1200 group by level=1;
+<<SQLSTATE;
+
+--7.7 设备不支持设备名称、模板名称，null值结合时间条件查询
+show devices root.sg.** where device contains 'a';
+show devices root.sg.** where device contains 'a' where time < 1200;
+<<SQLSTATE;
+
+show devices root.sg.** where template='t1'
+show devices root.sg.** where template='t1' and time < 1000;
+<<SQLSTATE;
+show devices root.sg.** where template is null;
+show devices root.sg.** where template is null where time < 1000;
+<<SQLSTATE;
+
+--7.8 删除部分数据，时间序列
+show timeseries root.db.d1.s1;
+show timeseries root.db.d1.s2;
+show timeseries root.db.d2.s1;
+show timeseries root.db.d2.s2;
+show timeseries root.db.d1.s1 where time <= 1000;
+show timeseries root.db.d1.s2 where time <= 1000;
+show timeseries root.db.d2.s1 where time <= 1000;
+show timeseries root.db.d2.s2 where time <= 1000;
+
+show devices root.db.**;
+show devices root.db.d1 where time <= 1000;
+show devices root.db.d2 where time <= 1000;
+
+delete timeseries root.db.d1.s1;
+show timeseries root.db.d1.s2 where time <= 1000;
+show timeseries root.db.d2.s1 where time <= 1000;
+show timeseries root.db.d2.s2 where time <= 1000;
+
+delete timeseries root.db.d1.*;
+show timeseries root.db.** where time <= 1000;
+show devices root.db.** where time <= 1000;
+
+--7.9 设置TTL后，活跃序列统计
+insert into root.db.d3(time, s1, s2) aligned values(100, 1.1, false),(500, 2.2, true),(1000, 3.3, false);
+show devices root.db.d2;
+show devices root.db.d3;
+select count(s1), count(s2) from root.db.** align by device;
+set ttl to root.db.d2 60000;
+show ttl on root.db.d2;
+select count(s1), count(s2) from root.db.** align by device;
+show devices root.db.d2;
+show devices root.db.d3;
+show devices root.db.** where time < 1500;
+
+show timeseries root.db.d2.s1;
+show timeseries root.db.d2.s2;
+show timeseries root.db.d3.s1;
+show timeseries root.db.d3.s2;
+show timeseries root.db.d3.s1 where time <= 2000;
+show timeseries root.db.d3.s2 where time <= 2000;
+
+--清理环境
+delete DATABASE root.**;
+<<NULL;
+drop device template t1;
+<<NULL;
+drop device template t2;
+<<NULL;
+unset ttl from root.db.d2;
+<<NULL;

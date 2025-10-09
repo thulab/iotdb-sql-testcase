@@ -1,0 +1,38 @@
+// 参考issue：https://issues.apache.org/jira/browse/IOTDB-6344
+// 问题1：select 数据报NPE
+// 问题2: 测点为s_boolean不插入数值，查询结果集返回false，应该是null
+
+--0.清理环境
+connect root/TimechoDB@2021;
+delete DATABASE root.**;
+<<NULL;
+
+--1.分别创建数据库和时间序列
+CREATE DATABASE root.sg_type;
+CREATE TIMESERIES root.sg_type.d_0.s_boolean BOOLEAN;
+CREATE TIMESERIES root.sg_type.d_0.s_int32 INT32;
+CREATE TIMESERIES root.sg_type.d_0.s_int64 INT64;
+CREATE TIMESERIES root.sg_type.d_0.s_float FLOAT;
+CREATE TIMESERIES root.sg_type.d_0.s_double DOUBLE;
+CREATE TIMESERIES root.sg_type.d_0.s_text TEXT;
+CREATE TIMESERIES root.sg_type.d_0.s_timestamp TIMESTAMP;
+CREATE TIMESERIES root.sg_type.d_0.s_date DATE;
+CREATE TIMESERIES root.sg_type.d_0.s_blob BLOB;
+CREATE TIMESERIES root.sg_type.d_0.s_string STRING;
+
+--2.分别查看数据库，设备，时间序列
+show databases details;
+show devices root.sg_type.d_0;
+show timeseries root.sg_type.d_0.**;
+
+--3. 插入数据，执行查询
+INSERT INTO root.sg_type.d_0(time, s_int32, s_int64, s_float, s_double, s_text) VALUES (0, 0, 2, 0.000000, 1.000000, 'text0');
+select * from root.sg_type.d_0 align by device;
+select s_int32, s_int64, s_float, s_double, s_boolean, s_text from root.sg_type.d_0;
+
+INSERT INTO root.sg_type.d_0(time, s_timestamp, s_date, s_blob, s_string) VALUES (1, 2022-03-24 00:00:01, '1999-12-20', X'696F746462', 3.4028235E38);
+select s_timestamp, s_date, s_blob, s_string from root.sg_type.d_0 align by device;
+
+--4.清理环境
+delete DATABASE root.**;
+<<NULL;

@@ -1,0 +1,79 @@
+connect root/TimechoDB@2021;
+
+-- 清理
+drop database root.sg;
+<<NULL;
+drop schema template t1;
+<<NULL;
+create database root.sg;
+
+-- 使用root用户完成创建, 挂载，激活模板t1
+show schema templates;
+-- 创建模版
+create schema template t1 aligned (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
+show schema templates;
+show nodes in schema template t1;
+
+-- 挂载
+show paths set schema template t1;
+set schema template t1 to root.sg;
+show paths set schema template t1;
+
+-- 激活
+show paths using schema template t1;
+create timeseries of schema template on root.sg.d1;
+create timeseries using schema template on root.sg.d2;
+show paths using schema template t1;
+
+show child nodes root.sg.d1;
+
+-- 写入
+insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
+insert into root.sg.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (2, 'Ed', true, 1697166600000, 13.5, 135.33);
+-- 修改模版
+alter schema template t1 add (s_speed double);
+show nodes in schema template t1;
+
+insert into root.sg.d3(time, s_name, s_status, start_time, s_lat, s_lon) values (3, 'Jean', true, 1697167600000, 3.5, 15.11);
+select * from root.sg.** align by device;
+
+insert into root.sg.d1(time, s_speed) values (1, 109.36);
+insert into root.sg.d3(time, s_speed) values (3, 409.19);
+select * from root.sg.** align by device;
+
+-- 在默认配置下，使用insert语句，插入不在模板内的序列
+insert into root.sg.d1(time, s_name, s_status, s_lon2) values (1, null, true, 100.45);
+insert into root.sg.d2(time, s_name, s_status, s_lon2) values (2, 'aya', false, 300.03);
+
+-- 查看模版下定义的序列列表
+show nodes in schema template t1;
+
+select start_time,s_lat,s_lon2,s_speed,s_status,s_name,s_lon from root.sg.** align by device;
+
+
+-- 像删除普通序列那样删除使用模版的序列，期望508
+delete timeseries root.sg.d1.**;
+<<SQLSTATE;
+delete timeseries root.sg.**;
+<<SQLSTATE;
+show timeseries;
+
+
+-- 解除
+deactivate schema template t1 from root.sg.d1;
+select start_time,s_lat,s_lon2,s_speed,s_status,s_name,s_lon from root.sg.** align by device;
+deactivate schema template t1 from root.sg.d2;
+select start_time,s_lat,s_lon2,s_speed,s_status,s_name,s_lon from root.sg.** align by device;
+deactivate schema template t1 from root.sg.d3;
+select * from root.sg.** align by device;
+
+-- 卸载
+unset schema template t1 from root.sg;
+
+drop schema template t1;
+
+-- 清理
+drop database root.sg;
+
+
+

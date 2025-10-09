@@ -1,0 +1,91 @@
+-- [1]9:create database root.sg
+STRICT{
+PASS
+}
+-- [1]10:create aligned timeseries root.sg.d1(s1 string, s2 timestamp, s3 date, s4 blob)
+STRICT{
+PASS
+}
+-- [1]13:insert into root.sg.d1(time,s1,s2,s3,s4) values(1,'string1',1732186175000,'2024-01-10',X'010203')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.38
+-- [1]14:insert into root.sg.d1(time,s1,s2,s3,s4) values(2,'string2',1732186175001,'2024-02-10',null)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]15:insert into root.sg.d1(time,s1,s2,s3,s4) values(3,'string3',1732186175002,'2024-03-10',X'010203')
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]18:select * from root.sg.d1 order by time align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |s3(DATE)      |s4(BLOB)      |s1(STRING)      |s2(TIMESTAMP)      |
+------------------------------------------------------------------------------------------------------
+1                    |root.sg.d1        |2024-01-10    |0x010203      |string1         |2024-11-21T18:49:35|
+                     |                  |              |              |                |.000+08:00         |
+------------------------------------------------------------------------------------------------------
+2                    |root.sg.d1        |2024-02-10    |null          |string2         |2024-11-21T18:49:35|
+                     |                  |              |              |                |.001+08:00         |
+------------------------------------------------------------------------------------------------------
+3                    |root.sg.d1        |2024-03-10    |0x010203      |string3         |2024-11-21T18:49:35|
+                     |                  |              |              |                |.002+08:00         |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]19:select * from root.sg.d1 order by s2 limit 2
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(DATE)      |root.sg.d1.s4(BLOB)      |root.sg.d1.s1(STRING)      |root.sg.d1.s2(TIMESTAMP)      |
+--------------------------------------------------------------------------------------------------------------------------------
+1                    |2024-01-10               |0x010203                 |string1                    |2024-11-21T18:49:35.000+08:00 |
+--------------------------------------------------------------------------------------------------------------------------------
+2                    |2024-02-10               |null                     |string2                    |2024-11-21T18:49:35.001+08:00 |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]20:select * from root.sg.d1 order by s3 desc offset 1 limit 1
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(DATE)      |root.sg.d1.s4(BLOB)      |root.sg.d1.s1(STRING)      |root.sg.d1.s2(TIMESTAMP)      |
+--------------------------------------------------------------------------------------------------------------------------------
+2                    |2024-02-10               |null                     |string2                    |2024-11-21T18:49:35.001+08:00 |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]21:select * from root.sg.d1 order by s1 desc limit 1 offset 1 align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |s3(DATE)      |s4(BLOB)      |s1(STRING)      |s2(TIMESTAMP)      |
+------------------------------------------------------------------------------------------------------
+2                    |root.sg.d1        |2024-02-10    |null          |string2         |2024-11-21T18:49:35|
+                     |                  |              |              |                |.001+08:00         |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]22:select * from root.sg.d1 order by s2 desc offset 1 limit 1 slimit 2 soffset 2 align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |s1(STRING)      |s2(TIMESTAMP)      |
+--------------------------------------------------------------------------
+2                    |root.sg.d1        |string2         |2024-11-21T18:49:35|
+                     |                  |                |.001+08:00         |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+-- [1]24:select * from root.sg.d1 order by s4 desc
+STRICT{
+SQLSTATE : 701: The data type of BLOB is not comparable
+}

@@ -1,0 +1,98 @@
+// Colums函数
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table1 (
+  time TIMESTAMP TIME,
+  region STRING TAG,
+  device_id STRING TAG,
+  model_id STRING ATTRIBUTE,
+  maintenance STRING ATTRIBUTE,
+  temperature FLOAT FIELD,
+  humidity FLOAT FIELD,
+  status Boolean FIELD,
+  arrival_time TIMESTAMP FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table1;
+
+--6. 数据写入
+INSERT INTO table1(time, region, device_id, model_id, maintenance, temperature, humidity, status, arrival_time) VALUES 
+  (1000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:37:34),
+  (2000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:38:25),
+  (3000, '北京', 'd2', 'B', '181', NULL, 35.1, true, 2024-11-27 16:37:01),
+  (4000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:03),
+  (6000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:04),
+  (7000, '北京', 'd3', 'C', '155', NULL, 35.2, false, Null),
+  (8000, '北京', 'd3', 'C', '155', NULL, Null, false, Null),
+  (9000, '北京', 'd3', 'C', '155', NULL, Null, false, 2024-11-27 16:37:08),
+  (10000, '上海', 'd4', 'D', '94', 85.0, Null, NULL, 2024-11-28 08:00:09),
+  (11000, '上海', 'd4', 'D', '94', NULL, 40.9, true, NULL),
+  (12000, '上海', 'd4', 'D', '94', 85.0, 35.2, NULL, 2024-11-28 10:00:11),
+  (13000, '上海', 'd5', 'E', '90', 88.0, 45.1, true, 2024-11-28 11:00:12),
+  (14000, '上海', 'd5', 'E', '362', 85.0, NULL, NULL, 2024-11-29 10:00:13),
+  (15000, '上海', 'd5', 'E', '362', NULL, 45.1, true, NULL),
+  (16000, '上海', 'd5', 'E', '362', 90.0, 35.4, true, 2024-11-29 18:30:15),
+  (17000, '上海', 'd5', 'F', '362', 90.0, 35.2, true, NULL),
+  (18000, '上海', 'd5', 'F', '362', 90.0, 34.8, true, 2024-11-30 14:30:17);
+  
+--7. 原始数据查询
+select * from table1 order by time;
+
+
+--8. 不结合表达式
+--8.1 查询列名以 'm' 开头的列的数据
+select columns('^m.*') from table1 order by 1,2;
+
+--8.2 查询列名以 'o' 开头的列，未匹配到任何列，抛出异常
+select columns('^o.*') from table1;
+<<SQLSTATE;
+
+--8.3 查询列名以 't' 开头的列的数据，并重命名以 'series_' 开头
+select columns('^t(.*)') AS "series_$0" from table1 order by 1,2;
+
+
+--9. 结合表达式
+--9.1 单个COLUMNS函数
+select min(columns(*)) from table1;
+select max(columns(*)) from table1;
+select last(columns(*)) from table1;
+
+--8.2 多个COLUMNS函数，出现在同一表达式
+select min(columns('^h.*')) + max(columns('^h.*')) from table1;
+select last(columns('^tem.*')) + first(columns('^tem.*')) from table1;
+
+--8.3 错误查询，两个 COLUMNS 函数不完全相同
+select min(columns('^h.*')) + max(columns('^t.*')) from table1;
+<<SQLSTATE;
+
+--8.4 错误查询，列匹配时，有多个列名，进行查询时
+select min(columns('^t.*')) + max(columns('^t.*')) from table1;
+<<SQLSTATE;
+
+--9. 在WHERE子句中使用
+--9.1 查询数据,所有 'h' 开头列的数据必须要大于 40
+select * from table1 where humidity > 40 order by 1,2,3,4,5;
+select * from table1 where columns('^h.*') > 40 order by 1,2,3,4,5;
+
+--9.2 查询数据,所有'tem'开头列的数据必须要小于等于90
+select * from table1 where temperature <=90 order by 1,2,3,4,5,6;
+select * from table1 where columns('^tem.*') <=90 order by 1,2,3,4,5,6;
+
+-- 清理数据: 删除数据库 
+drop database test_db;
+<<NULL;

@@ -1,0 +1,68 @@
+//使用show devices能够查看各个设备所激活的模板信息并可通过where指定模板名称进行查询设备列表
+
+
+--0.清理环境
+connect root/TimechoDB@2021;
+DELETE DATABASE root.**;
+<<NULL;
+
+--1.创建数据库
+create database root.sg;
+create database root.ln;
+
+--2.创建一般（非对齐）时间序列
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE;
+
+--3.创建对齐时间序列
+create aligned timeseries root.sg.d2(s1 FLOAT, s2 BOOLEAN);
+
+--4.非对齐模板的时间序列
+create device template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
+set device template t1 to root.ln.wf01.wt01;
+create timeseries using device template on root.ln.wf01.wt01;
+
+--5.对应模板时间序列
+create device template t2 aligned(lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla);
+set device template t2 to root.sg.aligned_device;
+create timeseries using device template on root.sg.aligned_device;
+
+--6.查看数据库、设备、模板、时间序列
+show databases;
+show devices;
+show devices root.ln.**;
+show devices root.sg.**;
+show devices where template = 't1';
+show devices where template = 't2';
+show devices where template != 't1';
+show devices where template != 't2';
+show devices where template is null;
+show devices where template is not null;
+show devices root.sg.d1;
+show devices root.sg.d2;
+show devices root.ln.wf01.wt01;
+show devices root.sg.aligned_device;
+show devices root.** where device contains '1';
+show devices root.** where device contains 'd';
+show devices with database;
+show timeseries root.**;
+show timeseries root.ln.**;
+show timeseries root.sg.**;
+show timeseries root.ln.wf01.wt01.*;
+show timeseries root.ln.wf01.wt01.status;
+show timeseries root.ln.wf01.wt01.temperature;
+show timeseries root.sg.d1.*;
+show timeseries root.sg.d1.s1;
+show timeseries root.sg.d2.*;
+show timeseries root.sg.d2.s1;
+show timeseries root.sg.d2.s2;
+show timeseries root.sg.aligned_device.*;
+show timeseries root.sg.aligned_device.lat;
+show timeseries root.sg.aligned_device.lon;
+
+--7.清理环境
+DELETE DATABASE root.**;
+<<NULL;
+drop device template t1;
+<<NULL;
+drop device template t2;
+<<NULl;

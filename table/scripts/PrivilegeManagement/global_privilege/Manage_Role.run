@@ -1,0 +1,130 @@
+// MANAGE_ROLE
+// 允许用户创建角色
+// 允许用户删除角色
+// 允许用户查看角色的权限信息
+// 允许用户将角色授予某个用户或撤销
+// 允许用户列出所有角色
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;
+
+--1. 创建用户和角色
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE ROLE manager;
+CREATE ROLE staff;
+
+--2.列出用户和列出角色
+list user;
+<<CHECKCODE;
+list role;
+
+--3. 检验一下是否PRIVILEGES 已经存在（列出用户所有权限）
+LIST PRIVILEGES OF USER user01;
+
+--4. 赋予普通用户角色 | 赋予角色权限
+GRANT ROLE manager TO user01;
+GRANT ROLE staff TO user01;
+GRANT CREATE on any to role manager;
+
+--5. 普通用户user01未授权任何权限，执行角色管理
+connect user01/pass123456789;
+
+--5.1 user01创建角色
+create role testrole;
+<<SQLSTATE;
+
+--5.2 user01查看角色列表
+list role;
+
+--5.3 user01列出指定角色下所有用户
+LIST USER OF ROLE manager;
+<<CHECKCODE;
+LIST USER OF ROLE staff;
+<<CHECKCODE;
+
+--5.4 user01列出指定用户下所有角色
+LIST ROLE OF USER user01;
+LIST ROLE OF USER user02;
+<<SQLSTATE;
+
+--5.5 user01列出角色拥有的权限
+list privilege of role manager;
+<<SQLSTATE;
+
+--5.6 撤销用户角色
+revoke role staff from user01;
+<<SQLSTATE;
+
+--5.7 user01删除指定的角色
+drop role staff;
+<<SQLSTATE;
+
+--6. root赋予普通用户user01关于【MANAGE_ROLE】权限，V2.0.7.1统一为【SECURITY】权限
+connect root/TimechoDB@2021;
+grant security to user user01;
+
+--7.root列出用户所有权限
+list privileges of user user01;
+
+--8. user01用户登录
+connect user01/pass123456789;
+list privileges of user user01;
+create role testrole1;
+grant role testrole1 to user02;
+list role;
+list role of user user01;
+list role of user user02;
+list user of role manager;
+<<CHECKCODE;
+list user of role staff;
+<<CHECKCODE;
+revoke role testrole1 from user02;
+drop role testrole1;
+list role;
+
+--9. root对user01取消授权MANAGE_ROLE】权限，V2.0.7.1统一为【SECURITY】权限
+connect root/TimechoDB@2021;
+revoke security from user user01;
+
+--10. 被取消授权的user01执行角色管理功能
+connect user01/pass123456789;
+list privileges of user user01;
+create role testrole2;
+<<SQLSTATE;
+list role;
+list role of user user01;
+list user of role manager;
+<<CHECKCODE;
+list user of role staff;
+<<CHECKCODE;
+drop role staff;
+<<SQLSTATE;
+
+--11. 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role testrole1;
+<<NULL;
+drop role testrole2;
+<<NULL;

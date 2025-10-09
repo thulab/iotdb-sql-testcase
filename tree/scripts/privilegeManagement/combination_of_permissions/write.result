@@ -1,0 +1,1654 @@
+-- [1]36:create database root.sg
+STRICT{
+PASS
+}
+-- [1]37:create database root.data
+STRICT{
+PASS
+}
+-- [1]40:create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle)
+STRICT{
+PASS
+}
+-- [1]43:create timeseries root.sg.d2.s1 with datatype=float,encoding=rle
+STRICT{
+PASS
+}
+-- [1]44:create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle
+STRICT{
+PASS
+}
+-- [1]48:create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]49:show device templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]50:show nodes in device template t1
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]51:set device template t1 to root.sg.aligned_template
+STRICT{
+PASS
+}
+
+-- [1]52:show paths set device template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.aligned_t|
+emplate          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]53:create timeseries using device template on root.sg.aligned_template
+STRICT{
+PASS
+}
+
+-- [1]54:show paths using device template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.aligned_t|
+emplate          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]58:create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]59:show device templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+------------------------
+t2                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]60:show nodes in device template t2
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]61:set device template t2 to root.sg.nonaligned_template
+STRICT{
+PASS
+}
+
+-- [1]62:show paths set device template t2
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.nonaligne|
+d_template       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]63:create timeseries using device template on root.sg.nonaligned_template
+STRICT{
+PASS
+}
+
+-- [1]64:show paths using device template t2
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg.nonaligne|
+d_template       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]67:create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1
+STRICT{
+PASS
+}
+-- [1]68:create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2
+STRICT{
+PASS
+}
+
+-- [1]71:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit        |1                                   |1                                 |0                               |604800000                         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.data           |1                                   |1                                 |0                               |604800000                         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：3
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]72:show devices root.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.aligned_te|true                 |t1                  |INF                |
+mplate            |                     |                    |                   |
+------------------------------------------------------------------------------
+root.sg.view_d1   |null                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.view_d2   |null                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.nonaligned|false                |t2                  |INF                |
+_template         |                     |                    |                   |
+------------------------------------------------------------------------------
+root.sg.d1        |true                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.d2        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.__audit.passw|false                |null                |INF                |
+ord_history._root |                     |                    |                   |
+总数目：7
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]73:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.status             |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.temperature     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.status          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：10
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]74:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |(root.sg.d1.s1 + r|
+ation                 |                    |                    |                |                      |                    |oot.sg.d1.s2) / 2 |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |sin(root.sg.d2.s1 |
+ation                 |                    |                    |                |                      |                    |* root.sg.d2.s2)  |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]77:insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.1.813
+-- [1]78:insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.49
+-- [1]79:insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]80:insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]84:CREATE USER user01 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]85:CREATE USER user02 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]86:CREATE USER user03 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]87:CREATE USER user04 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]88:CREATE USER `USER` 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]89:CREATE USER `null` 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]92:LIST USER
+STRICT{
+PASS
+}
+
+-- [1]94:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]95:LIST PRIVILEGES OF USER `user02`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]96:LIST PRIVILEGES OF USER `user03`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]97:LIST PRIVILEGES OF USER `user04`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]98:LIST PRIVILEGES OF USER `null`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]99:LIST PRIVILEGES OF USER `USER`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]102:GRANT WRITE ON root.** TO USER user01
+STRICT{
+PASS
+}
+-- [1]103:GRANT WRITE ON root.sg.d1.** TO USER user02 with grant option
+STRICT{
+PASS
+}
+-- [1]104:GRANT WRITE ON root.sg.aligned_template.temperature TO USER user03
+STRICT{
+PASS
+}
+-- [1]104:grant WRITE on root.** to user `null`
+STRICT{
+PASS
+}
+-- [1]105:grant WRITE on root.**  user `USER`
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:29 no viable alternative at input 'grant WRITE on root.**  user `USER`'
+}
+-- [1]107:grant write to user `USER`
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 no viable alternative at input 'grant write to'
+}
+-- [1]109:grant write on root.** TO `USER`
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:26 no viable alternative at input 'grant write on root.** TO `USER`'
+}
+-- [1]111:grant ALL on root.** TO user `USER`
+STRICT{
+PASS
+}
+-- [1]112:grant write on root.** TO user `USER`
+STRICT{
+PASS
+}
+-- [1]113:revoke write on root.** from user `USER`
+STRICT{
+PASS
+}
+-- [1]114:grant write on root.** TO user `USER`
+STRICT{
+PASS
+}
+-- [1]116:GRANT WRITE ON root.** TO USER staff
+STRICT{
+SQLSTATE : 804: No such user staff
+}
+-- [1]118:GRANT WRITE ON root.** TO USER `root`
+STRICT{
+SQLSTATE : 803: Access Denied: Cannot grant/revoke privileges of admin user
+}
+-- [1]119:revoke write on root.** from user user1
+STRICT{
+SQLSTATE : 804: No such user user1
+}
+-- [1]121:revoke write on root.sg.** from user `null`
+STRICT{
+PASS
+}
+
+-- [1]125:LIST PRIVILEGES OF USER `user01`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]126:LIST PRIVILEGES OF USER `user02`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_SCHEMA          |true                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]127:LIST PRIVILEGES OF USER `user03`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_t|WRITE_DATA            |false                     |
+                |emplate.temperat|                      |                          |
+                |ure              |                      |                          |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_t|WRITE_SCHEMA          |false                     |
+                |emplate.temperat|                      |                          |
+                |ure              |                      |                          |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]128:LIST PRIVILEGES OF USER `null`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]129:LIST PRIVILEGES OF USER `USER`
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_DATA             |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_SCHEMA           |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：7
+}
+
+Elapsed Time: 0.0.0
+-- [1]133:show variables
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]135:show version
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]137:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]138:create aligned timeseries root.sg.d1(s3 double encoding=rle, s4 int32 encoding=rle)
+STRICT{
+PASS
+}
+-- [1]139:create timeseries root.sg.d2.s3 with datatype=INT32
+STRICT{
+PASS
+}
+-- [1]140:create view root.sg.view_d1.s1 as select s1 from root.sg.d1
+STRICT{
+PASS
+}
+-- [1]141:alter view root.sg.view_d1.s1 UPSERT TAGS(tag1=v1,tag2=v2) ATTRIBUTES(attr1=D1,attr2=D2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]143:create view root.viewdb.d1.s1 as select * from root.dacoo.*
+STRICT{
+SQLSTATE : 300: Columns in the query statement is empty. Please check your SQL.
+}
+
+-- [1]145:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.data           |1                                   |1                                 |0                               |604800000                         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]146:count databases
+STRICT{
+count(INT32)      |
+------------------
+2                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]147:show child paths root.sg
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg.aligned_templa|DEVICE               |
+te                    |                     |
+-------------------------------------------
+root.sg.d1            |DEVICE               |
+-------------------------------------------
+root.sg.d2            |DEVICE               |
+-------------------------------------------
+root.sg.nonaligned_tem|DEVICE               |
+plate                 |                     |
+-------------------------------------------
+root.sg.view_d1       |DEVICE               |
+-------------------------------------------
+root.sg.view_d2       |DEVICE               |
+总数目：6
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]148:show child nodes root.sg.*
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+s4                    |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+calculation           |
+----------------------
+s1                    |
+----------------------
+calculation           |
+总数目：10
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]149:count nodes root.sg.** LEVEL=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+6                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]150:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.aligned_te|true                 |t1                  |INF                |
+mplate            |                     |                    |                   |
+------------------------------------------------------------------------------
+root.sg.view_d1   |null                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.view_d2   |null                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.nonaligned|false                |t2                  |INF                |
+_template         |                     |                    |                   |
+------------------------------------------------------------------------------
+root.sg.d1        |true                 |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.d2        |false                |null                |INF                |
+总数目：6
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]151:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+6                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]152:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.status             |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.temperature     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.nonaligned_tem|null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+plate.status          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s3         |null             |root.sg             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.s1    |null             |root.sg             |FLOAT               |null                |null                   |{"tag1":"v1","ta|{"attr2":"D2","attr1":|null                |null                          |VIEW                |
+                      |                 |                    |                    |                    |                       |g2":"v2"}       |"D1"}                 |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|null             |root.sg             |DOUBLE              |null                |null                   |null            |null                  |null                |null                          |VIEW                |
+ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：14
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]153:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+14                            |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]154:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |(root.sg.d1.s1 + r|
+ation                 |                    |                    |                |                      |                    |oot.sg.d1.s2) / 2 |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d1.s1    |root.sg             |FLOAT               |{"tag1":"v1","ta|{"attr2":"D2","attr1":|VIEW                |root.sg.d1.s1     |
+                      |                    |                    |g2":"v2"}       |"D1"}                 |                    |                  |
+------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.view_d2.calcul|root.sg             |DOUBLE              |null            |null                  |VIEW                |sin(root.sg.d2.s1 |
+ation                 |                    |                    |                |                      |                    |* root.sg.d2.s2)  |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]155:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+-------------------------------------
+root.**           |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]156:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.aligned_template.status(BOOLEAN)      |root.sg.nonaligned_template.temperature(FLOAT)      |root.sg.nonaligned_template.status(BOOLEAN)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |root.sg.d2.s3(INT32)      |root.sg.d2.s1(FLOAT)      |root.sg.d2.s2(INT64)      |root.sg.view_d1.calculation(DOUBLE)      |root.sg.view_d1.s1(FLOAT)      |root.sg.view_d2.calculation(DOUBLE)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |20.0                                             |false                                         |10.5                                                |false                                            |null                       |null                      |1.0                       |1                         |null                      |1.0                       |1                         |1.0                                      |1.0                            |0.8414709848078965                       |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |22.1                                             |true                                          |0.1                                                 |true                                             |null                       |null                      |2.0                       |2                         |null                      |2.0                       |2                         |2.0                                      |2.0                            |-0.7568024953079282                      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                    |18.0                                             |false                                         |22.2                                                |false                                            |null                       |null                      |3.0                       |3                         |null                      |3.0                       |3                         |3.0                                      |3.0                            |0.4121184852417566                       |
+总数目：3
+}
+
+Elapsed Time: 0.0.7
+-- [1]157:insert into root.sg.d1(time,s1,s2) values(4,4,4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]158:insert into root.sg.d2(time,s1,s2) values(4,4,4)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]159:select s1,s2 from root.sg.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |s1(FLOAT)      |s2(INT64)      |
+---------------------------------------------------------------------
+1                    |root.sg.d1        |1.0            |1              |
+---------------------------------------------------------------------
+2                    |root.sg.d1        |2.0            |2              |
+---------------------------------------------------------------------
+3                    |root.sg.d1        |3.0            |3              |
+---------------------------------------------------------------------
+4                    |root.sg.d1        |4.0            |4              |
+---------------------------------------------------------------------
+1                    |root.sg.d2        |1.0            |1              |
+---------------------------------------------------------------------
+2                    |root.sg.d2        |2.0            |2              |
+---------------------------------------------------------------------
+3                    |root.sg.d2        |3.0            |3              |
+---------------------------------------------------------------------
+4                    |root.sg.d2        |4.0            |4              |
+---------------------------------------------------------------------
+1                    |root.sg.view_d1   |1.0            |null           |
+---------------------------------------------------------------------
+2                    |root.sg.view_d1   |2.0            |null           |
+---------------------------------------------------------------------
+3                    |root.sg.view_d1   |3.0            |null           |
+---------------------------------------------------------------------
+4                    |root.sg.view_d1   |4.0            |null           |
+总数目：12
+}
+
+Elapsed Time: 0.0.7
+
+-- [1]160:select s1 from root.sg.** where time=3
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(FLOAT)      |root.sg.d2.s1(FLOAT)      |root.sg.view_d1.s1(FLOAT)      |
+--------------------------------------------------------------------------------------------------------
+3                    |3.0                       |3.0                       |3.0                            |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]161:select * from root.sg.** where s1=3
+STRICT{
+Time(TIMESTAMP)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.aligned_template.status(BOOLEAN)      |root.sg.nonaligned_template.temperature(FLOAT)      |root.sg.nonaligned_template.status(BOOLEAN)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |root.sg.d2.s3(INT32)      |root.sg.d2.s1(FLOAT)      |root.sg.d2.s2(INT64)      |root.sg.view_d1.calculation(DOUBLE)      |root.sg.view_d1.s1(FLOAT)      |root.sg.view_d2.calculation(DOUBLE)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                    |18.0                                             |false                                         |22.2                                                |false                                            |null                       |null                      |3.0                       |3                         |null                      |3.0                       |3                         |3.0                                      |3.0                            |0.4121184852417566                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]162:select count(*) from root.sg.**
+STRICT{
+count(root.sg.aligned_template.temperature)(INT64)      |count(root.sg.aligned_template.status)(INT64)      |count(root.sg.nonaligned_template.temperature)(INT64)      |count(root.sg.nonaligned_template.status)(INT64)      |count(root.sg.d1.s3)(INT64)      |count(root.sg.d1.s4)(INT64)      |count(root.sg.d1.s1)(INT64)      |count(root.sg.d1.s2)(INT64)      |count(root.sg.d2.s3)(INT64)      |count(root.sg.d2.s1)(INT64)      |count(root.sg.d2.s2)(INT64)      |count(root.sg.view_d1.calculation)(INT64)      |count(root.sg.view_d1.s1)(INT64)      |count(root.sg.view_d2.calculation)(INT64)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                                                       |3                                                  |3                                                          |3                                                     |0                                |0                                |4                                |4                                |0                                |4                                |4                                |4                                              |4                                     |4                                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]163:select count(*) from root.sg.** group by level=1
+STRICT{
+count(root.sg.*.*)(INT64)      |
+-------------------------------
+40                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]164:select last(*) from root.sg.** order by timeseries
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+3                    |root.sg.aligned_templa|false            |BOOLEAN             |
+                     |te.status             |                 |                    |
+--------------------------------------------------------------------------------
+3                    |root.sg.aligned_templa|18.0             |FLOAT               |
+                     |te.temperature        |                 |                    |
+--------------------------------------------------------------------------------
+4                    |root.sg.d1.s1         |4.0              |FLOAT               |
+--------------------------------------------------------------------------------
+4                    |root.sg.d1.s2         |4                |INT64               |
+--------------------------------------------------------------------------------
+4                    |root.sg.d2.s1         |4.0              |FLOAT               |
+--------------------------------------------------------------------------------
+4                    |root.sg.d2.s2         |4                |INT64               |
+--------------------------------------------------------------------------------
+3                    |root.sg.nonaligned_tem|false            |BOOLEAN             |
+                     |plate.status          |                 |                    |
+--------------------------------------------------------------------------------
+3                    |root.sg.nonaligned_tem|22.2             |FLOAT               |
+                     |plate.temperature     |                 |                    |
+--------------------------------------------------------------------------------
+4                    |root.sg.view_d1.calcul|4.0              |DOUBLE              |
+                     |ation                 |                 |                    |
+--------------------------------------------------------------------------------
+4                    |root.sg.view_d1.s1    |4.0              |FLOAT               |
+--------------------------------------------------------------------------------
+4                    |root.sg.view_d2.calcul|-0.28790331666506|DOUBLE              |
+                     |ation                 |53               |                    |
+总数目：11
+}
+
+Elapsed Time: 0.0.9
+
+-- [1]165:select sin((s1+s2)/2) from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((root.sg.d1.s1 + root.sg.d2.s2) / 2)(DOUBLE)      |sin((root.sg.d2.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((root.sg.d2.s1 + root.sg.d2.s2) / 2)(DOUBLE)      |sin((root.sg.view_d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin((root.sg.view_d1.s1 + root.sg.d2.s2) / 2)(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |0.8414709848078965                                    |0.8414709848078965                                    |0.8414709848078965                                    |0.8414709848078965                                    |0.8414709848078965                                         |0.8414709848078965                                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |0.9092974268256817                                    |0.9092974268256817                                    |0.9092974268256817                                    |0.9092974268256817                                    |0.9092974268256817                                         |0.9092974268256817                                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                    |0.1411200080598672                                    |0.1411200080598672                                    |0.1411200080598672                                    |0.1411200080598672                                    |0.1411200080598672                                         |0.1411200080598672                                         |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4                    |-0.7568024953079282                                   |-0.7568024953079282                                   |-0.7568024953079282                                   |-0.7568024953079282                                   |-0.7568024953079282                                        |-0.7568024953079282                                        |
+总数目：4
+}
+
+Elapsed Time: 0.0.4
+-- [1]166:delete view root.sg.view_d1.calculation
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.13
+-- [1]169:delete view root.sg.view_d1.s1  select s1,s2 into root.db.d1(s1,s2) from root.sg.d1
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:32 mismatched input 'select' expecting {<EOF>, ';'}
+}
+-- [1]172:create schema template t3(temperature FLOAT encoding=Gorilla, ID INT64 encoding=PLAIN)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]174:show schema templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+------------------------
+t2                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]175:create database root.db
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]177:delete database root.**
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]179:create user user05 'pass123456789'
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SECURITY
+}
+-- [1]181:list user
+STRICT{
+PASS
+}
+
+-- [1]183:list role
+STRICT{
+Role(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]184:list privileges of user user02
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SECURITY
+}
+-- [1]186:revoke read on root.** from user user01
+STRICT{
+SQLSTATE : 803: Has no permission to execute REVOKE_USER, please ensure you have these privileges and the grant option is TRUE when granted)
+}
+-- [1]188:set system to readonly
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]191:CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]192:show functions
+STRICT{
+FunctionName(TEXT)      |FunctionType(TEXT)      |ClassName(UDF)(TEXT)      |State(TEXT)      |
+-------------------------------------------------------------------------------------------
+CONST                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFConst      |                 |
+-------------------------------------------------------------------------------------------
+E                       |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFConstE     |                 |
+-------------------------------------------------------------------------------------------
+PI                      |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFConstPi    |                 |
+-------------------------------------------------------------------------------------------
+SIN                     |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFSin        |                 |
+-------------------------------------------------------------------------------------------
+COS                     |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFCos        |                 |
+-------------------------------------------------------------------------------------------
+TAN                     |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFTan        |                 |
+-------------------------------------------------------------------------------------------
+ASIN                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFAsin       |                 |
+-------------------------------------------------------------------------------------------
+ACOS                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFAcos       |                 |
+-------------------------------------------------------------------------------------------
+ATAN                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFAtan       |                 |
+-------------------------------------------------------------------------------------------
+SINH                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFSinh       |                 |
+-------------------------------------------------------------------------------------------
+COSH                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFCosh       |                 |
+-------------------------------------------------------------------------------------------
+TANH                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFTanh       |                 |
+-------------------------------------------------------------------------------------------
+DEGREES                 |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFDegrees    |                 |
+-------------------------------------------------------------------------------------------
+RADIANS                 |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFRadians    |                 |
+-------------------------------------------------------------------------------------------
+ABS                     |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFAbs        |                 |
+-------------------------------------------------------------------------------------------
+SIGN                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFSign       |                 |
+-------------------------------------------------------------------------------------------
+CEIL                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFCeil       |                 |
+-------------------------------------------------------------------------------------------
+FLOOR                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFFloor      |                 |
+-------------------------------------------------------------------------------------------
+EXP                     |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFExp        |                 |
+-------------------------------------------------------------------------------------------
+LN                      |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFLog        |                 |
+-------------------------------------------------------------------------------------------
+LOG10                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFLog10      |                 |
+-------------------------------------------------------------------------------------------
+SQRT                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFSqrt       |                 |
+-------------------------------------------------------------------------------------------
+STRING_CONTAINS         |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFContains   |                 |
+-------------------------------------------------------------------------------------------
+STRING_MATCHES          |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFMatches    |                 |
+-------------------------------------------------------------------------------------------
+LENGTH                  |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFStr|                 |
+                        |                        |Length                    |                 |
+-------------------------------------------------------------------------------------------
+LOCATE                  |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFStr|                 |
+                        |                        |Locate                    |                 |
+-------------------------------------------------------------------------------------------
+STARTSWITH              |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFSta|                 |
+                        |                        |rtsWith                   |                 |
+-------------------------------------------------------------------------------------------
+ENDSWITH                |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFEnd|                 |
+                        |                        |sWith                     |                 |
+-------------------------------------------------------------------------------------------
+CONCAT                  |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFCon|                 |
+                        |                        |cat                       |                 |
+-------------------------------------------------------------------------------------------
+UPPER                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFUpp|                 |
+                        |                        |er                        |                 |
+-------------------------------------------------------------------------------------------
+LOWER                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFLow|                 |
+                        |                        |er                        |                 |
+-------------------------------------------------------------------------------------------
+TRIM                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFTri|                 |
+                        |                        |m                         |                 |
+-------------------------------------------------------------------------------------------
+STRCMP                  |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.String.UDTFStr|                 |
+                        |                        |Compare                   |                 |
+-------------------------------------------------------------------------------------------
+CHANGE_POINTS           |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFChangePoin|                 |
+                        |                        |ts                        |                 |
+-------------------------------------------------------------------------------------------
+DIFFERENCE              |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFCommonValu|                 |
+                        |                        |eDifference               |                 |
+-------------------------------------------------------------------------------------------
+NON_NEGATIVE_DIFFERENCE |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFNonNegativ|                 |
+                        |                        |eValueDifference          |                 |
+-------------------------------------------------------------------------------------------
+TIME_DIFFERENCE         |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFTimeDiffer|                 |
+                        |                        |ence                      |                 |
+-------------------------------------------------------------------------------------------
+DERIVATIVE              |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFCommonDeri|                 |
+                        |                        |vative                    |                 |
+-------------------------------------------------------------------------------------------
+NON_NEGATIVE_DERIVATIVE |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFNonNegativ|                 |
+                        |                        |eDerivative               |                 |
+-------------------------------------------------------------------------------------------
+TOP_K                   |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFTopK       |                 |
+-------------------------------------------------------------------------------------------
+BOTTOM_K                |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFBottomK    |                 |
+-------------------------------------------------------------------------------------------
+IN_RANGE                |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFInRange    |                 |
+-------------------------------------------------------------------------------------------
+ON_OFF                  |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFOnOff      |                 |
+-------------------------------------------------------------------------------------------
+ZERO_DURATION           |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFZeroDurati|                 |
+                        |                        |on                        |                 |
+-------------------------------------------------------------------------------------------
+NON_ZERO_DURATION       |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFNonZeroDur|                 |
+                        |                        |ation                     |                 |
+-------------------------------------------------------------------------------------------
+ZERO_COUNT              |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFZeroCount  |                 |
+-------------------------------------------------------------------------------------------
+NON_ZERO_COUNT          |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFNonZeroCou|                 |
+                        |                        |nt                        |                 |
+-------------------------------------------------------------------------------------------
+EQUAL_SIZE_BUCKET_RANDOM|built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+_SAMPLE                 |                        |df.builtin.UDTFEqualSizeB|                 |
+                        |                        |ucketRandomSample         |                 |
+-------------------------------------------------------------------------------------------
+EQUAL_SIZE_BUCKET_AGG_SA|built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+MPLE                    |                        |df.builtin.UDTFEqualSizeB|                 |
+                        |                        |ucketAggSample            |                 |
+-------------------------------------------------------------------------------------------
+EQUAL_SIZE_BUCKET_M4_SAM|built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+PLE                     |                        |df.builtin.UDTFEqualSizeB|                 |
+                        |                        |ucketM4Sample             |                 |
+-------------------------------------------------------------------------------------------
+EQUAL_SIZE_BUCKET_OUTLIE|built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+R_SAMPLE                |                        |df.builtin.UDTFEqualSizeB|                 |
+                        |                        |ucketOutlierSample        |                 |
+-------------------------------------------------------------------------------------------
+JEXL                    |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFJexl       |                 |
+-------------------------------------------------------------------------------------------
+MASTER_REPAIR           |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFMasterRepa|                 |
+                        |                        |ir                        |                 |
+-------------------------------------------------------------------------------------------
+M4                      |built-in UDTF           |org.apache.iotdb.commons.u|AVAILABLE        |
+                        |                        |df.builtin.UDTFM4         |                 |
+-------------------------------------------------------------------------------------------
+VAR_POP                 |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+LAST_VALUE              |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COUNT                   |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STDDEV_SAMP             |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VAR_SAMP                |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SUM                     |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STDDEV_POP              |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MIN_TIME                |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MODE                    |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COUNT_TIME              |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MIN_VALUE               |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+AVG                     |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+VARIANCE                |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+FIRST_VALUE             |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+TIME_DURATION           |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MAX_TIME                |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+STDDEV                  |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MAX_BY                  |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+EXTREME                 |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+COUNT_IF                |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MAX_VALUE               |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+MIN_BY                  |native                  |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+CAST                    |built-in scalar         |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+ROUND                   |built-in scalar         |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+REPLACE                 |built-in scalar         |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+DIFF                    |built-in scalar         |                          |AVAILABLE        |
+-------------------------------------------------------------------------------------------
+SUBSTRING               |built-in scalar         |                          |AVAILABLE        |
+总数目：81
+}
+
+Elapsed Time: 0.0.2
+-- [1]197:show version
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]199:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_DATA            |true                      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_SCHEMA          |true                      |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]200:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]201:count databases
+STRICT{
+count(INT32)      |
+------------------
+1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]202:show child paths root
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.sg               |DATABASE             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]203:show child nodes root.sg.*
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s2                    |
+----------------------
+s3                    |
+----------------------
+s4                    |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]204:count nodes root.sg.** LEVEL=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]205:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.d1        |true                 |null                |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]206:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+1                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]207:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]208:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+4                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]209:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]210:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]211:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------
+1                    |null                       |null                      |1.0                       |1                         |
+------------------------------------------------------------------------------------------------------------------------------
+2                    |null                       |null                      |2.0                       |2                         |
+------------------------------------------------------------------------------------------------------------------------------
+3                    |null                       |null                      |3.0                       |3                         |
+------------------------------------------------------------------------------------------------------------------------------
+4                    |null                       |null                      |4.0                       |4                         |
+总数目：4
+}
+
+Elapsed Time: 0.0.8
+
+-- [1]212:select s1 from root.sg.d1 where time=3
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(FLOAT)      |
+-----------------------------------------------
+3                    |3.0                       |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]213:select * from root.sg.** where s1=3
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------
+3                    |null                       |null                      |3.0                       |3                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]214:select count(*) from root.sg.**
+STRICT{
+count(root.sg.d1.s3)(INT64)      |count(root.sg.d1.s4)(INT64)      |count(root.sg.d1.s1)(INT64)      |count(root.sg.d1.s2)(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------
+0                                |0                                |4                                |4                                |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]215:select count(*) from root.sg.** group by level=1
+STRICT{
+count(root.sg.*.*)(INT64)      |
+-------------------------------
+8                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]216:select last(*) from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+4                    |root.sg.d1.s1         |4.0              |FLOAT               |
+--------------------------------------------------------------------------------
+4                    |root.sg.d1.s2         |4                |INT64               |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]217:select sin((s1+s2)/2) from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |
+---------------------------------------------------------------------------
+1                    |0.8414709848078965                                    |
+---------------------------------------------------------------------------
+2                    |0.9092974268256817                                    |
+---------------------------------------------------------------------------
+3                    |0.1411200080598672                                    |
+---------------------------------------------------------------------------
+4                    |-0.7568024953079282                                   |
+总数目：4
+}
+
+Elapsed Time: 0.0.1
+-- [1]218:delete from root.sg.d1.s1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+-- [1]219:delete timeseries root.sg.d1.s1
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.23
+-- [1]221:GRANT WRITE ON root.sg.d1.** TO USER user04
+STRICT{
+PASS
+}
+-- [1]222:GRANT READ ON root.sg.d1.** TO USER user04
+STRICT{
+SQLSTATE : 803: Has no permission to execute GRANT_USER, please ensure you have these privileges and the grant option is TRUE when granted)
+}
+-- [1]226:show version
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]228:list privileges of user user03
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_t|WRITE_DATA            |false                     |
+                |emplate.temperat|                      |                          |
+                |ure              |                      |                          |
+---------------------------------------------------------------------------------
+                |root.sg.aligned_t|WRITE_SCHEMA          |false                     |
+                |emplate.temperat|                      |                          |
+                |ure              |                      |                          |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]229:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]230:count databases
+STRICT{
+count(INT32)      |
+------------------
+1                 |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]231:show child paths root.sg.*
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]232:show child nodes root.sg
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+aligned_template      |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]233:count nodes root.sg.** level=2
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]234:show devices root.sg.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.aligned_te|true                 |t1                  |INF                |
+mplate            |                     |                    |                   |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]235:count devices
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+1                          |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]236:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.aligned_templa|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+te.temperature        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]237:count timeseries
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+1                             |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]238:show view
+STRICT{
+Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]239:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+-- [1]240:insert into root.sg.aligned_template(time,temperature) values(10,20.1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]241:select * from root.sg.** align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |temperature(FLOAT)      |
+---------------------------------------------------------------
+1                    |root.sg.aligned_te|20.0                    |
+                     |mplate            |                        |
+---------------------------------------------------------------
+2                    |root.sg.aligned_te|22.1                    |
+                     |mplate            |                        |
+---------------------------------------------------------------
+3                    |root.sg.aligned_te|18.0                    |
+                     |mplate            |                        |
+---------------------------------------------------------------
+10                   |root.sg.aligned_te|20.1                    |
+                     |mplate            |                        |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]242:insert into root.sg.nonaligned_template(time,temperature,status) values(10,18.8,false)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.nonaligned_template.temperature, root.sg.nonaligned_template.status]
+}
+-- [1]244:delete from root.sg.aligned_template.temperature
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]245:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.aligned_template.temperature(FLOAT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.3
+-- [1]249:show version
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]251:list privileges of user user04
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.sg.d1.**    |WRITE_SCHEMA          |false                     |
+总数目：2
+}
+
+Elapsed Time: 0.0.6
+
+-- [1]252:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]253:show devices
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.d1        |true                 |null                |INF                |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]254:show timeseries
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]255:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(INT32)      |root.sg.d1.s2(INT64)      |
+----------------------------------------------------------------------------------------------------
+1                    |null                       |null                      |1                         |
+----------------------------------------------------------------------------------------------------
+2                    |null                       |null                      |2                         |
+----------------------------------------------------------------------------------------------------
+3                    |null                       |null                      |3                         |
+----------------------------------------------------------------------------------------------------
+4                    |null                       |null                      |4                         |
+总数目：4
+}
+
+Elapsed Time: 0.0.2
+-- [1]256:insert into root.sg.d1(time,s1,s2) aligned values(20,20,20)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]257:select last(*) from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+20                   |root.sg.d1.s1         |20.0             |DOUBLE              |
+--------------------------------------------------------------------------------
+20                   |root.sg.d1.s2         |20               |INT64               |
+总数目：2
+}
+
+Elapsed Time: 0.0.2

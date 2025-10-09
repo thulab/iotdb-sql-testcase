@@ -1,0 +1,114 @@
+connect root/TimechoDB@2021;
+
+// 非对齐序列 stateful/stateless before/after insert trigger
+// 1. insert 写入
+// 2. select into 写入
+// 3. 取消trigger插件内使用的用户的权限，使其无任何权限
+
+-- 清理
+drop database root.**;
+<<NULL;
+drop trigger stateless01;
+<<NULL;
+drop trigger `stateful-02`;
+<<NULL;
+DROP USER user_01;
+<<NULL;
+
+-- prepare
+-- 创建用户并授权
+CREATE USER user_01 'pass123456789';
+GRANT write ON root.ln.** TO USER user_01;
+LIST PRIVILEGES OF USER user_01;
+
+
+-- 创建数据库
+create database root.triggertest;
+create database root.ln;
+
+CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=LZ4;
+CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=snappy;
+
+-- use_trigger
+CREATE STATELESS TRIGGER `stateless01`
+AFTER INSERT
+ON root.triggertest.*.s1
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'user'='user_01',
+  'password' = 'pass123456789',
+  'lo' = '30',
+  'hi' = '45.5'
+);
+CREATE STATEful TRIGGER `stateful-02`
+BEFORE INSERT
+ON root.triggertest.*.s2
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'user'='user_01',
+  'password' = 'pass123456789',
+  'lo' = '10',
+  'hi' = '15.5'
+);
+
+show triggers;
+
+
+
+-- 1. insert 写入
+-- write_data
+insert into root.triggertest.d1(time, s1) values (1, 24),(2,33),(3,5),(4,43),(5,53),(6,63),(7,25),(8,29.999999999),(9,30.9999999),(10,31);
+
+insert into root.triggertest.d1(time, s2) values (1, 13),(2,23),(3,4),(4,8),(5,513),(6,11),(7,26),(8,9.999999999),(9,15.49999999),(11,14);
+
+sleep 500;
+
+--read_data
+-- 期望13个结果
+select count(*) from root.ln.alerting;
+-- 11条
+select * from root.triggertest.d1;
+
+
+
+-- 2. select into
+select s1,s2 into root.triggertest.new_d1(s1,s2) from root.triggertest.d1;
+select * from root.triggertest.new_d1;
+
+
+sleep 50000;
+-- 期望26个结果
+select count(*) from root.ln.alerting;
+--select alert_content from root.ln.alerting;
+--select table_name from root.ln.alerting;
+
+
+-- 3. revoke write on root.ln.** from user_01; 
+revoke write on root.ln.** from user user_01; 
+LIST PRIVILEGES OF USER user_01;
+
+-- 不触发trigger
+insert into root.triggertest.d1(time, s1, s2) values (21, 10, 9);
+-- 触发trigger，不影响写入，但是trigger执行出错
+insert into root.triggertest.d1(time, s1, s2) values (22, 40, 15);
+<<SQLSTATE;
+select * from root.triggertest.**;
+
+
+sleep 50000;
+-- 期望26个结果
+select count(*) from root.ln.alerting;
+
+
+-- 清理
+drop database root.**;
+<<NULL;
+drop trigger stateless01;
+<<NULL;
+drop trigger `stateful-02`;
+<<NULL;
+DROP USER user_01;
+<<NULL;
+

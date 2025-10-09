@@ -1,0 +1,66 @@
+// view + order by + group by level 查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建时间序列以及视图view
+--1.1 创建一般时间序列
+create timeseries root.db.test_01.d1.s1 INT32;
+create timeseries root.db.test_01.d1.s2 INT32;
+--1.2 创建对齐时间序列
+create aligned timeseries root.db.test_02.d1(s1 INT32, s2 INT32);
+--1.3 创建视图view
+create view root.view.d1.s1 as root.db.test_01.d1.s1;
+create view root.view.d1.s2 as root.db.test_01.d1.s2;
+create view root.view.d2.s1 as root.db.test_02.d1.s1;
+create view root.view.d2.s2 as root.db.test_02.d1.s2;
+create view root.view.d3.s1 as select s1 + s2 from root.db.test_01.d1;
+create view root.view.d3.s2 as select COS(s1+s2)/2 from root.db.test_02.d1;
+create view root.view.d3.s3 as select test_01.d1.s1 + test_02.d1.s2 from root.db;
+
+--2. 查看数据库、设备、时间序列、视图
+show databases;
+show devices;
+show timeseries;
+show view;
+ 
+--3. 插入数据
+insert into root.db.test_01.d1(time, s1, s2) values (1, 1, 1);
+insert into root.db.test_01.d1(time, s2) values (2, 2);
+insert into root.db.test_01.d1(time, s1) values (3, 3);
+insert into root.db.test_01.d1(time, s2) values (4, 4);
+insert into root.db.test_01.d1(time, s1) values (5, 5);
+
+insert into root.db.test_02.d1(time, s1, s2) values (1,1,1),(2, 2, 2);
+insert into root.db.test_02.d1(time, s1) values (3, 3);
+insert into root.db.test_02.d1(time, s2) values (4, 4);
+insert into root.db.test_02.d1(time, s1) values (6, 6);
+insert into root.db.test_02.d1(time, s2) values (9, 9);
+
+--4. 数据查询
+select * from root.**;
+select sum(s1), sum(s2) from root.**;
+select sum(s1), sum(s2) from root.** group by level=0;
+select sum(s1), sum(s2) from root.** group by level=1;
+select sum(s1), sum(s2) from root.** group by level=2;
+select count(*) from root.**;
+select count(*) from root.** group by level=0;
+select count(*) from root.** group by level=1;
+select count(*) from root.** group by level=2;
+select count(s1),sum(s2) from root.**;
+select count(s1) + sum(s2) from root.** group by level=1;
+select 2/(avg(s1) - count(s2)) from root.** group by level=0;
+select sum(s1),sum(s2) from root.** group by ([0,10),1ms),level=0;
+select sum(s1),sum(s2) from root.** group by ([0,10),1ms),level=1;
+select sum(s1),sum(s2) from root.** group by ([0,10),1ms),level=2;
+select sum(s1),count(s2) from root.** group by ([0,10),1ms),level=0 having sum(s1) > 2;
+select avg(s1),sum(s2) from root.** group by ([0,10),1ms), level=0 having sum(s1) + sum(s2) > 2;
+select sum(s1) from root.view.** group by ([0,10),1ms),level=0 order by sum(s1);
+select sum(s1) from root.view.** group by ([0,10), 1ms), level = 0 order by sum(s1) desc;
+select sum(s1), sum(s2), count(s2) from root.** group by level = 0;
+
+--5. 清理环境
+delete database root.**;
+<<NULL;

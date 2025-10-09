@@ -1,0 +1,802 @@
+-- [1]26:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]30:CREATE STATELESS TRIGGER `Opti-before-insert-exception` before INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireThrowExceptionOpti'
+STRICT{
+PASS
+}
+
+-- [1]32:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+Opti-before-insert-exce|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+ption                  |                 |                |                 |                       |ThrowExceptionOpti   |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]33:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]34:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]37:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]39:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]40:insert into root.triggertest.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]42:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+---------------------------------------------------------
+3                    |32.0                                |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]44:drop trigger `Opti-before-insert-exception`
+STRICT{
+PASS
+}
+-- [1]45:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]51:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]55:CREATE STATELESS TRIGGER `Opti-before-insert-false` before INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireReturnFalseOpti'
+STRICT{
+PASS
+}
+
+-- [1]57:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+Opti-before-insert-fals|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+e                      |                 |                |                 |                       |ReturnFalseOpti      |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]58:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]59:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]62:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]64:insert into root.triggertest.d1 (time, s1) values (2, 23)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]66:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |23.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]68:drop trigger `Opti-before-insert-false`
+STRICT{
+PASS
+}
+-- [1]69:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]76:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]85:CREATE STATELESS TRIGGER `opi-beforeInsert-true` before INSERT ON root.triggertest.d1.s1 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip' = "127.0.0.1",   'lo' = '10',   'hi' = '15.5' )
+STRICT{
+PASS
+}
+
+-- [1]87:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+opi-beforeInsert-true  |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |org.example.DoubleVal|ALL               |
+                       |                 |                |                 |                       |ueMonitor            |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]88:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+-- [1]89:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]92:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]94:select count(*) from root.ln.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]96:insert into root.triggertest.d1 (time, s1) values (3, 25)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]98:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+---------------------------------------------------------
+3                    |25.0                                |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]100:select count(*) from root.ln.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]102:drop trigger `opi-beforeInsert-true`
+STRICT{
+PASS
+}
+-- [1]103:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.21
+-- [1]110:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]114:CREATE STATELESS TRIGGER `opti-afterInsert-exception` after INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireThrowExceptionOpti'
+STRICT{
+PASS
+}
+
+-- [1]116:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+opti-afterInsert-except|AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+ion                    |                 |                |                 |                       |ThrowExceptionOpti   |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]117:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]118:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]121:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]123:insert into root.triggertest.d1 (time, s1) values (2, 22.24)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]124:insert into root.triggertest.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]126:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.24                               |
+---------------------------------------------------------
+3                    |32.0                                |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]128:drop trigger `opti-afterInsert-exception`
+STRICT{
+PASS
+}
+-- [1]129:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.21
+-- [1]136:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]140:CREATE STATELESS TRIGGER `opti-afterInsert-false` after INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireReturnFalseOpti'
+STRICT{
+PASS
+}
+
+-- [1]142:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+opti-afterInsert-false |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+                       |                 |                |                 |                       |ReturnFalseOpti      |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]144:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]145:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]148:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]150:insert into root.triggertest.d1 (time, s1) values (2, 8.8888)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]151:insert into root.triggertest.d1 (time, s1) values (4, 18.8888)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]154:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |8.8888                              |
+---------------------------------------------------------
+4                    |18.8888                             |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]157:drop trigger `opti-afterInsert-false`
+STRICT{
+PASS
+}
+-- [1]158:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.21
+-- [1]164:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]168:CREATE STATELESS TRIGGER `pess-beforeInsert-exception` before INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireThrowExceptionPess'
+STRICT{
+PASS
+}
+
+-- [1]170:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-excep|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+tion                   |                 |                |                 |                       |ThrowExceptionPess   |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]171:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]172:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]175:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]177:insert into root.triggertest.d1 (time, s1) values (2, 22.234)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]178:insert into root.triggertest.d1 (time, s1) values (3, 32)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]180:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]182:drop trigger `pess-beforeInsert-exception`
+STRICT{
+PASS
+}
+-- [1]183:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]188:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]192:CREATE STATELESS TRIGGER `pess-beforeInsert-false` before INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireReturnFalsePess'
+STRICT{
+PASS
+}
+
+-- [1]194:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-false|BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+                       |                 |                |                 |                       |ReturnFalsePess      |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]195:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]196:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]199:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]201:insert into root.triggertest.d1 (time, s1) values (2, 23)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+-- [1]202:insert into root.triggertest.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+}
+
+-- [1]204:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]206:drop trigger `pess-beforeInsert-false`
+STRICT{
+PASS
+}
+-- [1]207:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]212:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]221:CREATE STATELESS TRIGGER `pess-beforeInsert-true` before INSERT ON root.triggertest.d1.s1 AS 'TriggerTest' WITH (   'remote_ip' = "127.0.0.1",   'ts_type' = 'double',   'trig_name' = 'pess-beforeInsert-true' )
+STRICT{
+PASS
+}
+
+-- [1]223:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-beforeInsert-true |BEFORE_INSERT    |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |TriggerTest          |ALL               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]224:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+EXPECT:PASS
+}
+-- [1]225:insert into root.triggertest.d1 (time, s1) values (2, 422)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+EXPECT:PASS
+}
+
+-- [1]228:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]230:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+-- [1]232:insert into root.triggertest.d1 (time, s1) values (2, 8.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]233:insert into root.triggertest.d1 (time, s1) values (4, 618.8888)
+STRICT{
+SQLSTATE : 1302: Failed to complete the insertion because trigger error before the insertion.
+EXPECT:PASS
+}
+
+-- [1]236:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+2                    |8.8888                              |
+总数目：1
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]238:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]240:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.22
+-- [1]241:drop trigger `pess-beforeInsert-true`
+STRICT{
+PASS
+}
+-- [1]248:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]252:CREATE STATELESS TRIGGER `pess-afterInsert-exception` after INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireThrowExceptionPess'
+STRICT{
+PASS
+}
+
+-- [1]254:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-except|AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+ion                    |                 |                |                 |                       |ThrowExceptionPess   |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]255:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]256:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]259:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.3
+-- [1]261:insert into root.triggertest.d1 (time, s1) values (2, 22.33)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]262:insert into root.triggertest.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]264:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.33                               |
+---------------------------------------------------------
+3                    |220.0                               |
+总数目：3
+}
+
+Elapsed Time: 0.0.3
+-- [1]266:drop trigger `pess-afterInsert-exception`
+STRICT{
+PASS
+}
+-- [1]267:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.21
+-- [1]273:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]277:CREATE STATELESS TRIGGER `pess-afterInsert-false` after INSERT ON root.triggertest.d1.s1 AS 'com.timecho.test.FireReturnFalsePess'
+STRICT{
+PASS
+}
+
+-- [1]279:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-false |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |com.timecho.test.Fire|ALL               |
+                       |                 |                |                 |                       |ReturnFalsePess      |                  |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]280:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]281:insert into root.triggertest.d1 (time, s1) values (2, 22)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]284:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.0                                |
+总数目：2
+}
+
+Elapsed Time: 0.0.2
+-- [1]286:insert into root.triggertest.d1 (time, s1) values (2, 22.33)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+-- [1]287:insert into root.triggertest.d1 (time, s1) values (3, 220)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+}
+
+-- [1]289:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |22.33                               |
+---------------------------------------------------------
+3                    |220.0                               |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+-- [1]291:drop trigger `pess-afterInsert-false`
+STRICT{
+PASS
+}
+-- [1]292:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.44
+-- [1]298:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN
+STRICT{
+PASS
+}
+-- [1]307:CREATE STATELESS TRIGGER `pess-afterInsert-true` after INSERT ON root.triggertest.d1.s1 AS 'TriggerTest' WITH (   'remote_ip' = "127.0.0.1",   'ts_type' = 'double',   'trig_name' = 'pess-afterInsert-true' )
+STRICT{
+PASS
+}
+
+-- [1]309:show triggers
+STRICT{
+TriggerName(TEXT)      |Event(TEXT)      |Type(TEXT)      |State(TEXT)      |PathPattern(TEXT)      |ClassName(TEXT)      |NodeID(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------------
+pess-afterInsert-true  |AFTER_INSERT     |STATELESS       |ACTIVE           |root.triggertest.d1.s1 |TriggerTest          |ALL               |
+总数目：1
+}
+
+Elapsed Time: 0.0.1
+-- [1]310:insert into root.triggertest.d1 (time, s1) values (1, 5)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+-- [1]311:insert into root.triggertest.d1 (time, s1) values (2, 422)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]314:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |422.0                               |
+总数目：2
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]316:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]318:insert into root.triggertest.d1 (time, s1) values (2, 8.8888)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]319:insert into root.triggertest.d1 (time, s1) values (4, 618.8888)
+STRICT{
+SQLSTATE : 1302: Meet trigger error before/after the insertion, the insertion itself is completed.
+EXPECT:PASS
+}
+
+-- [1]322:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |root.triggertest.d1.s1(DOUBLE)      |
+---------------------------------------------------------
+1                    |5.0                                 |
+---------------------------------------------------------
+2                    |8.8888                              |
+---------------------------------------------------------
+4                    |618.8888                            |
+总数目：3
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]324:select count(*) from root.target.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]326:delete timeseries root.**
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.65
+-- [1]327:drop trigger `pess-afterInsert-true`
+STRICT{
+PASS
+}

@@ -1,0 +1,51 @@
+//聚合查询中，having子句中跨设备查询
+
+connect root/TimechoDB@2021;
+ 
+--0. 清除数据库
+drop database root.**; <<NULL;
+
+--1. 创建元数据（非对齐序列 | 对齐序列
+--1.1 非对齐序列
+create timeseries root.db.d1.s1 double;
+create timeseries root.db.d1.s2 boolean;
+create timeseries root.db.d1.s3 int32;
+create timeseries root.db.d2.s1 double;
+create timeseries root.db.d2.s2 boolean;
+create timeseries root.db.d2.s3 int32;
+--1.2 对齐序列
+create aligned timeseries root.db.d3(s1 double, s2 boolean, s3 int32);
+
+
+--2. 插入数据
+--2.1 不同设备下，数据类型保持一致
+insert into root.db.d1(time,s1,s2,s3) values(1,1.12,false,10),(2,3.14,null,4),(3,null,true,null),(4,1.12,false,6),(5,0.11,true,12),(8,12.2,true,18);
+insert into root.db.d2(time,s1,s2,s3) values(1,12.22,true,16),(3,5.55,false,8),(5,-0.12,null,9),(6,6.66,true,null),(7,13.3,true,8),(10,11.23,false,3);
+insert into root.db.d3(time,s1,s2,s3) values(1,1.2,false,5),(2,2.2,true,7),(3,3.3,true,4),(6,6.6,false,9),(9,4.4,null,3),(10,11.1,false,7);
+
+--2.2 插入数据，自动创建元数据（不同设备下，测点数据类型和个数不一致）
+insert into root.sg.d1(time,s1,s2) values(1,1,false),(2,2,true);
+insert into root.sg.d2(time,s1,s2,s3) values(1,1,false,1),(2,2,true,2);
+
+--3.按设备对齐，查询数据(跨设备查询，测点数据类型需保持一致)
+select * from root.db.** align by device;
+
+select avg(s1) from root.db.** having avg(s1) < avg(s3) align by device;
+
+select count(*) from root.** having count(s1) > count(s2) or count(count) < count(s3) align by device;
+
+select first_value(s1) + first_value(s3) from root.db.** having first_value(s1) is not null and first_value(s3) is not null align by device;
+
+select last_value(s1), last_value(s2) from root.db.** group by ([1,10),2ms) having last_value(s1) is not null or last_value(s2) is not null align by device;
+
+--4. 不同设备下，测点数据类型和个数不一致，进行having查询
+select * from root.sg.** align by device;
+select count(s1) from root.sg.** having count(s1)=count(s2) align by device;
+
+--参考issue：https://jira.infra.timecho.com:8443/browse/TIMECHODB-1189（当前报305异常）
+select avg(s1) from root.sg.** having avg(s1) < avg(s3) align by device;
+<<SQLSTATE;
+
+--清理数据
+drop database root.**;
+<<NULL;

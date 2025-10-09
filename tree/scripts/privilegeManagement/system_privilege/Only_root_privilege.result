@@ -1,0 +1,162 @@
+-- [1]12:create database root.sg
+STRICT{
+PASS
+}
+-- [1]13:create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE
+STRICT{
+PASS
+}
+-- [1]16:insert into root.sg.d1(time,s1) values(1,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.48
+-- [1]17:insert into root.sg.d1(time,s1) values(10,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]19:FLUSH
+STRICT{
+PASS
+}
+-- [1]19:insert into root.sg.d1(time,s1) values(5,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+-- [1]21:FLUSH
+STRICT{
+PASS
+}
+-- [1]24:CLEAR CACHE
+STRICT{
+PASS
+}
+-- [1]24:load configuration
+STRICT{
+PASS
+}
+-- [1]28:SET SYSTEM TO READONLY
+STRICT{
+PASS
+}
+
+-- [1]28:select * from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(INT32)      |
+-----------------------------------------------
+1                    |1                         |
+-----------------------------------------------
+5                    |1                         |
+-----------------------------------------------
+10                   |1                         |
+总数目：3
+}
+
+Elapsed Time: 0.0.14
+-- [1]29:insert into root.sg.d1(time,s1) values(20,1)
+STRICT{
+SQLSTATE : 600: Fail to do non-query operations because system is read-only.
+}
+-- [1]32:SET SYSTEM TO RUNNING
+STRICT{
+PASS
+}
+-- [1]32:insert into root.sg.d1(time,s1) values(25,1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]33:select * from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(INT32)      |
+-----------------------------------------------
+1                    |1                         |
+-----------------------------------------------
+5                    |1                         |
+-----------------------------------------------
+10                   |1                         |
+-----------------------------------------------
+25                   |1                         |
+总数目：4
+}
+
+Elapsed Time: 0.0.7
+-- [1]37:CREATE USER user01 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]38:GRANT SYSTEM ON root.** TO USER user01
+STRICT{
+PASS
+}
+-- [1]39:GRANT READ ON root.** TO USER user01
+STRICT{
+PASS
+}
+-- [1]40:GRANT WRITE ON root.** TO USER user01
+STRICT{
+PASS
+}
+
+-- [1]41:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_DATA             |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_SCHEMA           |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：5
+}
+
+Elapsed Time: 0.0.1
+-- [1]42:GRANT ALL ON root.** TO USER user01
+STRICT{
+PASS
+}
+
+-- [1]43:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_DATA             |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_SCHEMA           |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：7
+}
+
+Elapsed Time: 0.0.1
+-- [1]43:revoke all on root.** from user user01
+STRICT{
+PASS
+}
+
+-- [1]45:LIST PRIVILEGES OF USER user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1

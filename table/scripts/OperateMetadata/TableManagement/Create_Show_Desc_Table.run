@@ -1,0 +1,118 @@
+// 创建表 | 查看表 | 展示表结构
+
+connect root/TimechoDB@2021;
+
+--0. 清理数据：删除数据库
+drop database test_db;
+<<NULL;
+drop database data;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+create database data;
+
+--2. 未指定数据库，直接创建表报异常
+create table table1(device_id STRING TAG, color STRING ATTRIBUTE, s1 TEXT FIELD, s2 INT32 FIELD);
+<<SQLSTATE;
+
+--3. 指定数据库，创建表
+use test_db;
+
+--3.1 创建无属性列的表
+create table device_type_1
+(
+    "地区" STRING TAG,
+    "厂号" STRING TAG,
+    "设备号" STRING TAG,
+    "温度" FLOAT FIELD,
+    "排量" DOUBLE FIELD
+)
+with (TTL=3600000);
+
+--3.2 创建有属性列的表
+create table device_type_2
+(
+    "地区" STRING TAG,
+    "厂号" STRING TAG,
+    "设备号" STRING TAG,
+    "型号" STRING ATTRIBUTE,
+    "温度" FLOAT FIELD,
+    "排量" DOUBLE FIELD
+)
+with (TTL=3600000);
+
+--3.3 创建有属性列的表不带with TTL
+create table device_type_3
+(
+    "地区" STRING TAG,
+    "厂号" STRING TAG,
+    "设备号" STRING TAG,
+    "型号" STRING ATTRIBUTE,
+    "温度" FLOAT FIELD,
+    "排量" DOUBLE FIELD,
+	"维修周期" DATE FIELD
+);
+
+--3.4 use 语句指定了数据库，查看表
+show tables;
+show tables details;
+show tables details from test_db;
+show tables details in test_db;
+
+--3.5 use 语句指定了数据库，展示表结构信息
+describe device_type_1;
+desc device_type_2;
+desc device_type_3;
+describe device_type_3 details;
+
+--4. 不指定数据库，在表名前面加上数据库名称：
+--4.1 语句中不含有time列【列定义中默认会生成1列名为Time时间列】
+create table data.table1(
+device_id STRING TAG, color STRING ATTRIBUTE, s1 TEXT FIELD, s2 INT32 FIELD, s3 INT64 FIELD,
+s4 FLOAT FIELD, s5 DOUBLE FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD
+);
+
+--4.2 语句中含有time列，验证Check信息
+create table data.table2(time timestamp TAG, sensor_1 INT64 FIELD, sensor_2 FLOAT FIELD);
+<<SQLSTATE;
+
+--4.3 标识列和属性列的数据类型必须为 STRING
+create table data.table3(device INT64 TAG, area STRING ATTRIBUTE, sensor_1 INT64 FIELD, sensor_2 FLOAT FIELD);
+<<SQLSTATE;
+create table data.table4(device STRING TAG, area TEXT ATTRIBUTE, sensor_1 INT64 FIELD, sensor_2 FLOAT FIELD);
+<<SQLSTATE;
+
+--4.4 不手动指定列为时间列、标识列、属性列、物理量列时，默认为物理量列
+create table data.table5(device STRING, area STRING, sensor_1 INT64, sensor_2 FLOAT);
+
+--4.5 对于标识列和属性列，不手动指定数据类型时，默认为 String 类型
+create table data.table6(device TAG, area ATTRIBUTE, sensor_1 DOUBLE FIELD, sensor_2 BOOLEAN FIELD);
+
+--4.6 With 子句中可以指定表的 TTL，如果指定了其他 properties，会报错
+create table data.table7(device STRING TAG, area STRING ATTRIBUTE, s1 BOOLEAN FIELD, s2 INT32 FIELD) with (TTL=3600000);
+create table data.table7(device STRING TAG, area STRING ATTRIBUTE, s1 BOOLEAN FIELD, s2 INT32 FIELD) with (format='ORC');
+<<SQLSTATE;
+
+--5. 展示指定数据库下已创建的表【from | in】
+show databases;
+show tables from test_db;
+show tables from data;
+show tables in test_db;
+show tables in data;
+
+--6. 查看表结构：即展示某个表已经创建的列名、列类型、列类别
+desc data.table1;
+desc data.table5;
+desc test_db.device_type_1;
+desc test_db.device_type_2;
+
+--7. 清理数据：删除数据库
+drop database test_db;
+<<NULL;
+drop database data;
+<<NULL;
+
+
+
+

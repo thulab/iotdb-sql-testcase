@@ -1,0 +1,100 @@
+//ORDER BY 支持任意表达式
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=plain;
+create timeseries root.sg.d1.s2 with datatype=INT64,encoding=plain;
+create timeseries root.sg.d1.s3 with datatype=float,encoding=plain;
+create timeseries root.sg.d1.s4 with datatype=double,encoding=plain;
+create timeseries root.sg.d1.s5 with datatype=boolean,encoding=plain;
+create timeseries root.sg.d1.s6 with datatype=text,encoding=plain;
+
+--2. 查询存储组、设备以及时间序列
+show databases root.**;
+show devices root.**;
+show timeseries root.**;
+
+--3.插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1,1,1.1,1.1,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2,2,2.2,2.2,true,'test002');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,3,6,null,3.3,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,4,0,4.4,4.0,false,'test002');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,5,5,5.5,5.5,true,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,6,6,null,6.6,false,'test002');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,7,-2,100.1,7.7,true,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,55,8,0.0,8.8,false,'test002');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,-15,9,null,9.9,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,0,10,10.1,-1.12,true,'test001');
+
+--4.order by进行排序，null值排列在最后【order by desc null last】
+select * from root.sg.d1;
+select * from root.sg.d1 order by s3 desc nulls last;
+
+--5.order by进行排序，null值排列在前面【order by desc null first】
+select * from root.sg.d1;
+select * from root.sg.d1 order by s3 desc nulls first;
+
+--6.在order by子句中使用表达式【order by expression desc】
+select s1,s2,s3,s4 from root.sg.d1;
+select s1+s2+s3+s4 from root.sg.d1;
+select s3,s4 from root.sg.d1 order by s1+s2+s3+s4 desc;
+select sign(s1),s2 from root.sg.d1 order by sin(s2) asc, abs(s3) desc;
+select s1, s2, s1 > 10, s1 <= s2, !(s1 <= s2) from root.sg.d1 order by s1 > 10 && s1 > s2 desc;
+
+--7.order by子句中含有聚合函数校验
+select s3,s4 from root.sg.d1; 
+select sum(s1+s2+s3+s4) from root.sg.d1;
+select s3,s4 from root.sg.d1 order by sum(s1+s2+s3+s4) desc;
+<<SQLSTATE;
+select sum(s1),max_value(s4) from root.sg.d1 order by s6 desc align by device;
+<<SQLSTATE;
+select sum(s1) from root.sg.d1 order by sum(s1+s2);
+select min_value(s2) from root.sg.d1 order by max_value(s4) asc align by device;
+select EXTREME(s1+s3) from root.sg.d1 order by avg(2*s4) desc align by device;
+
+--8.order by子句通过指定多个表达式排序
+select s1,s3,s5,s6 from root.sg.d1;
+select s1,s3,s5,s6 from root.sg.d1 order by s3 desc nulls last,s2+s4,time desc;
+
+--9.指定多列执行order by排序查询
+select avg(s1),max_value(s2),last_value(s3),min_value(s4),count(s_5),max_time(s_6) from root.sg.d1;
+select avg(s1),max_value(s2),last_value(s3),min_value(s4),count(s_5),max_time(s_6) from root.sg.d1 order by max_value(s1) desc align by device;
+
+--10.order by device,time,order by expression共同使用
+select s5 from root.sg.d1 order by device asc,s3 desc nulls last,time asc align by device;
+select s3,s5,s6 from root.sg.d1 order by s1+s2,s3 desc nulls first,2+(s4/2),device desc,time desc align by device;
+
+--11.last 最新点查询降序排列
+select last * from root.sg.d1 order by timeseries desc;
+select last * from root.sg.d1 order by value desc;
+select last * from root.sg.d1 order by DataType desc;
+select last * from root.sg.d1 order by time desc;
+ 
+--12.过滤查询(值过滤和时间过滤)
+select s1+s2,s5 from root.sg.d1;
+select s5 from root.sg.d1 where s5=true order by s1+s2 desc;
+select s1,s3,s5,s6 from root.sg.d1 where time>2 and time <=9 order by s2 desc,time desc align by device;
+
+--13.分组查询
+select count(s1), max_value(s3) from root.sg.d1 group by ([1, 15),2ms) order by avg(s2),time desc align by device;
+select MAX_TIME(s6) from root.** group by level = 3 order by first_value(s5),time desc;
+
+--14.聚合结果过滤
+select count(s5) from root.sg.d1 group by([1,10),2ms) having sum(s1)>1 order by count(s2) desc;
+ 
+--15.结果集补空值
+select s1, s3 from root.sg.d1 where time >= 1 and time <= 10;
+select s1, s3 from root.sg.d1 where time >= 1 and time <= 10 fill(previous) order by s2,time desc align by device;
+
+--16.结果集分页
+select s1,s2,s3,s4 from root.sg.d1 order by s1,time desc limit 5 offset 2 slimit 2 soffset 1 align by device;
+
+--17. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

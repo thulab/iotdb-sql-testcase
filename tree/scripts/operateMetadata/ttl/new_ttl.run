@@ -1,0 +1,136 @@
+//支持Device粒度TTL管理，支持用户批量设置，修改和取消设置TTL
+//系统会按设备粒度对过期数据进行删除，当设备数据过期后，数据不被查询到；
+// 设置TTL：set ttl to prefixPath
+// 取消TTL：unset ttl from/to prefixPath
+
+connect root/TimechoDB@2021;
+
+--0. 清理数据
+drop database root.**;
+<<NULL;
+
+--1. 创建时间序列
+create timeseries root.sg.d1.s1 int32;
+create aligned timeseries root.sg.d2(s1 int64 encoding=rle, s2 float encoding=GORILLA);
+create timeseries root.sg.d3.s1 float;
+create timeseries root.sg.d4.s1 double;
+create view root.sg.view_d.s1 as select s1 from root.sg.d1;
+create view root.sg.view_d.s2 as select s1 from root.sg.d1;
+
+--2. 查询元数据信息(数据库列表和时间序列列表均不展示TTL列信息;设备列表展示TTL列信息;)
+show databases;
+show devices;
+
+--3. 查询当前是否有设置TTL
+show all ttl;
+
+--4. 分别对不同路径进行设置TTL，并查看TTL
+set ttl to root.** 72000000;
+show ttl on root.**;
+set ttl to root.sg 86400000;
+show ttl on root.sg;
+set ttl to root.sg.d2 43200000;
+show ttl on root.sg.d2;
+set ttl to root.sg.d1.s1 3600000;
+show ttl on root.sg.d1.s1;
+set ttl to root.sg.d3 120000;
+show ttl on root.sg.d3;
+show all ttl;
+
+--5. 支持对不存在的设备节点设置TTL（不存在的设备，show device查询不到对应的信息）
+show devices root.sg.**;
+set ttl to root.sg.dd 60000;
+show ttl on root.sg.dd;
+show devices root.sg.**;
+show devices root.**;
+
+--6. 根据路径查看已设置的TTL
+show all ttl;
+show ttl on root.**;
+show ttl on root.sg;
+show ttl on root.sg.**;
+show ttl on root.sg.d1.**;
+show ttl on root.sg.*.s1;
+show ttl on root.sg.d2;
+show ttl on root.sg.d2.**;
+
+--7. 重新设置TTL，覆盖之前devices设置的TTL
+show all ttl;
+set ttl to root.** INF;
+show ttl on root.**;
+set ttl to root.sg.d3 60000;
+show ttl on root.sg.d3;
+
+--8. 验证TTL是否生效
+insert into root.sg.d3(time,s1) values(now(),1.1);
+select count(s1) from root.sg.d3;
+sleep 100000;
+select count(s1) from root.sg.d3;
+
+insert into root.sg.d1(s1) values(1000);
+select count(s1) from root.sg.d1;
+insert into root.sg.d1(time,s1) values(now()-30ms,1);
+select count(s1) from root.sg.d1;
+insert into root.sg.d1(time,s1) values(now()-1h,2);
+select count(s1) from root.sg.d1;
+insert into root.sg.d1(time,s1) values(now()-12h,3);
+select count(s1) from root.sg.d1;
+insert into root.sg.d1(time,s1) values(now()-23h59m,4);
+select count(s1) from root.sg.d1;
+insert into root.sg.d1(time,s1) values(now()-86395000ms,5);
+sleep 6000;
+select count(s1) from root.sg.d1;
+
+--9. 设置TTL不符合定义的
+set ttl to root.sg.d2 -1;
+<<SQLSTATE;
+set ttl to root.sg.d2 10.5;
+<<SQLSTATE;
+set ttl to root.ln.* 1;
+<<SQLSTATE;
+set ttl to root.**.wf01 1;
+<<SQLSTATE;
+set ttl to root.ln.*.*.status 7200000;
+<<SQLSTATE;
+set ttl to root.**.wt01.* 100;
+<<SQLSTATE;
+set ttl to root.*.wt01.** 32000;
+<<SQLSTATE;
+set ttl to root.ln.wf01.wt01 aaaa;
+<<SQLSTATE;
+set ttl to root.ln.wf01.wt01 10000000000000000000;
+<<SQLSTATE;
+
+--10. 删除时间序列，删除数据库，验证TTL是否存在（TTL会存在）
+delete timeseries root.sg.d1.s1;
+show ttl on root.sg.d1.s1;
+delete database root.sg;
+show ttl on root.sg;
+
+--10.1 旧语法unset ttl to
+unset ttl to root.sg;
+show all ttl;
+unset ttl to root.sg.d1.s1;
+show ttl on root.sg.d1.s1;
+show all ttl;
+unset ttl to root.sg.d2;
+show ttl on root.sg.d2;
+show all ttl;
+
+--10.2 新语法 unset ttl from
+unset ttl from root.sg.**;
+show ttl on root.sg.**;
+show all ttl;
+unset ttl from root.sg.d3;
+unset ttl from root.sg.dd;
+show all ttl;
+unset ttl from root.**;
+show all ttl;
+
+--11. 取消设置不存在的TTL设置进行校验
+unset ttl from root.db.s1;
+<<SQLSTATE;
+
+--12. 清理数据
+drop database root.**;
+<<NULL;

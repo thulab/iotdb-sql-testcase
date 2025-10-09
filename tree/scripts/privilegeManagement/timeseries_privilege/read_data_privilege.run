@@ -1,0 +1,248 @@
+//READ_DATA：允许读取授权路径下的序列数据。
+
+
+--0.清理环境
+connect root/TimechoDB@2021;
+delete timeseries of device template t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+
+--1.创建对齐时间序列
+create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle);
+
+--2.创建非对齐时间序列
+create timeseries root.sg.d2.s1 with datatype=float,encoding=rle;
+create timeseries root.sg.d2.s2 with datatype=int64,encoding=rle;
+
+--3.分别创建、挂载、激活对齐序列的元数据模板
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t1;
+set device template t1 to root.sg.aligned_template;
+show paths set device template t1;
+create timeseries using device template on root.sg.aligned_template;
+show paths using device template t1;
+
+--4.分别创建、挂载、激活非对齐序列的元数据模板
+create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+show device templates;
+show nodes in device template t2;
+set device template t2 to root.sg.nonaligned_template;
+show paths set device template t2;
+create timeseries using device template on root.sg.nonaligned_template;
+show paths using device template t2;
+
+--5.创建视图序列
+create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1;
+create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2;
+
+--6.分别查看数据库、设备、时间序列列表
+show databases;
+show devices root.sg.**;
+show timeseries root.sg.**;
+
+--7.插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,6,6),(7,7,7),(8,8,8),(9,9,9),(10,10,10);
+insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3),(4,null,4),(6,6,null);
+insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false);
+insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false);
+
+--8.创建用户
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
+
+--9.检查用户是否有privilege存在（列出用户所有权限）
+LIST PRIVILEGES OF USER `user01`;
+LIST PRIVILEGES OF USER `user02`;
+LIST PRIVILEGES OF USER `user03`;
+
+--10.进行赋权
+GRANT READ_DATA ON root.** TO USER user01;
+GRANT READ_DATA ON root.sg.d1.** TO USER user02 with grant option;
+GRANT READ_DATA ON root.sg.aligned_template.temperature TO USER user03;
+GRANT READ_DATA ON root.**.status TO USER user03;
+<<SQLSTATE;
+GRANT READ_DATA ON root.sg.* TO USER user03;
+<<SQLSTATE;
+
+--11.user01登录
+--11.1read_data可支持的操作
+connect user01/pass123456789;
+show version;
+<<SQLSTATE;
+show databases;
+count databases;
+show child paths root;
+show child nodes root.*;
+count nodes root.sg.** LEVEL=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+select * from root.sg.**;
+select * from root.sg.** order by time desc;
+select s1,s2 from root.sg.* where time <=11 order by device desc,time asc align by device;
+select s1 from root.sg.** where time=3;
+select * from root.sg.** where s1=3;
+select count(*) from root.sg.**;
+select count(*) from root.sg.** group by level=1;
+select last(*) from root.sg.** order by timeseries;
+select s1,s2,sin((s1+1)*2-1)%2+2,cos(s1+s2)*sin(s1+s2-1)+1 from root.sg.d1;
+select (avg(*)+1)*2/2-1,-sum(s2)+1 from root.sg.d2;
+select count(s1),max_value(s2) from root.sg.d1 group by ([1,10),3ms,1s);
+select __endTime, avg(s1), count(s2), sum(s2) from root.sg.d1 group by variation(s1);
+select __endTime, count(*) from root.sg.** group by session(1ms);
+select count(s1) from root.sg.d1 group by ([1,11),2ms),level=1 having count(s2) > 2;
+select s1, s2 from root.sg.** where time >= 1 and time <= 10 fill(previous);
+select * from root.sg.** limit 6 offset 2;
+
+--11.2 read_data不支持的操作
+show cluster details;
+<<SQLSTATE;
+show regions;
+<<SQLSTATE;
+create timeseries root.sg.d1.s3 with datatype=boolean;
+<<SQLSTATE;
+insert into root.sg.d1(time,s1,s2) values(4,4,4);
+<<SQLSTATE;
+insert into root.sg.view_d1(time,calculation) values(4,4);
+<<SQLSTATE;
+insert into root.sg.d3(time,s1,s2) values(1,false);
+<<SQLSTATE;
+select s1,s2 into root.test.d1(s1,s2) from root.sg.d1;
+<<SQLSTATE;
+delete from root.sg.d1.*;
+<<SQLSTATE;
+delete timeseries root.sg.d1.s1;
+<<SQLSTATE;
+delete timeseries root.sg.**;
+<<SQLSTATE;
+create database root.db;
+<<SQLSTATE;
+delete database root.**;
+<<SQLSTATE;
+create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
+<<SQLSTATE;
+alter view root.sg.view_d1.calculation upsert tags(tag1=v1,tag2=v2) attributes(attr1=D1,attr2=D2);
+<<SQLSTATE;
+delete view root.sg.view_d1.calculation;
+<<SQLSTATE;
+create device template t3(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+<<SQLSTATE;
+
+--12.user02登录
+--12.1 read_data可支持的操作
+connect user02/pass123456789;
+show version;
+<<SQLSTATE;
+GRANT READ_DATA ON root.sg.d1.** TO USER user03;
+show databases;
+count databases;
+show child paths root;
+show child nodes root.sg.*;
+count nodes root.sg.** LEVEL=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+select * from root.sg.**;
+select s1 from root.sg.d1 where time=3;
+select * from root.sg.** where s1=3;
+select count(*) from root.sg.**;
+select count(*) from root.sg.** group by level=1;
+select last(*) from root.sg.**;
+select sin((s1+s2)/2) from root.sg.**;
+--12.2 read_data不支持的操作
+create timeseries root.sg.d1.s3 with datatype=boolean;
+<<SQLSTATE;
+insert into root.sg.d1(time,s1,s2) values(4,4,4);
+<<SQLSTATE;
+delete from root.sg.d1.*;
+<<SQLSTATE;
+delete timeseries root.sg.d1.s1;
+<<SQLSTATE;
+delete timeseries root.sg.**;
+<<SQLSTATE;
+create database root.db;
+<<SQLSTATE;
+delete database root.**;
+<<SQLSTATE;
+create view root.sg.view_d1.s1 as select s1 from root.sg.d1;
+<<SQLSTATE;
+
+--13.user03登录
+--13.1 read_data可支持的操作
+connect user03/pass123456789;
+show version;
+<<SQLSTATE;
+show databases;
+count databases;
+show child paths root;
+show child nodes root.*;
+count nodes root.sg.** LEVEL=2;
+show devices;
+count devices;
+show timeseries;
+count timeseries;
+show view;
+show all ttl;
+select * from root.sg.**;
+select * from root.sg.** where time=3;
+select * from root.sg.aligned_template;
+select * from root.sg.** where temperature=20;
+select count(*) from root.sg.** align by device;
+select count(*) from root.sg.** group by level=1;
+select last(*) from root.sg.** order by timeseries;
+select avg(*) from root.sg.** align by device;
+--13.2 read_data不支持的操作
+insert into root.sg.aligned_template(time,temperature) values(4,20.1);
+<<SQLSTATE;
+delete from root.sg.aligned_template.*;
+<<SQLSTATE;
+delete database root.**;
+<<SQLSTATE;
+
+--14.清理环境
+connect root/TimechoDB@2021;
+delete timeseries of device template t1 from root.sg.aligned_template;
+<<NULL;
+unset device template t1 from root.sg.aligned_template;
+<<NULL;
+drop device template t1;
+<<NULL;
+delete timeseries of device template t2 from root.sg.nonaligned_template;
+<<NULL;
+unset device template t2 from root.sg.nonaligned_template;
+<<NULL;
+drop device template t2;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;

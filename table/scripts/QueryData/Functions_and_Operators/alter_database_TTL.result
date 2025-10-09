@@ -1,0 +1,142 @@
+-- [1]12:create database test_db with (TTL=5000)
+STRICT{
+PASS
+}
+
+-- [1]15:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |5000               |1                                   |1                                 |604800000                         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]18:use test_db
+STRICT{
+PASS
+}
+-- [1]21:create table t1(ID TAG,int32 INT32)
+STRICT{
+PASS
+}
+
+-- [1]24:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |5000               |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]27:desc t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+id                    |STRING              |TAG                 |
+--------------------------------------------------------------
+int32                 |INT32               |FIELD               |
+总数目：3
+}
+
+Elapsed Time: 0.0.1
+-- [1]30:insert into t1(time,ID,int32) values(now(),'d1',1)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.191
+
+-- [1]33:select count(*) as count_result from t1
+STRICT{
+count_result(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.5
+
+-- [1]37:select count(*) as count_result from t1
+STRICT{
+count_result(INT64)      |
+-------------------------
+0                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]40:alter database test_db set properties ttl='INF'
+STRICT{
+0
+}
+
+-- [1]43:show databases details
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |SchemaRegionGroupNum(INT32)      |DataRegionGroupNum(INT32)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |null                             |null                           |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |INF                |1                                   |1                                 |604800000                         |1                                |1                              |
+总数目：2
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]46:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |5000               |
+总数目：1
+}
+
+Elapsed Time: 0.0.0
+-- [1]49:insert into t1(time,ID,int32) values(now(),'d1',2)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]52:select count(*) as count_result from t1
+STRICT{
+count_result(INT64)      |
+-------------------------
+1                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.3
+
+-- [1]56:select count(*) as count_result from t1
+STRICT{
+count_result(INT64)      |
+-------------------------
+0                        |
+总数目：1
+}
+
+Elapsed Time: 0.0.4
+-- [1]59:create table t2(ID TAG,boolean BOOLEAN)
+STRICT{
+PASS
+}
+
+-- [1]62:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |5000               |
+----------------------------------------
+t2                   |INF                |
+总数目：2
+}
+
+Elapsed Time: 0.0.1

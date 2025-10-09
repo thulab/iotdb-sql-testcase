@@ -1,0 +1,41 @@
+//参考issue描述：https://issues.apache.org/jira/browse/IOTDB-6335
+//使用 GROUP BY 时间 + order by time desc + LIMIT 时，如果 LIMIT 的数量超过现有时间间隔的数量，就会生成多余的时间间隔。
+
+connect root/TimechoDB@2021;
+
+--0. 清理数据
+drop database root.**;
+<<NULL;
+
+--1. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1.1,1.2);
+insert into root.sg.d1(time,s1,s2) values(3,3.1,3.2);
+insert into root.sg.d1(time,s1,s2) values(5,5.1,5.2);
+insert into root.sg.d1(time,s1,s2) values(6,6.1,6.2);
+insert into root.sg.d1(time,s1,s2) values(8,8.1,8.2);
+insert into root.sg.d1(time,s1,s2) values(11,11.1,11.2);
+insert into root.sg.d1(time,s2) values(12,12.2);
+
+--2.查看元数据
+show databases;
+show devices;
+show timeseries;
+
+--3. 数据查询
+--3.1 按设备对齐，普通查询
+select * from root.sg.d1 align by device;
+
+--3.2 时间过滤，聚合查询
+select count(s1) from root.sg.d1 group by time ((0,20],2ms);
+select count(s1) from root.sg.d1 group by time ((0,20],2ms) limit 15;
+select count(s1) from root.sg.d1 group by time ((0,20],2ms) order by time desc;
+select count(s1) from root.sg.d1 group by time ((0,20],2ms) order by time desc limit 15;
+
+select avg(s1), sum(s2) from root.sg.** group by ([0,20),2ms,5ms);
+select avg(s1), sum(s2) from root.sg.** group by ([0,20),2ms,5ms) limit 5;
+select avg(s1), sum(s2) from root.sg.** group by ([0,20),2ms,5ms) order by time desc limit 10;
+select avg(s1), sum(s2) from root.sg.** group by ([0,20),2ms,3ms) order by time desc offset 2 limit 10;
+
+--4. 清理数据
+drop database root.**;
+<<NULL;

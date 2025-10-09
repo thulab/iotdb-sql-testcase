@@ -1,0 +1,28 @@
+// 数据类型为String、Timestamp、Date、Blob数据类型 
+//执行order by + limit 查询
+--0. 清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+
+--1. 创建元数据
+create database root.sg;
+create aligned timeseries root.sg.d1(s1 string, s2 timestamp, s3 date, s4 blob);
+
+--2. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4) values(1,'string1',1732186175000,'2024-01-10',X'010203');
+insert into root.sg.d1(time,s1,s2,s3,s4) values(2,'string2',1732186175001,'2024-02-10',null);
+insert into root.sg.d1(time,s1,s2,s3,s4) values(3,'string3',1732186175002,'2024-03-10',X'010203');
+
+--3.数据查询
+select * from root.sg.d1 order by time align by device;
+select * from root.sg.d1 order by s2 limit 2;
+select * from root.sg.d1 order by s3 desc offset 1 limit 1 ;
+select * from root.sg.d1 order by s1 desc limit 1 offset 1 align by device;
+select * from root.sg.d1 order by s2 desc offset 1 limit 1 slimit 2 soffset 2 align by device;
+
+select * from root.sg.d1 order by s4 desc; <<SQLSTATE;
+
+--清理数据
+drop database root.**;
+<<NULL;

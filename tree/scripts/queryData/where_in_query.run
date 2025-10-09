@@ -1,0 +1,25 @@
+//参考issue：https://issues.apache.org/jira/browse/IOTDB-6350
+// 执行where结合in 条件查询时，null值没有过滤掉
+
+--0. 清理数据
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建数据库，对齐时间序列
+CREATE DATABASE root.testNullFilter;
+CREATE ALIGNED TIMESERIES root.testNullFilter.d2(s1 INT32, s2 BOOLEAN, s3 DOUBLE);
+
+--2. 插入数据
+INSERT INTO root.testNullFilter.d2(timestamp,s2,s3) values(1, false, 11.1);
+INSERT INTO root.testNullFilter.d2(timestamp,s1,s2) values(2, 22, true);
+INSERT INTO root.testNullFilter.d2(timestamp,s1,s2) values(3, 22, false);
+
+--3. 执行查询
+select * from root.testNullFilter.d2;
+select * from root.testNullFilter.d2 where s1 in (22, 23);
+
+
+--4. 清理数据
+delete database root.**;
+<<NULL;

@@ -1,0 +1,156 @@
+// 比较谓词
+
+connect root/TimechoDB@2021;
+--0.清理数据: 删除数据库 
+drop database test_db;
+<<NULL;
+
+
+--1. 创建数据库
+create database test_db;
+
+
+--2. 指定数据库
+use test_db;
+
+
+--3. 创建表 t1
+create table t1
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "boolean" BOOLEAN,
+    "text" TEXT,
+    "string" STRING,
+    "blob" BLOB,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+
+--4. 写入数据
+INSERT INTO t1(time,device,type,int32,int64,double,float,boolean,text,string,blob,timestamp,date) values
+(1,'d1','t1',null,111111111111,1.1111111,1.11,0,'1.11','1.11',X'10F447',1,'1970-01-01'),
+(2,'d2','t2',222,null,2.2222222,2.22,1,'2.22','2.22',X'21E88E',2,'1970-01-02'),
+(3,'d3','t3',333,333333333333,null,3.33,0,'3.33','3.33',X'32DCD5',3,'1970-01-03'),
+(4,'d4','t4',444,444444444444,4.4444444,null,1,'4.44','4.44',X'42DCD5',4,'1970-01-04'),
+(5,'d5','t5',555,555555555555,5.5555555,5.55,null,'5.55','5.55',X'52DCD5',5,'1970-01-05'),
+(6,'d6','t6',666,666666666666,6.6666666,6.66,1,null,'6.66',X'62DCD5',6,'1970-01-06'),
+(7,'d7','t7',777,777777777777,7.7777777,7.77,0,'7.77',null,X'72DCD5',7,'1970-01-07'),
+(8,'d8','t8',888,888888888888,8.8888888,8.88,1,'8.88','8.88',null,8,'1970-01-08'),
+(9,'d9','t9',999,999999999999,9.9999999,9.99,0,'9.99','9.99',X'92DCD5',null,'1970-01-09'),
+(10,'d10','t10',1000,1000000000000,10.0000001,10.01,1,'10.01','10.01',X'102DCD62',11,null);
+
+
+--5-1. 查询 -> 比较谓词: [not] between and
+-- between
+select int32 from t1 where int32 between 300 and 700 order by time;
+select int64 from t1 where int64 between 300000000000 and 700000000000 order by time;
+select double from t1 where double between 3.33 and 8.89 order by time;
+select float from t1 where float between 3.33 and 8.88 order by time;
+select boolean from t1 where boolean between false and true order by time;
+select text from t1 where text between '2.22' and '4.44' order by time;
+select string from t1 where string between '2.22' and '4.44' order by time;
+select blob from t1 where blob between X'32DCD5' and X'62DCD5' order by time;
+select timestamp from t1 where timestamp between 1 and 3 order by time;
+select date from t1 where date between CAST('1970-01-03' as DATE) and CAST('1970-01-06' as DATE) order by time;
+select boolean from t1 where boolean between 0 and 1 order by time;
+<<SQLSTATE;
+-- not between
+select int32 from t1 where int32 not between 300 and 700 order by time;
+select int64 from t1 where int64 not between 300000000000 and 700000000000 order by time;
+select double from t1 where double not between 3.33 and 8.89 order by time;
+select float from t1 where float not between 3.33 and 8.88 order by time;
+select boolean from t1 where boolean not between false and true order by time;
+select text from t1 where text not between '1.11' and '4.44' order by time;
+select string from t1 where string not between '2.22' and '4.44' order by time;
+select blob from t1 where blob between X'32DCD5' and X'62DCD5' order by time;
+select blob from t1 where blob not between X'32DCD5' and X'62DCD5' order by time;
+select timestamp from t1 where timestamp not between 1 and 3 order by time;
+select date from t1 where date not between CAST('1970-01-03' as DATE) and CAST('1970-01-06' as DATE) order by time;
+select boolean from t1 where not boolean between 0 and 1 order by time;
+<<SQLSTATE;
+-- offset + limit
+select * from t1 where int32 between 222 and 666 order by time;
+select * from t1 where int32 between 222 and 666 order by time limit 3;
+select * from t1 where int32 between 222 and 666 order by time offset 2 limit 3;
+
+
+--5-2. 查询 -> 比较谓词: is [not] null
+-- null
+select * from t1 where int32 is null order by time;
+select * from t1 where int64 is null order by time;
+select * from t1 where double is null order by time;
+select * from t1 where float is null order by time;
+select * from t1 where boolean is null order by time;
+select * from t1 where text is null order by time;
+select * from t1 where string is null order by time;
+select * from t1 where blob is null order by time;
+select * from t1 where timestamp is null order by time;
+select * from t1 where date is null order by time;
+-- not null
+select * from t1 where int32 is not null order by time;
+select * from t1 where int64 is not null order by time;
+select * from t1 where double is not null order by time;
+select * from t1 where float is not null order by time;
+select * from t1 where boolean is not null order by time;
+select * from t1 where text is not null order by time;
+select * from t1 where string is not null order by time;
+select * from t1 where blob is not null order by time;
+select * from t1 where timestamp is not null order by time;
+select * from t1 where date is not null order by time;
+-- offset + limit
+select * from t1 where int32 is null order by time limit 3;
+select * from t1 where int32 is not null order by time limit 3;
+select * from t1 where int32 is null order by time offset 2 limit 3;
+select * from t1 where int32 is not null order by time offset 2 limit 3;
+select * from t1 where int32 is null and int64 = 555555555555 order by time;
+select * from t1 where int32 is not null and int64 = 555555555555 order by time;
+
+
+--5-3. 查询 -> 比较谓词: [not] in
+-- in
+select * from t1 where int32 in (222,333,444) order by time;
+select * from t1 where int64 in (111111111111,333333333333,444444444444) order by time;
+select * from t1 where double in (1.1111111,2.2222222,4.4444444) order by time;
+select * from t1 where float in (1.11,2.22,3.33) order by time;
+select * from t1 where boolean in (true,false) order by time;
+select * from t1 where text in ('1.11','2.22','3.33') order by time;
+select * from t1 where string in ('1.11','2.22','3.33') order by time;
+select * from t1 where blob in (X'10F447',X'21E88E',X'32DCD5') order by time;
+select * from t1 where timestamp in (1,2,3) order by time;
+select * from t1 where date in ('1970-01-03','1970-01-04','1970-01-05') order by time;
+<<SQLSTATE;
+select date from t1 where date in (CAST('1970-01-03' as DATE),CAST('1970-01-04' as DATE)) order by time;
+-- not in
+select * from t1 where int32 not in (222,333,444) order by time;
+select * from t1 where int64 not in (111111111111,333333333333,444444444444) order by time;
+select * from t1 where double not in (1.1111111,2.2222222,4.4444444) order by time;
+select * from t1 where float not in (1.11,2.22,3.33) order by time;
+select * from t1 where boolean not in (true,false) order by time;
+select * from t1 where text not in ('1.11','2.22','3.33') order by time;
+select * from t1 where string not in ('1.11','2.22','3.33') order by time;
+select * from t1 where blob not in (X'10F447',X'21E88E',X'32DCD5') order by time;
+select * from t1 where timestamp not in (1,2,3) order by time;
+select * from t1 where date not in ('1970-01-03','1970-01-04','1970-01-05') order by time;
+<<SQLSTATE;
+select date from t1 where date not in (CAST('1970-01-03' as DATE),CAST('1970-01-04' as DATE)) order by time;
+-- offset + limit
+select * from t1 where int64 in (111111111111,333333333333,444444444444) order by time limit 3;
+select * from t1 where int64 not in (111111111111,333333333333,444444444444) order by time limit 3;
+select * from t1 where int64 in (111111111111,333333333333,444444444444) order by time offset 2 limit 3;
+select * from t1 where int64 not in (111111111111,333333333333,444444444444) order by time offset 2 limit 3;
+
+
+--5.4 复合sql补充
+select int32 from t1 where int32 in (9000-8000) order by time;
+select int32 from t1 where int32 between int32-100 and int32+100 order by int32;
+
+
+--6. 清理数据: 删除数据库 
+drop database test_db;
+<<NULL;

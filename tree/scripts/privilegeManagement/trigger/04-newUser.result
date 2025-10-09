@@ -1,0 +1,118 @@
+-- [1]22:CREATE USER user_01 'pass123456789'
+STRICT{
+PASS
+}
+
+-- [1]23:LIST PRIVILEGES OF USER user_01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]24:CREATE USER user_02 'pass123456789'
+STRICT{
+PASS
+}
+-- [1]27:create database root.triggertest
+STRICT{
+PASS
+}
+-- [1]28:create database root.ln
+STRICT{
+PASS
+}
+-- [1]31:CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=LZ4
+STRICT{
+PASS
+}
+-- [1]32:CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=GORILLA, compression=snappy
+STRICT{
+PASS
+}
+-- [1]33:create aligned timeseries root.ln.alerting(alert_content text, table_name text)
+STRICT{
+PASS
+}
+-- [1]34:insert into root.triggertest.d1(time, s1,s2) values (1, 32, 53)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.58
+-- [1]47:CREATE STATELESS TRIGGER `stateless02` AFTER INSERT ON root.triggertest.** AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass123456789',   'lo' = '30',   'hi' = '45.5' )
+STRICT{
+PASS
+}
+
+-- [1]54:LIST PRIVILEGES OF USER user_02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+-- [1]68:CREATE STATELESS TRIGGER `stateless01` AFTER INSERT ON root.triggertest.*.s1 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass123456789',   'lo' = '30',   'hi' = '45.5' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]80:CREATE STATEful TRIGGER `stateful-02` BEFORE INSERT ON root.triggertest.*.s2 AS 'org.example.DoubleValueMonitor' WITH (   'remote_ip'='127.0.0.1',   'user'='user_01',   'password' = 'pass123456789',   'lo' = '10',   'hi' = '15.5' )
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]82:show triggers
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]85:drop trigger stateless02
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+-- [1]91:insert into root.triggertest.d1(time, s1) values (1, 24)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.triggertest.d1.s1]
+}
+-- [1]94:insert into root.triggertest.d1(time, s2) values (1, 13)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.triggertest.d1.s2]
+}
+
+-- [1]99:select count(*) from root.ln.alerting
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]101:select * from root.triggertest.d1
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]106:select s1,s2 into root.triggertest.new_d1(s1,s2) from root.triggertest.d1
+STRICT{
+SourceColumn(TEXT)      |TargetTimeseries(TEXT)      |Written(INT64)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0
+
+-- [1]108:select * from root.triggertest.new_d1
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]110:select * from root.triggertest.** align by device
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.0

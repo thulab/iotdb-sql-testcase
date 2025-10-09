@@ -1,0 +1,104 @@
+//数据库管理：MANAGE_DATABASE
+//create/delete database
+//允许用户创建、删除数据库
+
+
+--0.清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
+
+--1.root用户创建数据库
+create database root.root_db;
+
+--2.查看数据库
+show databases;
+
+--3.创建普通用户
+CREATE USER user01 'pass123456789';
+CREATE USER user02 'pass123456789';
+CREATE USER user03 'pass123456789';
+
+--4.列出用户列表
+list user;
+<<CHECKCODE;
+
+--5.检查用户是否有privilege存在（列出用户所有权限）
+LIST PRIVILEGES OF USER `user01`;
+LIST PRIVILEGES OF USER `user02`;
+LIST PRIVILEGES OF USER `user03`;
+
+--6.赋予普通用户数据库管理权限（SYSTEM）
+grant system on root.** to user user01;
+grant system on root.sg.** TO USER user02;
+<<SQLSTATE;
+GRANT SYSTEM ON root.** TO USER user02 with grant option;
+
+--7.列出普通用户所有权限
+LIST PRIVILEGES OF USER `user01`;
+LIST PRIVILEGES OF USER `user02`;
+
+--8.user01登录
+--8.1 manage_database支持的操作
+connect user01/pass123456789;
+show version;
+<<CHECKCODE;
+create database root.user01_db;
+create database root.qwertyuiop.Y1234567890.qwertyuiop.P1234567890.qwertyuiop.M1234567890.qwertyuiop;
+<<SQLSTATE;
+create database root.qwertyuiop.Y1234567890.qwertyuiop.P1234567890.qwertyuiop.M1;
+show databases;
+show devices;
+show timeseries;
+show all ttl;
+delete database root.user01_db;
+--8.2 manage_database不支持的操作
+create timeseries root.user01_db.d1.s1 with datatype=INT32;
+<<SQLSTATE;
+insert into root.user01_db.d1(time,s1) values(1,1);
+<<SQLSTATE;
+
+--9.user02登录
+--9.1 manage_database可支持的操作
+connect user02/pass123456789;
+show version;
+<<CHECKCODE;
+GRANT SYSTEM ON root.** TO USER user03;
+create database root.user02_db;
+delete database root.user02_db;
+revoke system on root.** from user user02;
+--9.2 manage_database不支持的操作
+create timeseries root.user02_db.d1.s1 with datatype=INT32;
+<<SQLSTATE;
+insert into root.user02_db.d1(time,s1) values(1,1);
+<<SQLSTATE;
+
+--10.user03登录
+connect user03/pass123456789;
+show version;
+<<CHECKCODE;
+create database root.user03_db;
+delete database root.user03_db;
+
+--11.root取消权限
+connect root/TimechoDB@2021;
+LIST PRIVILEGES OF USER `user01`;
+revoke system on root.** from user user01;
+LIST PRIVILEGES OF USER `user01`;
+
+--12.清理环境
+connect root/TimechoDB@2021;
+DROP USER user01;
+<<NULL;
+DROP USER user02;
+<<NULL;
+DROP USER user03;
+<<NULL;
+DELETE DATABASE root.**;
+<<NULL;
