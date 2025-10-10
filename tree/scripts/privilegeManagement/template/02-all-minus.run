@@ -10,6 +10,8 @@ drop database root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
+drop schema template t2;
+<<NULL;
 DROP USER user_all_minus;
 <<NULL;
 
@@ -41,13 +43,13 @@ list privileges of user user_all_minus;
 -- 仅root拥有权限
 -- 查看所有模版
 show schema templates;
-<<SQLSTATE;
+
 -- 查看模版下定义的序列列表
 show nodes in schema template t1;
-<<SQLSTATE;
+
 -- 查看挂载的节点
 show paths set schema template t1;
-<<SQLSTATE;
+
 -- 挂载
 set schema template t1 to root.sg1;
 <<SQLSTATE;
@@ -56,14 +58,14 @@ unset schema template t1 from root.sg;
 <<SQLSTATE;
 -- 创建模版
 create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
+
 -- 删除模版
 drop schema template t1;
 <<SQLSTATE;
 -- 修改模版
 show timeseries root.sg.**;
 alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
-<<SQLSTATE;
+
 show timeseries root.sg.**;
 
 -- write 权限
@@ -147,8 +149,8 @@ select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from r
 
 
 
-// 3. revoke extend_template 权限
-REVOKE extend_template ON root.** FROM USER user_all_minus;
+// 3. revoke system 权限
+REVOKE SYSTEM ON root.** FROM USER user_all_minus;
 LIST PRIVILEGES OF USER user_all_minus;
 
 -- write 权限
@@ -239,7 +241,7 @@ show child nodes root.sg.d1;
 select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device;
 
 show version;
-<<CHECKCODE;
+<<SQLSTATE;
 
 connect root/TimechoDB@2021;
 -- 清理
