@@ -1,53 +1,53 @@
--- [1]8:CREATE USER user_01 'pass123456789'
+-- [1]16:CREATE USER user_01 'pass123456789'
 STRICT{
 PASS
 }
--- [1]9:GRANT extend_template ON root.** TO USER user_01
+-- [1]17:GRANT system ON root.** TO USER user_01
 STRICT{
 PASS
 }
 
--- [1]10:LIST PRIVILEGES OF USER user_01
+-- [1]18:LIST PRIVILEGES OF USER user_01
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
-                |                 |EXTEND_TEMPLATE       |false                     |
+                |                 |SYSTEM                |false                     |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]13:create database root.sg
+Elapsed Time: 0.0.14
+-- [1]21:create database root.sg
 STRICT{
 PASS
 }
--- [1]14:create database root.sg1
+-- [1]22:create database root.sg1
 STRICT{
 PASS
 }
--- [1]17:create schema template t1 (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
+-- [1]25:create schema template t1 (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
--- [1]19:set schema template t1 to root.sg
+-- [1]27:set schema template t1 to root.sg
 STRICT{
 PASS
 }
--- [1]20:set schema template t1 to root.sg1
+-- [1]28:set schema template t1 to root.sg1
 STRICT{
 PASS
 }
--- [1]22:create timeseries of schema template on root.sg.d1
+-- [1]30:create timeseries of schema template on root.sg.d1
 STRICT{
 PASS
 }
--- [1]23:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
+-- [1]31:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
 
-Elapsed Time: 0.0.47
+Elapsed Time: 0.0.118
 
--- [1]26:show nodes in schema template t1
+-- [1]34:show nodes in schema template t1
 STRICT{
 ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
 -------------------------------------------------------------------------------------
@@ -63,9 +63,9 @@ s_lon                 |FLOAT               |GORILLA             |LZ4            
 总数目：5
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]27:select start_time,s_lat,s_status,s_name,s_lon from root.sg.** align by device
+-- [1]35:select start_time,s_lat,s_status,s_name,s_lon from root.sg.** align by device
 STRICT{
 Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)      |s_status(BOOLEAN)      |s_name(TEXT)      |s_lon(FLOAT)      |
 -------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,111 +73,29 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)   
 总数目：1
 }
 
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.13
 
--- [1]32:LIST PRIVILEGES OF USER user_01
+-- [1]40:LIST PRIVILEGES OF USER user_01
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
-                |                 |EXTEND_TEMPLATE       |false                     |
+                |                 |SYSTEM                |false                     |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
--- [1]35:show schema templates
+Elapsed Time: 0.0.2
+
+-- [1]43:show schema templates
 STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]38:show nodes in schema template t1
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]41:show paths set schema template t1
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]44:set schema template t1 to root.sg2
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]47:unset schema template t1 from root.sg
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]50:create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]53:drop schema template t1
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]56:alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
-STRICT{
-SQLSTATE : 803: Only the admin user can perform this operation
-}
--- [1]62:create timeseries of schema template on root.sg.d2
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d2.start_time, root.sg.d2.s_lat, root.sg.d2.s_status, root.sg.d2.s_name, root.sg.d2.s_lon]
-}
--- [1]64:create timeseries using schema template on root.sg.d3
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon]
-}
--- [1]67:deactivate schema template t1 from root.sg.d1
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d1.start_time, root.sg.d1.s_lat, root.sg.d1.s_status, root.sg.d1.s_name, root.sg.d1.s_lon]
-}
--- [1]70:insert into root.sg.d4(time, s_name, s_status, s_lat, s_lon) values (11, 'brown', true, 23.5, 1435.11)
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d4.s_name, root.sg.d4.s_status, root.sg.d4.s_lat, root.sg.d4.s_lon]
-}
--- [1]73:insert into root.sg1.d4(time, s_name, s_status, s_lat, s_lon) values (12, 'brown', true, 213.5, 185.11)
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg1.d4.s_name, root.sg1.d4.s_status, root.sg1.d4.s_lat, root.sg1.d4.s_lon]
-}
--- [1]78:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_name, root.sg.d1.s_status, root.sg.d1.start_time, root.sg.d1.s_lat, root.sg.d1.s_lon]
-}
--- [1]82:insert into root.sg.d1(time, s_lon2) values (1, 109.36)
-STRICT{
-SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_lon2]
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+总数目：1
 }
 
--- [1]87:show child nodes root.sg.d1
-STRICT{
-ChildNodes(TEXT)      |
-总数目：0
-}
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
-
--- [1]89:show paths using schema template t1
-STRICT{
-Paths(TEXT)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
-
--- [1]92:select * from root.sg.** align by device
-STRICT{
-Time(TIMESTAMP)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
-
--- [1]93:select * from root.sg.**
-STRICT{
-Time(TIMESTAMP)      |
-总数目：0
-}
-
-Elapsed Time: 0.0.1
-
--- [1]99:show nodes in schema template t1
+-- [1]46:show nodes in schema template t1
 STRICT{
 ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
 -------------------------------------------------------------------------------------
@@ -194,3 +112,119 @@ s_lon                 |FLOAT               |GORILLA             |LZ4            
 }
 
 Elapsed Time: 0.0.1
+
+-- [1]49:show paths set schema template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.sg          |
+-----------------
+root.sg1         |
+总数目：2
+}
+
+Elapsed Time: 0.0.1
+-- [1]52:set schema template t1 to root.sg2
+STRICT{
+SQLSTATE : 500: Database is not set for current seriesPath: [root.sg2]
+}
+-- [1]55:unset schema template t1 from root.sg
+STRICT{
+SQLSTATE : 515: Template is in use on root.sg
+}
+-- [1]58:create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
+STRICT{
+PASS
+}
+-- [1]61:drop schema template t1
+STRICT{
+SQLSTATE : 507: Template [t1] has been set on MTree, cannot be dropped now.
+}
+-- [1]64:alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
+STRICT{
+0
+}
+
+Elapsed Time: 0.0.4
+-- [1]69:create timeseries of schema template on root.sg.d2
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d2.start_time, root.sg.d2.s_lat, root.sg.d2.FLOAT, root.sg.d2.s_speed, root.sg.d2.s_status, root.sg.d2.s_name, root.sg.d2.s_lon]
+}
+-- [1]71:create timeseries using schema template on root.sg.d3
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon]
+}
+-- [1]74:deactivate schema template t1 from root.sg.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d1.start_time, root.sg.d1.s_lat, root.sg.d1.FLOAT, root.sg.d1.s_speed, root.sg.d1.s_status, root.sg.d1.s_name, root.sg.d1.s_lon]
+}
+-- [1]77:insert into root.sg.d4(time, s_name, s_status, s_lat, s_lon) values (11, 'brown', true, 23.5, 1435.11)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d4.s_name, root.sg.d4.s_status, root.sg.d4.s_lat, root.sg.d4.s_lon]
+}
+-- [1]80:insert into root.sg1.d4(time, s_name, s_status, s_lat, s_lon) values (12, 'brown', true, 213.5, 185.11)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg1.d4.s_name, root.sg1.d4.s_status, root.sg1.d4.s_lat, root.sg1.d4.s_lon]
+}
+-- [1]85:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_name, root.sg.d1.s_status, root.sg.d1.start_time, root.sg.d1.s_lat, root.sg.d1.s_lon]
+}
+-- [1]89:insert into root.sg.d1(time, s_lon2) values (1, 109.36)
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_lon2]
+}
+
+-- [1]94:show child nodes root.sg.d1
+STRICT{
+ChildNodes(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]96:show paths using schema template t1
+STRICT{
+Paths(TEXT)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.4
+
+-- [1]99:select * from root.sg.** align by device
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.2
+
+-- [1]100:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+
+Elapsed Time: 0.0.1
+
+-- [1]106:show nodes in schema template t1
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+start_time            |INT64               |TS_2DIFF            |LZ4                    |
+-------------------------------------------------------------------------------------
+s_lat                 |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+FLOAT                 |TEXT                |PLAIN               |SNAPPY                 |
+-------------------------------------------------------------------------------------
+s_speed               |DOUBLE              |RLE                 |LZ4                    |
+-------------------------------------------------------------------------------------
+s_status              |BOOLEAN             |RLE                 |LZ4                    |
+-------------------------------------------------------------------------------------
+s_name                |TEXT                |PLAIN               |LZ4                    |
+-------------------------------------------------------------------------------------
+s_lon                 |FLOAT               |GORILLA             |LZ4                    |
+总数目：7
+}
+
+Elapsed Time: 0.0.2
