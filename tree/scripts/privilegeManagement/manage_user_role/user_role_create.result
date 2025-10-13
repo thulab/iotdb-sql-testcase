@@ -12,7 +12,7 @@ PASS
 }
 -- [1]23:CREATE USER root 'pass123456789'
 STRICT{
-SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input 'root' expecting {ID, QUOTED_ID}
+SQLSTATE : 803: Access Denied: Cannot create user has same name with admin user
 }
 -- [1]25:CREATE ROLE same
 STRICT{
@@ -28,24 +28,24 @@ PASS
 }
 -- [1]28:CREATE ROLE `root`
 STRICT{
-SQLSTATE : 803: Cannot create role has same name with admin user
+SQLSTATE : 803: Access Denied: Cannot create role has same name with admin user
 }
 
 -- [1]32:LIST USER
 STRICT{
-User(TEXT)      |
-----------------
-role            |
-----------------
-root            |
-----------------
-same            |
-----------------
-user            |
+UserId(INT64)      |User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+-----------------------------------------------------------------------------------------------
+0                  |root            |-1                            |-1                            |
+-----------------------------------------------------------------------------------------------
+10000              |same            |-1                            |-1                            |
+-----------------------------------------------------------------------------------------------
+10001              |user            |-1                            |-1                            |
+-----------------------------------------------------------------------------------------------
+10002              |role            |-1                            |-1                            |
 总数目：4
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.38
 
 -- [1]33:LIST ROLE
 STRICT{
@@ -59,7 +59,7 @@ user            |
 总数目：3
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.4
 -- [1]36:GRANT ROLE `same` TO `same`
 STRICT{
 PASS
@@ -77,7 +77,7 @@ same            |
 总数目：1
 }
 
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.9
 
 -- [1]41:LIST ROLE OF USER role
 STRICT{
@@ -87,24 +87,24 @@ role            |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.5
 
 -- [1]44:LIST USER OF ROLE same
 STRICT{
-User(TEXT)      |
-----------------
-same            |
+UserId(INT64)      |User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+-----------------------------------------------------------------------------------------------
+10000              |same            |-1                            |-1                            |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.3
 
 -- [1]45:LIST USER OF ROLE role
 STRICT{
-User(TEXT)      |
-----------------
-role            |
+UserId(INT64)      |User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+-----------------------------------------------------------------------------------------------
+10002              |role            |-1                            |-1                            |
 总数目：1
 }
 
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
