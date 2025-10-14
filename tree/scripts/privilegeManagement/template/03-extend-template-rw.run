@@ -11,6 +11,8 @@ drop database root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
+drop schema template t2;
+<<NULL;
 DROP USER user_extend_base;
 <<NULL;
 DROP USER user_trans;
@@ -20,7 +22,7 @@ DROP USER user_trans;
 // 1. grant extend_template, read, write to user_extend_base with grant option, 使用user_extend_base操作
 -- 创建用户并授权
 CREATE USER user_extend_base 'pass123456789';
-GRANT extend_template ON root.** TO USER user_extend_base with grant option;
+GRANT system ON root.** TO USER user_extend_base with grant option;
 GRANT read,write ON root.sg.** TO USER user_extend_base with grant option;
 LIST PRIVILEGES OF USER user_extend_base;
 
@@ -46,7 +48,7 @@ show nodes in schema template t1;
 
 // 2. grant extend_template to user_trans
 connect user_extend_base/pass123456789;
-grant extend_template on root.** to user user_trans;
+grant system on root.** to user user_trans;
 
 connect user_trans/pass123456789;
 LIST PRIVILEGES OF USER user_trans;
@@ -222,13 +224,13 @@ select * from root.sg.**;
 -- 仅root拥有权限
 -- 查看所有模版
 show schema templates;
-<<SQLSTATE;
+
 -- 查看模版下定义的序列列表
 show nodes in schema template t1;
-<<SQLSTATE;
+
 -- 查看挂载的节点
 show paths set schema template t1;
-<<SQLSTATE;
+
 -- 挂载
 set schema template t1 to root.sg2;
 <<SQLSTATE;
@@ -237,14 +239,14 @@ unset schema template t1 from root.sg;
 <<SQLSTATE;
 -- 创建模版
 create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
+
 -- 删除模版
 drop schema template t1;
 <<SQLSTATE;
 -- 修改模版
 show timeseries;
 alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
-<<SQLSTATE;
+
 show timeseries;
 
 
