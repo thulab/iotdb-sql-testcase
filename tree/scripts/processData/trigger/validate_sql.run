@@ -18,6 +18,7 @@ connect root/TimechoDB@2021;
 set configuration "trusted_uri_pattern"='.*';
 -- 清理
 drop database root.**;<<NULL;
+DROP TRIGGER empty-jar;<<NULL;
 sleep 2000;
 -- 1.1 名称校验：异常
 -- 纯数字
@@ -138,6 +139,7 @@ with ('remote_ip'='127.0.0.1');
 
 CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
+<<SQLSTATE;
 sleep 500;
 -- 2条 defaut lo=50 hi=100
 select count(*) from root.ln.alerting;
@@ -193,7 +195,7 @@ WITH (
 CREATE DATABASE root.triggertest;<<NULL;
 CREATE TIMESERIES root.triggertest.d1.s1 WITH DATATYPE=double, ENCODING=PLAIN;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10),(7,12),(8,14),(9,160),(10,null),(11,58);
-
+<<SQLSTATE;
 sleep 500;
 -- 2条
 select count(*) from root.ln.alerting;
@@ -453,7 +455,8 @@ AFTER INSERT
 ON root.triggertest.d1.s1
 AS 'com.timecho.test.ExceptionTrigger';
 
-insert into root.triggertest.d1(time, s1) values (1, 2);<<SQLSTATE;
+insert into root.triggertest.d1(time, s1) values (1, 2);
+<<SQLSTATE;
 
 drop trigger getFailureStrategy;
 
