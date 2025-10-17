@@ -1,15 +1,19 @@
+
 -- [1]39:create aligned timeseries root.sg.d1(s1 float encoding=rle, s2 int64 encoding=rle)
 STRICT{
 PASS
 }
+
 -- [1]42:create timeseries root.sg.d2.s1 with datatype=int32,encoding=rle
 STRICT{
 PASS
 }
+
 -- [1]43:create timeseries root.sg.d2.s2 with datatype=int32,encoding=rle
 STRICT{
 PASS
 }
+
 -- [1]46:create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
 STRICT{
 PASS
@@ -22,8 +26,7 @@ TemplateName(TEXT)      |
 t1                      |
 总数目：1
 }
-
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.13
 
 -- [1]48:show nodes in device template t1
 STRICT{
@@ -34,8 +37,8 @@ temperature           |FLOAT               |GORILLA             |LZ4            
 status                |BOOLEAN             |PLAIN               |LZ4                    |
 总数目：2
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.9
 -- [1]49:set device template t1 to root.sg.aligned_template
 STRICT{
 PASS
@@ -49,8 +52,8 @@ root.sg.aligned_t|
 emplate          |
 总数目：1
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.13
 -- [1]51:create timeseries using device template on root.sg.aligned_template
 STRICT{
 PASS
@@ -64,8 +67,8 @@ root.sg.aligned_t|
 emplate          |
 总数目：1
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.7
 -- [1]55:create device template t2(temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
 STRICT{
 PASS
@@ -80,7 +83,6 @@ t1                      |
 t2                      |
 总数目：2
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]57:show nodes in device template t2
@@ -92,8 +94,8 @@ temperature           |FLOAT               |GORILLA             |LZ4            
 status                |BOOLEAN             |PLAIN               |LZ4                    |
 总数目：2
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]58:set device template t2 to root.sg.nonaligned_template
 STRICT{
 PASS
@@ -107,8 +109,8 @@ root.sg.nonaligne|
 d_template       |
 总数目：1
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]60:create timeseries using device template on root.sg.nonaligned_template
 STRICT{
 PASS
@@ -122,12 +124,13 @@ root.sg.nonaligne|
 d_template       |
 总数目：1
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.4
 -- [1]64:create view root.sg.view_d1.calculation as select (s1+s2)/2 from root.sg.d1
 STRICT{
 PASS
 }
+
 -- [1]65:create view root.sg.view_d2.calculation as select sin(s1*s2) from root.sg.d2
 STRICT{
 PASS
@@ -142,8 +145,7 @@ root.__audit        |1                                   |1                     
 root.sg             |1                                   |1                                 |0                               |604800000                         |
 总数目：2
 }
-
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.1
 
 -- [1]69:show devices root.sg.**
 STRICT{
@@ -164,8 +166,7 @@ root.sg.d1        |true                 |null                |INF               
 root.sg.d2        |false                |null                |INF                |
 总数目：6
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
 -- [1]70:show timeseries root.sg.**
 STRICT{
@@ -198,67 +199,79 @@ root.sg.view_d2.calcul|null             |root.sg             |DOUBLE            
 ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：10
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.10
 -- [1]73:insert into root.sg.d1(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
 STRICT{
 0
 }
+Elapsed Time: 0.0.49
 
-Elapsed Time: 0.1.424
 -- [1]74:insert into root.sg.d2(time,s1,s2) values(1,1,1),(2,2,2),(3,3,3)
 STRICT{
 0
 }
+Elapsed Time: 0.0.77
 
-Elapsed Time: 0.0.60
 -- [1]75:insert into root.sg.aligned_template(time,temperature,status) values(1,20,false),(2,22.1,true),(3,18,false)
 STRICT{
 0
 }
+Elapsed Time: 0.0.6
 
-Elapsed Time: 0.0.8
 -- [1]76:insert into root.sg.nonaligned_template(time,temperature,status) values(1,10.5,false),(2,0.1,true),(3,22.2,false)
 STRICT{
 0
 }
+Elapsed Time: 0.0.5
 
-Elapsed Time: 0.0.9
 -- [1]80:CREATE USER user01 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]81:CREATE USER user02 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]82:CREATE USER user03 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]83:CREATE ROLE teacher
 STRICT{
 PASS
 }
+
 -- [1]86:LIST USER
 STRICT{
-PASS
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user03          |-1                            |-1                            |
+总数目：4
 }
+Elapsed Time: 0.0.2
 
 -- [1]88:LIST PRIVILEGES OF USER `user01`
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]89:LIST PRIVILEGES OF USER `user02`
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]90:LIST PRIVILEGES OF USER `user03`
@@ -266,7 +279,6 @@ STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]93:LIST PRIVILEGES OF ROLE `teacher`
@@ -274,28 +286,42 @@ STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]96:GRANT ALL ON root.** TO USER user01
 STRICT{
 PASS
 }
+
 -- [1]97:GRANT ALL ON root.sg.d1.** TO USER user02 with grant option
 STRICT{
 SQLSTATE : 701: [ALL] can only be set on path: root.**
 }
+
 -- [1]99:GRANT ALL ON root.** TO USER user02 with grant option
 STRICT{
 PASS
 }
+
 -- [1]100:GRANT ALL ON root.** TO ROLE teacher
 STRICT{
 PASS
 }
+
 -- [1]103:LIST USER
 STRICT{
-PASS
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user03          |-1                            |-1                            |
+总数目：4
 }
+Elapsed Time: 0.0.1
 
 -- [1]105:LIST PRIVILEGES OF USER `user01`
 STRICT{
@@ -316,8 +342,7 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]106:LIST PRIVILEGES OF USER `user02`
 STRICT{
@@ -338,7 +363,6 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]107:LIST PRIVILEGES OF ROLE `teacher`
@@ -360,18 +384,18 @@ teacher         |root.**          |READ_SCHEMA           |false                 
 teacher         |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]110:show version
 STRICT{
 PASS
 }
+
 -- [1]113:alter user `user01` SET PASSWORD '123456789012'
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.17
+Elapsed Time: 0.0.15
 
 -- [1]115:list privileges of user user01
 STRICT{
@@ -392,16 +416,30 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]116:create user user01_user 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]117:list user
 STRICT{
-PASS
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user03          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user01_user     |-1                            |-1                            |
+总数目：5
 }
+Elapsed Time: 0.0.1
+
 -- [1]119:create role student
 STRICT{
 PASS
@@ -416,24 +454,33 @@ student         |
 teacher         |
 总数目：2
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]121:grant role teacher to user01_user
 STRICT{
 PASS
 }
+
 -- [1]122:grant role teacher to user01
 STRICT{
 PASS
 }
+
 -- [1]123:grant role student to user02
 STRICT{
 PASS
 }
+
 -- [1]124:list user of role teacher
 STRICT{
-PASS
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user01_user     |-1                            |-1                            |
+总数目：2
 }
+Elapsed Time: 0.0.2
 
 -- [1]126:list role of user user01
 STRICT{
@@ -442,7 +489,6 @@ Role(TEXT)      |
 teacher         |
 总数目：1
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]127:list role of user user02
@@ -452,8 +498,7 @@ Role(TEXT)      |
 student         |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]128:list privileges of user user02
 STRICT{
@@ -474,7 +519,6 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]129:list privileges of user root
@@ -496,7 +540,6 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]130:list privileges of role teacher
@@ -518,12 +561,13 @@ teacher         |root.**          |READ_SCHEMA           |false                 
 teacher         |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
+Elapsed Time: 0.0.0
 
-Elapsed Time: 0.0.1
 -- [1]132:REVOKE ROLE teacher FROM  user01
 STRICT{
 PASS
 }
+
 -- [1]132:grant all on root.** to role student
 STRICT{
 PASS
@@ -548,20 +592,33 @@ student         |root.**          |READ_SCHEMA           |false                 
 student         |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]134:revoke all on root.** from role student
 STRICT{
 PASS
 }
+
 -- [1]135:drop user user01_user
 STRICT{
 PASS
 }
+
 -- [1]136:list user
 STRICT{
-PASS
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user03          |-1                            |-1                            |
+总数目：4
 }
+Elapsed Time: 0.0.1
+
 -- [1]138:drop role student
 STRICT{
 PASS
@@ -574,8 +631,8 @@ Role(TEXT)      |
 teacher         |
 总数目：1
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]141:create database root.test.g_0
 STRICT{
 PASS
@@ -592,13 +649,12 @@ root.sg             |1                                   |1                     
 root.test.g_0       |1                                   |1                                 |0                               |604800000                         |
 总数目：3
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]143:delete database root.test.g_0
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.12
 
 -- [1]144:show databases
@@ -610,8 +666,7 @@ root.__audit        |1                                   |1                     
 root.sg             |1                                   |1                                 |0                               |604800000                         |
 总数目：2
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]146:show databases
 STRICT{
@@ -622,8 +677,7 @@ root.__audit        |1                                   |1                     
 root.sg             |1                                   |1                                 |0                               |604800000                         |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
 -- [1]147:count databases
 STRICT{
@@ -632,8 +686,7 @@ count(INT32)      |
 2                 |
 总数目：1
 }
-
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.1
 
 -- [1]148:show child paths root.sg.**
 STRICT{
@@ -654,8 +707,7 @@ root.sg.view_d2.calcul|TIMESERIES           |
 ation                 |                     |
 总数目：6
 }
-
-Elapsed Time: 0.0.21
+Elapsed Time: 0.0.3
 
 -- [1]149:show child nodes root.sg.**
 STRICT{
@@ -674,8 +726,7 @@ calculation           |
 calculation           |
 总数目：6
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
 
 -- [1]150:show devices root.sg.**
 STRICT{
@@ -696,8 +747,7 @@ root.sg.d1        |true                 |null                |INF               
 root.sg.d2        |false                |null                |INF                |
 总数目：6
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
 -- [1]151:count devices
 STRICT{
@@ -706,8 +756,7 @@ count(devices)(INT64)      |
 10                         |
 总数目：1
 }
-
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.3
 
 -- [1]152:show timeseries root.sg.**
 STRICT{
@@ -740,8 +789,7 @@ root.sg.view_d2.calcul|null             |root.sg             |DOUBLE            
 ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：10
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.2
 
 -- [1]153:count timeseries
 STRICT{
@@ -750,8 +798,8 @@ count(timeseries)(INT64)      |
 18                            |
 总数目：1
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]154:create timeseries root.sg.d3.s1 with datatype=INT32
 STRICT{
 PASS
@@ -790,14 +838,13 @@ root.sg.view_d2.calcul|null             |root.sg             |DOUBLE            
 ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：11
 }
-
 Elapsed Time: 0.0.3
+
 -- [1]156:alter timeseries root.sg.d3.s1 upsert alias=ID tags(tag1=new1) attributes(attr=v1)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.5
 
 -- [1]157:show timeseries root.sg.d3.s1
 STRICT{
@@ -806,14 +853,13 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.d3.s1         |ID               |root.sg             |INT32               |TS_2DIFF            |LZ4                    |{"tag1":"new1"} |{"attr":"v1"}         |null                |null                          |BASE                |
 总数目：1
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]158:delete timeseries root.sg.d3.s1
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.23
+Elapsed Time: 0.0.22
 
 -- [1]159:show timeseries root.sg.**
 STRICT{
@@ -846,8 +892,8 @@ root.sg.view_d2.calcul|null             |root.sg             |DOUBLE            
 ation                 |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：10
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.4
 -- [1]160:create view root.calcu_view.d.s as select s1+1 from root.sg.d1
 STRICT{
 PASS
@@ -866,8 +912,7 @@ ation                 |                    |                    |               
 root.calcu_view.d.s   |root.calcu_view     |DOUBLE              |null            |null                  |VIEW                |root.sg.d1.s1 + 1 |
 总数目：3
 }
-
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
 -- [1]162:select * from root.calcu_view.d
 STRICT{
@@ -880,14 +925,13 @@ Time(TIMESTAMP)      |root.calcu_view.d.s(DOUBLE)      |
 3                    |4.0                              |
 总数目：3
 }
+Elapsed Time: 0.0.6
 
-Elapsed Time: 0.0.19
 -- [1]163:alter view root.calcu_view.d.s as select (tan(s1+s2)/2)+s2 from root.sg.d1
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.45
+Elapsed Time: 0.0.14
 
 -- [1]164:show view root.calcu_view.d.s
 STRICT{
@@ -899,8 +943,7 @@ root.calcu_view.d.s   |root.calcu_view     |DOUBLE              |null           
                       |                    |                    |                |                      |                    |1.s2              |
 总数目：1
 }
-
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.2
 
 -- [1]165:select * from root.calcu_view.d
 STRICT{
@@ -913,26 +956,26 @@ Time(TIMESTAMP)      |root.calcu_view.d.s(DOUBLE)      |
 3                    |2.8544969043076254               |
 总数目：3
 }
+Elapsed Time: 0.0.5
 
-Elapsed Time: 0.0.15
 -- [1]166:delete view root.calcu_view.d.s
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.56
+Elapsed Time: 0.0.24
 
 -- [1]167:show view root.calcu_view.d.s
 STRICT{
 Timeseries(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |ViewType(TEXT)      |Source(TEXT)      |
 总数目：0
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]168:create database root.ln
 STRICT{
 PASS
 }
+
 -- [1]169:set ttl to root.ln 3600000
 STRICT{
 PASS
@@ -949,8 +992,8 @@ root.ln           |3600000            |
 root.ln.**        |3600000            |
 总数目：3
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.12
 -- [1]171:unset ttl to root.ln
 STRICT{
 PASS
@@ -961,8 +1004,7 @@ STRICT{
 Device(TEXT)      |TTL(ms)(TEXT)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]173:select * from root.sg.**
 STRICT{
@@ -975,8 +1017,7 @@ Time(TIMESTAMP)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.
 3                    |18.0                                             |false                                         |22.2                                                |false                                            |3.0                       |3                         |3                         |3                         |3.0                                      |0.4121184852417566                       |
 总数目：3
 }
-
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.9
 
 -- [1]174:select s1 from root.sg.** where time=3
 STRICT{
@@ -985,8 +1026,7 @@ Time(TIMESTAMP)      |root.sg.d1.s1(FLOAT)      |root.sg.d2.s1(INT32)      |
 3                    |3.0                       |3                         |
 总数目：1
 }
-
-Elapsed Time: 0.0.25
+Elapsed Time: 0.0.6
 
 -- [1]175:select * from root.sg.** where s1=3
 STRICT{
@@ -995,8 +1035,7 @@ Time(TIMESTAMP)      |root.sg.aligned_template.temperature(FLOAT)      |root.sg.
 3                    |18.0                                             |false                                         |22.2                                                |false                                            |3.0                       |3                         |3                         |3                         |3.0                                      |0.4121184852417566                       |
 总数目：1
 }
-
-Elapsed Time: 0.0.43
+Elapsed Time: 0.0.8
 
 -- [1]176:select count(*) from root.sg.**
 STRICT{
@@ -1005,8 +1044,7 @@ count(root.sg.aligned_template.temperature)(INT64)      |count(root.sg.aligned_t
 3                                                       |3                                                  |3                                                          |3                                                     |3                                |3                                |3                                |3                                |3                                              |3                                              |
 总数目：1
 }
-
-Elapsed Time: 0.0.18
+Elapsed Time: 0.0.8
 
 -- [1]177:select count(*) from root.sg.** group by level=1
 STRICT{
@@ -1015,8 +1053,7 @@ count(root.sg.*.*)(INT64)      |
 30                             |
 总数目：1
 }
-
-Elapsed Time: 0.0.23
+Elapsed Time: 0.0.10
 
 -- [1]178:select last(*) from root.sg.** order by timeseries
 STRICT{
@@ -1049,8 +1086,7 @@ Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)   
                      |ation                 |6                |                    |
 总数目：10
 }
-
-Elapsed Time: 0.0.33
+Elapsed Time: 0.0.9
 
 -- [1]179:select sin((s1+s2)/2) from root.sg.**
 STRICT{
@@ -1063,14 +1099,13 @@ Time(TIMESTAMP)      |sin((root.sg.d1.s1 + root.sg.d1.s2) / 2)(DOUBLE)      |sin
 3                    |0.1411200080598672                                    |0.1411200080598672                                    |0.1411200080598672                                    |0.1411200080598672                                    |
 总数目：3
 }
+Elapsed Time: 0.0.6
 
-Elapsed Time: 0.0.10
 -- [1]180:insert into root.data.d1(time,s1,s2) values(4,4,4)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.253
+Elapsed Time: 0.0.248
 
 -- [1]181:show databases root.data
 STRICT{
@@ -1079,8 +1114,7 @@ Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(
 root.data           |1                                   |1                                 |0                               |604800000                         |
 总数目：1
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]182:show timeseries root.data.d1.**
 STRICT{
@@ -1091,8 +1125,7 @@ root.data.d1.s1       |null             |root.data           |DOUBLE            
 root.data.d1.s2       |null             |root.data           |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：2
 }
-
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.2
 
 -- [1]183:select * from root.data.d1
 STRICT{
@@ -1101,8 +1134,7 @@ Time(TIMESTAMP)      |root.data.d1.s1(DOUBLE)      |root.data.d1.s2(DOUBLE)     
 4                    |4.0                          |4.0                          |
 总数目：1
 }
-
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.5
 
 -- [1]184:select s1,s2 into root.db.d1(s1,s2) from root.sg.d1
 STRICT{
@@ -1113,8 +1145,7 @@ root.sg.d1.s1           |root.db.d1.s1               |3                   |
 root.sg.d1.s2           |root.db.d1.s2               |3                   |
 总数目：2
 }
-
-Elapsed Time: 0.0.233
+Elapsed Time: 0.0.249
 
 -- [1]185:select * from root.db.**
 STRICT{
@@ -1127,8 +1158,7 @@ Time(TIMESTAMP)      |root.db.d1.s1(FLOAT)      |root.db.d1.s2(INT64)      |
 3                    |3.0                       |3                         |
 总数目：3
 }
-
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.5
 
 -- [1]187:show variables
 STRICT{
@@ -1180,8 +1210,8 @@ shold               |                 |
 TimestampPrecision  |ms               |
 总数目：15
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.13
 -- [1]189:create function example AS 'org.apache.iotdb.udf.UDTFExample'
 STRICT{
 PASS
@@ -1434,8 +1464,7 @@ DIFF                    |built-in scalar         |                          |AVA
 SUBSTRING               |built-in scalar         |                          |AVAILABLE        |
 总数目：82
 }
-
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.1
 
 -- [1]191:select example(*) from root.sg.d2
 STRICT{
@@ -1448,8 +1477,8 @@ Time(TIMESTAMP)      |example(root.sg.d2.s1)(INT32)      |example(root.sg.d2.s2)
 3                    |-3                                 |-3                                 |
 总数目：3
 }
+Elapsed Time: 0.0.7
 
-Elapsed Time: 0.0.21
 -- [1]192:drop function example
 STRICT{
 PASS
@@ -1699,8 +1728,8 @@ DIFF                    |built-in scalar         |                          |AVA
 SUBSTRING               |built-in scalar         |                          |AVAILABLE        |
 总数目：81
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]195:CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT avg(s1) INTO root.sg.cq.wt01(s1_avg) FROM root.sg.d2 END
 STRICT{
 PASS
@@ -1720,74 +1749,73 @@ cq1             |CREATE CONTINUOUS|ACTIVE           |
                 |END              |                 |
 总数目：1
 }
+Elapsed Time: 0.0.5
 
-Elapsed Time: 0.0.11
 -- [1]196:insert into root.sg.d2(time,s1,s2) values(now(),10,10)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.4
+
 -- [1]198:insert into root.sg.d2(time,s1,s2) values(now(),11,11)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]200:insert into root.sg.d2(time,s1,s2) values(now(),12,12)
 STRICT{
 0
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]202:insert into root.sg.d2(time,s1,s2) values(now(),13,13)
 STRICT{
 0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]204:insert into root.sg.d2(time,s1,s2) values(now(),14,14)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]206:insert into root.sg.d2(time,s1,s2) values(now(),15,15)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]208:insert into root.sg.d2(time,s1,s2) values(now(),16,16)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]210:insert into root.sg.d2(time,s1,s2) values(now(),17,17)
 STRICT{
 0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]212:insert into root.sg.d2(time,s1,s2) values(now(),18,18)
 STRICT{
 0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]214:insert into root.sg.d2(time,s1,s2) values(now(),19,19)
 STRICT{
 0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]216:insert into root.sg.d2(time,s1,s2) values(now(),20,20)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]218:show timeseries root.sg.cq.wt01.s1_avg
 STRICT{
@@ -1796,8 +1824,7 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.cq.wt01.s1_avg|null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：1
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]219:select count(s1_avg) from root.sg.cq.wt01
 STRICT{
@@ -1806,8 +1833,8 @@ count(root.sg.cq.wt01.s1_avg)(INT64)      |
 1                                         |
 总数目：1
 }
+Elapsed Time: 0.0.7
 
-Elapsed Time: 0.0.5
 -- [1]220:drop cq cq1
 STRICT{
 PASS
@@ -1818,22 +1845,21 @@ STRICT{
 CQId(TEXT)      |Query(TEXT)      |State(TEXT)      |
 总数目：0
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]223:delete timeseries root.sg.cq.wt01.s1_avg
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.23
+Elapsed Time: 0.0.22
 
 -- [1]224:show timeseries root.sg.cq.wt01.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 总数目：0
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]228:show version
 STRICT{
 PASS
@@ -1858,8 +1884,8 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]232:GRANT ALL ON root.** TO USER user03
 STRICT{
 PASS
@@ -1884,8 +1910,8 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]236:show version
 STRICT{
 PASS
@@ -1910,7 +1936,6 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |false                     |
 总数目：7
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]239:show variables
@@ -1963,5 +1988,4 @@ shold               |                 |
 TimestampPrecision  |ms               |
 总数目：15
 }
-
 Elapsed Time: 0.0.1
