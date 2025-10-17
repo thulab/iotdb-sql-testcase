@@ -1,7 +1,9 @@
+
 -- [1]21:CREATE USER user_all_minus 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]22:GRANT all ON root.** TO USER user_all_minus WITH GRANT OPTION
 STRICT{
 PASS
@@ -26,28 +28,33 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
 Elapsed Time: 0.0.10
+
 -- [1]25:create database root.sg
 STRICT{
 PASS
 }
+
 -- [1]26:create database root.sg1
 STRICT{
 PASS
 }
+
 -- [1]29:create schema template t1 aligned (s_name TEXT, s_status BOOLEAN, start_time INT64, s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
+
 -- [1]31:set schema template t1 to root.sg
 STRICT{
 PASS
 }
+
 -- [1]32:set schema template t1 to root.sg1
 STRICT{
 PASS
 }
+
 -- [1]34:create timeseries of schema template on root.sg.d1
 STRICT{
 PASS
@@ -68,8 +75,7 @@ s_name                |TEXT                |PLAIN               |LZ4            
 s_lon                 |FLOAT               |GORILLA             |LZ4                    |
 总数目：5
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]41:list privileges of user user_all_minus
 STRICT{
@@ -90,8 +96,7 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |WRITE_SCHEMA          |true                      |
 总数目：7
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.1
 
 -- [1]45:show schema templates
 STRICT{
@@ -100,8 +105,7 @@ TemplateName(TEXT)      |
 t1                      |
 总数目：1
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]48:show nodes in schema template t1
 STRICT{
@@ -118,7 +122,6 @@ s_name                |TEXT                |PLAIN               |LZ4            
 s_lon                 |FLOAT               |GORILLA             |LZ4                    |
 总数目：5
 }
-
 Elapsed Time: 0.0.1
 
 -- [1]51:show paths set schema template t1
@@ -130,20 +133,23 @@ root.sg          |
 root.sg1         |
 总数目：2
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]54:set schema template t1 to root.sg1
 STRICT{
 SQLSTATE : 507: Template already exists on root.sg1
 }
+
 -- [1]57:unset schema template t1 from root.sg
 STRICT{
 SQLSTATE : 515: Template is in use on root.sg
 }
+
 -- [1]60:create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
+
 -- [1]63:drop schema template t1
 STRICT{
 SQLSTATE : 507: Template [t1] has been set on MTree, cannot be dropped now.
@@ -164,14 +170,13 @@ root.sg.d1.s_name     |null             |root.sg             |TEXT              
 root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：5
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.4
 -- [1]67:alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.21
+Elapsed Time: 0.0.16
 
 -- [1]69:show timeseries root.sg.**
 STRICT{
@@ -192,18 +197,19 @@ root.sg.d1.s_name     |null             |root.sg             |TEXT              
 root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：7
 }
-
 Elapsed Time: 0.0.3
+
 -- [1]72:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
+Elapsed Time: 0.0.71
 
-Elapsed Time: 0.0.60
 -- [1]74:create timeseries of schema template on root.sg1.d2
 STRICT{
 PASS
 }
+
 -- [1]75:create timeseries using schema template on root.sg.d3
 STRICT{
 PASS
@@ -242,20 +248,19 @@ root.sg.d3.s_name     |null             |root.sg             |TEXT              
 root.sg.d3.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：14
 }
+Elapsed Time: 0.0.4
 
-Elapsed Time: 0.0.3
 -- [1]79:insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1)
 STRICT{
 0
 }
+Elapsed Time: 0.0.63
 
-Elapsed Time: 0.0.99
 -- [1]80:insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.64
+Elapsed Time: 0.0.73
 
 -- [1]82:select s_name,s_status,start_time,s_lat,s_lon,s_speed,FLOAT from root.** align by device
 STRICT{
@@ -268,12 +273,13 @@ Time(TIMESTAMP)      |Device(TEXT)      |s_name(TEXT)      |s_status(BOOLEAN)   
 9                    |root.sg1.d2       |d2                |false                  |1697167900000          |31.5              |35.1              |null                 |null             |
 总数目：3
 }
+Elapsed Time: 0.0.25
 
-Elapsed Time: 0.0.29
 -- [1]85:deactivate schema template t1 from root.sg1.d2
 STRICT{
 PASS
 }
+
 -- [1]86:deactivate schema template t1 from root.sg.d3
 STRICT{
 PASS
@@ -288,8 +294,7 @@ Time(TIMESTAMP)      |Device(TEXT)      |s_name(TEXT)      |s_status(BOOLEAN)   
 11                   |root.sg.d4        |d4                |true                   |1697167800000          |3.5               |435.67            |null                 |null             |
 总数目：2
 }
-
-Elapsed Time: 0.0.14
+Elapsed Time: 0.0.10
 
 -- [1]89:show timeseries root.sg.**
 STRICT{
@@ -324,13 +329,12 @@ root.sg.d1.s_name     |null             |root.sg             |TEXT              
 root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：14
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.2
 -- [1]93:insert into root.sg.d1(time, s_lon2) values (1, 109.36)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.34
 
 -- [1]94:select s_name,s_status,start_time,s_lat,s_lon,s_lon2,s_speed,FLOAT from root.** align by device
@@ -342,8 +346,7 @@ Time(TIMESTAMP)      |Device(TEXT)      |s_name(TEXT)      |s_status(BOOLEAN)   
 11                   |root.sg.d4        |d4                |true                   |1697167800000          |3.5               |435.67            |null                |null                 |null             |
 总数目：2
 }
-
-Elapsed Time: 0.0.14
+Elapsed Time: 0.0.10
 
 -- [1]98:show paths using schema template t1
 STRICT{
@@ -354,16 +357,14 @@ root.sg.d4       |
 root.sg.d1       |
 总数目：2
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
 
 -- [1]101:show child nodes root.sg.d1
 STRICT{
 ChildNodes(TEXT)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]102:select s_name,s_status,start_time,s_lat,s_lon,s_lon2,s_speed,FLOAT from root.sg.** align by device
 STRICT{
@@ -374,8 +375,8 @@ Time(TIMESTAMP)      |Device(TEXT)      |s_name(TEXT)      |s_status(BOOLEAN)   
 11                   |root.sg.d4        |d4                |true                   |1697167800000          |3.5               |435.67            |null                |null                 |null             |
 总数目：2
 }
+Elapsed Time: 0.0.8
 
-Elapsed Time: 0.0.9
 -- [1]107:REVOKE write_schema ON root.** FROM USER user_all_minus
 STRICT{
 PASS
@@ -398,14 +399,13 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |READ_SCHEMA           |true                      |
 总数目：6
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]110:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]112:show timeseries root.sg.**
 STRICT{
@@ -444,22 +444,24 @@ root.sg.d1.s_name     |null             |root.sg             |TEXT              
 root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：16
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]116:insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon]
 }
+
 -- [1]118:insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.4
 -- [1]121:create timeseries of schema template on root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon]
 }
+
 -- [1]123:create timeseries using schema template on root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon]
@@ -474,12 +476,13 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |435.67            |
 总数目：2
 }
+Elapsed Time: 0.0.8
 
-Elapsed Time: 0.0.12
 -- [1]129:deactivate schema template t1 from root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon]
 }
+
 -- [1]131:deactivate schema template t1 from root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon]
@@ -494,8 +497,7 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |435.67            |
 总数目：2
 }
-
-Elapsed Time: 0.0.14
+Elapsed Time: 0.0.8
 
 -- [1]135:show timeseries root.sg.**
 STRICT{
@@ -534,14 +536,13 @@ root.sg.d1.s_name     |null             |root.sg             |TEXT              
 root.sg.d1.s_lon      |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：16
 }
-
 Elapsed Time: 0.0.2
+
 -- [1]139:insert into root.sg.d1(time, s_lon3) values (1, 309.36)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
 
 -- [1]140:select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device
 STRICT{
@@ -552,8 +553,7 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：2
 }
-
-Elapsed Time: 0.0.18
+Elapsed Time: 0.0.8
 
 -- [1]144:show paths using schema template t1
 STRICT{
@@ -564,16 +564,14 @@ root.sg.d4       |
 root.sg.d1       |
 总数目：2
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.5
 
 -- [1]147:show child nodes root.sg.d1
 STRICT{
 ChildNodes(TEXT)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]148:select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device
 STRICT{
@@ -584,8 +582,8 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：2
 }
+Elapsed Time: 0.0.7
 
-Elapsed Time: 0.0.9
 -- [1]154:REVOKE SYSTEM ON root.** FROM USER user_all_minus
 STRICT{
 PASS
@@ -606,18 +604,19 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |READ_SCHEMA           |true                      |
 总数目：5
 }
+Elapsed Time: 0.0.1
 
-Elapsed Time: 0.0.2
 -- [1]157:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'kuber', true, 1697167800000, 23.5, 635.67)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]159:create timeseries of schema template on root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon, root.sg1.d2.s_lon3]
 }
+
 -- [1]161:create timeseries using schema template on root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon, root.sg.d3.s_lon3]
@@ -664,18 +663,18 @@ root.sg.d1.s_lon      |null             |root.sg             |FLOAT             
 root.sg.d1.s_lon3     |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：18
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]166:insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon, root.sg1.d2.s_lon3]
 }
+
 -- [1]168:insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67)
 STRICT{
 0
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]170:select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device
 STRICT{
@@ -688,12 +687,13 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：3
 }
+Elapsed Time: 0.0.9
 
-Elapsed Time: 0.0.12
 -- [1]173:deactivate schema template t1 from root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon, root.sg1.d2.s_lon3]
 }
+
 -- [1]175:deactivate schema template t1 from root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon, root.sg.d3.s_lon3]
@@ -740,8 +740,8 @@ root.sg.d1.s_lon      |null             |root.sg             |FLOAT             
 root.sg.d1.s_lon3     |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：18
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.2
 -- [1]182:insert into root.sg.d1(time, s_lon4) values (1, 409.36)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
@@ -758,8 +758,7 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |s_lat(FLOAT)   
 11                   |root.sg.d4        |1697167800000          |3.5               |null                |true                   |d4                |null                |435.67            |
 总数目：3
 }
-
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.12
 
 -- [1]189:show paths using schema template t1
 STRICT{
@@ -770,24 +769,21 @@ root.sg.d4       |
 root.sg.d1       |
 总数目：2
 }
-
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
 -- [1]192:show child nodes root.sg.d1
 STRICT{
 ChildNodes(TEXT)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
 -- [1]193:show child nodes root.sg1.d2
 STRICT{
 ChildNodes(TEXT)      |
 总数目：0
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
 -- [1]194:select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device
 STRICT{
@@ -800,8 +796,8 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：3
 }
+Elapsed Time: 0.0.7
 
-Elapsed Time: 0.0.14
 -- [1]200:revoke write_data on root.** from user user_all_minus
 STRICT{
 PASS
@@ -820,16 +816,18 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |root.**          |READ_SCHEMA           |true                      |
 总数目：4
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]204:insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_name, root.sg.d1.s_status, root.sg.d1.start_time, root.sg.d1.s_lat, root.sg.d1.s_lon]
 }
+
 -- [1]207:create timeseries of schema template on root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon, root.sg1.d2.s_lon3]
 }
+
 -- [1]209:create timeseries using schema template on root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon, root.sg.d3.s_lon3]
@@ -876,12 +874,13 @@ root.sg.d1.s_lon      |null             |root.sg             |FLOAT             
 root.sg.d1.s_lon3     |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：18
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]214:insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg1.d2.s_name, root.sg1.d2.s_status, root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.s_lon]
 }
+
 -- [1]217:insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d4.s_name, root.sg.d4.s_status, root.sg.d4.start_time, root.sg.d4.s_lat, root.sg.d4.s_lon]
@@ -898,12 +897,13 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：3
 }
-
 Elapsed Time: 0.0.8
+
 -- [1]223:deactivate schema template t1 from root.sg1.d2
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg1.d2.start_time, root.sg1.d2.s_lat, root.sg1.d2.FLOAT, root.sg1.d2.s_speed, root.sg1.d2.s_lon2, root.sg1.d2.s_status, root.sg1.d2.s_name, root.sg1.d2.s_lon, root.sg1.d2.s_lon3]
 }
+
 -- [1]225:deactivate schema template t1 from root.sg.d3
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.sg.d3.start_time, root.sg.d3.s_lat, root.sg.d3.FLOAT, root.sg.d3.s_speed, root.sg.d3.s_lon2, root.sg.d3.s_status, root.sg.d3.s_name, root.sg.d3.s_lon, root.sg.d3.s_lon3]
@@ -950,8 +950,8 @@ root.sg.d1.s_lon      |null             |root.sg             |FLOAT             
 root.sg.d1.s_lon3     |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：18
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]232:insert into root.sg.d1(time, s_lon5) values (1, 509.36)
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_DATA on [root.sg.d1.s_lon5]
@@ -966,15 +966,13 @@ root.sg.d4       |
 root.sg.d1       |
 总数目：2
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.7
 
 -- [1]240:show child nodes root.sg.d1
 STRICT{
 ChildNodes(TEXT)      |
 总数目：0
 }
-
 Elapsed Time: 0.0.2
 
 -- [1]241:select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device
@@ -988,8 +986,8 @@ Time(TIMESTAMP)      |Device(TEXT)      |start_time(INT64)      |FLOAT(TEXT)    
 11                   |root.sg.d4        |1697167800000          |null             |3.5               |null                |null                 |true                   |d4                |null                |435.67            |
 总数目：3
 }
+Elapsed Time: 0.0.9
 
-Elapsed Time: 0.0.7
 -- [1]243:show version
 STRICT{
 SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
