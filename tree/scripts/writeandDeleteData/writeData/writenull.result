@@ -1,21 +1,25 @@
+
 -- [1]10:create timeseries root.sg.d1.s1 with DATATYPE=BOOLEAN,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED
 STRICT{
 PASS
 }
+
 -- [1]11:create timeseries root.sg.d1.s2 with DATATYPE=INT64,ENCODING=PLAIN,COMPRESSOR=UNCOMPRESSED
 STRICT{
 PASS
 }
+
 -- [1]12:create timeseries root.sg.d1.s3 with datatype=DOUBLE,encoding=RLE
 STRICT{
 PASS
 }
+
 -- [1]13:create timeseries root.sg.d1.s4 with datatype=FLOAT,encoding=RLE
 STRICT{
 PASS
 }
 
--- [1]16:show timeseries
+-- [1]16:show timeseries root.sg.**
 STRICT{
 Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -26,57 +30,47 @@ root.sg.d1.s4         |null             |root.sg             |FLOAT             
 root.sg.d1.s1         |null             |root.sg             |BOOLEAN             |PLAIN               |UNCOMPRESSED           |null            |null                  |null                |null                          |BASE                |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.sg.d1.s2         |null             |root.sg             |INT64               |PLAIN               |UNCOMPRESSED           |null            |null                  |null                |null                          |BASE                |
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.__audit.password_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
-history._root.passwor|                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
-d                     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.__audit.password_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
-history._root.oldPass|                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
-word                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
-总数目：6
+总数目：4
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.1
-
--- [1]17:show devices
+-- [1]17:show devices root.sg.**
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
 ------------------------------------------------------------------------------
 root.sg.d1        |false                |null                |INF                |
-------------------------------------------------------------------------------
-root.__audit.passw|false                |null                |INF                |
-ord_history._root |                     |                    |                   |
-总数目：2
+总数目：1
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]22:INSERT INTO root.sg.d1(timestamp, s1, s2) VALUES (1, false, 1),(2, null, null)
 STRICT{
 0
 }
+Elapsed Time: 0.1.695
 
-Elapsed Time: 0.0.56
 -- [1]23:INSERT INTO root.sg.d1(timestamp, s1, s2) VALUES (3, true, 3),(4, false, null),(5, null, 5)
 STRICT{
 0
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]25:INSERT INTO root.sg.d1(timestamp, s3, s4) VALUES (2, NaN, NaN)
 STRICT{
 0
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.1
 -- [1]26:INSERT INTO root.sg.d1(timestamp, s1, s2) VALUES (6, NaN, 9)
 STRICT{
 SQLSTATE : 507: Fail to insert measurements [s1] caused by [The BOOLEAN should be true/TRUE, false/FALSE or 0/1]
 }
+
 -- [1]28:INSERT INTO root.sg.d1(timestamp, s1, s2) VALUES (7, false, NaN)
 STRICT{
 SQLSTATE : 507: Fail to insert measurements [s2] caused by [data type is not consistent, input NaN, registered INT64]
 }
+
 -- [1]31:INSERT INTO root.sg.d1(timestamp, s1, s2) VALUES (8, None, 8)
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:53 mismatched input 'None' expecting {FALSE, NAN, NOW, NULL, TRUE, '-', '+', '/', '.', STRING_LITERAL, BINARY_LITERAL, DATETIME_LITERAL, INTEGER_LITERAL, EXPONENT_NUM_PART}
@@ -101,8 +95,7 @@ Time(TIMESTAMP)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(FLOAT)      |roo
 7                    |null                       |null                      |false                       |null                      |
 总数目：7
 }
-
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.4
 
 -- [1]36:select * from root.sg.d1
 STRICT{
@@ -123,5 +116,4 @@ Time(TIMESTAMP)      |root.sg.d1.s3(DOUBLE)      |root.sg.d1.s4(FLOAT)      |roo
 7                    |null                       |null                      |false                       |null                      |
 总数目：7
 }
-
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.6

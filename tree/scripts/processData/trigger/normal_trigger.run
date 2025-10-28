@@ -41,20 +41,25 @@ WITH (
 -- case 1.2 show triggers
 show triggers;
 -- trigger工作前数据库状态
-SHOW DATABASES;
-show devices;
-show timeseries;
+SHOW DATABASES root.triggertest;
+show devices root.triggertest.*;
+show timeseries root.triggertest.**;
 
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (2, 2);
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (3, null);
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (4, 6);
+
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
 
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (6, 10);
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (7, 12);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (8, 15);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (9, 16);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (10, null);
 
 -- 即时查询有时候查不到 sleep一下
@@ -95,7 +100,7 @@ CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 show timeseries root.**;
 INSERT INTO root.triggertest.d1(timestamp, s2) VALUES (6, 10),(7,12),(1,88),(8,14),(9,160),(10,null),(11,58),(2,67.345);
-
+<<SQLSTATE;
 sleep 500;
 -- 4条
 select count(*) from root.ln.alerting;
@@ -126,9 +131,12 @@ WITH (
 show triggers;
 
 insert into root.triggertest.d1 (time, s1, s2) values (1, 4, 21);
+<<SQLSTATE;
 insert into root.triggertest.d1 (time, s1, s2) values (2, 11, 1);
+<<SQLSTATE;
 insert into root.triggertest.d1 (time, s1, s2) values (3, 8, 2);
 insert into root.triggertest.d1 (time, s1, s2) values (4, 15.6, 210);
+<<SQLSTATE;
 flush;
 sleep 500;
 -- 期望4个值
@@ -156,6 +164,7 @@ WITH (
   lo = 12
 );
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0),(2, 2),(3, 4),(4, 6),(5, 8),(6, NULL),(7, 12),(8, 14),(9, 16),(10, 18);
+<<SQLSTATE;
 flush;
 sleep 500;
 -- 期望3个值
@@ -167,6 +176,7 @@ CREATE TIMESERIES root.triggertest.d2.s1 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 CREATE TIMESERIES root.triggertest.d3.s1 WITH DATATYPE=float, ENCODING=PLAIN;
 
 INSERT INTO root.triggertest.d2(timestamp, s1) VALUES (1, 0),(2, 12.33),(3, 4),(4, 6),(5, 18);
+<<SQLSTATE;
 flush;
 sleep 500;
 -- 期望5个值
@@ -206,11 +216,13 @@ WITH (
 show triggers;
 
 insert into root.triggertest.d1(time,s2) values (1, 11.3),(2,10),(3,13.44);
+<<SQLSTATE;
 flush;
 -- 2条
 select count(*) from root.ln.alerting;
 
 insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20),(8,13.44,15.6);
+<<SQLSTATE;
 flush;
 -- 5条
 select count(*) from root.ln.alerting;
@@ -246,6 +258,7 @@ WITH (
 show triggers;
 
 insert into root.triggertest.d1(time,s1,s2) values (6, 1, 2),(7,10,20),(8,13, 15.6);
+<<SQLSTATE;
 flush;
 -- 2条
 select count(*) from root.ln.alerting;
@@ -253,6 +266,7 @@ select count(*) from root.ln.alerting;
 select * from root.triggertest.d1;
 
 insert into root.triggertest.d1(time,s2) values (6, 11.3),(2,10),(3,19),(10,3);
+<<SQLSTATE;
 flush;
 -- 4条
 select count(*) from root.ln.alerting;
@@ -287,11 +301,13 @@ WITH (
 );
 
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (1, 0);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (2, 2);
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (3, 4);
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (4, 6);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1) VALUES (5, 8);
-
+<<SQLSTATE;
 sleep 500;
 -- 2条
 select count(*) from root.ln.alerting;
@@ -311,11 +327,15 @@ WITH (
 CREATE TIMESERIES root.triggertest.d1.s2 WITH DATATYPE=DOUBLE, ENCODING=PLAIN;
 
 INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (6,4,5.00000000000000000000000000001);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (7,8,4.567);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (8,10,18);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (9,20,1.8);
+<<SQLSTATE;
 INSERT INTO root.triggertest.d1(timestamp, s1, s2) VALUES (10,120,80.00000000000000000000123);
-
+<<SQLSTATE;
 -- 即时查询有时候查不到 sleep一下
 sleep 500;
 -- 期望10个值: 不包括5.00000000000000000000000000001
@@ -347,6 +367,7 @@ WITH (
 show triggers;
 
 insert into root.triggertest.d1 (time, text1) values (1, 'tomy');
+<<SQLSTATE;
 insert into root.triggertest.d1 (time, text1) values (2, 'localpath');
 insert into root.triggertest.d1 (time, text1) values (3, 'prefix');
 insert into root.triggertest.d1 (time, text1) values (4, 'iotdb');

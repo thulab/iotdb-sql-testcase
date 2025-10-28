@@ -1,51 +1,64 @@
+
 -- [1]26:CREATE USER use 'pass123456789'
 STRICT{
 SQLSTATE : 820: The length of name must be greater than or equal to 4
 }
+
 -- [1]28:CREATE USER use1 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]29:CREATE USER user01 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]30:CREATE USER `qwertyuiop0123456789qwertyuiopAB` 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]31:CREATE USER `qwertyuiop0123456789qwertyuiopABC` 'pass123456789'
 STRICT{
 SQLSTATE : 820: The length of name must be less than or equal to 32
 }
+
 -- [1]35:CREATE USER `普通群众` 'pass123456789'
 STRICT{
 SQLSTATE : 820: The name can only contain letters, numbers or !@#$%^*()_+-=
 }
+
 -- [1]39:CREATE USER `UserA` 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]42:CREATE USER `0001` 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]45:CREATE USER `!%$^user&*()_#@+-=!` 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]48:CREATE USER %$^user_01#@ 'pass123456789'
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 extraneous input '%' expecting {ID, QUOTED_ID}
 }
+
 -- [1]50:CREATE USER '%$^user_02#@' 'pass123456789'
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input ''%$^user_02#@'' expecting {ID, QUOTED_ID}
 }
+
 -- [1]52:CREATE USER “%$^user_03#@” 'pass123456789'
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 token recognition error at: '“'
 }
+
 -- [1]54:CREATE USER `%$^user_&#@-01A` 'pass123456789'
 STRICT{
 PASS
@@ -53,62 +66,70 @@ PASS
 
 -- [1]57:LIST USER
 STRICT{
-User(TEXT)      |
-----------------
-!%$^user&*()_#@+|
--=!             |
-----------------
-%$^user_&#@-01A |
-----------------
-0001            |
-----------------
-UserA           |
-----------------
-qwertyuiop012345|
-6789qwertyuiopA|
-B               |
-----------------
-root            |
-----------------
-use1            |
-----------------
-user01          |
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+use1            |-1                            |-1                            |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+qwertyuiop012345|-1                            |-1                            |
+6789qwertyuiopA|                              |                              |
+B               |                              |                              |
+----------------------------------------------------------------------------
+UserA           |-1                            |-1                            |
+----------------------------------------------------------------------------
+0001            |-1                            |-1                            |
+----------------------------------------------------------------------------
+!%$^user&*()_#@+|-1                            |-1                            |
+-=!             |                              |                              |
+----------------------------------------------------------------------------
+%$^user_&#@-01A |-1                            |-1                            |
 总数目：8
 }
-
 Elapsed Time: 0.0.1
+
 -- [1]91:CREATE USER user01 'password123'
 STRICT{
 SQLSTATE : 820: The length of password must be greater than or equal to 12
 }
+
 -- [1]93:CREATE USER user01 'pass12345678'
 STRICT{
 PASS
 }
+
 -- [1]94:CREATE USER user02 '12345678900123456789qwertyuiop12'
 STRICT{
 PASS
 }
+
 -- [1]95:CREATE USER user03 '12345678900123456789qwertyuiop123'
 STRICT{
 SQLSTATE : 820: The length of password must be less than or equal to 32
 }
+
 -- [1]99:CREATE USER user04 'qwertyuiopABC'
 STRICT{
 PASS
 }
+
 -- [1]102:CREATE USER user05 '123456789012'
 STRICT{
 PASS
 }
+
 -- [1]105:CREATE USER user06 '!@#$%^&*()_+-='
 STRICT{
 PASS
 }
+
 -- [1]106:CREATE USER user07 'pass wd'
 STRICT{
 SQLSTATE : 820: The length of password must be greater than or equal to 12
 }
+
 -- [1]110:CREATE USER user08 pass123456789
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:19 mismatched input 'pass123456789' expecting STRING_LITERAL
@@ -116,55 +137,63 @@ SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:19 mis
 
 -- [1]114:LIST USER
 STRICT{
-User(TEXT)      |
-----------------
-root            |
-----------------
-user01          |
-----------------
-user02          |
-----------------
-user04          |
-----------------
-user05          |
-----------------
-user06          |
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user04          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user05          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user06          |-1                            |-1                            |
 总数目：6
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.3
 -- [1]135:CREATE USER user01 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]138:CREATE USER user01 'password1234'
 STRICT{
 SQLSTATE : 805: User user01 already exists
 }
+
 -- [1]142:CREATE USER root 'pass123456789'
 STRICT{
-SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input 'root' expecting {ID, QUOTED_ID}
+SQLSTATE : 803: Access Denied: Cannot create user has same name with admin user
 }
+
 -- [1]159:create user "abcd" 'pass123456789'
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input '"abcd"' expecting {ID, QUOTED_ID}
 }
+
 -- [1]161:create user 'abcd' 'pass123456789'
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:12 mismatched input ''abcd'' expecting {ID, QUOTED_ID}
 }
+
 -- [1]163:create user `abcd` 'pass123456789'
 STRICT{
 PASS
 }
+
 -- [1]164:create user user01 `pass123456789`
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:19 mismatched input '`pass123456789`' expecting STRING_LITERAL
 }
+
 -- [1]166:create user user01 "pass123456789"
 STRICT{
 PASS
 }
+
 -- [1]167:create user user02 'pass123456789'
 STRICT{
 PASS
@@ -172,16 +201,15 @@ PASS
 
 -- [1]170:list user
 STRICT{
-User(TEXT)      |
-----------------
-abcd            |
-----------------
-root            |
-----------------
-user01          |
-----------------
-user02          |
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+abcd            |-1                            |-1                            |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
 总数目：4
 }
-
 Elapsed Time: 0.0.1

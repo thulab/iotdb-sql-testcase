@@ -16,7 +16,7 @@ create aligned timeseries root.sg.d2(s1 FLOAT encoding=PLAIN compressor=SNAPPY, 
 --2. 查询存储组和时间序列
 show databases root.sg;
 show timeseries root.sg.**;
-show devices;
+show devices root.sg.*;
 
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3,s4) values(1,1.1,2.2,TRUE,'001');
@@ -69,7 +69,7 @@ create timeseries root.sg.d1.s7 with datatype=INT64,encoding=RLE;
 --2. 查询存储组和时间序列
 show databases root.sg;
 show timeseries root.sg.**;
-show devices;
+show devices root.sg.*;
 
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.1,2.2,TRUE,'001',false,12,10);
@@ -377,7 +377,7 @@ create aligned timeseries root.sg.d3(s1 FLOAT encoding=PLAIN compressor=SNAPPY, 
 --2. 查询存储组和时间序列
 show databases root.sg;
 show timeseries root.sg.**;
-show devices;
+show devices root.sg.*;
 
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20);
@@ -400,7 +400,7 @@ insert into root.sg.d3(time,s1,s2) aligned values(1,-1.1,1.2),(2,0.0,2.3),(3,5.5
 
 --4. 时间序列查询嵌套表达式
 --4.1 非对齐时间序列嵌套查询
-select ** from root;
+select ** from root.sg;
 select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 from root.sg.d1;
 select (s1 + s2) * 2 + sin(s1) from root.sg.d1;
 select (s1 + *) / 2  from root.sg.d2;
@@ -469,9 +469,9 @@ create aligned timeseries root.sg.d2(s1(sun) INT32 tags(tag1=v1, tag2=v2) attrib
 create timeseries root.db.test.m1 with datatype=BOOLEAN,encoding=PLAIN;
 
 --2. 查询存储组和时间序列
-show databases root.**;
-show devices;
-show timeseries root.**;
+show databases root.db;
+show devices root.sg.*;
+show timeseries root.sg.**;
 
 --3. 插入数据
 insert into root.sg.d1(time,s1,s2,s3) values(1,20.12,50.32,1);
@@ -480,7 +480,7 @@ insert into root.sg.d2(time,s1,s2) aligned values(1,10,1.1),(2,5,-1.2);
 insert into root.db.test(time,m1) values(1,true),(2,true),(20,false);
 
 --4. 别名查询
-select ** from root;
+select ** from root.sg;
 select s1 as temperature,s1 as ID from root.sg.d1, root.sg.d2 align by time;
 <<SQLSTATE;
 select s1 as temperature,m1 as status from root.sg.d1, root.db.test align by time;
@@ -521,10 +521,10 @@ insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,0.1,false,'V1',20,nu
 insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,3.0,0.2,false,'V2',2,10);
 
 --2.查询存储组和时间序列，然后数据查询
-show databases root.**;
-show devices;
-show timeseries root.**;
-select * from root.**;
+show databases root.sg;
+show devices root.sg.*;
+show timeseries root.sg.**;
+select * from root.sg.**;
 
 --3.不使用ignoreNull参数(忽略null)
 SELECT DIFF(s1), DIFF(s2) from root.sg.d1;

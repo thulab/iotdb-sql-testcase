@@ -1,57 +1,64 @@
+
 -- [1]10:create database root.sg
 STRICT{
 PASS
 }
+
 -- [1]11:create database root.ln
 STRICT{
 PASS
 }
+
 -- [1]14:create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE
 STRICT{
 PASS
 }
+
 -- [1]17:create aligned timeseries root.sg.d2(s1 FLOAT, s2 BOOLEAN)
 STRICT{
 PASS
 }
+
 -- [1]20:create device template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY)
 STRICT{
 PASS
 }
+
 -- [1]21:set device template t1 to root.ln.wf01.wt01
 STRICT{
 PASS
 }
+
 -- [1]22:create timeseries using device template on root.ln.wf01.wt01
 STRICT{
 PASS
 }
+
 -- [1]25:create device template t2 aligned(lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
+
 -- [1]26:set device template t2 to root.sg.aligned_device
 STRICT{
 PASS
 }
+
 -- [1]27:create timeseries using device template on root.sg.aligned_device
 STRICT{
 PASS
 }
 
--- [1]30:show databases
+-- [1]30:show databases root.ln
 STRICT{
 Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln             |1                                   |1                                 |0                               |604800000                         |
-------------------------------------------------------------------------------------------------------------------------------------------------------------
-root.sg             |1                                   |1                                 |0                               |604800000                         |
-总数目：2
+总数目：1
 }
+Elapsed Time: 0.0.2
 
-Elapsed Time: 0.0.0
-
--- [1]31:show devices
+-- [1]31:show devices root.sg.*
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
 ------------------------------------------------------------------------------
@@ -61,12 +68,9 @@ root.sg.d2        |true                 |null                |INF               
 ------------------------------------------------------------------------------
 root.sg.aligned_de|true                 |t2                  |INF                |
 vice              |                     |                    |                   |
-------------------------------------------------------------------------------
-root.ln.wf01.wt01 |false                |t1                  |INF                |
-总数目：4
+总数目：3
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.4
 
 -- [1]32:show devices root.ln.**
 STRICT{
@@ -75,8 +79,7 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
 -- [1]33:show devices root.sg.**
 STRICT{
@@ -90,8 +93,7 @@ root.sg.aligned_de|true                 |t2                  |INF               
 vice              |                     |                    |                   |
 总数目：3
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.4
 
 -- [1]34:show devices where template = 't1'
 STRICT{
@@ -100,8 +102,7 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.10
 
 -- [1]35:show devices where template = 't2'
 STRICT{
@@ -111,8 +112,7 @@ root.sg.aligned_de|true                 |t2                  |INF               
 vice              |                     |                    |                   |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.6
 
 -- [1]36:show devices where template != 't1'
 STRICT{
@@ -122,8 +122,7 @@ root.sg.aligned_de|true                 |t2                  |INF               
 vice              |                     |                    |                   |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.7
 
 -- [1]37:show devices where template != 't2'
 STRICT{
@@ -132,10 +131,9 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：1
 }
+Elapsed Time: 0.0.16
 
-Elapsed Time: 0.0.1
-
--- [1]38:show devices where template is null
+-- [1]38:show devices root.sg.* where template is null
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
 ------------------------------------------------------------------------------
@@ -144,8 +142,7 @@ root.sg.d1        |false                |null                |INF               
 root.sg.d2        |true                 |null                |INF                |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.5
 
 -- [1]39:show devices where template is not null
 STRICT{
@@ -157,8 +154,7 @@ vice              |                     |                    |                  
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.22
 
 -- [1]40:show devices root.sg.d1
 STRICT{
@@ -167,8 +163,7 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.sg.d1        |false                |null                |INF                |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
 -- [1]41:show devices root.sg.d2
 STRICT{
@@ -177,8 +172,7 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.sg.d2        |true                 |null                |INF                |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]42:show devices root.ln.wf01.wt01
 STRICT{
@@ -187,8 +181,7 @@ Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)     
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]43:show devices root.sg.aligned_device
 STRICT{
@@ -198,8 +191,7 @@ root.sg.aligned_de|true                 |t2                  |INF               
 vice              |                     |                    |                   |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]44:show devices root.** where device contains '1'
 STRICT{
@@ -210,10 +202,9 @@ root.sg.d1        |false                |null                |INF               
 root.ln.wf01.wt01 |false                |t1                  |INF                |
 总数目：2
 }
+Elapsed Time: 0.0.14
 
-Elapsed Time: 0.0.1
-
--- [1]45:show devices root.** where device contains 'd'
+-- [1]45:show devices root.sg.* where device contains 'd'
 STRICT{
 Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
 ------------------------------------------------------------------------------
@@ -225,10 +216,9 @@ root.sg.aligned_de|true                 |t2                  |INF               
 vice              |                     |                    |                   |
 总数目：3
 }
+Elapsed Time: 0.0.3
 
-Elapsed Time: 0.0.0
-
--- [1]46:show devices with database
+-- [1]46:show devices root.sg.* with database
 STRICT{
 Device(TEXT)      |Database(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
 --------------------------------------------------------------------------------------------------
@@ -238,12 +228,9 @@ root.sg.d2        |root.sg             |true                 |null              
 --------------------------------------------------------------------------------------------------
 root.sg.aligned_de|root.sg             |true                 |t2                  |INF                |
 vice              |                    |                     |                    |                   |
---------------------------------------------------------------------------------------------------
-root.ln.wf01.wt01 |root.ln             |false                |t1                  |INF                |
-总数目：4
+总数目：3
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.5
 
 -- [1]47:show timeseries root.**
 STRICT{
@@ -266,10 +253,16 @@ erature               |                 |                    |                  
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 root.ln.wf01.wt01.stat|null             |root.ln             |BOOLEAN             |PLAIN               |SNAPPY                 |null            |null                  |null                |null                          |BASE                |
 us                    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
-总数目：7
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.password_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+history._0.password   |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.password_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+history._0.oldPasswor|                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+d                     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：9
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.13
 
 -- [1]48:show timeseries root.ln.**
 STRICT{
@@ -282,8 +275,7 @@ root.ln.wf01.wt01.stat|null             |root.ln             |BOOLEAN           
 us                    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
 -- [1]49:show timeseries root.sg.**
 STRICT{
@@ -302,8 +294,7 @@ root.sg.aligned_device|null             |root.sg             |FLOAT             
 .lat                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：5
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.4
 
 -- [1]50:show timeseries root.ln.wf01.wt01.*
 STRICT{
@@ -316,8 +307,7 @@ root.ln.wf01.wt01.stat|null             |root.ln             |BOOLEAN           
 us                    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3
 
 -- [1]51:show timeseries root.ln.wf01.wt01.status
 STRICT{
@@ -327,8 +317,7 @@ root.ln.wf01.wt01.stat|null             |root.ln             |BOOLEAN           
 us                    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]52:show timeseries root.ln.wf01.wt01.temperature
 STRICT{
@@ -338,8 +327,7 @@ root.ln.wf01.wt01.temp|null             |root.ln             |FLOAT             
 erature               |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
 -- [1]53:show timeseries root.sg.d1.*
 STRICT{
@@ -348,7 +336,6 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.d1.s1         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：1
 }
-
 Elapsed Time: 0.0.2
 
 -- [1]54:show timeseries root.sg.d1.s1
@@ -358,8 +345,7 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.d1.s1         |null             |root.sg             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.5
 
 -- [1]55:show timeseries root.sg.d2.*
 STRICT{
@@ -370,8 +356,7 @@ root.sg.d2.s1         |null             |root.sg             |FLOAT             
 root.sg.d2.s2         |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：2
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]56:show timeseries root.sg.d2.s1
 STRICT{
@@ -380,8 +365,7 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.d2.s1         |null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]57:show timeseries root.sg.d2.s2
 STRICT{
@@ -390,8 +374,7 @@ Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)    
 root.sg.d2.s2         |null             |root.sg             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.2
 
 -- [1]58:show timeseries root.sg.aligned_device.*
 STRICT{
@@ -404,8 +387,7 @@ root.sg.aligned_device|null             |root.sg             |FLOAT             
 .lat                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：2
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.7
 
 -- [1]59:show timeseries root.sg.aligned_device.lat
 STRICT{
@@ -415,8 +397,7 @@ root.sg.aligned_device|null             |root.sg             |FLOAT             
 .lat                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：1
 }
-
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.3
 
 -- [1]60:show timeseries root.sg.aligned_device.lon
 STRICT{
@@ -426,5 +407,4 @@ root.sg.aligned_device|null             |root.sg             |FLOAT             
 .lon                  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
 总数目：1
 }
-
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.3

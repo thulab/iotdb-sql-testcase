@@ -10,6 +10,8 @@ drop database root.**;
 <<NULL;
 drop schema template t1;
 <<NULL;
+drop schema template t2;
+<<NULL;
 DROP USER user_all_minus;
 <<NULL;
 
@@ -41,13 +43,13 @@ list privileges of user user_all_minus;
 -- 仅root拥有权限
 -- 查看所有模版
 show schema templates;
-<<SQLSTATE;
+
 -- 查看模版下定义的序列列表
 show nodes in schema template t1;
-<<SQLSTATE;
+
 -- 查看挂载的节点
 show paths set schema template t1;
-<<SQLSTATE;
+
 -- 挂载
 set schema template t1 to root.sg1;
 <<SQLSTATE;
@@ -56,14 +58,14 @@ unset schema template t1 from root.sg;
 <<SQLSTATE;
 -- 创建模版
 create schema template t2 aligned (s_lat FLOAT encoding=Gorilla, s_lon FLOAT encoding=Gorilla);
-<<SQLSTATE;
+
 -- 删除模版
 drop schema template t1;
 <<SQLSTATE;
 -- 修改模版
 show timeseries root.sg.**;
 alter schema template t1 add (s_speed DOUBLE encoding=RLE, FLOAT TEXT encoding=PLAIN compression=SNAPPY);
-<<SQLSTATE;
+
 show timeseries root.sg.**;
 
 -- write 权限
@@ -72,7 +74,7 @@ insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values 
 create timeseries of schema template on root.sg1.d2;
 create timeseries using schema template on root.sg.d3;
 
-show timeseries;
+show timeseries root.sg.**;
 
 insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
 insert into root.sg.d4(time, s_name, s_status, start_time, s_lat, s_lon) values (11, 'd4', true, 1697167800000, 3.5, 435.67);
@@ -84,7 +86,7 @@ deactivate schema template t1 from root.sg1.d2;
 deactivate schema template t1 from root.sg.d3;
 
 select s_name,s_status,start_time,s_lat,s_lon,s_speed,FLOAT from root.** align by device;
-show timeseries;
+show timeseries root.sg.**;
 
 
 -- extend template
@@ -107,7 +109,7 @@ LIST PRIVILEGES OF USER user_all_minus;
 -- write_data 权限
 insert into root.sg.d1(time, s_name, s_status, start_time, s_lat, s_lon) values (1, 'arrow', true, 1697167800000, 3.5, 435.67);
 
-show timeseries;
+show timeseries root.sg.**;
 
 -- write_schema 权限
 -- 写入激活： TIMECHODB-395
@@ -130,7 +132,7 @@ deactivate schema template t1 from root.sg.d3;
 <<SQLSTATE;
 
 select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon from root.** align by device;
-show timeseries;
+show timeseries root.sg.**;
 
 
 -- extend template
@@ -147,8 +149,8 @@ select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from r
 
 
 
-// 3. revoke extend_template 权限
-REVOKE extend_template ON root.** FROM USER user_all_minus;
+// 3. revoke system 权限
+REVOKE SYSTEM ON root.** FROM USER user_all_minus;
 LIST PRIVILEGES OF USER user_all_minus;
 
 -- write 权限
@@ -159,7 +161,7 @@ create timeseries of schema template on root.sg1.d2;
 create timeseries using schema template on root.sg.d3;
 <<SQLSTATE;
 
-show timeseries;
+show timeseries root.sg.**;
 -- 写入激活： TIMECHODB-395
 insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
 <<SQLSTATE;
@@ -173,7 +175,7 @@ deactivate schema template t1 from root.sg1.d2;
 deactivate schema template t1 from root.sg.d3;
 <<SQLSTATE;
 
-show timeseries;
+show timeseries root.sg.**;
 
 
 -- extend template
@@ -207,7 +209,7 @@ create timeseries of schema template on root.sg1.d2;
 create timeseries using schema template on root.sg.d3;
 <<SQLSTATE;
 
-show timeseries;
+show timeseries root.sg.**;
 
 insert into root.sg1.d2(time, s_name, s_status, start_time, s_lat, s_lon) values (9, 'd2', false, 1697167900000, 31.5, 35.1);
 <<SQLSTATE;
@@ -223,7 +225,7 @@ deactivate schema template t1 from root.sg1.d2;
 deactivate schema template t1 from root.sg.d3;
 <<SQLSTATE;
 
-show timeseries;
+show timeseries root.sg.**;
 
 
 -- extend template
@@ -239,7 +241,7 @@ show child nodes root.sg.d1;
 select start_time,FLOAT,s_lat,s_lon2,s_speed,s_status,s_name,s_lon3,s_lon from root.** align by device;
 
 show version;
-<<CHECKCODE;
+<<SQLSTATE;
 
 connect root/TimechoDB@2021;
 -- 清理
