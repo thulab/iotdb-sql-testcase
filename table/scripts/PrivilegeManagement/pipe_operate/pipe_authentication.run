@@ -27,7 +27,7 @@ insert into test_pipe_authentication.table_0(time,device_id,"地区",s_0)values(
 insert into test_pipe_authentication.table_0(time,device_id,unit,"地区",s_0)values(2025-01-01 03:50:24,'auth-1','bit','shanghai',false);
 
 // 同步成功
-select time,device_id,unit,"地区",s_0 from test_pipe_authentication.table_0;
+select time,device_id,unit,"地区",s_0 from test_pipe_authentication.table_0 order by time;
 sleep 2000;
 DESC pipe_newDB.table_0;
 select time,device_id,unit,s_0 from pipe_newDB.table_0 order by time;
@@ -39,9 +39,10 @@ select time,device_id,unit,s_0 from pipe_newDB1.table_0;
 <<SQLSTATE;
 
 // 删除PIPE鉴权
-DROP PIPE root_pipe;
+DROP PIPE root_pipe_history;
+DROP PIPE root_pipe_realtime;
 // 再次删除
-DROP PIPE root_pipe;
+DROP PIPE root_pipe_history;
 <<SQLSTATE;
 
 // 清理环境
@@ -63,7 +64,7 @@ create pipe user_new_pipe with source ('forwarding-pipe-requests'='false', 'data
 <<SQLSTATE;
 SHOW PIPES;
 <<SQLSTATE;
-DROP PIPE root_pipe;
+DROP PIPE root_pipe_realtime;
 <<SQLSTATE;
 
 
@@ -78,7 +79,8 @@ LIST PRIVILEGES OF USER user_new;
 CREATE PIPE user_new_pipe3 with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB3') with sink ('sink'='write-back-sink');
 SHOW PIPES;
 sleep 2000;
-DROP PIPE root_pipe;
+DROP PIPE root_pipe_history;
+DROP PIPE root_pipe_realtime;
 
 DESC pipe_newDB3.table_0;
 // 期望2条数据
@@ -98,12 +100,14 @@ CREATE PIPE user_new_pipe4 with source ('forwarding-pipe-requests'='false', 'dat
 <<SQLSTATE;
 SHOW PIPES;
 <<SQLSTATE;
-DROP PIPE user_new_pipe3;
+DROP PIPE user_new_pipe3_history;
 <<SQLSTATE;
 
 // 清理环境
 connect root/TimechoDB@2021;
-drop pipe user_new_pipe3;
+drop pipe user_new_pipe3_history;
+<<NULL;
+drop pipe user_new_pipe3_realtime;
 <<NULL;
 drop user user_new;
 <<NULL;
@@ -129,12 +133,13 @@ DESC pipe_newDB5.table_0;
 // 期望2条数据
 select time,device_id,unit,s_0 from pipe_newDB5.table_0 order by time;
 
-DROP PIPE user_role_pipe5;
+DROP PIPE user_role_pipe5_history;
+DROP PIPE user_role_pipe5_realtime;
 // 清理环境
 DROP DATABASE pipe_newDB5;
 
 CREATE PIPE "user-role-pipe6" with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB6') with sink ('sink'='write-back-sink');
-sleep 2000;
+sleep 3000;
 DESC pipe_newDB6.table_0;
 // 期望2条数据
 select time,device_id,unit,s_0 from pipe_newDB6.table_0 order by time;
@@ -152,8 +157,9 @@ CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'datab
 <<SQLSTATE;
 SHOW PIPES;
 <<SQLSTATE;
-DROP PIPE "user-role-pipe6";
+DROP PIPE "user-role-pipe6_history";
 <<SQLSTATE;
+
 
 // 清理环境
 connect root/TimechoDB@2021;
@@ -187,7 +193,7 @@ CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'datab
 <<SQLSTATE;
 SHOW PIPES;
 <<SQLSTATE;
-DROP PIPE "user-role-pipe6";
+DROP PIPE "user-role-pipe6_realtime";
 <<SQLSTATE;
 // 授权
 connect user_grant/paSs1234@56#*^1;
@@ -205,8 +211,10 @@ DESC pipe_newDB9.table_0;
 // 期望2条数据
 select time,device_id,unit,s_0 from pipe_newDB9.table_0 order by time;
 
-DROP PIPE "user-role-pipe6";
-DROP PIPE "中文pipe";
+DROP PIPE "user-role-pipe6_history";
+DROP PIPE "user-role-pipe6_realtime";
+DROP PIPE "中文pipe_history";
+DROP PIPE "中文pipe_realtime";
 SHOW PIPES;
 
 
