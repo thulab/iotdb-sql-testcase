@@ -1,0 +1,112 @@
+//testcase1 enable_separation_of_powers=false,  root rename itself
+connect root/TimechoDB@2021;
+drop user security_admin;<<null;
+alter user root rename to security_admin;
+list user;<<sqlstate;
+connect security_admin/TimechoDB@2021;
+list user;
+create user santos 'TimechoDB@2021';
+list user;
+drop user santos;
+// testcase2: security_admin create user root, root rename itself to pitt
+connect security_admin/TimechoDB@2021;
+create user root 'TimechoDB@2021';
+set sql_dialect=table;
+grant system to user root;
+connect root/TimechoDB@2021;
+list user;
+alter user root rename to pitt;
+connect pitt/TimechoDB@2021;
+list user;
+// testcase3: security_admin rename non-existent user
+connect security_admin/TimechoDB@2021;
+drop user user_not_exist;<<null;
+alter user user_not_exist rename to this_user;
+<<sqlstate;
+// testcase4: javadi without SECURITY privilege cannot rename virginia
+connect security_admin/TimechoDB@2021;
+drop user javadi;<<null;
+drop user virginia;<<null;
+create user javadi 'TimechoDB@2021';
+create user virginia 'TimechoDB@2021';
+connect javadi/TimechoDB@2021;
+alter user virginia rename to santos;
+<<sqlstate;
+connect security_admin/TimechoDB@2021;
+grant MANAGE_USER to user javadi;
+<<sqlstate;
+connect javadi/TimechoDB@2021;
+alter user virginia rename to santos;
+<<sqlstate;
+connect security_admin/TimechoDB@2021;
+revoke MANAGE_USER from user javadi;
+<<sqlstate;
+// testcase5: javadi with SECURITY privilege can rename virginia to santos
+connect security_admin/TimechoDB@2021;
+list user;
+grant SECURITY to user javadi;
+connect javadi/TimechoDB@2021;
+alter user virginia rename to santos;
+connect santos/TimechoDB@2021;
+list user;
+// testcase6: javadi with SECURITY privilege cannot rename security_admin
+connect security_admin/TimechoDB@2021;
+list user;
+connect javadi/TimechoDB@2021;
+alter user security_admin rename to root;
+<<sqlstate;
+connect security_admin/TimechoDB@2021;
+list user;
+list privileges of user security_admin;
+list privileges of user javadi;
+// testcase7: security_admin rename itself to root
+connect security_admin/TimechoDB@2021;
+list user;
+alter user security_admin rename to root;
+connect root/TimechoDB@2021;
+list user;
+list privileges of user root;
+list privileges of user security_admin;<<sqlstate;
+// testcase8: root rename javadi to p00 (invalid) and santos to long name (invalid)
+connect root/TimechoDB@2021;
+list user;
+alter user javadi rename to p00;
+<<sqlstate;
+list user;
+alter user santos rename to "pitt1234!pitt1234!pitt1234!pitt1234";
+<<sqlstate;
+list user;
+// testcase9: rename to existing username
+connect root/TimechoDB@2021;
+drop user javadi;<<null;
+drop user santos;<<null;
+create user javadi 'TimechoDB@2021';
+create user santos 'TimechoDB@2021';
+alter user javadi rename to santos;
+<<sqlstate;
+drop user javadi;
+drop user santos;
+// testcase10: enable_separation_of_powers=false, create and drop user root
+connect root/TimechoDB@2021;
+drop user sec_manager;<<null;
+alter user root rename to sec_manager;
+connect sec_manager/TimechoDB@2021;
+create user root 'TimechoDB@2021';
+grant security to user root;
+connect root/TimechoDB@2021;
+drop user sec_manager;
+<<sqlstate;
+drop user root;
+<<sqlstate;
+connect sec_manager/TimechoDB@2021;
+drop user root;
+alter user sec_manager rename to root;
+// testcase11: enable_separation_of_powers=false, rename to existing root
+connect root/TimechoDB@2021;
+drop user javadi;<<null;
+create user javadi 'TimechoDB@2021';
+alter user javadi rename to root;
+<<sqlstate;
+drop user javadi;
+drop user pitt;
+list user;
