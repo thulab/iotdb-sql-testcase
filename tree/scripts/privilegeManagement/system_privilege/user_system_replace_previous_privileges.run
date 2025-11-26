@@ -1,0 +1,74 @@
+// MAINTAIN--->SYSTEM
+// USE_UDF --->SYSTEM
+// USE_MODEL--->SYSTEM
+// USE_TRIGGER--->SYSTEM
+// USE_CQ--->SYSTEM
+// USE_PIPE--->SYSTEM
+// MANAGE_DATABASE--->SYSTEM
+// EXTEND_TEMPLATE--->SYSTEM
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
+
+--1. 超级管理员创建用户
+create user user1 'pass12345678';
+
+--2. 查看用户
+list user;
+
+--3. 超级管理员查询普通用户权限
+list privileges of user user1;
+
+--4. 普通用户执行旧有全局权限支持的功能
+connect user1/pass12345678;
+--4.1 执行运维操作
+show variables;
+<<SQLSTATE;
+
+--4.2 创建UDF
+create function example AS 'org.apache.iotdb.udf.UDTFExample';
+<<SQLSTATE;
+
+--4.3 创建MODEL
+create model dlinear_example using uri "https://huggingface.co/google/timesfm-2.0-500m-pytorch";
+<<SQLSTATE;
+
+--4.4 创建TRIGGER
+CREATE STATELESS TRIGGER `normal01`
+AFTER INSERT
+ON root.triggertest.d1.s1
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'lo' = '10',
+  'hi' = '15.5'
+);
+<<SQLSTATE;
+
+--4.5 创建CQ
+CREATE CONTINUOUS QUERY cq1 RESAMPLE EVERY 10s BEGIN SELECT max_value(temperature) INTO root.ln.wf01(temperature_max) FROM root.ln.wf01 GROUP BY(5s) END;
+<<SQLSTATE;
+
+--4.6 创建PIPE
+create pipe pipeA with source('path'='root.sg1.**') with processor('processor'='aggregate-processor','output.max-delay-seconds'='2','output.database'='root.analy_sg1','output.measurements'='s_avg, s_peak, s_rms, s_var, s_skew, s_kurt, s_ff, s_cf, s_pf, s_ce','output.min-report-interval-seconds'='1','windowing-strategy'='tumbling','operators'='avg, peak, rms, var, skew, kurt, ff, cf, pf, ce','sliding.boundary-time'='0','sliding.seconds'='100') with sink('sink'='write-back-sink');
+<<SQLSTATE;
+
+--4.7 创建DATABASE
+create database root.data;
+<<SQLSTATE;
+
+--4.8 创建设备模板
+create device template t1 (temperature FLOAT, status BOOLEAN);
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
