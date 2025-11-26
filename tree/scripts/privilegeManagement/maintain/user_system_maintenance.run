@@ -1,0 +1,57 @@
+// 普通用户拥有全局权限SYSTEM
+// 普通用户执行相关的运维命令
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
+
+--1. 超级管理员创建用户
+create user user1 'pass12345678';
+
+--2. 查看用户
+list user;
+
+--3. 超级管理员赋予普通用户关于全局权限SYSTEM权限
+list privileges of user user1;
+grant system on root.** to user user1;
+list privileges of user user1;
+
+--4. 普通用户执行运维操作
+connect user1/pass12345678;
+
+show current_sql_dialect;
+show current_user;
+show version;
+show variables;
+flush;
+clear cache;
+set configuration 'enable_auto_create_schema'='false';
+set configuration 'enable_auto_create_schema'='true';
+show queries;
+kill all queries;
+set system to readonly;
+set system to running;
+start repair data;
+stop repair data;
+show activation;
+show current_timestamp;
+<<CHECKCODE;
+show system info;
+<<CHECKCODE;
+show clusterid;
+<<CHECKCODE;
+
+--普通用户不支持load configuration
+load configuration;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
