@@ -1,0 +1,79 @@
+// 普通用户拥有SECURITY权限
+// 普通用户授予用户角色
+// 普通用户取消用户角色
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+
+--1. 超级管理员创建用户和角色
+create user user1 'Pass@12345678';
+
+--2. 查看用户和角色
+list user;
+
+--3. 超级管理员赋予普通用户SECURITY权限
+list privileges of user user1;
+grant security on root.** to user user1;
+list privileges of user user1;
+
+--4. 普通用户执行用户和角色操作
+connect user1/Pass@12345678;
+
+--4.1 创建用户
+create user test_user1 'Pass@12345678';
+
+--4.2 查看用户
+list user;
+
+--4.3 普通用户创建角色
+create role student;
+create role teacher;
+list role;
+
+--4.4 普通用户授予其他用户角色
+grant role student to test_user1;
+grant role teacher to user1;
+
+--4.5 普通用户列出指定用户下所有角色
+list role of user user1;
+list role of user test_user1;
+
+--4.6 普通用户列出指定角色下的用户
+list user of role teacher;
+list user of role student;
+
+--5. 普通用户取消用户角色
+revoke role teacher from user1;
+revoke role student from test_user1;
+
+--6. 普通用户列出指定用户下所有角色
+list role of user user1;
+list role of user test_user1;
+
+--7. 普通用户列出指定角色下的用户
+list user of role teacher;
+list user of role student;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
