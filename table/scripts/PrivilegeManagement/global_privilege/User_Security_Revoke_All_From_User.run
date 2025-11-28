@@ -1,0 +1,172 @@
+// 普通用户拥有SECURITY权限
+// 普通用户授予用户ALL权限
+// 普通用户取消授予用户ALL权限
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop user test_user3;
+<<NULL;
+drop role student;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop database test_db;
+<<NULL;
+drop database test_db1;
+<<NULL;
+drop database test_data;
+<<NULL;
+drop database test_data1;
+<<NULL;
+
+--1. 超级管理员创建用户和角色
+create user user1 'Pass@12345678';
+
+--2. 查看用户和角色
+list user;
+
+--3. 超级管理员赋予普通用户SECURITY权限
+list privileges of user user1;
+grant security to user user1;
+list privileges of user user1;
+
+--4. 普通用户赋予其他用户ALL权限
+connect user1/Pass@12345678;
+
+--4.1 创建用户
+list privileges of user user1;
+create user test_user1 'Pass@12345678';
+
+--4.2 查看用户
+list user;
+
+--4.3 普通用户授予其他用户关于ALL权限
+grant all to user test_user1;
+
+--4.4 查看其他用户拥有的权限列表
+list privileges of user test_user1;
+
+--5. 其他用户，执行拥有的权限操作
+connect test_user1/Pass@12345678;
+list privileges of user test_user1;
+
+--5.1 SYSTEM 权限
+create database test_db;
+create table test_db.t1(deviceid TAG,status BOOLEAN);
+show databases;
+show tables from test_db;
+
+--5.2 SECURITY 权限
+create user test_user2 'Pass@12345678';
+create role student;
+list user;
+list role;
+
+--5.3 AUDIT 权限
+select username from __audit.audit_log where username='test_user1' limit 1;
+
+--5.4 CREATE 权限
+create database test_data;
+create table test_data.t1(deviceid TAG,status BOOLEAN);
+show databases;
+show tables from test_data;
+
+--5.5 ALTER 权限
+alter table test_db.t1 add column temperature FLOAT FIELD;
+desc test_db.t1;
+
+--5.6 INSERT 权限
+insert into test_db.t1(time,deviceid,status,temperature) values(1000, 'd1', false, 18.8); 
+insert into test_db.t1(time,deviceid,status,temperature) values(2000, 'd2', true, 19.9);
+--5.7 SELECT 权限
+select * from test_db.t1 order by time;
+
+--5.8 DELETE 权限
+delete from test_db.t1 where time = 1000;
+select * from test_db.t1;
+delete from test_db.t1;
+select * from test_db.t1;
+
+--5.9 DROP 权限
+drop table test_db.t1;
+show tables from test_db;
+drop database test_db;
+show databases;
+
+--6. 取消用户ALL权限
+connect user1/Pass@12345678;
+--6.1 用户取消其他用户ALL权限
+revoke all from user test_user1;
+list privileges of user test_user1;
+
+--6.2 其他用户，执行拥有的权限操作
+connect test_user1/Pass@12345678;
+list privileges of user test_user1;
+
+--6.3 SYSTEM 权限
+create database test_db1;
+<<SQLSTATE;
+
+--6.4 SECURITY 权限
+create user test_user3 'Pass@12345678';
+<<SQLSTATE;
+create role teacher;
+<<SQLSTATE;
+
+--6.5 AUDIT 权限
+select username from __audit.audit_log where username='test_user1' limit 1;
+<<SQLSTATE;
+
+--6.6 CREATE 权限
+create database test_data1;
+<<SQLSTATE;
+
+--6.7 ALTER 权限
+alter table test_data.t1 add column temperature FLOAT FIELD;
+ <<SQLSTATE;
+ 
+--6.8 INSERT 权限
+insert into test_data.t1(time,deviceid,status) values(1000, 'd1', false);
+<<SQLSTATE;
+ 
+--6.8 SELECT 权限
+select * from test_data.t1 order by time;
+<<SQLSTATE;
+
+--6.9 DELETE 权限
+delete from test_data.t1;
+<<SQLSTATE;
+
+--6.10 DROP 权限
+drop table test_data.t1;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop user test_user3;
+<<NULL;
+drop role student;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop database test_db;
+<<NULL;
+drop database test_db1;
+<<NULL;
+drop database test_data;
+<<NULL;
+drop database test_data1;
+<<NULL;
