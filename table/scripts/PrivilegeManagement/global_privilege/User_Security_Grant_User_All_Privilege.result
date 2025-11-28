@@ -1,0 +1,333 @@
+
+-- [1]21:create user user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]24:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+总数目：2
+}
+Elapsed Time: 0.0.9
+
+-- [1]27:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.2
+
+-- [1]28:grant security to user user1
+STRICT{
+PASS
+}
+
+-- [1]29:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]35:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]36:create user test_user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]39:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]42:grant all to user test_user1
+STRICT{
+PASS
+}
+
+-- [1]45:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |ALTER                 |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |SELECT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |INSERT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |DELETE                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |CREATE                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |DROP                  |false                     |
+总数目：9
+}
+Elapsed Time: 0.0.2
+
+-- [1]49:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |ALTER                 |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |SELECT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |INSERT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |DELETE                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |CREATE                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |DROP                  |false                     |
+总数目：9
+}
+Elapsed Time: 0.0.4
+
+-- [1]52:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]53:create table test_db.t1(deviceid TAG,status BOOLEAN)
+STRICT{
+PASS
+}
+
+-- [1]54:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+__audit             |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |INF                |1                                   |1                                 |604800000                         |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]55:show tables from test_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]58:create user test_user2 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]59:create role student
+STRICT{
+PASS
+}
+
+-- [1]60:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user2      |-1                            |-1                            |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]61:list role
+STRICT{
+Role(TEXT)      |
+----------------
+student         |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]64:select username from __audit.audit_log where username='test_user1' limit 1
+STRICT{
+username(STRING)      |
+----------------------
+test_user1            |
+总数目：1
+}
+Elapsed Time: 0.0.12
+
+-- [1]67:create database test_data
+STRICT{
+PASS
+}
+
+-- [1]68:create table test_data.t1(deviceid TAG,status BOOLEAN)
+STRICT{
+PASS
+}
+
+-- [1]69:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+__audit             |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_data           |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |INF                |1                                   |1                                 |604800000                         |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]70:show tables from test_data
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]73:alter table test_db.t1 add column temperature FLOAT FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.15
+
+-- [1]74:desc test_db.t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+deviceid              |STRING              |TAG                 |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.2
+
+-- [1]77:insert into test_db.t1(time,deviceid,status,temperature) values(1000, 'd1', false, 18.8)
+STRICT{
+0
+}
+Elapsed Time: 0.0.198
+
+-- [1]78:insert into test_db.t1(time,deviceid,status,temperature) values(2000, 'd2', true, 19.9)
+STRICT{
+0
+}
+Elapsed Time: 0.0.53
+
+-- [1]80:select * from test_db.t1 order by time
+STRICT{
+time(TIMESTAMP)      |deviceid(STRING)      |status(BOOLEAN)      |temperature(FLOAT)      |
+----------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                    |false                |18.8                    |
+00+08:00             |                      |                     |                        |
+----------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|d2                    |true                 |19.9                    |
+00+08:00             |                      |                     |                        |
+总数目：2
+}
+Elapsed Time: 0.0.15
+
+-- [1]83:delete from test_db.t1 where time = 1000
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]84:select * from test_db.t1
+STRICT{
+time(TIMESTAMP)      |deviceid(STRING)      |status(BOOLEAN)      |temperature(FLOAT)      |
+----------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|d2                    |true                 |19.9                    |
+00+08:00             |                      |                     |                        |
+总数目：1
+}
+Elapsed Time: 0.0.10
+
+-- [1]85:delete from test_db.t1
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]86:select * from test_db.t1
+STRICT{
+time(TIMESTAMP)      |deviceid(STRING)      |status(BOOLEAN)      |temperature(FLOAT)      |
+总数目：0
+}
+Elapsed Time: 0.0.9
+
+-- [1]89:drop table test_db.t1
+STRICT{
+PASS
+}
+
+-- [1]90:show tables from test_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]91:drop database test_db
+STRICT{
+PASS
+}
+
+-- [1]92:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+__audit             |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_data           |INF                |1                                   |1                                 |604800000                         |
+总数目：3
+}
+Elapsed Time: 0.2.10
