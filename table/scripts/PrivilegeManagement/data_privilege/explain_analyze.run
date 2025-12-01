@@ -1,0 +1,137 @@
+//查询性能分析
+
+connect root/TimechoDB@2021;
+-- 0. 清理环境
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+
+--准备数据
+drop database if exists test;
+create database test;
+use test;
+create table t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+--1.ANY-SELECT权限，查询性能分析
+create user user01 '@Pass1234567';
+grant select on any to user user01;
+connect user01/@Pass1234567;
+use test;
+explain analyze verbose select * from t1;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+
+--准备数据
+drop database if exists test;
+create database test;
+use test;
+create table t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+--2.DB-SELECT权限，查询性能分析
+create user user01 '@Pass1234567';
+grant select on database test to user user01;
+connect user01/@Pass1234567;
+use test;
+explain analyze verbose select * from t1;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+
+--准备数据
+drop database if exists test;
+create database test;
+use test;
+create table t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+--3.TABLE-SELECT权限，查询性能分析
+create user user01 '@Pass1234567';
+grant select on table t1 to user user01;
+connect user01/@Pass1234567;
+use test;
+explain analyze verbose select * from t1;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+
+--准备数据
+drop database if exists test;
+create database test;
+use test;
+create table t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+--4.用户无权限，查询性能分析
+create user user01 '@Pass1234567';
+connect user01/@Pass1234567;
+use test;
+<<SQLSTATE;
+explain analyze verbose select * from t1;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+
+--准备数据
+drop database if exists test;
+create database test;
+use test;
+create table t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+insert into t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+--5.root用户查询性能分析
+explain analyze verbose select * from t1;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;

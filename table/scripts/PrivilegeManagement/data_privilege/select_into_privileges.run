@@ -1,0 +1,204 @@
+//查询写回
+
+connect root/TimechoDB@2021;
+-- 0. 清理环境
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--1.源表ANY-SELECT；目标表ANY-INSERT
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+grant select on any to user user01;
+grant insert on any to user user01;
+
+connect user01/@Pass1234567;
+use test;
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--2.源表ANY-SELECT；目标表DB-INSERT
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+grant select on any to user user01;
+grant insert on database test to user user01;
+
+connect user01/@Pass1234567;
+use test;
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--3.源表DB-SELECT;目标表ANY-INSERT
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+grant select on database test to user user01;
+grant insert on any to user user01;
+
+connect user01/@Pass1234567;
+use test;
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--4.源表DB-SELECT;目标表DB-INSERT
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+grant select on database test to user user01;
+grant insert on database test to user user01;
+
+connect user01/@Pass1234567;
+use test;
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--5.源表DB-SELECT
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+grant select on database test to user user01;
+
+connect user01/@Pass1234567;
+use test;
+insert into t2 select * from t1;
+<<SQLSTATE;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--6.用户无任何权限
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+create user user01 '@Pass1234567';
+
+connect user01/@Pass1234567;
+use test;
+<<SQLSTATE;
+insert into t2 select * from t1;
+<<SQLSTATE;
+select * from t2 order by time;
+<<SQLSTATE;
+select * from t1 order by time;
+<<SQLSTATE;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
+
+--6.超级管理员执行查询写回
+drop database if exists test;
+create database test;
+use test;
+create table t1(id string tag, voltage float field);
+create table t2(id string tag, voltage float field);
+insert into t1(time,id,voltage) values(1000, '1', 1.1), (2000, '2', 2.1);
+insert into t2 select * from t1;
+select * from t2 order by time;
+select * from t1 order by time;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+drop user user01;
+<<NULL;
+drop table t1;
+<<NULL;
+drop table t2;
+<<NULL;
