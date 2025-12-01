@@ -1,0 +1,459 @@
+
+-- [1]21:create user user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]24:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+总数目：2
+}
+Elapsed Time: 0.0.35
+
+-- [1]27:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.7
+
+-- [1]28:grant security on root.** to user user1
+STRICT{
+PASS
+}
+
+-- [1]29:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]35:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]36:create user test_user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]39:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]42:grant all on root.** to user test_user1
+STRICT{
+PASS
+}
+
+-- [1]45:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_DATA             |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_SCHEMA           |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：7
+}
+Elapsed Time: 0.0.3
+
+-- [1]49:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |false                     |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_DATA             |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_DATA            |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |READ_SCHEMA           |false                     |
+---------------------------------------------------------------------------------
+                |root.**          |WRITE_SCHEMA          |false                     |
+总数目：7
+}
+Elapsed Time: 0.0.6
+
+-- [1]52:create database root.db
+STRICT{
+PASS
+}
+
+-- [1]53:show variables
+STRICT{
+Variable(TEXT)      |Value(TEXT)      |
+-------------------------------------
+ClusterName         |sql_coverage     |
+-------------------------------------
+DataReplicationFacto|1                |
+r                   |                 |
+-------------------------------------
+SchemaReplicationFac|1                |
+tor                 |                 |
+-------------------------------------
+DataRegionConsensusP|org.apache.iotdb.|
+rotocolClass        |consensus.iot.Io|
+                    |TConsensus       |
+-------------------------------------
+SchemaRegionConsensu|org.apache.iotdb.|
+sProtocolClass      |consensus.ratis.|
+                    |RatisConsensus   |
+-------------------------------------
+ConfigNodeConsensusP|org.apache.iotdb.|
+rotocolClass        |consensus.ratis.|
+                    |RatisConsensus   |
+-------------------------------------
+TimePartitionOrigin |0                |
+-------------------------------------
+TimePartitionInterva|604800000        |
+l                   |                 |
+-------------------------------------
+ReadConsistencyLevel|strong           |
+-------------------------------------
+SchemaRegionPerDataN|1                |
+ode                 |                 |
+-------------------------------------
+DataRegionPerDataNod|0                |
+e                   |                 |
+-------------------------------------
+SeriesSlotNum       |1000             |
+-------------------------------------
+SeriesSlotExecutorCl|org.apache.iotdb.|
+ass                 |commons.partitio|
+                    |n.executor.hash.|
+                    |BKDRHashExecutor |
+-------------------------------------
+DiskSpaceWarningThre|0.05             |
+shold               |                 |
+-------------------------------------
+TimestampPrecision  |ms               |
+总数目：15
+}
+Elapsed Time: 0.0.16
+
+-- [1]56:create user test_user2 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]57:create role student
+STRICT{
+PASS
+}
+
+-- [1]58:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user2      |-1                            |-1                            |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]59:list role
+STRICT{
+Role(TEXT)      |
+----------------
+student         |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]62:select last_value(username) from root.__audit.log.node_1.u_0
+STRICT{
+last_value(root.__audit.log.node_1.u_0.username)(STRING)      |
+--------------------------------------------------------------
+root                                                          |
+总数目：1
+}
+Elapsed Time: 0.0.45
+
+-- [1]65:create timeseries root.db.d1.s1 BOOLEAN
+STRICT{
+PASS
+}
+
+-- [1]66:create aligned timeseries root.db.d2(s1 int32, s2 int32)
+STRICT{
+PASS
+}
+
+-- [1]67:create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN)
+STRICT{
+PASS
+}
+
+-- [1]68:set device template t1 to root.db.d3
+STRICT{
+PASS
+}
+
+-- [1]69:create timeseries using device template on root.db.d3
+STRICT{
+PASS
+}
+
+-- [1]70:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s1         |null             |root.db             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s1         |null             |root.db             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s2         |null             |root.db             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d3.temperature|null             |root.db             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d3.status     |null             |root.db             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：5
+}
+Elapsed Time: 0.0.12
+
+-- [1]73:insert into root.db.d1(time, s1) values(1000, false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.76
+
+-- [1]74:insert into root.db.d2(time, s1, s2) values(1000, 1, 1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.71
+
+-- [1]75:insert into root.db.d3(time, temperature, status) values(1000, 18.9, true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.18
+
+-- [1]78:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit        |1                                   |1                                 |0                               |604800000                         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db             |1                                   |1                                 |0                               |604800000                         |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]79:count databases
+STRICT{
+count(INT32)      |
+------------------
+2                 |
+总数目：1
+}
+Elapsed Time: 0.0.15
+
+-- [1]80:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s1         |null             |root.db             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s1         |null             |root.db             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s2         |null             |root.db             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d3.temperature|null             |root.db             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d3.status     |null             |root.db             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：5
+}
+Elapsed Time: 0.0.5
+
+-- [1]81:show devices root.db.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.db.d1        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.db.d2        |true                 |null                |INF                |
+------------------------------------------------------------------------------
+root.db.d3        |true                 |t1                  |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]82:show devices root.db.** where template is null
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.db.d1        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.db.d2        |true                 |null                |INF                |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]83:show devices root.ln.** where template is not null
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]84:show devices root.ln.** where template = 't1'
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]85:show devices root.db.** with database
+STRICT{
+Device(TEXT)      |Database(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+--------------------------------------------------------------------------------------------------
+root.db.d1        |root.db             |false                |null                |INF                |
+--------------------------------------------------------------------------------------------------
+root.db.d2        |root.db             |true                 |null                |INF                |
+--------------------------------------------------------------------------------------------------
+root.db.d3        |root.db             |true                 |t1                  |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]86:show device templates
+STRICT{
+TemplateName(TEXT)      |
+------------------------
+t1                      |
+总数目：1
+}
+Elapsed Time: 0.0.10
+
+-- [1]87:show nodes in device template t1
+STRICT{
+ChildNodes(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |
+-------------------------------------------------------------------------------------
+temperature           |FLOAT               |GORILLA             |LZ4                    |
+-------------------------------------------------------------------------------------
+status                |BOOLEAN             |PLAIN               |LZ4                    |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]88:show paths set device template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.db.d3       |
+总数目：1
+}
+Elapsed Time: 0.0.13
+
+-- [1]89:show paths using device template t1
+STRICT{
+Paths(TEXT)      |
+-----------------
+root.db.d3       |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]90:show child paths root.db.**
+STRICT{
+ChildPaths(TEXT)      |NodeTypes(TEXT)      |
+-------------------------------------------
+root.db.d1.s1         |TIMESERIES           |
+-------------------------------------------
+root.db.d2.s1         |TIMESERIES           |
+-------------------------------------------
+root.db.d2.s2         |TIMESERIES           |
+总数目：3
+}
+Elapsed Time: 0.0.21
+
+-- [1]91:show child nodes root.db.**
+STRICT{
+ChildNodes(TEXT)      |
+----------------------
+s1                    |
+----------------------
+s1                    |
+----------------------
+s2                    |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]92:count nodes root.db.** level=3
+STRICT{
+count(nodes)(INT64)      |
+-------------------------
+3                        |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]93:count devices root.db.**
+STRICT{
+count(devices)(INT64)      |
+---------------------------
+3                          |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]96:select * from root.db.** order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s1(BOOLEAN)      |root.db.d2.s1(INT32)      |root.db.d2.s2(INT32)      |root.db.d3.temperature(FLOAT)      |root.db.d3.status(BOOLEAN)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1000                 |false                       |1                         |1                         |18.9                               |true                            |
+总数目：1
+}
+Elapsed Time: 0.0.31
+
+-- [1]97:select count(*) from root.db.**
+STRICT{
+count(root.db.d1.s1)(INT64)      |count(root.db.d2.s1)(INT64)      |count(root.db.d2.s2)(INT64)      |count(root.db.d3.temperature)(INT64)      |count(root.db.d3.status)(INT64)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                                |1                                |1                                |1                                         |1                                    |
+总数目：1
+}
+Elapsed Time: 0.0.17

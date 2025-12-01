@@ -1,0 +1,112 @@
+// 普通用户拥有SECURITY权限
+// 普通用户授予用户ALL权限
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop role student;
+<<NULL;
+drop database root.**;
+<<NULL;
+drop device template t1;
+<<NULL;
+
+--1. 超级管理员创建用户
+create user user1 'Pass@12345678';
+
+--2. 查看用户
+list user;
+
+--3. 超级管理员赋予普通用户SECURITY权限
+list privileges of user user1;
+grant security on root.** to user user1;
+list privileges of user user1;
+
+--4. 普通用户赋予其他用户ALL权限
+connect user1/Pass@12345678;
+
+--4.1 创建用户
+list privileges of user user1;
+create user test_user1 'Pass@12345678';
+
+--4.2 查看用户
+list user;
+
+--4.3 普通用户授予其他用户关于ALL权限
+grant all on root.** to user test_user1;
+
+--4.4 查看其他用户拥有的权限列表
+list privileges of user test_user1;
+
+--5. 其他用户，执行拥有的权限操作
+connect test_user1/Pass@12345678;
+list privileges of user test_user1;
+
+--5.1 SYSTEM 权限
+create database root.db;
+show variables;
+
+--5.2 SECURITY 权限
+create user test_user2 'Pass@12345678';
+create role student;
+list user;
+list role;
+
+--5.3 AUDIT 权限
+select last_value(username) from root.__audit.log.node_1.u_0;
+
+--5.4 WRITE_SCHEMA 权限
+create timeseries root.db.d1.s1 BOOLEAN;
+create aligned timeseries root.db.d2(s1 int32, s2 int32);
+create device template t1 aligned (temperature FLOAT encoding=Gorilla, status BOOLEAN encoding=PLAIN);
+set device template t1 to root.db.d3;
+create timeseries using device template on root.db.d3;
+show timeseries root.db.**;
+
+--5.5 WRITE_DATA 权限
+insert into root.db.d1(time, s1) values(1000, false);
+insert into root.db.d2(time, s1, s2) values(1000, 1, 1);
+insert into root.db.d3(time, temperature, status) values(1000, 18.9, true);
+
+--5.6 READ_SCHEMA 权限
+show databases;
+count databases;
+show timeseries root.db.**;
+show devices root.db.**;
+show devices root.db.** where template is null;
+show devices root.ln.** where template is not null;
+show devices root.ln.** where template = 't1';
+show devices root.db.** with database;
+show device templates;
+show nodes in device template t1;
+show paths set device template t1;
+show paths using device template t1;
+show child paths root.db.**;
+show child nodes root.db.**;
+count nodes root.db.** level=3;
+count devices root.db.**;
+
+--5.7 READ_DATA 权限
+select * from root.db.** order by time;
+select count(*) from root.db.**;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop role student;
+<<NULL;
+drop database root.**;
+<<NULL;
+drop device template t1;
+<<NULL;
