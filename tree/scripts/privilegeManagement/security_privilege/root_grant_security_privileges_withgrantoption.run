@@ -1,0 +1,66 @@
+// 超级管理员拥有全局权限
+// 超级管理员授予用户全局权限：SECURITY
+// 超级管理员授予用户全局权限WITH GRANT OPTION转授权限
+// 拥有WITH GRANT OPTION的全局权限用户，授予其他用户全局权限
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop user user1;
+<<NUll;
+drop user user2;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop database root.**;
+<<NULL;
+
+--1. 超级管理员创建用户
+create user user1 'Pass@12345678';
+create user user2 'Pass@12345678';
+create user test_user1 'Pass@12345678';
+create user test_user2 'Pass@12345678';
+
+--2. 查看用户
+list user;
+
+--3. 超级管理员查看自己拥有的权限（全局权限和普通权限）
+list privileges of user root;
+
+--4. 超级管理员赋予普通用户SECURITY权限
+list privileges of user user1;
+grant security on root.** to user user1;
+list privileges of user user1;
+list privileges of user user2;
+grant security on root.** to user user2 with grant option;
+list privileges of user user2;
+
+--5. 普通用户user1，查看自己的权限列表，并赋予其他用户SECURITY权限
+connect user1/Pass@12345678;
+list privileges of user user1;
+list privileges of user test_user1;
+grant security on root.** to user test_user1;
+--<<SQLSTATE;
+
+--6. 普通用户user2，查看自己的权限列表，并赋予其他用户SECURITY权限
+connect user2/Pass@12345678;
+list privileges of user user2;
+list privileges of user test_user2;
+grant security on root.** to user test_user2;
+list privileges of user test_user2;
+
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user1;
+<<NUll;
+drop user user2;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user test_user2;
+<<NULL;
+drop database root.**;
+<<NULL;
