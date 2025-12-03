@@ -1,0 +1,150 @@
+
+-- [1]14:create user user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]15:create user test_user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]18:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.12
+
+-- [1]21:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]22:grant audit to user user1 with grant option
+STRICT{
+PASS
+}
+
+-- [1]23:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]24:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]28:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]29:grant audit to user test_user1
+STRICT{
+PASS
+}
+
+-- [1]33:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]34:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+__audit             |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]35:use __audit
+STRICT{
+PASS
+}
+
+-- [1]36:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+audit_log            |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]37:desc audit_log
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+node_id               |STRING              |TAG                 |
+--------------------------------------------------------------
+user_id               |STRING              |TAG                 |
+--------------------------------------------------------------
+username              |STRING              |FIELD               |
+--------------------------------------------------------------
+cli_hostname          |STRING              |FIELD               |
+--------------------------------------------------------------
+audit_event_type      |STRING              |FIELD               |
+--------------------------------------------------------------
+operation_type        |STRING              |FIELD               |
+--------------------------------------------------------------
+privilege_type        |STRING              |FIELD               |
+--------------------------------------------------------------
+privilege_level       |STRING              |FIELD               |
+--------------------------------------------------------------
+result                |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+database              |STRING              |FIELD               |
+--------------------------------------------------------------
+sql_string            |STRING              |FIELD               |
+--------------------------------------------------------------
+log                   |STRING              |FIELD               |
+总数目：13
+}
+Elapsed Time: 0.0.3
+
+-- [1]38:show devices from audit_log where user_id='u_0'
+STRICT{
+node_id(STRING)      |user_id(STRING)      |
+------------------------------------------
+node_1               |u_0                  |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]39:select node_id, last(username) as last_name from audit_log where user_id='u_0' group by node_id
+STRICT{
+node_id(STRING)      |last_name(STRING)      |
+--------------------------------------------
+node_1               |root                   |
+总数目：1
+}
+Elapsed Time: 0.0.31
