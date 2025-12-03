@@ -1,0 +1,96 @@
+
+-- [1]14:create user user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]17:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]20:list privileges of user root
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |true                      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |true                      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |ALTER                 |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |SELECT                |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |INSERT                |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |DELETE                |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |CREATE                |true                      |
+---------------------------------------------------------------------------------
+                |*.*              |DROP                  |true                      |
+总数目：9
+}
+Elapsed Time: 0.0.4
+
+-- [1]21:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]22:grant security to user user1 with grant option
+STRICT{
+PASS
+}
+
+-- [1]23:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]27:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]28:alter user root set password 'Pass@12345678'
+STRICT{
+SQLSTATE : 803: Access Denied: Only the superuser can alter him/herself.
+}
+
+-- [1]32:grant select, create on any to user root
+STRICT{
+SQLSTATE : 803: Access Denied: Cannot grant/revoke privileges of admin user
+}
+
+-- [1]36:revoke grant option for all from user root
+STRICT{
+SQLSTATE : 803: Access Denied: Cannot grant/revoke all privileges of admin user
+}
+
+-- [1]38:revoke all on any from user root
+STRICT{
+SQLSTATE : 803: Access Denied: Cannot grant/revoke privileges of admin user
+}
+
+-- [1]42:drop user root
+STRICT{
+SQLSTATE : 803: Access Denied: Cannot drop admin user or yourself
+}
