@@ -1,0 +1,149 @@
+
+-- [1]16:create user user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]17:create user test_user1 'Pass@12345678'
+STRICT{
+PASS
+}
+
+-- [1]20:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user1           |-1                            |-1                            |
+----------------------------------------------------------------------------
+test_user1      |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.12
+
+-- [1]23:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]24:grant audit on root.** to user user1 with grant option
+STRICT{
+PASS
+}
+
+-- [1]25:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]26:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]30:list privileges of user user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |true                      |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]31:grant audit on root.** to user test_user1
+STRICT{
+PASS
+}
+
+-- [1]35:list privileges of user test_user1
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |AUDIT                 |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.10
+
+-- [1]36:show databases root.__audit
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit        |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]37:show devices root.__audit.log.node_1.u_0
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.__audit.log.n|false                |null                |INF                |
+ode_1.u_0         |                     |                    |                   |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]38:count timeseries root.__audit.log.node_1.u_0.*
+STRICT{
+count(timeseries)(INT64)      |
+------------------------------
+10                            |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]39:show timeseries root.__audit.log.node_1.u_0.*
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.result          |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.privilege_type  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.privilege_level |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.database        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.operation_type  |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.audit_event_typ|                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+e                     |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.sql_string      |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.log             |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.cli_hostname    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit.log.node_|null             |root.__audit        |STRING              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+1.u_0.username        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：10
+}
+Elapsed Time: 0.0.11
+
+-- [1]40:select last_value(username) from root.__audit.log.node_1.u_0
+STRICT{
+last_value(root.__audit.log.node_1.u_0.username)(STRING)      |
+--------------------------------------------------------------
+root                                                          |
+总数目：1
+}
+Elapsed Time: 0.0.10

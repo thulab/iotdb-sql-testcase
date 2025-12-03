@@ -1,0 +1,50 @@
+// 超级管理员授予用户AUDIT的WITH GRANT OPTION转授权限
+// 拥有WITH GRANT OPTION的AUDIT权限用户，授予其他用户AUDIT权限
+// 其他用户执行AUDIT权限操作
+
+connect root/TimechoDB@2021;
+
+-- 清理环境
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop database root.**;
+<<NULL;
+
+--1. 超级管理员创建用户
+create user user1 'Pass@12345678';
+create user test_user1 'Pass@12345678';
+
+--2. 查看用户
+list user;
+
+--3. 超级管理员赋予普通用户AUDIT的转授权限
+list privileges of user user1;
+grant audit on root.** to user user1 with grant option;
+list privileges of user user1;
+list privileges of user test_user1;
+
+--4. 普通用户user1，查看自己的权限列表，并赋予其他用户AUDIT权限
+connect user1/Pass@12345678;
+list privileges of user user1;
+grant audit on root.** to user test_user1;
+
+--5. 普通用户test_user1，查看自己的权限列表，执行AUDIT操作权限
+connect test_user1/Pass@12345678;
+list privileges of user test_user1;
+show databases root.__audit;
+show devices root.__audit.log.node_1.u_0;
+count timeseries root.__audit.log.node_1.u_0.*;
+show timeseries root.__audit.log.node_1.u_0.*;
+select last_value(username) from root.__audit.log.node_1.u_0;
+
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user1;
+<<NUll;
+drop user test_user1;
+<<NULL;
+drop database root.**;
+<<NULL;
