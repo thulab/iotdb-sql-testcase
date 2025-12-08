@@ -11,11 +11,11 @@ connect root/TimechoDB@2021;
 drop database root.**;<<NULL;
 sleep 1000;
 drop user lily_create_udf;<<NULL;
-create user lily_create_udf 'pass123456789';
+create user lily_create_udf 'Pass@123456789';
 
 -- 无任何权限
 -- 期望：报错无权限
-connect lily_create_udf/pass123456789;
+connect lily_create_udf/Pass@123456789;
 CREATE FUNCTION example as 'Max';<<SQLSTATE;
 show functions;
 drop function example;<<SQLSTATE;
@@ -27,7 +27,7 @@ grant read on root.** to user lily_create_udf;
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
 
-connect lily_create_udf/pass123456789;
+connect lily_create_udf/Pass@123456789;
 CREATE FUNCTION example AS 'Max';
 show functions;
 insert into root.sg1.dev0(time,s_1) values(1,100);<<SQLSTATE;
@@ -42,11 +42,11 @@ select s_1 from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 
 -- 查看使用UDF
-connect lily_create_udf/pass123456789;
+connect lily_create_udf/Pass@123456789;
 select example(s_1) from root.sg1.dev0;
 
 --普通用户卸载UDF
-connect lily_create_udf/pass123456789;
+connect lily_create_udf/Pass@123456789;
 drop function example;
 show functions;
 CREATE FUNCTION example AS 'Max';
@@ -57,7 +57,7 @@ show functions;
 connect root/TimechoDB@2021;
 revoke SYSTEM on root.** from user lily_create_udf; 
 
-connect lily_create_udf/pass123456789;
+connect lily_create_udf/Pass@123456789;
 CREATE FUNCTION example3 AS 'Max';<<SQLSTATE;
 drop function example2;
 <<SQLSTATE;
@@ -85,14 +85,14 @@ list privileges of role role_function_status;
 
 CREATE DATABASE root.sg1;
 CREATE TIMESERIES root.sg1.dev0.s_1 WITH DATATYPE=INT32, ENCODING=GORILLA;
-create user lily_create_function 'pass123456789';
+create user lily_create_function 'Pass@123456789';
 list privileges of user lily_create_function;
 -- 授权create read_timeseries
 grant role role_function to lily_create_function;
 list privileges of user lily_create_function;
 --list privileges of user lily_create_function on root.sg1.**;(旧语法)
 
-connect lily_create_function/pass123456789;
+connect lily_create_function/Pass@123456789;
 CREATE FUNCTION example AS 'Max';
 show functions;
 select * from root.sg1.dev0;
@@ -108,7 +108,7 @@ select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 sleep 50;
 
-connect lily_create_function/pass123456789;
+connect lily_create_function/Pass@123456789;
 select * from root.sg1.dev0;
 select example(s_1) from root.sg1.dev0;
 drop function example;
