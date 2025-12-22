@@ -1,0 +1,176 @@
+connect root/TimechoDB@2021;
+
+--1.root用户的PIPE鉴权
+CREATE PIPEPLUGIN tree_count_processor_root as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+
+SHOW PIPEPLUGINS;
+
+DROP PIPEPLUGIN TREE_COUNT_PROCESSOR_ROOT;
+
+SHOW PIPEPLUGINS;
+
+CREATE PIPEPLUGIN tree_count_processor_root as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+
+
+
+
+
+--2.新建用户无权限
+CREATE USER user_new 'paSs1234@56789';
+
+// 使用user_new用户操作
+connect user_new/paSs1234@56789;
+LIST PRIVILEGES OF USER user_new;
+
+CREATE PIPEPLUGIN tree_count_processor as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+<<SQLSTATE;
+
+SHOW PIPEPLUGINS;
+<<SQLSTATE;
+
+DROP PIPEPLUGIN tree_count_processor_root;
+<<SQLSTATE;
+
+
+
+
+
+--3.授权
+connect root/TimechoDB@2021;
+GRANT use_pipe on root.** TO USER user_new;
+
+// 使用user_new用户操作
+connect user_new/paSs1234@56789;
+LIST PRIVILEGES OF USER user_new;
+
+CREATE PIPEPLUGIN tree_count_processor_user_new as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+
+SHOW PIPEPLUGINS;
+
+DROP PIPEPLUGIN tree_count_processor_user_new;
+
+SHOW PIPEPLUGINS;
+
+
+
+--4.取消授权
+connect root/TimechoDB@2021;
+REVOKE use_pipe on root.** FROM USER user_new;
+
+// 使用user_new用户操作
+connect user_new/paSs1234@56789;
+LIST PRIVILEGES OF USER user_new;
+CREATE PIPEPLUGIN tree_count_processor_user_new as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+<<SQLSTATE;
+
+SHOW PIPEPLUGINS;
+<<SQLSTATE;
+
+DROP PIPEPLUGIN tree_count_processor_root;
+<<SQLSTATE;
+
+
+
+
+
+
+--5.ROLE授权
+connect root/TimechoDB@2021;
+CREATE ROLE role_pipe;
+GRANT use_pipe on root.** to role role_pipe;
+CREATE USER user_role 'paSs1234@56789';
+GRANT write ON root.** TO USER user_role;
+GRANT role role_pipe to user_role;
+
+// 使用 user_role 用户操作
+connect user_role/paSs1234@56789;
+LIST PRIVILEGES OF USER user_role;
+CREATE PIPEPLUGIN `tree中文_count_processor_user_role` as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+
+SHOW PIPEPLUGINS;
+
+DROP PIPEPLUGIN `tree中文_count_processor_user_role`;
+
+
+
+
+
+
+
+--6. 取消授权ROLE
+connect root/TimechoDB@2021;
+REVOKE role role_pipe FROM user_role;
+
+// 使用 user_role 用户操作
+connect user_role/paSs1234@56789;
+LIST PRIVILEGES OF USER user_role;
+
+CREATE PIPEPLUGIN tree_count_processor_user_role as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+<<SQLSTATE;
+
+SHOW PIPEPLUGINS;
+<<SQLSTATE;
+
+DROP PIPEPLUGIN tree_count_processor_root;
+<<SQLSTATE;
+
+
+
+
+
+
+--7. 转授
+connect root/TimechoDB@2021;
+CREATE USER user_grant 'paSs1234@56#*^1';
+GRANT use_pipe,manage_user on root.** to USER user_grant WITH GRANT OPTION;
+
+CREATE USER user_granted 'paSs1234@56789';
+
+LIST PRIVILEGES OF USER user_grant;
+
+// 无权限
+// 使用 user_granted 操作
+connect user_granted/paSs1234@56789;
+LIST PRIVILEGES OF USER user_granted;
+
+CREATE PIPEPLUGIN tree_count_processor_user_granted as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+<<SQLSTATE;
+SHOW PIPEPLUGINS;
+<<SQLSTATE;
+DROP PIPEPLUGIN tree_count_processor_user_granted;
+<<SQLSTATE;
+
+// 授权
+// 使用 user_grant 操作
+connect user_grant/paSs1234@56#*^1;
+GRANT use_pipe on root.** to USER user_granted;
+
+// 使用 user_granted 操作
+connect user_granted/paSs1234@56789;
+LIST PRIVILEGES OF USER user_granted;
+// 创建
+CREATE PIPEPLUGIN tree_count_processor_user_granted as 'org.pipe.plugin.processor.CountPointProcessor' USING URI 'file:///data/nginx/pipe-processor-tree-2.0.jar';
+// 展示
+SHOW PIPEPLUGINS;
+
+DROP PIPEPLUGIN tree_count_processor_user_granted;
+
+
+
+// 清理环境
+connect root/TimechoDB@2021;
+DROP USER user_new;
+<<NULL;
+DROP USER user_new;
+<<NULL;
+DROP USER user_granted;
+<<NULL;
+DROP USER user_grant;
+<<NULL;
+DROP USER user_role;
+<<NULL;
+DROP ROLE role_pipe;
+<<NULL;
+DROP PIPEPLUGIN tree_count_processor_root;
+<<NULL;
+

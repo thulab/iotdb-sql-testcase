@@ -1,0 +1,161 @@
+connect root/TimechoDB@2021;
+
+CREATE DATABASE test_g_0;
+CREATE TABLE test_g_0.table_0 (device_id string tag, s_0 int32 field, attr string attribute);
+insert into test_g_0.table_0(time,device_id,s_0) values (100000,'d1',32),(200000,'d2',2334);
+
+CREATE USER user01 'pAssWord@1234567';
+set configuration "query_cost_stat_window"='0';
+<<NULL;
+
+-- 查询耗时:无数据，1
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+
+set configuration "query_cost_stat_window"='6';
+select count(*) from information_schema.current_queries;
+
+
+-- 无任何权限：报错：803 无权限
+connect user01/pAssWord@1234567;
+LIST PRIVILEGES OF USER user01;
+
+select count(*) from information_schema.current_queries;
+
+select * from information_schema.queries_costs_histogram limit 1;
+<<SQLSTATE;
+set configuration "query_cost_stat_window"='8';
+<<SQLSTATE;
+
+-- 授权:system
+connect root/TimechoDB@2021;
+grant system to user user01;
+
+-- 有权限
+connect user01/pAssWord@1234567;
+LIST PRIVILEGES OF USER user01;
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+
+set configuration "query_cost_stat_window"='7';
+select * from test_g_0.table_0;
+<<SQLSTATE;
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+
+-- 授权select
+connect root/TimechoDB@2021;
+grant select on any to user user01;
+
+-- 用户user01查询
+connect user01/pAssWord@1234567;
+LIST PRIVILEGES OF USER user01;
+SELECT * FROM test_g_0.table_0 order by time;
+
+select count(*) from information_schema.current_queries;
+
+connect root/TimechoDB@2021;
+SELECT * FROM test_g_0.table_0 order by time;
+-- 查询耗时
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+-- 取消授权
+revoke system from user user01;
+
+connect user01/pAssWord@1234567;
+LIST PRIVILEGES OF USER user01;
+select * from information_schema.queries_costs_histogram limit 1;
+<<SQLSTATE;
+set configuration "query_cost_stat_window"='10';
+<<SQLSTATE;
+
+
+
+
+
+// role 授权
+connect root/TimechoDB@2021;
+CREATE ROLE role_sys;
+GRANT SYSTEM to role role_sys;
+CREATE USER user_role 'paSs1234@56789';
+GRANT SELECT ON table test_g_0.table_0 TO USER user_role;
+GRANT role role_sys to user_role;
+
+connect user_role/paSs1234@56789;
+LIST PRIVILEGES OF USER user_role;
+-- 查询耗时
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+set configuration "query_cost_stat_window"='11';
+
+
+-- 取消授权ROLE
+connect root/TimechoDB@2021;
+REVOKE role role_sys FROM user_role;
+
+// 使用 user_role 用户操作
+connect user_role/paSs1234@56789;
+LIST PRIVILEGES OF USER user_role;
+select count(*) from information_schema.current_queries;
+select * from information_schema.queries_costs_histogram limit 1;
+<<SQLSTATE;
+set configuration "query_cost_stat_window"='12';
+<<SQLSTATE;
+
+
+
+
+// 转授
+connect root/TimechoDB@2021;
+CREATE USER user_grant 'paSs1234@56#*^1';
+GRANT SYSTEM to USER user_grant WITH GRANT OPTION;
+
+CREATE USER user_granted 'paSs1234@56789';
+
+LIST PRIVILEGES OF USER user_grant;
+
+-- 使用 user_grant 操作： 授权
+connect user_grant/paSs1234@56#*^1;
+GRANT SYSTEM to USER user_granted;
+
+
+-- 使用 user_granted 操作
+connect user_granted/paSs1234@56789;
+LIST PRIVILEGES OF USER user_granted;
+
+-- 查询耗时
+select count(*) from information_schema.current_queries;
+
+select * from information_schema.queries_costs_histogram limit 1;
+set configuration "query_cost_stat_window"='13';
+
+
+
+
+
+-- 系统表不能被删除
+connect root/TimechoDB@2021;
+DROP TABLE information_schema.current_queries;
+<<SQLSTATE;
+DROP TABLE information_schema.queries_costs_histogram;
+<<SQLSTATE;
+
+
+
+
+
+// 清理
+DROP DATABASE test_g_0;
+<<NULL;
+DROP USER user01;
+<<NULL;
+DROP USER user_role;
+<<NULL;
+DROP USER user_grant;
+<<NULL;
+DROP USER user_granted;
+<<NULL;
+DROP ROLE role_sys;
+<<NULL;
+set configuration "query_cost_stat_window"='0';
+<<NULL;

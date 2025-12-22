@@ -1,0 +1,179 @@
+connect root/TimechoDB@2021;
+
+// 没有SYSTEM权限的用户只能看到任何source/sink 用户指向自己的pipes
+
+--0.清理环境
+drop database test_pipe_authentication;
+<<NULL;
+
+
+// 1. 数据准备
+// 1.1 创建用户
+CREATE USER user_empty 'paSs1234@56789';
+
+CREATE USER user_source 'paSs1234@56789';
+grant select on database test_pipe_authentication to user user_source;
+
+CREATE USER user_sink 'paSs1234@56789';
+grant create,insert on any to user user_sink;
+
+CREATE USER user_pipe 'paSs1234@56789';
+grant system to user user_pipe;
+
+
+CREATE DATABASE test_pipe_authentication;
+
+// 1.2 使用root用户，创建PIPE
+create pipe root_pipe with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB1') with sink ('sink'='write-back-sink');
+
+create pipe source_pipe with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0','user'='user_source','password'='paSs1234@56789') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB2') with sink ('sink'='write-back-sink');
+
+create pipe sink_pipe with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB3') with sink ('sink'='write-back-sink','user'='user_sink','password'='paSs1234@56789');
+
+create pipe source_sink_pipe with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0','user'='user_source','password'='paSs1234@56789') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB4') with sink ('sink'='write-back-sink','user'='user_sink','password'='paSs1234@56789');
+
+
+-- 期望看到8条
+SHOW PIPES;
+
+-- 期望看到2条
+SHOW DATABASES;
+
+
+-- 使用root用户，写入数据
+CREATE TABLE test_pipe_authentication.table_0(device_id string tag,unit string tag,"地区" string ATTRIBUTE, s_0 boolean field);
+insert into test_pipe_authentication.table_0(time,device_id,"地区",s_0)values(-1,'auth-1','beijing',true);
+insert into test_pipe_authentication.table_0(time,device_id,unit,"地区",s_0)values(2025-01-01 03:50:24,'auth-1','bit','shanghai',false);
+
+SELECT time,device_id,unit,"地区",s_0 FROM test_pipe_authentication.table_0 ORDER BY TIME;
+sleep 2000;
+-- 同步成功
+DESC pipe_newDB1.table_0;
+SELECT time,device_id,unit,s_0 FROM pipe_newDB1.table_0 ORDER BY TIME;
+
+-- 验证同步结果，期望看到6条
+SHOW DATABASES;
+
+
+
+// 1.3 使用 user_empty 查看pipe
+connect user_empty/paSs1234@56789;
+list privileges of user user_empty;
+-- 期望看到0条
+SHOW PIPES;
+
+// 1.4 使用 user_source 查看pipe
+connect user_source/paSs1234@56789;
+list privileges of user user_source;
+-- 期望看到4条
+SHOW PIPES;
+
+// 1.5 使用 user_sink 查看pipe
+connect user_sink/paSs1234@56789;
+list privileges of user user_sink;
+-- 期望看到4条
+SHOW PIPES;
+
+
+
+
+
+--2. 使用user_pipe创建pipe
+connect user_pipe/paSs1234@56789;
+list privileges of user user_pipe;
+// 期望看到8条
+SHOW PIPES;
+
+CREATE PIPE user_pipe_root with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB5') with sink ('sink'='write-back-sink');
+
+CREATE PIPE user_pipe_source with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0','user'='user_source','password'='paSs1234@56789') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB6') with sink ('sink'='write-back-sink');
+
+CREATE PIPE user_pipe_sink with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') with sink ('sink'='write-back-sink','user'='user_sink','password'='paSs1234@56789');
+
+
+// 期望看到14条
+SHOW PIPES;
+
+connect root/TimechoDB@2021;
+SHOW PIPES;
+
+
+
+
+// 2.1 使用 user_empty 查看pipe
+connect user_empty/paSs1234@56789;
+list privileges of user user_empty;
+-- 期望看到0条
+SHOW PIPES;
+
+// 2.2 使用 user_source 查看pipe
+connect user_source/paSs1234@56789;
+list privileges of user user_source;
+-- 期望看到6条
+SHOW PIPES;
+
+// 2.3 使用 user_sink 查看pipe
+connect user_sink/paSs1234@56789;
+list privileges of user user_sink;
+-- 期望看到6条
+SHOW PIPES;
+
+
+
+
+// 清理环境
+connect root/TimechoDB@2021;
+DROP DATABASE test_pipe_authentication;
+<<NULL;
+DROP DATABASE pipe_newDB1;
+<<NULL;
+DROP DATABASE pipe_newDB2;
+<<NULL;
+DROP DATABASE pipe_newDB3;
+<<NULL;
+DROP DATABASE pipe_newDB4;
+<<NULL;
+DROP DATABASE pipe_newDB5;
+<<NULL;
+DROP DATABASE pipe_newDB6;
+<<NULL;
+DROP DATABASE pipe_newDB7;
+<<NULL;
+DROP PIPE root_pipe_history;
+<<NULL;
+DROP PIPE root_pipe_realtime;
+<<NULL;
+DROP PIPE source_pipe_history;
+<<NULL;
+DROP PIPE source_pipe_realtime;
+<<NULL;
+DROP PIPE sink_pipe_history;
+<<NULL;
+DROP PIPE sink_pipe_realtime;
+<<NULL;
+DROP PIPE source_sink_pipe_history;
+<<NULL;
+DROP PIPE source_sink_pipe_realtime;
+<<NULL;
+DROP PIPE user_pipe_root_history;
+<<NULL;
+DROP PIPE user_pipe_root_realtime;
+<<NULL;
+DROP PIPE user_pipe_source_history;
+<<NULL;
+DROP PIPE user_pipe_source_realtime;
+<<NULL;
+DROP PIPE user_pipe_sink_history;
+<<NULL;
+DROP PIPE user_pipe_sink_realtime;
+<<NULL;
+DROP USER user_empty;
+<<NULL;
+DROP USER user_source;
+<<NULL;
+DROP USER user_sink;
+<<NULL;
+DROP USER user_pipe;
+<<NULL;
+
+
