@@ -1,0 +1,189 @@
+
+-- [1]2:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]4:create database root.db
+STRICT{
+PASS
+}
+
+-- [1]5:create aligned timeseries root.db.d1(col blob)
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.db.d2.col with datatype=boolean
+STRICT{
+PASS
+}
+
+-- [1]7:insert into root.db.d1(time,col) values(10000,true)
+STRICT{
+SQLSTATE : 507: Fail to insert measurements [col] caused by [Binary literal must be in the form X'hexstring']
+}
+
+-- [1]8:insert into root.db.d2(time,col) values(20000,'rrrr')
+STRICT{
+SQLSTATE : 507: Fail to insert measurements [col] caused by [The BOOLEAN should be true/TRUE, false/FALSE or 0/1]
+}
+
+-- [1]9:select * from root.db.**
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.col(BLOB)      |root.db.d2.col(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.14
+
+-- [1]10:delete from root.db.** where time<=20000
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]11:select * from root.db.**
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.col(BLOB)      |root.db.d2.col(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.5
+
+-- [1]12:drop database root.db
+STRICT{
+PASS
+}
+
+-- [1]13:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]15:create database db
+STRICT{
+PASS
+}
+
+-- [1]16:use db
+STRICT{
+PASS
+}
+
+-- [1]17:create table t1(device_id string tag,col1 blob,col2 boolean)
+STRICT{
+PASS
+}
+
+-- [1]18:insert into t1 (time,device_id,col1,col2) values(1000,1000,null,'rr')
+STRICT{
+SQLSTATE : 507: Fail to insert measurements [col2] caused by [The BOOLEAN should be true/TRUE, false/FALSE or 0/1]
+}
+
+-- [1]19:insert into t1 (time,device_id,col1,col2) values(2000,2000,'xxxx',null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.77
+
+-- [1]20:insert into t1 (time,device_id,col1,col2) values(3000,3000,'abcd','rr')
+STRICT{
+SQLSTATE : 507: Fail to insert measurements [col2] caused by [The BOOLEAN should be true/TRUE, false/FALSE or 0/1]
+}
+
+-- [1]21:insert into t1 (time,device_id,col1,col2) values(4000,4000,true,'rr')
+STRICT{
+SQLSTATE : 507: Fail to insert measurements [col1, col2] caused by [Binary literal must be in the form X'hexstring', The BOOLEAN should be true/TRUE, false/FALSE or 0/1]
+}
+
+-- [1]22:select time,device_id,col1,col2 from t1 order by device_id
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |col1(BLOB)      |col2(BOOLEAN)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|1000                   |null            |null               |
+00+08:00             |                       |                |                   |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|2000                   |0x78787878      |null               |
+00+08:00             |                       |                |                   |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|3000                   |0x61626364      |null               |
+00+08:00             |                       |                |                   |
+总数目：3
+}
+Elapsed Time: 0.0.42
+
+-- [1]23:select time,device_id,col1,col2,cast (col1 as string) from t1 order by device_id
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |col1(BLOB)      |col2(BOOLEAN)      |_col4(STRING)      |
+--------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|1000                   |null            |null               |null               |
+00+08:00             |                       |                |                   |                   |
+--------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|2000                   |0x78787878      |null               |xxxx               |
+00+08:00             |                       |                |                   |                   |
+--------------------------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|3000                   |0x61626364      |null               |abcd               |
+00+08:00             |                       |                |                   |                   |
+总数目：3
+}
+Elapsed Time: 0.0.18
+
+-- [1]24:select time,device_id,col1,col2 from t1 order by device_id
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |col1(BLOB)      |col2(BOOLEAN)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|1000                   |null            |null               |
+00+08:00             |                       |                |                   |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|2000                   |0x78787878      |null               |
+00+08:00             |                       |                |                   |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|3000                   |0x61626364      |null               |
+00+08:00             |                       |                |                   |
+总数目：3
+}
+Elapsed Time: 0.0.27
+
+-- [1]25:delete from t1 where time<=4000
+STRICT{
+0
+}
+Elapsed Time: 0.0.23
+
+-- [1]26:select time,device_id,col1,col2 from t1 order by device_id
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |col1(BLOB)      |col2(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.19
+
+-- [1]27:select time,device_id,col1,col2,cast (col1 as string) from t1 order by device_id
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |col1(BLOB)      |col2(BOOLEAN)      |_col4(STRING)      |
+总数目：0
+}
+Elapsed Time: 0.0.46
+
+-- [1]28:desc t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+col1                  |BLOB                |FIELD               |
+--------------------------------------------------------------
+col2                  |BOOLEAN             |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:drop table t1
+STRICT{
+PASS
+}
+
+-- [1]30:drop database db
+STRICT{
+PASS
+}
