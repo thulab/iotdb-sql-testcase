@@ -562,10 +562,6 @@ alter table "123" alter column INT32 set data type float;
 alter table "中文" alter column INT32 set data type double;
 alter table "!@#" alter column INT32 set data type timestamp;
 alter table "   " alter column INT32 set data type string;
-drop "123";
-drop "中文";
-drop "!@#";
-drop "   ";
 create table t1(device_id STRING TAG, attr STRING ATTRIBUTE, INT32 INT32 FIELD, "123" INT32 FIELD,"中文" INT32 FIELD,"!@#" INT32 FIELD,"  " INT32 FIELD);
 alter table t1 alter column int32 set data type int64;
 alter table t1 alter column "123" set data type float;
@@ -605,19 +601,31 @@ select time, device_id, attr, boolean_1, boolean_2, boolean_3, int32_1, int32_2,
 select time, device_id, attr, boolean, int32, int64, float, double, string, text, timestamp, blob, date, object from table2 order by time;
 
 -- 八、测试转换类型后的操作
+desc table1;
 // 写入
-insert into table1(time, device_id, attr, boolean_1, boolean_2, boolean_3, int32_1, int32_2, int32_3, int32_4, int32_5, int32_6, int32_7, int64_1, int64_2, int64_3, int64_4, int64_5, float_1, float_2, float_3, float_4, double_1, double_2, double_3, string_1, string_2, string_3, text_1, text_2, text_3, timestamp_1, timestamp_2, timestamp_3, timestamp_4, timestamp_5, blob_1, blob_2, blob_3, date_1, date_2, date_3, object_1) 
+insert into table1(time, device_id, attr, 
+boolean_1, boolean_2, boolean_3, 
+int32_1, int32_2, int32_3, int32_4, int32_5, int32_6, int32_7, 
+int64_1, int64_2, int64_3, int64_4, int64_5, 
+float_1, float_2, float_3, float_4, 
+double_1, double_2, double_3, 
+string_1, string_2, string_3, 
+text_1, text_2, text_3, 
+timestamp_1, timestamp_2, timestamp_3, timestamp_4, timestamp_5, 
+blob_1, blob_2, blob_3, 
+date_1, date_2, date_3, 
+object_1) 
 values(4, 'device_1', 'attr_1', 
-true, false, true, 
-4, 4, 4, 4, 4, 4, 4, 
-4, 4, 4, 4, 4, 
-4.4, 4.4, 4.4, 4.4, 
-4.4, 4.4, 4.4, 
-'4', '4', '4', 
-'4', '4', '4', 
-4, 4, 4, 4, 4, 
 X'62', X'62', X'62', 
-'2021-01-04', '2021-01-04', '2021-01-04', 
+X'62', X'62', X'62', X'62', X'62', X'62', X'62', 
+X'62', X'62', X'62', X'62', X'62', 
+X'62', X'62', X'62', X'62', 
+X'62', X'62', X'62', 
+X'62', X'62', X'62', 
+X'62', X'62', X'62', 
+X'62', X'62', X'62', X'62', X'62', 
+X'62', X'62', X'62', 
+X'62', X'62',  X'62', 
 to_object(true, 0, X'62'));
 insert into table2(time, device_id, attr, boolean, int32, int64, float, double, string, text, timestamp, blob, date, object) values(4, 'device_1', 'attr_1', true, 4, 4, 4.0, 4.0, '4', '4', 4, X'62', '2021-01-04', to_object(true, 0, X'62'));
 // 查询
@@ -670,12 +678,15 @@ alter table test.table1 alter column int32 set data type int64; // 存在问题�
 
 connect root/TimechoDB@2021;
 desc test.table1;
-GRANT INSERT ON test.table1 TO USER user1;
+GRANT ALTER ON test.table1 TO USER user1;
 
 connect user1/TimechoDB@2021;
 LIST PRIVILEGES OF USER user1;
-alter table table1 alter column int32 set data type int64;
+desc test.table1;
+alter table test.table1 alter column int32 set data type int64;
+desc test.table1;
 
 -- 清空数据
 connect root/TimechoDB@2021;
+drop user user1;
 drop database test;
