@@ -832,8 +832,8 @@ create timeseries root.g1.d1.s7 string;
 create timeseries root.g1.d1.s8 date;
 create timeseries root.g1.d1.s9 blob;
 create timeseries root.g1.d1.s10 timestamp;
-show invalid timeSeries;
-SHOW INVALID TIMESERIES;
+show invalid timeseries;
+show invalid timeseries;
 show invalid timeseries;
 
 alter timeseries root.g1.d1.s1 rename to root.g1.d1.s_1;
@@ -848,8 +848,8 @@ alter timeseries root.g1.d1.s9 rename to root.g1.d1.s_9;
 alter timeseries root.g1.d1.s10 rename to root.g1.d1.s_10;
 show timeseries root.g1.**;
 count timeseries root.g1.**;
-show invalid timeSeries;
-SHOW INVALID TIMESERIES;
+show invalid timeseries;
+show invalid timeseries;
 show invalid timeseries;
 
 --清理环境
@@ -1366,7 +1366,7 @@ flush;
 alter timeseries root.g1.d1.s1 rename to root.g1.d2.s1;
 alter timeseries root.g1.d2.s1 add tags newtag1=newtag1;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
@@ -1398,7 +1398,7 @@ flush;
 alter timeseries root.g1.d1.s1 rename to root.g1.d2.s1;
 alter timeseries root.g1.d2.s1 add attributes attr3=attr3;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
@@ -1430,7 +1430,7 @@ flush;
 alter timeseries root.g1.d1.s1 rename to root.g1.d2.s1;
 alter timeseries root.g1.d2.s1 upsert alias=a123;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
@@ -1464,7 +1464,7 @@ insert into root.g1.d1(s1) values(6.28);
 <<SQLSTATE;
 flush;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
@@ -1484,7 +1484,7 @@ insert into root.g1.d1(s1) values(6.28);
 <<SQLSTATE;
 flush;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
@@ -1504,151 +1504,10 @@ insert into root.g1.d1(s1) values(6.28888888);
 <<SQLSTATE;
 flush;
 show invalid timeseries root.g1.**;
-show timeseries;
+show invalid timeseries
 
 --清理环境
 drop database root.g1;
-<<NULL;
-
---63. 性能 P1 改名后性能测试 （涉及benchmark，手动执行）
---跳过
-
---64-66. 异常/功能 P0/P1 高可用 （涉及集群，手动执行）
---跳过
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---67. 功能 P0 数据同步 使用数据同步，同步改名后的序列
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-alter timeseries root.g1.d1.s1 rename root.g2.d1.s1;
-<<SQLSTATE;
-create pipe A2B with source ('path'='root.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-
---清理环境
-delete root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
-<<NULL;
-
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---68. 功能 P0 数据同步 使用数据同步 + 元数据同步，同步改名后的序列
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-alter timeseries root.g1.d1.s1 rename to root.g2.d1.s1;
-create pipe A2B with source ('inclusion'='all','path'='root.g2.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-
---清理环境
-delete timeseries root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
-<<NULL;
-
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---69. 异常 P0 数据同步 使用数据同步，同步改名前的序列
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-alter timeseries root.g1.d1.s1 rename to root.g2.d1.s1;
-create pipe A2B with source ('path'='root.g1.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-
---清理环境
-delete timeseries root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
-<<NULL;
-
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---70. 异常 P0 数据同步 使用数据同步 + 元数据同步，同步改名前的序列
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-alter timeseries root.g1.d1.s1 rename to root.g2.d1.s1;
-create pipe A2B with source ('inclusion'='all','path'='root.g1.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-
---清理环境
-delete timeseries root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
-<<NULL;
-
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---71. 功能 P0 数据同步 使用数据同步，同步**（包含改名前+ 改名后）
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-create pipe A2B with source ('inclusion'='all','path'='root.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-alter timeseries root.g1.d1.s1 rename to root.g2.d1.s1;
-insert into root.g2.d1(time,s1) values(1,456);
-
---清理环境
-delete timeseries root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
-<<NULL;
-
-connect root/TimechoDB@2021;
-drop database root.g1;
-<<NULL;
---72. 功能 P0 数据同步 使用数据同步，同步**（包含改名前+ 改名后），此时insert 向源序列
---前置条件：1. 启动 timechodb v2.0.8.1
-insert into root.g1.d1(s1) values(123);
-flush;
-create pipe A2B with source ('inclusion'='all','path'='root.**') with sink ('sink'='iotdb-thrift-sink','node-urls' = '172.20.70.48:6667');
-alter timeseries root.g1.d1.s1 rename to root.g2.d1.s1;
-insert into root.g1.d1(time,s1) values(456);
-<<SQLSTATE;
-
---清理环境
-delete timeseries root.g2.d1.s1;
-<<NULL;
-drop database root.g1;
-<<NULL;
-drop database root.g2;
-<<NULL;
-drop pipe A2B_history;
-<<NULL;
-drop pipe A2B_realtime;
 <<NULL;
 
 --73-74. 功能 P0 数据同步 （涉及持续写入，手动执行）
