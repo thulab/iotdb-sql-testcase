@@ -1,0 +1,72 @@
+// 拥有SECURITY权限的用户
+//（1）创建用户
+//（2）修改用户密码
+//（3）修改用户名
+//（4）不能修改超级管理员用户名
+//（5）查看用户列表（所有用户列表）
+//（6）删除普通用户
+//（7）不能删除超级管理员root
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user admin;
+<<NULL;
+drop user user1;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user user2;
+<<NUll;
+drop user user3;
+<<NULL;
+
+--1. 超级管理员创建用户
+create user admin 'Pass@12345678';
+create user test_user1 'TimechoDB@2021';
+
+
+--2. 超级管理员赋予用户关于SECURITY权限
+grant security on root.** to user admin;
+
+--3. 拥有SECURITY权限的admin，创建用户
+connect admin/Pass@12345678;
+list privileges of user admin;
+list user;
+create user user1 'Pass@12345678';
+list user;
+
+--4. 拥有SECURITY权限的admin，修改其他用户密码
+alter user test_user1 set password 'Pass@12345678';
+
+connect test_user1/Pass@12345678;
+list user;
+
+--5. 拥有SECURITY权限的admin，修改用户名
+connect admin/Pass@12345678;
+alter user test_user1 rename to user2;
+list user;
+alter user root rename to user3;
+<<SQLSTATE;
+
+--6. 拥有SECURITY权限的admin，删除用户
+list user;
+drop user user2;
+list user;
+drop user root;
+<<SQLSTATE;
+drop user admin;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user admin;
+<<NULL;
+drop user user1;
+<<NULL;
+drop user test_user1;
+<<NULL;
+drop user user2;
+<<NUll;
+drop user user3;
+<<NULL;
