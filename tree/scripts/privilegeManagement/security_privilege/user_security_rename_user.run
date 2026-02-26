@@ -1,0 +1,99 @@
+// 修改用户名：
+// 1. 超级管理员支持修改自己的用户名
+// 2. 普通用户支持修改自己的用户名
+// 3. 超级管理员修改其他用户名
+// 4. 拥有SECURITY权限的用户，支持修改其他用户名
+
+connect root/TimechoDB@2021;
+--0. 清理数据
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop user user_3;
+<<NULL;
+drop user user_4;
+<<NULL;
+
+--1. 超级管理员修改自己的名字
+--1.1 创建用户
+create user user01 'Pass@123456789';
+create user user02 'Pass@123456789';
+create user user03 'Pass@123456789';
+create user user04 'Pass@123456789';
+list user;
+
+--1.2 超级管理员赋予其他用户关于SECURITY权限
+grant security on root.** to user user01;
+list privileges of user user01;
+
+--1.3 超级管理员修改自己的用户名
+show current_user;
+alter user root rename to admin;
+
+--1.4 超级管理员重新改回原来的名字root
+connect admin/TimechoDB@2021;
+show current_user;
+alter user admin rename to root;
+connect root/TimechoDB@2021;
+show current_user;
+
+--2. 超级管理员修改其他用户名
+list user;
+alter user user02 rename to user_2;
+list user;
+
+--3. 拥有SECURITY权限的用户user01，执行修改其他用户名
+connect user01/Pass@123456789;
+--3.1 user01修改其他用户名
+show current_user;
+list privileges of user user01;
+alter user user03 rename to user_3;
+list user;
+
+--3.2 user01修改超级管理员用户名
+alter user root rename to root_1;
+<<SQLSTATE;
+
+--4. 无SECURITY权限的普通用户仅支持修改自己的用户名
+connect user04/Pass@123456789;
+--4.1 user04修改其他用户名
+show current_user;
+list privileges of user user04;
+list user;
+alter user user01 rename to user_1;
+<<SQLSTATE;
+alter user root rename to root_2;
+<<SQLSTATE;
+
+--4.2 user04修改自己用户名
+alter user user04 rename to user_4;
+connect user_4/Pass@123456789;
+show current_user;
+
+--清理数据
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user_1;
+<<NULL;
+drop user user_2;
+<<NULL;
+drop user user_3;
+<<NULL;
+drop user user_4;
+<<NULL;
