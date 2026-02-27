@@ -1,0 +1,189 @@
+// MANAGE_ROLE（统一更新为SECURITY权限）
+// 1. 拥有SECURITY权限的用户：
+// （1）允许用户创建角色
+// （2）允许用户删除角色
+// （3）允许用户查看角色的权限信息
+// （4）允许用户将角色授予某个用户或撤销
+// （5）允许用户列出所有角色
+// 2. 没有SECURITY权限的用户：
+// （1）不允许用户创建角色
+// （2）不允许用户删除角色
+// （3）仅能用户被赋予角色拥有的权限信息
+// （4）不允许用户将角色授予某个用户或撤销
+// （5）仅能查看用户自己被赋予的角色
+
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user_1;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role role01;
+<<NULL;
+
+
+--1. 超级管理员root创建用户和角色
+CREATE USER user01 'Pass@123456789';
+CREATE USER user02 'Pass@123456789';
+CREATE USER user03 'Pass@123456789';
+CREATE USER user04 'Pass@123456789';
+CREATE ROLE teacher; 
+CREATE ROLE manager;
+CREATE ROLE staff;
+
+--2.超级管理员列出所有用户和列出所有角色
+list user;
+
+list role;
+
+--3. 超级管理员赋予用户普通用户角色 | 赋予角色权限
+GRANT SECURITY on root.** to role teacher;
+GRANT ROLE teacher TO user01;
+GRANT ROLE manager TO user02;
+GRANT ROLE staff TO user03;
+GRANT WRITE_SCHEMA on root.** to role manager;
+
+--4. 超级管理员列出用户拥有的角色
+list role of user user01;
+list role of user user02;
+list role of user user03;
+list role of user user04;
+
+--5. 超级管理员列出指定角色下所有用户
+list user of role teacher;
+list user of role manager;
+list user of role staff;
+
+--6. 超级管理员列出角色拥有的权限
+list privileges of role teacher;
+list privileges of role manager;
+list privileges of role staff;
+
+--7. 超级管理员列出用户拥有的权限
+list privileges of user user01;
+list privileges of user user02;
+list privileges of user user03;
+list privileges of user user04;
+
+--8. 拥有SECURITY权限的用户user01
+connect user01/Pass@123456789;
+--8.1 user01：创建角色和用户
+show current_user;
+list privileges of user user01;
+create role role01;
+create user user_1 'Pass@123456789';
+
+--8.2 user01：赋予用户普通用户角色
+grant role role01 to user_1;
+
+--8.3 user01：列出所有角色
+list role;
+
+--8.4 user01：列出用户拥有的角色
+list role of user user01;
+list role of user user02;
+list role of user user03;
+list role of user user04;
+
+--8.5 user01：列出指定角色下所有用户
+list user of role teacher;
+list user of role manager;
+list user of role staff;
+list user of role role01;
+
+--8.6 user01：列出角色拥有的权限
+list privileges of role teacher;
+list privileges of role manager;
+list privileges of role staff;
+list privileges of role role01;
+
+--8.7 user01：撤销用户角色
+revoke role role01 from user_1;
+list role of user user_1;
+
+--8.8 user01：删除角色
+drop role role01;
+list role;
+
+--9. 没有SECURITY权限的用户：user04
+connect user04/Pass@123456789;
+--9.1 user04：创建角色
+show current_user;
+list privileges of user user04;
+create role role02;
+<<SQLSTATE;
+
+--9.2 user04：赋予用户普通用户角色
+grant role staff to user_1;
+<<SQLSTATE;
+
+--9.3 user04：列出所有角色
+list role;
+
+--9.4 user04：列出用户拥有的角色
+list role of user user01;
+<<SQLSTATE;
+list role of user user02;
+<<SQLSTATE;
+list role of user user03;
+<<SQLSTATE;
+list role of user user04;
+
+--9.5 user04：列出指定角色下所有用户
+list user of role teacher;
+list user of role manager;
+list user of role staff;
+
+--9.6 user04：列出角色拥有的权限
+list privileges of role teacher;
+<<SQLSTATE;
+list privileges of role manager;
+<<SQLSTATE;
+list privileges of role staff;
+<<SQLSTATE;
+
+--9.7 user04：撤销用户角色
+revoke role staff from user03;
+<<SQLSTATE;
+list role of user user03;
+<<SQLSTATE;
+
+--9.8 user04：删除角色
+drop role staff;
+<<SQLSTATE;
+list role;
+
+--11. 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop user user_1;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role manager;
+<<NULL;
+drop role staff;
+<<NULL;
+drop role role01;
+<<NULL;
