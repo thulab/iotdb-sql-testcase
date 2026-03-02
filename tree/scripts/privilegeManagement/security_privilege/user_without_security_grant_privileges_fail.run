@@ -1,0 +1,111 @@
+// 无SECURITY权限的用户：
+//1. 赋予其他用户普通权限失败
+//2. 赋予角色权限失败
+//3. 赋予用户角色失败
+//4. 取消赋予用户权限失败
+//5. 取消赋予角色权限失败
+//6. 取消赋予用户角色失败
+//7. 用户查询不到其他用户拥有的权限
+//8. 用户查询不到角色拥有的权限
+
+connect root/TimechoDB@2021;
+
+--0.清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
+
+--1. 超级管理员创建普通用户：
+create user user01 'Pass@123456789';
+create user user02 'Pass@123456789';
+create user user03 'Pass@123456789';
+create user user04 'Pass@123456789';
+list user;
+
+--2. 超级管理员创建角色
+create role teacher;
+create role student;
+create role role01;
+create role role02;
+list role;
+
+--3. 超级管理员赋予用户user04普通权限【WRITE_DATA】
+grant write_data on root.** to user user04;
+list privileges of user user04;
+
+--4. 超级管理赋予角色teacher普通权限【READ_DATA】权限
+grant read_data on root.** to role teacher;
+list privileges of role teacher;
+
+--5. 超级管理员赋予用户角色
+grant role role01 to user04;
+list user of role role01;
+list role of user user04;
+
+--5. 普通用户user01无SECURITY权限：
+connect user01/Pass@123456789;
+show current_user;
+--5.1 user01赋予用户user02普通权限【WRITE_SCHEMA】失败
+list privileges of user user01;
+grant write_schema on root.** to user user02;
+<<SQLSTATE;
+
+--5.2 user01赋予角色student普通权限【READ_SCHEMA】失败
+grant read_schema on root.** to role student;
+<<SQLSTATE;
+
+--5.3 user01赋予用户角色失败
+grant role role02 to user03;
+<<SQLSTATE;
+
+--5.4 取消赋予用户user04权限失败
+revoke write_data on root.** from user user04;
+<<SQLSTATE;
+
+--5.5 取消赋予角色权限失败
+revoke read_data on root.** from role teacher;
+<<SQLSTATE;
+
+--5.6 取消赋予用户角色失败
+revoke role role01 from user04;
+<<SQLSTATE;
+
+--5.7 用户无法查询其他用户拥有的权限
+list privileges of user user04;
+<<SQLSTATE;
+
+--5.8 用户查询不到角色拥有的权限
+list privileges of role teacher;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+drop role role01;
+<<NULL;
+drop role role02;
+<<NULL;
