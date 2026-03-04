@@ -1,0 +1,119 @@
+// 普通用户拥有指定的权限且有【WITH GRANT OPTION】转授权限
+// 1. 该用户支持授予其他用户拥有指定权限
+// 2. 该用户支持授予其他用户拥有指定权限且有【WITH GRANT OPTION】转授权限
+// 3. 该用户支持取消授予其他用户拥有指定权限
+// 4. 该用户支持取消授予其他用户拥有指定权限且有【WITH GRANT OPTION】转授权限
+// 5. 该用户支持取消授予角色指定权限
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+
+--1.超级管理员创建用户
+create user user01 'Pass@123456789';
+create user user02 'Pass@123456789';
+create user user03 'Pass@123456789';
+create user user04 'Pass@123456789';
+
+--2. 超级管理员创建角色
+create role teacher;
+create role student;
+
+--3. 超级管理员赋予用户user01关于【CREATE】且【WITH GTRANT OPTION】转授权限
+grant create on any to user user01 with grant option;
+
+--4. 超级管理员赋予角色关于【CREATE】权限
+grant create on any to role teacher with grant option;
+grant create on any to role student;
+
+--5. 用户user01授予用户user02【CREATE】权限
+connect user01/Pass@123456789;
+show current_user;
+list privileges of user user01;
+grant create on any to user user02;
+connect user02/Pass@123456789;
+show current_user;
+list privileges of user user02;
+
+--6. 用户user01授予用户user03【CREATE】权限且有【WITH GRANT OPTION】转授权限
+connect user01/Pass@123456789;
+grant create on any to user user03 with grant option;
+connect user03/Pass@123456789;
+show current_user;
+list privileges of user user03;
+
+--7. 用户user03授予用户04【CREATE】权限且有【WITH GRANT OPTION】转授权限
+connect user03/Pass@123456789;
+grant create on any to user user04 with grant option;
+connect user04/Pass@123456789;
+show current_user;
+list privileges of user user04;
+
+--8. 用户user01取消授予其他用户权限
+--8.1 取消授予user02【CREATE】权限
+connect user01/Pass@123456789;
+show current_user;
+list privileges of user user01;
+revoke create on any from user user02;
+connect user02/Pass@123456789;
+show current_user;
+list privileges of user user02;
+
+--8.2 取消授予user03和user04【CREATE】权限且有【WITH GRANT OPTION】转授权限
+connect user01/Pass@123456789;
+revoke grant option for create on any from user user03;
+revoke grant option for create on any from user user04;
+connect user03/Pass@123456789;
+show current_user;
+list privileges of user user03;
+connect user04/Pass@123456789;
+show current_user;
+list privileges of user user04;
+connect user01/Pass@123456789;
+revoke create on any from user user03;
+revoke create on any from user user04;
+connect user03/Pass@123456789;
+show current_user;
+list privileges of user user03;
+connect user04/Pass@123456789;
+show current_user;
+list privileges of user user04;
+
+--8.3 取消授予角色【CREATE】权限
+connect root/TimechoDB@2021;
+list privileges of role teacher;
+list privileges of role student;
+connect user01/Pass@123456789;
+revoke grant option for create on any from role teacher;
+revoke create on any from role teacher;
+revoke create on any from role student;
+connect root/TimechoDB@2021;
+list privileges of role teacher;
+list privileges of role student;
+
+--清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
