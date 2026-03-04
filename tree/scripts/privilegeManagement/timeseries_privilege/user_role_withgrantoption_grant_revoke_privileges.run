@@ -1,0 +1,110 @@
+// 普通用户拥有角色指定的权限且有【WITH GRANT OPTION】转授权限:
+// 1. 该用户支持授予其他用户拥有指定权限
+// 2. 该用户支持授予其他用户拥有指定权限且有【WITH GRANT OPTION】转授权限
+// 3. 该用户支持取消授予其他用户拥有指定权限
+// 4. 该用户支持取消授予其他用户拥有指定权限且有【WITH GRANT OPTION】转授权限
+// 5. 该用户支持取消授予角色指定权限
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
+
+--1.超级管理员创建用户
+create user user01 'Pass@123456789';
+create user user02 'Pass@123456789';
+create user user03 'Pass@123456789';
+create user user04 'Pass@123456789';
+
+--2. 超级管理员创建角色
+create role teacher;
+create role student;
+
+--3. 超级管理员赋予角色teacher关于【WRITE_SCHEMA】且【WITH GTRANT OPTION】转授权限
+grant write_schema on root.** to role teacher with grant option;
+list privileges of role teacher;
+
+--4. 超级管理员将角色teacher赋予用户user01
+list privileges of user user01;
+grant role teacher to user01;
+list privileges of user user01;
+
+--5. 超级管理员赋予角色student【WRITE_SCHEMA】权限
+grant write_schema on root.** to role student;
+
+--6. 用户user01授予用户user02【WRITE_SCHEMA】权限
+connect user01/Pass@123456789;
+show current_user;
+list privileges of user user01;
+grant write_schema on root.** to user user02;
+connect user02/Pass@123456789;
+show current_user;
+list privileges of user user02;
+
+--7. 用户user01授予用户user03【WRITE_SCHEMA】权限且有【WITH GRANT OPTION】转授权限
+connect user01/Pass@123456789;
+grant write_schema on root.** to user user03 with grant option;
+connect user03/Pass@123456789;
+show current_user;
+list privileges of user user03;
+
+--8. 用户user03授予用户04【WRITE_SCHEMA】权限且有【WITH GRANT OPTION】转授权限
+connect user03/Pass@123456789;
+grant write_schema on root.** to user user04 with grant option;
+connect user04/Pass@123456789;
+show current_user;
+list privileges of user user04;
+
+--9. 用户user01取消授予其他用户权限
+--9.1 取消授予user02【WRITE_SCHEMA】权限
+connect user01/Pass@123456789;
+show current_user;
+list privileges of user user01;
+revoke write_schema on root.** from user user02;
+connect user02/Pass@123456789;
+show current_user;
+list privileges of user user02;
+
+--9.2 取消授予user03和user04【WRITE_SCHEMA】权限且有【WITH GRANT OPTION】转授权限
+connect user01/Pass@123456789;
+revoke write_schema on root.** from user user03;
+revoke write_schema on root.** from user user04;
+connect user03/Pass@123456789;
+show current_user;
+list privileges of user user03;
+connect user04/Pass@123456789;
+show current_user;
+list privileges of user user04;
+
+--9.3 取消授予角色【WRITE_SCHEMA】权限
+connect user01/Pass@123456789;
+list privileges of user user01;
+revoke write_schema on root.** from role student;
+revoke write_schema on root.** from role teacher;
+list privileges of user user01;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user03;
+<<NULL;
+drop user user04;
+<<NULL;
+drop role teacher;
+<<NULL;
+drop role student;
+<<NULL;
