@@ -1,0 +1,313 @@
+
+-- [1]14:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]17:use test_db
+STRICT{
+PASS
+}
+
+-- [1]22:CREATE TABLE table_default (region STRING TAG, temperature FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]22:describe table_default
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.11
+
+-- [1]26:CREATE TABLE table_custom (region STRING TAG, d_datetime TIMESTAMP TIME, temperature FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]26:describe table_custom
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+d_datetime            |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]30:CREATE TABLE table_time_last (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME)
+STRICT{
+PASS
+}
+
+-- [1]30:describe table_time_last
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+record_time           |TIMESTAMP           |TIME                |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]34:CREATE TABLE table_error_type (time_test INT64 TIME, temperature FLOAT FIELD)
+STRICT{
+SQLSTATE : 701: The time column's type shall be 'timestamp'.
+}
+
+-- [1]38:CREATE TABLE table_multi_time (time1 TIMESTAMP TIME, time2 TIMESTAMP TIME, temp FLOAT FIELD)
+STRICT{
+SQLSTATE : 701: A table cannot have more than one time column
+}
+
+-- [1]42:CREATE TABLE table_time_alter (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME)
+STRICT{
+PASS
+}
+
+-- [1]42:describe table_time_alter
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+record_time           |TIMESTAMP           |TIME                |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]43:alter table table_time_alter add column d_datetime TIMESTAMP TIME
+STRICT{
+SQLSTATE : 701: Adding TIME column is not supported.
+}
+
+-- [1]45:describe table_time_alter
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+record_time           |TIMESTAMP           |TIME                |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]49:CREATE TABLE table_name_conflict (time INT32 FIELD, temperature FLOAT FIELD)
+STRICT{
+SQLSTATE : 701: Columns in table shall not share the same name: 'time'.
+}
+
+-- [1]53:CREATE TABLE table_time_del (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME)
+STRICT{
+PASS
+}
+
+-- [1]53:describe table_time_del
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+record_time           |TIMESTAMP           |TIME                |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]54:alter table table_time_del drop column record_time
+STRICT{
+SQLSTATE : 701: Dropping tag or time column is not supported.
+}
+
+-- [1]60:CREATE TABLE write_test (region STRING TAG, d_time TIMESTAMP TIME, temp FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]61:INSERT INTO write_test VALUES ('Shanghai', 2000, 30.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.244
+
+-- [1]62:SELECT * FROM write_test
+STRICT{
+region(STRING)      |d_time(TIMESTAMP)      |temp(FLOAT)      |
+------------------------------------------------------------
+Shanghai            |1970-01-01T08:00:02.000|30.0             |
+                    |+08:00                 |                 |
+总数目：1
+}
+Elapsed Time: 0.0.24
+
+-- [1]65:INSERT INTO write_test VALUES (2000, 'Shanghai', 30.0)
+STRICT{
+SQLSTATE : 701: Input time format Shanghai error. Input like yyyy-MM-dd HH:mm:ss, yyyy-MM-ddTHH:mm:ss or refer to user document for more info.
+}
+
+-- [1]70:CREATE TABLE query_test (region STRING TAG, d_time TIMESTAMP TIME, value FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]71:INSERT INTO query_test VALUES ('Beijing', 1000, 25.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.56
+
+-- [1]72:SELECT last(value) FROM query_test
+STRICT{
+_col0(FLOAT)      |
+------------------
+25.5              |
+总数目：1
+}
+Elapsed Time: 0.0.19
+
+-- [1]75:INSERT INTO query_test VALUES ('Beijing', 2000, 25.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]76:SELECT last(value, d_time) FROM query_test
+STRICT{
+_col0(FLOAT)      |
+------------------
+25.5              |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]79:CREATE TABLE write_test_0 (region STRING TAG, d_time TIMESTAMP TIME, temp FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]80:CREATE TABLE write_test_1 (region STRING TAG, temp FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]81:INSERT INTO write_test_0 VALUES ('Shanghai', 2000, 30.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]82:INSERT INTO write_test_1 VALUES (2000, 'Shanghai', 30.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]82:select * from write_test_1 union select * from write_test_0
+STRICT{
+SQLSTATE : 701: column 1 in UNION query has incompatible types: TIMESTAMP, STRING
+}
+
+-- [1]84:select time,region,temp from write_test_1 union select d_time,region,temp from write_test_0
+STRICT{
+time(TIMESTAMP)      |region(STRING)      |temp(FLOAT)      |
+----------------------------------------------------------
+1970-01-01T08:00:02.0|Shanghai            |30.0             |
+00+08:00             |                    |                 |
+总数目：1
+}
+Elapsed Time: 0.0.24
+
+-- [1]88:CREATE TABLE table1 (region STRING TAG, value FLOAT FIELD, s1 FLOAT FIELD, s2 FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]89:CREATE TABLE table2 (region STRING TAG, value FLOAT FIELD, s1 FLOAT FIELD, s2 FLOAT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]90:INSERT INTO table1 VALUES (2000, 'Shanghai', 30.0, 30.0, 30.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]91:INSERT INTO table1 VALUES (3000, 'Beijing', 40.0, 40.0, 40.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]92:INSERT INTO table2 VALUES (2000, 'Shanghai', 30.0, 30.0, 30.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]93:INSERT INTO table2 VALUES (3000, 'Beijing', 40.0, 40.0, 40.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]94:SELECT table1.s1, table1.s2,table2.s1, table2.s2  FROM table1 LEFT JOIN table2 ON table1.time = table2.time
+STRICT{
+s1(FLOAT)      |s2(FLOAT)      |s1(FLOAT)      |s2(FLOAT)      |
+------------------------------------------------------------
+30.0           |30.0           |30.0           |30.0           |
+------------------------------------------------------------
+40.0           |40.0           |40.0           |40.0           |
+总数目：2
+}
+Elapsed Time: 0.0.26
+
+-- [1]94:select last(s1) from (SELECT table1.s1, table1.s2,table2.s1, table2.s2  FROM table1 LEFT JOIN table2 ON table1.time = table2.time)
+STRICT{
+SQLSTATE : 701: Missing valid time column. The table must contain either a column with the TIME category or at least one TIMESTAMP column.
+}
+
+-- [1]97:SELECT table1.time, table1.s1 as t1, table1.s2 as t2,table2.s1 as t3, table2.s2 as t4 FROM table1 LEFT JOIN table2 ON table1.time = table2.time
+STRICT{
+time(TIMESTAMP)      |t1(FLOAT)      |t2(FLOAT)      |t3(FLOAT)      |t4(FLOAT)      |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|30.0           |30.0           |30.0           |30.0           |
+00+08:00             |               |               |               |               |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|40.0           |40.0           |40.0           |40.0           |
+00+08:00             |               |               |               |               |
+总数目：2
+}
+Elapsed Time: 0.0.21
+
+-- [1]97:select last(t1) from (SELECT table1.time, table1.s1 as t1, table1.s2 as t2,table2.s1 as t3, table2.s2 as t4 FROM table1 LEFT JOIN table2 ON table1.time = table2.time)
+STRICT{
+_col0(FLOAT)      |
+------------------
+40.0              |
+总数目：1
+}
+Elapsed Time: 0.0.22
+
+-- [1]101:SELECT last(view_definition) FROM information_schema.views
+STRICT{
+SQLSTATE : 701: Missing valid time column. The table must contain either a column with the TIME category or at least one TIMESTAMP column.
+}

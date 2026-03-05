@@ -1,0 +1,105 @@
+// 大小写不敏感
+// 名称可包含特殊字符,如 ~!"%`等
+// 包含特殊字符或中文字符的数据库名创建时必须用双引号 "" 括起来
+// 当为表命名时,最外层的双引号("")不会在实际创建的表名中出现
+
+-- 连接数据库
+connect root/TimechoDB@2021;
+
+--0. 清理数据库
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表功能测试用例
+--3.1 不指定时间列（默认行为）
+CREATE TABLE table_default (region STRING TAG, temperature FLOAT FIELD);
+describe table_default;
+
+--3.2 指定时间列并自定义命名
+CREATE TABLE table_custom (region STRING TAG, d_datetime TIMESTAMP TIME, temperature FLOAT FIELD);
+describe table_custom;
+
+--3.3 时间列位于不同位置
+CREATE TABLE table_time_last (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME);
+describe table_time_last;
+
+--3.4 时间列数据类型非TIMESTAMP（边界值：数据类型错误）
+CREATE TABLE table_error_type (time_test INT64 TIME, temperature FLOAT FIELD);
+<<SQLSTATE;
+
+--3.5 多个时间列（边界值：数量超限）
+CREATE TABLE table_multi_time (time1 TIMESTAMP TIME, time2 TIMESTAMP TIME, temp FLOAT FIELD);
+<<SQLSTATE;
+
+--3.6 多个时间列（通过alter添加）
+CREATE TABLE table_time_alter (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME);
+describe table_time_alter;
+alter table table_time_alter add column d_datetime TIMESTAMP TIME;
+<<SQLSTATE;
+describe table_time_alter;
+
+--3.7 命名冲突（边界值：使用保留名）
+CREATE TABLE table_name_conflict (time INT32 FIELD, temperature FLOAT FIELD);
+<<SQLSTATE;
+
+--3.8 删除columnCategory = time的列
+CREATE TABLE table_time_del (region STRING TAG, temperature FLOAT FIELD, record_time TIMESTAMP TIME);
+describe table_time_del;
+alter table table_time_del drop column record_time;
+<<SQLSTATE;
+
+--4. 写入功能测试用例
+--4.1 正确顺序写入（边界值：完全匹配物理顺序）
+CREATE TABLE write_test (region STRING TAG, d_time TIMESTAMP TIME, temp FLOAT FIELD);
+INSERT INTO write_test VALUES ('Shanghai', 2000, 30.0);
+SELECT * FROM write_test;
+
+--4.2 错误顺序写入（顺序不匹配）（数据类型不匹配）
+INSERT INTO write_test VALUES (2000, 'Shanghai', 30.0);
+<<SQLSTATE;
+
+--5. 查询功能测试用例
+--5.1  单参数last函数（因：省略时间参数，果：自动推断时间列）
+CREATE TABLE query_test (region STRING TAG, d_time TIMESTAMP TIME, value FLOAT FIELD);
+INSERT INTO query_test VALUES ('Beijing', 1000, 25.5);
+SELECT last(value) FROM query_test;
+
+--5.2 双参数last函数（因：显式指定时间列，果：使用指定列排序）
+INSERT INTO query_test VALUES ('Beijing', 2000, 25.5);
+SELECT last(value, d_time) FROM query_test;
+
+--5.3 union查询
+CREATE TABLE write_test_0 (region STRING TAG, d_time TIMESTAMP TIME, temp FLOAT FIELD);
+CREATE TABLE write_test_1 (region STRING TAG, temp FLOAT FIELD);
+INSERT INTO write_test_0 VALUES ('Shanghai', 2000, 30.0);
+INSERT INTO write_test_1 VALUES (2000, 'Shanghai', 30.0);
+select * from write_test_1 union select * from write_test_0;
+<<SQLSTATE;
+select time,region,temp from write_test_1 union select d_time,region,temp from write_test_0;
+
+--5.4 子查询中无timestamp列（错误推测：缺少有效时间基准）
+CREATE TABLE table1 (region STRING TAG, value FLOAT FIELD, s1 FLOAT FIELD, s2 FLOAT FIELD);
+CREATE TABLE table2 (region STRING TAG, value FLOAT FIELD, s1 FLOAT FIELD, s2 FLOAT FIELD);
+INSERT INTO table1 VALUES (2000, 'Shanghai', 30.0, 30.0, 30.0);
+INSERT INTO table1 VALUES (3000, 'Beijing', 40.0, 40.0, 40.0);
+INSERT INTO table2 VALUES (2000, 'Shanghai', 30.0, 30.0, 30.0);
+INSERT INTO table2 VALUES (3000, 'Beijing', 40.0, 40.0, 40.0);
+SELECT table1.s1, table1.s2,table2.s1, table2.s2  FROM table1 LEFT JOIN table2 ON table1.time = table2.time;
+select last(s1) from (SELECT table1.s1, table1.s2,table2.s1, table2.s2  FROM table1 LEFT JOIN table2 ON table1.time = table2.time);
+<<SQLSTATE;
+SELECT table1.time, table1.s1 as t1, table1.s2 as t2,table2.s1 as t3, table2.s2 as t4 FROM table1 LEFT JOIN table2 ON table1.time = table2.time;
+select last(t1) from (SELECT table1.time, table1.s1 as t1, table1.s2 as t2,table2.s1 as t3, table2.s2 as t4 FROM table1 LEFT JOIN table2 ON table1.time = table2.time);
+
+--5.5 系统表无timestamp列查询
+SELECT last(view_definition) FROM information_schema.views;
+<<SQLSTATE;
+
+--清理数据：
+drop database test_db;
+<<NULL;
