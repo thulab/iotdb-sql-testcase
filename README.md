@@ -221,7 +221,7 @@ list user;UserId;
 -- <<NULL;
 -- 5. SQL相关的DDL和DML
 create/show/select/count/list...  //数据库相关的增删改成操作
--- 6. 执行过程中，可增加sleep时间来延长返回结果节
+-- 6. 执行过程中，部分结果集返回过程中通过增加sleep时间来得到
 sleep 1000;          // 休眠1000毫秒
 ```
 
