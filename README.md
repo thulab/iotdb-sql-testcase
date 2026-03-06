@@ -12,6 +12,9 @@
 │       └── otf_new.properties  // SQL覆盖工具配置文件
 │   ├── scripts                 // 存放测试用例的目录
 │   ├── README.md               // 测试目录说明文档
+├── tsfile						// TSFile文件测试目录
+|   ├── table					// 表模型测试目录
+|   ├── tree					// 树模型测试目录
 ├── README.md                   // 项目说明文档
 ```
 
@@ -19,6 +22,7 @@ IoTDB SQL自动化脚本执行主要在Linux系统服务器上进行运行操作
 
 测试环境，会持续更新Apache-IoTDB仓库Master分支代码构建IoTDB安装包，并配置测试用例依赖的JAR包。
 如：
+
 - 安装配置trigger/UDF test cases运行环境（每个环境仅做一次,且使用root用户权限）
 
 ```shell
@@ -31,6 +35,7 @@ sudo ./setup-env.sh -u <user>
 
 reference:
 **UDF**：
+
 - 测试文档: https://apache-iotdb.feishu.cn/sheets/shtcnBNOqZiICQvwyafSpKVy8Qe
 - 测试java工程: https://github.com/changxue2022/iotdb-udf-test
 
@@ -134,8 +139,10 @@ waitTime           20
 #### 2、重要文件目录介绍
 
 （1）otf_new.properties ：iotdb-sql-test 工具配置文件
-·	位置：`iotdb-sql/user/CONFIG` 。
-·	介绍：用于配置数据库信息和测试模式。
+
+- 位置：`iotdb-sql-test/user/CONFIG` 
+- 介绍：用于配置数据库信息和测试模式
+- 配置信息如下：
 
 ```
 DBtype             IOTDB							    // 数据库类型
@@ -156,46 +163,73 @@ maxConnection      127
 waitTime           20
 ```
 
+（2) special_query.csv : 输出结果集过滤列配置文件
 
+- 位置：`iotdb-sql-test/user/CONFIG`
+- 介绍：用于在执行SQL查询用例过程中，对输出的结果集进行列级别的过滤控制，需要从最终展示结果集中排除的列
+- 配置示例如下：
+
+```
+show version;BuildInfo;
+list user;UserId;
+```
 
 #### 3、使用步骤-Linux环境
 
-~ 步骤一：部署IoTDB并启动iotdb
+- 步骤一：部署IoTDB并启动iotdb
 
-使用git拉取项目将iotdb-sql文件夹放一个合适的地方。【注意：使用Windows拉取再放到Linux中可能存在Windows符号在Linux中识别不了导致报错，故建议在什么环境使用就在该环境拉取】
+使用git拉取项目将`iotdb-sql-test`文件夹放一个合适的地方。【注意：使用Windows拉取再放到Linux中可能存在Windows符号在Linux中识别不了导致报错，故建议在什么环境使用就在该环境拉取】
 
-~ 步骤二：导入目标数据库的jar包并编译源码
+- 步骤二：导入目标数据库的jar包并编译源码
 
 需将`目标数据库的lib目录`下所有的jar包全部拷贝到`项目/user/driver/iotdb`目录下，然后执行`complie.sh`文件编译源码。
 
-~ 步骤三：修改配置文件
+- 步骤三：修改配置文件
 
-在`项目/user/CONFIG/otf_new.properties`中修改配置（已初配置文件信息为例）
-·	修改iotdbURL参数：将ip和端口修改成自己数据库的ip和端口；
-·	修改iotdbUser和iotdbPasswd参数：将用户名和密码修改成自己数据库的；
-·	修改mode参数：首次启动SQL自动化工具，需将mode置为setup模式，接下来将mode更改为test模式，后续每次执行test.sh均为该模式；
+在`项目~/iotdb-sql-test/user/CONFIG/otf_new.properties`中修改配置（已初配置文件信息为例）
+（1）修改iotdbURL参数：将ip和端口修改成自己数据库的ip和端口；
+（2）修改iotdbUser和iotdbPasswd参数：将用户名和密码修改成自己数据库的；
+（3）修改mode参数：首次启动SQL自动化工具，需将mode置为setup模式，接下来将mode更改为test模式，后续每次执行test.sh均为该模式；
+
+- 根据执行SQL用例情况，需在`~/iotdb-sql-test/user/CONFIG/special_query.csv`进行配置，对输出结果集进行列过滤
 
 #### 4、编写SQL执行脚本文件
 
-在`项目/user/script`目录下先创建一个文件夹，在文件夹中编写 .run 的测试用例。
+- 首先在`~/iotdb-sql-test/user/script`目录下创建一个文件夹或递归创建文件夹
+- 然后在文件夹中创建以`xxx.run`结尾命名的SQL测试用例
+- 关于`xxx.run`文件名命名规则如下：
+
+`推荐统一命名规则：统一全小写，支持a-z、0-9、-（连字符）或_（下划线）`
+
+- 关于`xxx.run`文件里面SQL编写规则如下：
 
 ```
-//.run文件编写规则
-connect root/root;   //连接用户
+-- 编写说明：
+-- 1. 注释格式：-- 或 // ；
+-- 2. 特殊关键字：<<NULL;  |  <<SQLSTATE;  |  <<CHECKCODE; |  <<ERRORCODE;
+--  <<NULL;：表示期望能执行语句但不记录测试结果，无论是否成功还是失败都不会对其进行检测，可标记全部语句；
+--  <<SQLSTATE;：表示期望语句报错，不报错会返回异常，可以标记全部语句；
+--  <<CHECKCODE;：表示期望语句成功且不检查返回的结果，只能标记查询语句，标记非查询语句会报类型错误；
+--  <<ERRORCODE;：表示期望语句报错，只返回错误码信息，可以标记全部语句；
+--  上面关键字不写就正常判断是否成功；
+-- 3. 分号的单独处理：单个分号为每句SQL的结束符，需要在字符串中使用分号需要对其添加转义字符反斜杠("\")，反斜杠只单独对分号进行转义，结合其他字符则无效果
+-- 4. SQL用例开头与结尾都需要连接数据库并清理环境
+-- connect root/root;   -- 连接用户
+-- drop database root.**;    -- tree model
+-- <<NULL;
+-- drop database test;       -- table model
+-- <<NULL;
+-- 5. SQL相关的DDL和DML
 create/show/select/count/list...  //数据库相关的增删改成操作
-<<NULL;              // 不记录测试结果（一般用于无关紧要的的用例）
-<<SQLSTATE;          // 校验异常（预期会报错的，一般用于错误情况的用例）
-<<CHECKCODE;         // 不检查结果是否一致（一般用于每次会变化的查询）
+-- 6. 执行过程中，可增加sleep时间来延长返回结果节
 sleep 1000;          // 休眠1000毫秒
-分号的单独处理：单个分号为每句SQL的结束符，需要在字符串中使用分号需要对其添加转义字符反斜杠("\")，反斜杠只单独对分号进行转义，结合其他字符则无效果
-
 ```
 
 #### 5、启动工具
 
 在主目录下执行`test.sh`程序，生成基准文件 .result 。
 
-#### 6、更改配置文件模式
+#### 6、更改配置文件运行模式
 
 在生成基准文件后修改配置文件模式为test
 
