@@ -47,7 +47,7 @@ reference:
 
 ##  二、操作步骤
 
-#### （一）部署IoTDB，添加依赖包到相关路径下（示例为：V0.14.0）
+#### （一）部署IoTDB，添加依赖包到相关路径下
 执行trigger/udf 测试用例：
 放置jar包
 - **UDF依赖**：
@@ -61,9 +61,9 @@ reference:
 
 #### （二）SQL自动化工具中的驱动包需与IoTDB的lib包保持一致
 
-需将`$IOTDB_HOME/lib`下所有的jar包全部拷贝到`iotdb-sql/user/driver/iotdb`目录下。
+需将`$IOTDB_HOME/lib`下所有的jar包全部拷贝到`/iotdb-sql-test/user/driver/iotdb`目录下。
 
-#### （三）SQL执行脚本`.run`统一在放置script文件夹中
+#### （三）SQL执行脚本`xxx.run`统一放在script文件夹中
 
 ```
 //.run文件编写规则
@@ -74,16 +74,16 @@ create/show/select/count/list...  //数据库相关的增删改成操作
 
 ```
 
-以`setup`模式生成的`.result`文件与`.run`文件最后统一存放在`iotdb-sql/user/scripts`目录下。
+以`setup`模式生成的`xxx.result`文件与`xxx.run`文件最后统一存放在`iotdb-sql-test/user/scripts`目录下。
 
-#### （四）需在`iotdb-sql/user/CONFIG/otf_new.properties`中修改配置：
+#### （四）需在`iotdb-sql-test/user/CONFIG/otf_new.properties`中修改配置：
 
 ```
 DBtype             IOTDB
-iotdbURL             jdbc:iotdb://172.20.31.7:6667/(修改为真实的ip和port)
+iotdbURL             jdbc:iotdb://127.0.0.1:6667/(修改为真实的ip和port)
 iotdbDriver          org.apache.iotdb.jdbc.IoTDBDriver
-iotdbUser            root（iotdb对应的用户名）
-iotdbPasswd          root（iotdb对应的用户名密码）
+iotdbUser            root（IoTDB对应的用户名）
+iotdbPasswd          root（IoTDB对应的用户名密码）
 interval           11000
 maxCircle          1
 user_ip            127.0.0.1
@@ -236,5 +236,3 @@ sleep 1000;          // 休眠1000毫秒
 #### 7、再次启动工具
 
 再在项目目录下执行`test.sh`程序，生成结果文件 .out 。
-
-
