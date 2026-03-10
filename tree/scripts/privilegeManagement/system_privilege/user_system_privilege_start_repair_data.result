@@ -1,0 +1,202 @@
+
+-- [1]17:create user user01 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]18:create user user02 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]21:create database root.db
+STRICT{
+PASS
+}
+
+-- [1]22:create timeseries root.db.d1.s1 with datatype=int32,encoding=rle
+STRICT{
+PASS
+}
+
+-- [1]23:create timeseries root.db.d1.s2 with datatype=boolean,encoding=rle
+STRICT{
+PASS
+}
+
+-- [1]24:show timeseries root.db.d1.*
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s1         |null             |root.db             |INT32               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s2         |null             |root.db             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]27:insert into root.db.d1(time,s1,s2) values(1000,1,false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.49
+
+-- [1]28:insert into root.db.d1(time,s1,s2) values(2000,2,true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:insert into root.db.d1(time,s1,s2) values(100,3,false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]30:insert into root.db.d1(time,s1,s2) values(200,4,true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]31:flush
+STRICT{
+PASS
+}
+
+-- [1]32:select s1,s2 from root.db.d1 order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s1(INT32)      |root.db.d1.s2(BOOLEAN)      |
+---------------------------------------------------------------------------
+100                  |3                         |false                       |
+---------------------------------------------------------------------------
+200                  |4                         |true                        |
+---------------------------------------------------------------------------
+1000                 |1                         |false                       |
+---------------------------------------------------------------------------
+2000                 |2                         |true                        |
+总数目：4
+}
+Elapsed Time: 0.0.4
+
+-- [1]35:start repair data on cluster
+STRICT{
+PASS
+}
+
+-- [1]36:select s1,s2 from root.db.d1 order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s1(INT32)      |root.db.d1.s2(BOOLEAN)      |
+---------------------------------------------------------------------------
+100                  |3                         |false                       |
+---------------------------------------------------------------------------
+200                  |4                         |true                        |
+---------------------------------------------------------------------------
+1000                 |1                         |false                       |
+---------------------------------------------------------------------------
+2000                 |2                         |true                        |
+总数目：4
+}
+Elapsed Time: 0.0.5
+
+-- [1]39:insert into root.db.d1(time,s1,s2) values(3000,5,true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]40:insert into root.db.d1(time,s1,s2) values(300,6,true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]41:flush
+STRICT{
+PASS
+}
+
+-- [1]42:select s1,s2 from root.db.d1 order by time
+STRICT{
+Time(TIMESTAMP)      |root.db.d1.s1(INT32)      |root.db.d1.s2(BOOLEAN)      |
+---------------------------------------------------------------------------
+100                  |3                         |false                       |
+---------------------------------------------------------------------------
+200                  |4                         |true                        |
+---------------------------------------------------------------------------
+300                  |6                         |true                        |
+---------------------------------------------------------------------------
+1000                 |1                         |false                       |
+---------------------------------------------------------------------------
+2000                 |2                         |true                        |
+---------------------------------------------------------------------------
+3000                 |5                         |true                        |
+总数目：6
+}
+Elapsed Time: 0.0.5
+
+-- [1]45:grant system on root.** to user user01
+STRICT{
+PASS
+}
+
+-- [1]49:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+user02                   |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]50:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]51:start repair data on local
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]53:start repair data on cluster
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]58:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+user01                   |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]59:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]60:start repair data on local
+STRICT{
+PASS
+}
+
+-- [1]62:start repair data on cluster
+STRICT{
+PASS
+}
+
+-- [1]63:select s1,s2 from root.db.d1 order by time
+STRICT{
+Time(TIMESTAMP)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
