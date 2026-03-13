@@ -1,5 +1,5 @@
-// 一、普通用户拥有SYSTEM权限
-// 二、普通用户创建数据库
+// 一、普通用户没有SYSTEM权限，不支持创建数据库
+// 二、普通用户拥有SYSTEM权限，支持创建数据库
 // 三、普通用户修改数据库信息
 // 四、普通用户删除数据库信息
 
@@ -10,34 +10,58 @@ drop database root.**;
 <<NULL;
 drop user user1;
 <<NUll;
+drop user user2;
+<<NUll;
 
 --1. 超级管理员创建用户
 create user user1 '@Pass12345678';
+create user user2 '@Pass12345678';
 
 --2. 查看用户
 list user;
 
---3. 超级管理员赋予普通用户关于全局权限SYSTEM权限
+--3. 超级管理员赋予用户user1关于全局权限SYSTEM权限
 list privileges of user user1;
 grant system on root.** to user user1;
+
+--4. user1拥有SYSTEM权限，执行数据库管理操作
+connect user1/@Pass12345678;
+show current_user;
 list privileges of user user1;
 
---4. 普通用户执行数据库管理操作
-connect user1/@Pass12345678;
 --4.1 创建数据库
-create database root.db;
+create database root.db1;
+create database root.db2;
 show databases;
 
 --4.2 修改数据库信息
---alter database root.db with SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=2;
+--alter database root.db1 with SCHEMA_REGION_GROUP_NUM=2, DATA_REGION_GROUP_NUM=2;
 
 --4.3 删除数据库
-drop database root.db;
+drop database root.db1;
 show databases;
+
+--5.  user2没有SYSTEM权限，执行数据库管理操作
+connect user2/@Pass12345678;
+show current_user;
+list privileges of user user2;
+
+--5.1 创建数据库
+create database root.data;
+<<SQLSTATE;
+
+--5.2 查看数据库
+show databases;
+
+--5.3 删除数据库
+drop database root.db2;
+<<SQLSTATE;
 
 -- 清理数据
 connect root/TimechoDB@2021;
 drop database root.**;
 <<NULL;
 drop user user1;
+<<NULL;
+drop user user2;
 <<NULL;
