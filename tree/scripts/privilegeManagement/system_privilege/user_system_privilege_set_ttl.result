@@ -1,0 +1,210 @@
+
+-- [1]18:show databases
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit        |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]19:set ttl to root.__audit.** 86400000
+STRICT{
+SQLSTATE : 803: The database 'root.__audit' is read-only.
+}
+
+-- [1]23:create user user01 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]24:create user user02 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]25:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user01          |-1                            |-1                            |
+----------------------------------------------------------------------------
+user02          |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]28:grant system on root.** to user user01
+STRICT{
+PASS
+}
+
+-- [1]29:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]33:create timeseries root.db.d1.s1 datatype=INT32
+STRICT{
+PASS
+}
+
+-- [1]34:create timeseries root.db.d2.s2 datatype=BOOLEAN
+STRICT{
+PASS
+}
+
+-- [1]35:create timeseries root.db.d3.s3 datatype=FLOAT
+STRICT{
+PASS
+}
+
+-- [1]36:show timeseries root.db.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d1.s1         |null             |root.db             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d2.s2         |null             |root.db             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db.d3.s3         |null             |root.db             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]39:set ttl to root.db.d1 3600000
+STRICT{
+PASS
+}
+
+-- [1]40:show ttl on root.db.d1
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+-------------------------------------
+root.db.d1        |3600000            |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]41:show devices root.db.**
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.db.d1        |false                |null                |3600000            |
+------------------------------------------------------------------------------
+root.db.d2        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.db.d3        |false                |null                |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]45:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+user01                   |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]46:list privileges of user user01
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]48:set ttl to root.db.d2 86400000
+STRICT{
+PASS
+}
+
+-- [1]51:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+-------------------------------------
+root.**           |INF                |
+-------------------------------------
+root.db.d1        |3600000            |
+-------------------------------------
+root.db.d2        |86400000           |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]52:show ttl on root.db.d2
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+-------------------------------------
+root.db.d2        |86400000           |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]53:show devices root.db.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]56:unset ttl from root.db.d2
+STRICT{
+PASS
+}
+
+-- [1]57:show ttl on root.db.d2
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.2
+
+-- [1]58:show devices root.db.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]62:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+user02                   |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]63:list privileges of user user02
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]65:set ttl to root.db.d3 60000
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.db.d3.**]
+}
+
+-- [1]69:show all ttl
+STRICT{
+Device(TEXT)      |TTL(ms)(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.2
+
+-- [1]72:unset ttl from root.db.d1
+STRICT{
+SQLSTATE : 803: No permissions for this operation, please add privilege WRITE_SCHEMA on [root.db.d1.**]
+}
