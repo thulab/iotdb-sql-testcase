@@ -1,0 +1,110 @@
+// 树模型trigger权限：
+// 1. 没有SYTEM权限： （1）不支持创建trigger （2）查看trigger （3）不支持删除trigger
+// 2. 拥有SYSTEM权限：（1）支持创建trigger   （2）查看trigger （3）支持删除trigger
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database root.**;
+<<NULL;
+drop trigger stateless01;
+<<NULL;
+drop trigger stateless02;
+<<NULL;
+drop trigger stateless03;
+<<NULL;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user_01;
+<<NULL;
+
+--1. 超级管理员创建用户
+create user user01 'Pass@123456789';
+create user user02 'Pass@123456789';
+create user user_01 'Pass@123456789';
+
+--2. 超级管理员赋予用户user01关于SYSTEM权限
+grant system on root.** to user user01;
+
+--3. 超级管理员创建trigger
+CREATE STATELESS TRIGGER `stateless01`
+AFTER INSERT
+ON root.triggertest.**
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'user'='user_01',
+  'password' = '@Pass123456789',
+  'lo' = '30',
+  'hi' = '45.5'
+);
+show triggers;
+
+--4. 拥有SYSTEM权限用户执行trigger操作
+connect user01/Pass@123456789;
+show current_user;
+list privileges of user user01;
+
+--4.1 创建trigger
+CREATE STATELESS TRIGGER `stateless02`
+AFTER INSERT
+ON root.triggertest.**
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'user'='user_01',
+  'password' = '@Pass123456789',
+  'lo' = '30',
+  'hi' = '45.5'
+);
+
+--4.2 查看trigger
+show triggers;
+
+--4.3 删除trigger
+drop trigger stateless02;
+show triggers;
+
+--5. 没有SYSTEM权限的用户user02执行trigger操作
+connect user02/Pass@123456789;
+show current_user;
+list privileges of user user02;
+--5.1 创建trigger
+CREATE STATELESS TRIGGER `stateless03`
+AFTER INSERT
+ON root.triggertest.**
+AS 'org.example.DoubleValueMonitor'
+WITH (
+  'remote_ip'='127.0.0.1',
+  'user'='user_01',
+  'password' = '@Pass123456789',
+  'lo' = '30',
+  'hi' = '45.5'
+);
+<<SQLSTATE;
+
+--5.2 查看trigger
+show triggers;
+<<SQLSTATE;
+
+--5.3 删除trigger
+drop trigger stateless03;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+drop trigger stateless01;
+<<NULL;
+drop trigger stateless02;
+<<NULL;
+drop trigger stateless03;
+<<NULL;
+drop user user01;
+<<NULL;
+drop user user02;
+<<NULL;
+drop user user_01;
+<<NULL;
