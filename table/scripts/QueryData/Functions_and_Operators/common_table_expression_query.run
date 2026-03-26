@@ -1,0 +1,196 @@
+// 支持CTE【Common Table Expression】公用表表达式
+// 1. 支持简单CTE
+// 2. 支持嵌套CTE
+// 3. 不支持递归CTE
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+--1. 创建元数据
+create database test_db;
+use test_db;
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t2(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+show tables;
+desc t1;
+desc t2;
+
+--2. 插入数据
+insert into t1
+	(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1)
+values
+	(1001,'d1', 1, 10, 1.1, 10.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+	(1002, 'd1', 2, 20, 2.2, 20.2, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+	(1003, 'd2', 3, 30, 3.3, 30.3, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+	(1004, 'd1', 4, 40, 4.4, 40.4, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+	(1005, 'd1', 5, 50, 5.5, 50.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23');
+		
+insert into t2
+	(time, device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values 
+	(1006, 'd2', 1, 1, 1.1, 22.2, false, 'test1', 'string1', X'FF', to_object(false,0,X'01'), 10000, '2026-01-01'),
+	(1007, 'd2', 2, 1, 11.1, 3.3, true, 'test2', 'string2', X'FF', to_object(false,0,X'02'), 20000, '2026-01-11'),
+	(1008, 'd1', 1, 3, 22.1, 2.2, false, 'test3', 'string3', X'FF', to_object(false,0,X'03'), 30000, '2026-01-21'),
+	(1009, 'd2', 1, 1, 13.1, 12.2, true, 'test4', 'string4', X'FF', to_object(false,0,X'04'), 40000, '2026-02-01'),
+	(1010, 'd1', 1, 10, 1.1, 2.2, false, 'test5', 'string5', X'FF', to_object(false,0,X'05'), 50000, '2026-03-01');
+	
+--3. 数据查询
+select * from t1 order by time;
+select * from t2 order by time;
+
+--4. CTE查询
+--4.1 简单CTE
+with 
+	cte1 as (select time, device_id, int32_1 from t1),
+	cte2 as (select time, device_id, int32_1 from cte1)
+select * from cte2 order by 1, 2, 3;
+
+--4.2 简单CTE：同一CTE，多次引用
+with 
+	cte1 as (select int32_1, double_1 from t1 where int32_1 between 2 and 4 )
+select 	
+	a.int32_1, a.double_1,
+	b.int32_1, b.double_1,
+	c.int32_1, c.double_1
+from cte1 a 
+		join cte1 b on a.int32_1 < b.int32_1
+		join cte1 c on b.int32_1 < c.int32_1;
+
+--4.3 嵌套CTE
+with 
+	cte1 as (select int32_1, float_1 from t1 where int32_1 > 2),
+	cte2 as (select int32_1, float_1 * 2 as multiply_val from cte1),
+	cte3 as (select int32_1, multiply_val + 1 as final_result from cte2)
+select * from cte3 order by 1, 2;
+
+with
+	t1 as (select int32_1, double_1 from t1 where int32_1=1),
+	t2 as (select double_1 * 10 as result from t1)
+select * from t2 order by 1;
+ 
+--4.4 cte1中的t2是源表（不能向前引用，查询得到device_id, int32_1, int64_1, double_1列信息）
+with
+	t1 as (select device_id, int32_1, int64_1, double_1, float_1 from t1),
+	cte1 as (select device_id, int32_1, int64_1, double_1, float_1 from t2),
+	t2 as (select int32_1, double_1 from t2),
+	cte2 as (select int32_1, double_1 from t1)
+select * from cte1 order by 1,2,3,4,5;
+
+--4.5 简单CTE：CTE名称与源表重名
+with 
+	t1 as (select time, device_id, boolean_1, text_1, date_1 from t1)
+select * from t1 order by 1;
+
+with 
+	t1 as (select time, device_id, int32_1 from t1),
+	t2 as (select time, device_id, int64_1 from t2)
+select * from t1 order by 1, 2;
+
+
+--4.6 EXPLAIN/EXPLAIN ANALYZE支持
+explain with cte as
+	(select * from t1)
+select * from cte;
+<<CHECKCODE;
+
+explain analyze with cte as
+	(select * from t2)
+select * from cte;
+<<CHECKCODE;
+
+--4.7 CTE定义但未使用，不影响执查询
+with 
+	used_cte as (select int32_1 from t1 where int32_1 < 5),
+	unused_cte as (select * from t2 where device_id='d2')
+select * from used_cte order by 1;
+
+--4.8 异常用例
+--4.8.1 嵌套CTE-源表名不存在
+with 
+	cte1 as (select * from cte2),
+	cte2 as (select * from cte1)
+select * from cte2;
+<<SQLSTATE;
+
+--4.8.2 嵌套CTE-引用不存在time列
+with 
+	cte1 as (select int32_1, double_1 from t2),
+	cte2 as (select time from cte1)
+select * from cte2;
+<<SQLSTATE;
+
+with 
+	t1 as (select device_id, string_1, blob_1 from t1),
+	cte1 as (select device_id,string_1, blob_1 from t2),
+	t2 as (select blob_1 from t1),
+	cte2 as (select time, blob_1 from t1)
+select * from cte2 order by time;
+<<SQLSTATE;
+
+--4.8.3 列名数量匹配：cte_name指定列名个数与子查询输出列个数
+with 
+	cte1(device_id) as (select device_id, timestamp_1, text_1 from t1)
+select * from cte1;
+<<SQLSTATE;
+
+with 
+	cte1(device_id, timestamp_1) as (select device_id, timestamp_1, text_1 from t1)
+select * from cte1;
+<<SQLSTATE;
+
+with 
+	cte1(device_id, timestamp_1, text_1) as (select device_id, timestamp_1, text_1 from t1)
+select * from cte1 order by 1, 2;
+
+--4.8.4 CTE内部EXPLAIN/EXPLAIN ANALYZE：不支持
+with 
+	cte as (explain select * from t1)
+select * from cte;
+<<SQLSTATE;
+
+with 
+	cte as (explain analyze select * from t1)
+select * from cte;
+<<SQLSTATE;
+
+--4.8.5 不支持递归CTE
+with 
+	recursive cte as (select 1 as n union all
+		select n+1 from cte where n < 5)
+select * from cte;
+<<SQLSTATE;
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;
