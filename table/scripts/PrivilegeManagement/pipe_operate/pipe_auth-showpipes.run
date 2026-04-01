@@ -33,10 +33,12 @@ create pipe sink_pipe with source ('forwarding-pipe-requests'='false', 'database
 create pipe source_sink_pipe with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0','user'='user_source','password'='paSs1234@56789') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB4') with sink ('sink'='write-back-sink','user'='user_sink','password'='paSs1234@56789');
 
 
--- 期望看到8条
+-- 期望看到8条 | 4条【2026-4-1 由于PR优化 history 任务在完成后自动删除，故不存在root_pipe_history】
+SHOW PIPES;
+sleep 5000;
 SHOW PIPES;
 
--- 期望看到2条
+-- 期望看到3条
 SHOW DATABASES;
 
 
@@ -51,7 +53,7 @@ sleep 2000;
 DESC pipe_newDB1.table_0;
 SELECT time,device_id,unit,s_0 FROM pipe_newDB1.table_0 ORDER BY TIME;
 
--- 验证同步结果，期望看到6条
+-- 验证同步结果，期望看到7条
 SHOW DATABASES;
 
 
@@ -65,13 +67,13 @@ SHOW PIPES;
 // 1.4 使用 user_source 查看pipe
 connect user_source/paSs1234@56789;
 list privileges of user user_source;
--- 期望看到4条
+-- 期望看到2条
 SHOW PIPES;
 
 // 1.5 使用 user_sink 查看pipe
 connect user_sink/paSs1234@56789;
 list privileges of user user_sink;
--- 期望看到4条
+-- 期望看到2条
 SHOW PIPES;
 
 
@@ -81,7 +83,7 @@ SHOW PIPES;
 --2. 使用user_pipe创建pipe
 connect user_pipe/paSs1234@56789;
 list privileges of user user_pipe;
-// 期望看到8条
+// 期望看到4条
 SHOW PIPES;
 
 CREATE PIPE user_pipe_root with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB5') with sink ('sink'='write-back-sink');
@@ -91,7 +93,9 @@ CREATE PIPE user_pipe_source with source ('forwarding-pipe-requests'='false', 'd
 CREATE PIPE user_pipe_sink with source ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') with processor ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') with sink ('sink'='write-back-sink','user'='user_sink','password'='paSs1234@56789');
 
 
-// 期望看到14条
+// 期望看到7条
+SHOW PIPES;
+sleep 5000;
 SHOW PIPES;
 
 connect root/TimechoDB@2021;
@@ -109,13 +113,13 @@ SHOW PIPES;
 // 2.2 使用 user_source 查看pipe
 connect user_source/paSs1234@56789;
 list privileges of user user_source;
--- 期望看到6条
+-- 期望看到3条
 SHOW PIPES;
 
 // 2.3 使用 user_sink 查看pipe
 connect user_sink/paSs1234@56789;
 list privileges of user user_sink;
--- 期望看到6条
+-- 期望看到3条
 SHOW PIPES;
 
 

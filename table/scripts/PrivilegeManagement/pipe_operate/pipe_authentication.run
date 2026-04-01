@@ -13,9 +13,11 @@ CREATE PIPE root_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'database
 
 // 展示PIPE
 SHOW PIPES;
+sleep 5000;
+SHOW PIPES;
 
-// 修改PIPE
-ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+// 修改PIPE【2026-4-1 由于PR优化 history 任务在完成后自动删除，故不存在root_pipe_history】
+-- ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
 ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 SHOW PIPES;
@@ -41,7 +43,7 @@ DESC pipe_newDB1.table_0;
 <<SQLSTATE;
 
 // 删除PIPE鉴权
-DROP PIPE root_pipe_history;
+-- DROP PIPE root_pipe_history;
 DROP PIPE root_pipe_realtime;
 // 再次删除
 DROP PIPE root_pipe_history;
@@ -72,7 +74,7 @@ CREATE PIPE user_new_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'data
 // 期望0条数据
 SHOW PIPES;
 
-ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 <<SQLSTATE;
 STOP PIPE root_pipe_realtime;
 <<SQLSTATE;
@@ -98,18 +100,18 @@ CREATE PIPE user_new_pipe3 WITH SOURCE ('forwarding-pipe-requests'='false', 'dat
 
 // 期望2条数据
 SHOW PIPES;
-sleep 2000;
-
-ALTER PIPE user_new_pipe3_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+sleep 5000;
+SHOW PIPES;
+-- ALTER PIPE user_new_pipe3_history MODIFY SOURCE('forwarding-pipe-requests'='true');
 ALTER PIPE user_new_pipe3_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 SHOW PIPES;
-STOP PIPE user_new_pipe3_history;
+STOP PIPE user_new_pipe3_realtime;
 SHOW PIPES;
-START PIPE user_new_pipe3_history;
+START PIPE user_new_pipe3_realtime;
 SHOW PIPES;
 
-DROP PIPE user_new_pipe3_history;
+-- DROP PIPE user_new_pipe3_history;
 DROP PIPE user_new_pipe3_realtime;
 
 DESC pipe_newDB3.table_0;
@@ -136,14 +138,14 @@ CREATE PIPE user_new_pipe4 WITH SOURCE ('forwarding-pipe-requests'='false', 'dat
 
 SHOW PIPES;
 
-ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 <<SQLSTATE;
 STOP PIPE root_pipe_realtime;
 <<SQLSTATE;
 START PIPE root_pipe_realtime;
 <<SQLSTATE;
 
-DROP PIPE root_pipe_history;
+DROP PIPE root_pipe_realtime;
 <<SQLSTATE;
 
 // 清理环境
@@ -173,20 +175,21 @@ connect user_role/paSs1234@56789;
 LIST PRIVILEGES OF USER user_role;
 CREATE PIPE user_role_pipe5 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB5') WITH SINK ('sink'='write-back-sink');
 SHOW PIPES;
-sleep 2000;
-ALTER PIPE user_role_pipe5_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+sleep 5000;
+SHOW PIPES;
+-- ALTER PIPE user_role_pipe5_history MODIFY SOURCE('forwarding-pipe-requests'='true');
 ALTER PIPE user_role_pipe5_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 SHOW PIPES;
-STOP PIPE user_role_pipe5_history;
+STOP PIPE user_role_pipe5_realtime;
 SHOW PIPES;
-START PIPE user_role_pipe5_history;
+START PIPE user_role_pipe5_realtime;
 SHOW PIPES;
 
 DESC pipe_newDB5.table_0;
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB5.table_0 ORDER BY time;
 
-DROP PIPE user_role_pipe5_history;
+-- DROP PIPE user_role_pipe5_history;
 DROP PIPE user_role_pipe5_realtime;
 // 清理环境
 DROP DATABASE pipe_newDB5;
@@ -212,6 +215,8 @@ connect user_role/paSs1234@56789;
 LIST PRIVILEGES OF USER user_role;
 CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') WITH SINK ('sink'='write-back-sink');
 <<SQLSTATE;
+SHOW PIPES;
+sleep 5000;
 SHOW PIPES;
 STOP PIPE root_pipe_realtime;
 <<SQLSTATE;
@@ -274,16 +279,17 @@ LIST PRIVILEGES OF USER user_granted;
 CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB9') WITH SINK ('sink'='write-back-sink');
 // 展示
 SHOW PIPES;
-sleep 2000;
+sleep 5000;
+SHOW PIPES;
 ALTER PIPE "中文pipe_realtime" MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 DESC pipe_newDB9.table_0;
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB9.table_0 ORDER BY time;
 
-DROP PIPE "user-role-pipe6_history";
+-- DROP PIPE "user-role-pipe6_history";
 DROP PIPE "user-role-pipe6_realtime";
-DROP PIPE "中文pipe_history";
+-- DROP PIPE "中文pipe_history";
 DROP PIPE "中文pipe_realtime";
 SHOW PIPES;
 
