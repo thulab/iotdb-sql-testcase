@@ -16,8 +16,7 @@ SHOW PIPES;
 sleep 5000;
 SHOW PIPES;
 
-// 修改PIPE【2026-4-1 由于PR优化 history 任务在完成后自动删除，故不存在root_pipe_history】
--- ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+// 修改PIPE
 ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 SHOW PIPES;
@@ -43,10 +42,9 @@ DESC pipe_newDB1.table_0;
 <<SQLSTATE;
 
 // 删除PIPE鉴权
--- DROP PIPE root_pipe_history;
 DROP PIPE root_pipe_realtime;
 // 再次删除
-DROP PIPE root_pipe_history;
+DROP PIPE root_pipe_realtime;
 <<SQLSTATE;
 
 // 清理环境
@@ -74,7 +72,7 @@ CREATE PIPE user_new_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'data
 // 期望0条数据
 SHOW PIPES;
 
-ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
+ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true');
 <<SQLSTATE;
 STOP PIPE root_pipe_realtime;
 <<SQLSTATE;
@@ -98,11 +96,11 @@ connect user_new/paSs1234@56789;
 LIST PRIVILEGES OF USER user_new;
 CREATE PIPE user_new_pipe3 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB3') WITH SINK ('sink'='write-back-sink');
 
-// 期望2条数据
+// 期望4条 | 2条数据
 SHOW PIPES;
 sleep 5000;
 SHOW PIPES;
--- ALTER PIPE user_new_pipe3_history MODIFY SOURCE('forwarding-pipe-requests'='true');
+
 ALTER PIPE user_new_pipe3_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 SHOW PIPES;
@@ -111,19 +109,16 @@ SHOW PIPES;
 START PIPE user_new_pipe3_realtime;
 SHOW PIPES;
 
--- DROP PIPE user_new_pipe3_history;
 DROP PIPE user_new_pipe3_realtime;
 
 DESC pipe_newDB3.table_0;
+
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB3.table_0 ORDER BY time;
+
 // 清理环境
 DROP DATABASE pipe_newDB3;
 <<NULL;
-
-
-
-
 
 
 --4.取消授权
@@ -158,10 +153,6 @@ DROP USER user_new;
 <<NULL;
 
 
-
-
-
-
 --5.ROLE授权
 connect root/TimechoDB@2021;
 CREATE ROLE role_pipe;
@@ -177,7 +168,6 @@ CREATE PIPE user_role_pipe5 WITH SOURCE ('forwarding-pipe-requests'='false', 'da
 SHOW PIPES;
 sleep 5000;
 SHOW PIPES;
--- ALTER PIPE user_role_pipe5_history MODIFY SOURCE('forwarding-pipe-requests'='true');
 ALTER PIPE user_role_pipe5_realtime MODIFY SOURCE('forwarding-pipe-requests'='true');
 SHOW PIPES;
 STOP PIPE user_role_pipe5_realtime;
@@ -186,24 +176,23 @@ START PIPE user_role_pipe5_realtime;
 SHOW PIPES;
 
 DESC pipe_newDB5.table_0;
+
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB5.table_0 ORDER BY time;
 
--- DROP PIPE user_role_pipe5_history;
 DROP PIPE user_role_pipe5_realtime;
+
 // 清理环境
 DROP DATABASE pipe_newDB5;
 
 CREATE PIPE "user-role-pipe6" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB6') WITH SINK ('sink'='write-back-sink');
-sleep 3000;
+SHOW PIPES;
+sleep 5000;
+SHOW PIPES;
 DESC pipe_newDB6.table_0;
+
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB6.table_0 ORDER BY time;
-
-
-
-
-
 
 
 --6. 取消授权ROLE
@@ -215,8 +204,6 @@ connect user_role/paSs1234@56789;
 LIST PRIVILEGES OF USER user_role;
 CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') WITH SINK ('sink'='write-back-sink');
 <<SQLSTATE;
-SHOW PIPES;
-sleep 5000;
 SHOW PIPES;
 STOP PIPE root_pipe_realtime;
 <<SQLSTATE;
@@ -238,9 +225,6 @@ DROP ROLE role_pipe;
 <<NULL;
 DROP USER user_role;
 <<NULL;
-
-
-
 
 
 --7. 转授
@@ -284,12 +268,11 @@ SHOW PIPES;
 ALTER PIPE "中文pipe_realtime" MODIFY SOURCE('forwarding-pipe-requests'='true');
 
 DESC pipe_newDB9.table_0;
+
 // 期望2条数据
 SELECT time,device_id,unit,s_0 FROM pipe_newDB9.table_0 ORDER BY time;
 
--- DROP PIPE "user-role-pipe6_history";
 DROP PIPE "user-role-pipe6_realtime";
--- DROP PIPE "中文pipe_history";
 DROP PIPE "中文pipe_realtime";
 SHOW PIPES;
 

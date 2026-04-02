@@ -17,7 +17,7 @@ time          |                 |processor=rename-databas|                      
               |                 |e-processor}             |                            |
 总数目：2
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.9
 
 -- [1]18:SHOW PIPES
 STRICT{
@@ -28,15 +28,15 @@ time          |                 |processor=rename-databas|                      
               |                 |e-processor}             |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]22:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]21:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 0
 }
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.18
 
--- [1]24:SHOW PIPES
+-- [1]23:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -45,14 +45,14 @@ time          |                 |processor=rename-databas|                      
               |                 |e-processor}             |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]25:STOP PIPE root_pipe_realtime
+-- [1]24:STOP PIPE root_pipe_realtime
 STRICT{
 PASS
 }
 
--- [1]26:SHOW PIPES
+-- [1]25:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -61,14 +61,14 @@ time          |                 |processor=rename-databas|                      
               |                 |e-processor}             |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]27:START PIPE root_pipe_realtime
+-- [1]26:START PIPE root_pipe_realtime
 STRICT{
 PASS
 }
 
--- [1]28:SHOW PIPES
+-- [1]27:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -79,29 +79,29 @@ time          |                 |processor=rename-databas|                      
 }
 Elapsed Time: 0.0.1
 
--- [1]31:CREATE DATABASE test_pipe_authentication
+-- [1]30:CREATE DATABASE test_pipe_authentication
 STRICT{
 PASS
 }
 
--- [1]32:CREATE TABLE test_pipe_authentication.table_0(device_id string tag,unit string tag,"地区" string ATTRIBUTE, s_0 boolean field)
+-- [1]31:CREATE TABLE test_pipe_authentication.table_0(device_id string tag,unit string tag,"地区" string ATTRIBUTE, s_0 boolean field)
 STRICT{
 PASS
 }
 
--- [1]33:INSERT INTO test_pipe_authentication.table_0(time,device_id,"地区",s_0)values(-1,'auth-1','beijing',true)
+-- [1]32:INSERT INTO test_pipe_authentication.table_0(time,device_id,"地区",s_0)values(-1,'auth-1','beijing',true)
 STRICT{
 0
 }
-Elapsed Time: 0.0.262
+Elapsed Time: 0.0.210
 
--- [1]34:INSERT INTO test_pipe_authentication.table_0(time,device_id,unit,"地区",s_0)values(2025-01-01 03:50:24,'auth-1','bit','shanghai',false)
+-- [1]33:INSERT INTO test_pipe_authentication.table_0(time,device_id,unit,"地区",s_0)values(2025-01-01 03:50:24,'auth-1','bit','shanghai',false)
 STRICT{
 0
 }
-Elapsed Time: 0.0.72
+Elapsed Time: 0.0.64
 
--- [1]37:SELECT time,device_id,unit,"地区",s_0 FROM test_pipe_authentication.table_0 ORDER BY time
+-- [1]36:SELECT time,device_id,unit,"地区",s_0 FROM test_pipe_authentication.table_0 ORDER BY time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |地区(STRING)      |s_0(BOOLEAN)      |
 ------------------------------------------------------------------------------------------------
@@ -112,9 +112,9 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |地区(STRING) 
 00+08:00             |                       |                  |                |                  |
 总数目：2
 }
-Elapsed Time: 0.0.13
+Elapsed Time: 0.0.17
 
--- [1]39:DESC pipe_newDB.table_0
+-- [1]38:DESC pipe_newDB.table_0
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -127,9 +127,9 @@ unit                  |STRING              |TAG                 |
 s_0                   |BOOLEAN             |FIELD               |
 总数目：4
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]40:SELECT time,device_id,unit,s_0 FROM pipe_newDB.table_0 order by time
+-- [1]39:SELECT time,device_id,unit,s_0 FROM pipe_newDB.table_0 order by time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)      |
 --------------------------------------------------------------------------------
@@ -140,83 +140,83 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)   
 00+08:00             |                       |                  |                  |
 总数目：2
 }
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.14
 
--- [1]43:DESC pipe_newDB1.table_0
+-- [1]42:DESC pipe_newDB1.table_0
 STRICT{
 SQLSTATE : 500: Unknown database pipe_newdb1
 }
 
+-- [1]46:DROP PIPE root_pipe_realtime
+STRICT{
+PASS
+}
+
 -- [1]48:DROP PIPE root_pipe_realtime
 STRICT{
-PASS
+SQLSTATE : 1806: Failed to drop pipe root_pipe_realtime. Failures: root_pipe_realtime does not exist.
 }
 
--- [1]50:DROP PIPE root_pipe_history
-STRICT{
-SQLSTATE : 1806: Failed to drop pipe root_pipe_history. Failures: root_pipe_history does not exist.
-}
-
--- [1]60:CREATE PIPE root_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB') WITH SINK ('sink'='write-back-sink')
+-- [1]58:CREATE PIPE root_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB') WITH SINK ('sink'='write-back-sink')
 STRICT{
 PASS
 }
 
--- [1]67:CREATE USER user_new 'paSs1234@56789'
+-- [1]65:CREATE USER user_new 'paSs1234@56789'
 STRICT{
 PASS
 }
 
--- [1]71:LIST PRIVILEGES OF USER user_new
+-- [1]69:LIST PRIVILEGES OF USER user_new
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 总数目：0
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.7
 
--- [1]73:CREATE PIPE user_new_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB2') WITH SINK ('sink'='write-back-sink')
+-- [1]71:CREATE PIPE user_new_pipe WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB2') WITH SINK ('sink'='write-back-sink')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]76:SHOW PIPES
+-- [1]74:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 总数目：0
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]78:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]76:ALTER PIPE root_pipe_history MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]80:STOP PIPE root_pipe_realtime
+-- [1]78:STOP PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]82:START PIPE root_pipe_realtime
+-- [1]80:START PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]85:DROP PIPE root_pipe_realtime
+-- [1]83:DROP PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]94:GRANT SYSTEM TO USER user_new
+-- [1]92:GRANT SYSTEM TO USER user_new
 STRICT{
 PASS
 }
 
--- [1]95:GRANT create,insert,select ON ANY TO USER user_new
+-- [1]93:GRANT create,insert,select ON ANY TO USER user_new
 STRICT{
 PASS
 }
 
--- [1]99:LIST PRIVILEGES OF USER user_new
+-- [1]97:LIST PRIVILEGES OF USER user_new
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -229,14 +229,14 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |*.*              |CREATE                |false                     |
 总数目：4
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]100:CREATE PIPE user_new_pipe3 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB3') WITH SINK ('sink'='write-back-sink')
+-- [1]98:CREATE PIPE user_new_pipe3 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB3') WITH SINK ('sink'='write-back-sink')
 STRICT{
 PASS
 }
 
--- [1]103:SHOW PIPES
+-- [1]101:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ _realtime     |                 | processor=rename-databa|                      
 }
 Elapsed Time: 0.0.2
 
--- [1]105:SHOW PIPES
+-- [1]103:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -274,13 +274,13 @@ _realtime     |                 | processor=rename-databa|                      
 }
 Elapsed Time: 0.0.2
 
--- [1]107:ALTER PIPE user_new_pipe3_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]105:ALTER PIPE user_new_pipe3_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 0
 }
-Elapsed Time: 0.0.85
+Elapsed Time: 0.0.95
 
--- [1]109:SHOW PIPES
+-- [1]107:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -293,14 +293,14 @@ _realtime     |                 | processor=rename-databa|                      
               |                 |se-processor}            |                            |
 总数目：2
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]110:STOP PIPE user_new_pipe3_realtime
+-- [1]108:STOP PIPE user_new_pipe3_realtime
 STRICT{
 PASS
 }
 
--- [1]111:SHOW PIPES
+-- [1]109:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -313,14 +313,14 @@ _realtime     |                 | processor=rename-databa|                      
               |                 |se-processor}            |                            |
 总数目：2
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]112:START PIPE user_new_pipe3_realtime
+-- [1]110:START PIPE user_new_pipe3_realtime
 STRICT{
 PASS
 }
 
--- [1]113:SHOW PIPES
+-- [1]111:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -335,12 +335,12 @@ _realtime     |                 | processor=rename-databa|                      
 }
 Elapsed Time: 0.0.1
 
--- [1]116:DROP PIPE user_new_pipe3_realtime
+-- [1]113:DROP PIPE user_new_pipe3_realtime
 STRICT{
 PASS
 }
 
--- [1]118:DESC pipe_newDB3.table_0
+-- [1]115:DESC pipe_newDB3.table_0
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -355,7 +355,7 @@ s_0                   |BOOLEAN             |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]120:SELECT time,device_id,unit,s_0 FROM pipe_newDB3.table_0 ORDER BY time
+-- [1]118:SELECT time,device_id,unit,s_0 FROM pipe_newDB3.table_0 ORDER BY time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)      |
 --------------------------------------------------------------------------------
@@ -366,14 +366,14 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)   
 00+08:00             |                       |                  |                  |
 总数目：2
 }
-Elapsed Time: 0.0.11
+Elapsed Time: 0.0.16
 
--- [1]132:REVOKE SYSTEM FROM USER user_new
+-- [1]127:REVOKE SYSTEM FROM USER user_new
 STRICT{
 PASS
 }
 
--- [1]136:LIST PRIVILEGES OF USER user_new
+-- [1]131:LIST PRIVILEGES OF USER user_new
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -386,64 +386,64 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
 }
 Elapsed Time: 0.0.2
 
--- [1]137:CREATE PIPE user_new_pipe4 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB4') WITH SINK ('sink'='write-back-sink')
+-- [1]132:CREATE PIPE user_new_pipe4 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB4') WITH SINK ('sink'='write-back-sink')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]140:SHOW PIPES
+-- [1]135:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 总数目：0
 }
 Elapsed Time: 0.0.1
 
--- [1]142:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]137:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]144:STOP PIPE root_pipe_realtime
+-- [1]139:STOP PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]146:START PIPE root_pipe_realtime
+-- [1]141:START PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]149:DROP PIPE root_pipe_realtime
+-- [1]144:DROP PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]168:CREATE ROLE role_pipe
+-- [1]159:CREATE ROLE role_pipe
 STRICT{
 PASS
 }
 
--- [1]169:GRANT SYSTEM to role role_pipe
+-- [1]160:GRANT SYSTEM to role role_pipe
 STRICT{
 PASS
 }
 
--- [1]170:CREATE USER user_role 'paSs1234@56789'
+-- [1]161:CREATE USER user_role 'paSs1234@56789'
 STRICT{
 PASS
 }
 
--- [1]171:GRANT CREATE,INSERT,SELECT ON ANY TO USER user_role
+-- [1]162:GRANT CREATE,INSERT,SELECT ON ANY TO USER user_role
 STRICT{
 PASS
 }
 
--- [1]172:GRANT role role_pipe to user_role
+-- [1]163:GRANT role role_pipe to user_role
 STRICT{
 PASS
 }
 
--- [1]176:LIST PRIVILEGES OF USER user_role
+-- [1]167:LIST PRIVILEGES OF USER user_role
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -458,12 +458,12 @@ role_pipe       |                 |SYSTEM                |false                 
 }
 Elapsed Time: 0.0.1
 
--- [1]177:CREATE PIPE user_role_pipe5 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB5') WITH SINK ('sink'='write-back-sink')
+-- [1]168:CREATE PIPE user_role_pipe5 WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB5') WITH SINK ('sink'='write-back-sink')
 STRICT{
 PASS
 }
 
--- [1]178:SHOW PIPES
+-- [1]169:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -478,7 +478,7 @@ user_role_pipe|RUNNING          |{new-db-name=pipe_newDB5,|                     
 }
 Elapsed Time: 0.0.2
 
--- [1]180:SHOW PIPES
+-- [1]171:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -487,15 +487,15 @@ user_role_pipe|RUNNING          |{new-db-name=pipe_newDB5,|                     
               |                 |se-processor}            |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]182:ALTER PIPE user_role_pipe5_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]172:ALTER PIPE user_role_pipe5_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 0
 }
 Elapsed Time: 0.0.87
 
--- [1]183:SHOW PIPES
+-- [1]173:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -506,12 +506,12 @@ user_role_pipe|RUNNING          |{new-db-name=pipe_newDB5,|                     
 }
 Elapsed Time: 0.0.1
 
--- [1]184:STOP PIPE user_role_pipe5_realtime
+-- [1]174:STOP PIPE user_role_pipe5_realtime
 STRICT{
 PASS
 }
 
--- [1]185:SHOW PIPES
+-- [1]175:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -520,14 +520,14 @@ user_role_pipe|STOPPED          |{new-db-name=pipe_newDB5,|                     
               |                 |se-processor}            |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]186:START PIPE user_role_pipe5_realtime
+-- [1]176:START PIPE user_role_pipe5_realtime
 STRICT{
 PASS
 }
 
--- [1]187:SHOW PIPES
+-- [1]177:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -536,9 +536,9 @@ user_role_pipe|RUNNING          |{new-db-name=pipe_newDB5,|                     
               |                 |se-processor}            |                            |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.5
 
--- [1]189:DESC pipe_newDB5.table_0
+-- [1]179:DESC pipe_newDB5.table_0
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -551,9 +551,9 @@ unit                  |STRING              |TAG                 |
 s_0                   |BOOLEAN             |FIELD               |
 总数目：4
 }
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.11
 
--- [1]191:SELECT time,device_id,unit,s_0 FROM pipe_newDB5.table_0 ORDER BY time
+-- [1]182:SELECT time,device_id,unit,s_0 FROM pipe_newDB5.table_0 ORDER BY time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)      |
 --------------------------------------------------------------------------------
@@ -564,24 +564,50 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)   
 00+08:00             |                       |                  |                  |
 总数目：2
 }
-Elapsed Time: 0.0.8
+Elapsed Time: 0.0.17
 
--- [1]194:DROP PIPE user_role_pipe5_realtime
+-- [1]184:DROP PIPE user_role_pipe5_realtime
 STRICT{
 PASS
 }
 
--- [1]196:DROP DATABASE pipe_newDB5
+-- [1]187:DROP DATABASE pipe_newDB5
 STRICT{
 PASS
 }
 
--- [1]198:CREATE PIPE "user-role-pipe6" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB6') WITH SINK ('sink'='write-back-sink')
+-- [1]189:CREATE PIPE "user-role-pipe6" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB6') WITH SINK ('sink'='write-back-sink')
 STRICT{
 PASS
 }
 
--- [1]200:DESC pipe_newDB6.table_0
+-- [1]190:SHOW PIPES
+STRICT{
+ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
+------------------------------------------------------------------------------------
+user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
+6_history     |                 | processor=rename-databa|                            |
+              |                 |se-processor}            |                            |
+------------------------------------------------------------------------------------
+user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
+6_realtime    |                 | processor=rename-databa|                            |
+              |                 |se-processor}            |                            |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]192:SHOW PIPES
+STRICT{
+ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
+------------------------------------------------------------------------------------
+user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
+6_realtime    |                 | processor=rename-databa|                            |
+              |                 |se-processor}            |                            |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]193:DESC pipe_newDB6.table_0
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -596,7 +622,7 @@ s_0                   |BOOLEAN             |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]202:SELECT time,device_id,unit,s_0 FROM pipe_newDB6.table_0 ORDER BY time
+-- [1]196:SELECT time,device_id,unit,s_0 FROM pipe_newDB6.table_0 ORDER BY time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)      |
 --------------------------------------------------------------------------------
@@ -607,118 +633,14 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)   
 00+08:00             |                       |                  |                  |
 总数目：2
 }
-Elapsed Time: 0.0.9
+Elapsed Time: 0.0.12
 
--- [1]212:REVOKE role role_pipe FROM user_role
+-- [1]201:REVOKE role role_pipe FROM user_role
 STRICT{
 PASS
 }
 
--- [1]216:LIST PRIVILEGES OF USER user_role
-STRICT{
-Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
----------------------------------------------------------------------------------
-                |*.*              |SELECT                |false                     |
----------------------------------------------------------------------------------
-                |*.*              |INSERT                |false                     |
----------------------------------------------------------------------------------
-                |*.*              |CREATE                |false                     |
-总数目：3
-}
-Elapsed Time: 0.0.1
-
--- [1]217:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') WITH SINK ('sink'='write-back-sink')
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
-}
-
--- [1]219:SHOW PIPES
-STRICT{
-ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
-------------------------------------------------------------------------------------
-user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
-6_realtime    |                 | processor=rename-databa|                            |
-              |                 |se-processor}            |                            |
-总数目：1
-}
-Elapsed Time: 0.0.1
-
--- [1]221:SHOW PIPES
-STRICT{
-ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
-------------------------------------------------------------------------------------
-user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
-6_realtime    |                 | processor=rename-databa|                            |
-              |                 |se-processor}            |                            |
-总数目：1
-}
-Elapsed Time: 0.0.1
-
--- [1]222:STOP PIPE root_pipe_realtime
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
-}
-
--- [1]224:START PIPE root_pipe_realtime
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
-}
-
--- [1]226:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
-}
-
--- [1]228:DROP PIPE root_pipe_realtime
-STRICT{
-SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
-}
-
--- [1]249:CREATE USER user_grant 'paSs1234@56#*^1'
-STRICT{
-PASS
-}
-
--- [1]250:GRANT SYSTEM,SECURITY to USER user_grant WITH GRANT OPTION
-STRICT{
-PASS
-}
-
--- [1]252:CREATE USER user_granted 'paSs1234@56789'
-STRICT{
-PASS
-}
-
--- [1]253:GRANT CREATE,INSERT,SELECT ON ANY TO USER user_granted
-STRICT{
-PASS
-}
-
--- [1]255:LIST USER
-STRICT{
-User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
-----------------------------------------------------------------------------
-root            |-1                            |1                             |
-----------------------------------------------------------------------------
-user_grant      |-1                            |-1                            |
-----------------------------------------------------------------------------
-user_granted    |-1                            |-1                            |
-总数目：3
-}
-Elapsed Time: 0.0.1
-
--- [1]256:LIST PRIVILEGES OF USER user_grant
-STRICT{
-Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
----------------------------------------------------------------------------------
-                |                 |SYSTEM                |true                      |
----------------------------------------------------------------------------------
-                |                 |SECURITY              |true                      |
-总数目：2
-}
-Elapsed Time: 0.0.1
-
--- [1]261:LIST PRIVILEGES OF USER user_granted
+-- [1]205:LIST PRIVILEGES OF USER user_role
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -731,39 +653,132 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
 }
 Elapsed Time: 0.0.2
 
--- [1]262:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB8') WITH SINK ('sink'='write-back-sink')
+-- [1]206:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB7') WITH SINK ('sink'='write-back-sink')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]264:SHOW PIPES
+-- [1]208:SHOW PIPES
+STRICT{
+ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
+------------------------------------------------------------------------------------
+user-role-pipe|RUNNING          |{new-db-name=pipe_newDB6,|                            |
+6_realtime    |                 | processor=rename-databa|                            |
+              |                 |se-processor}            |                            |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]209:STOP PIPE root_pipe_realtime
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]211:START PIPE root_pipe_realtime
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]213:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]215:DROP PIPE root_pipe_realtime
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]233:CREATE USER user_grant 'paSs1234@56#*^1'
+STRICT{
+PASS
+}
+
+-- [1]234:GRANT SYSTEM,SECURITY to USER user_grant WITH GRANT OPTION
+STRICT{
+PASS
+}
+
+-- [1]236:CREATE USER user_granted 'paSs1234@56789'
+STRICT{
+PASS
+}
+
+-- [1]237:GRANT CREATE,INSERT,SELECT ON ANY TO USER user_granted
+STRICT{
+PASS
+}
+
+-- [1]239:LIST USER
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |
+----------------------------------------------------------------------------
+root            |-1                            |1                             |
+----------------------------------------------------------------------------
+user_grant      |-1                            |-1                            |
+----------------------------------------------------------------------------
+user_granted    |-1                            |-1                            |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]240:LIST PRIVILEGES OF USER user_grant
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |                 |SYSTEM                |true                      |
+---------------------------------------------------------------------------------
+                |                 |SECURITY              |true                      |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]245:LIST PRIVILEGES OF USER user_granted
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |*.*              |SELECT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |INSERT                |false                     |
+---------------------------------------------------------------------------------
+                |*.*              |CREATE                |false                     |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]246:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB8') WITH SINK ('sink'='write-back-sink')
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
+}
+
+-- [1]248:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 总数目：0
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]265:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]249:ALTER PIPE root_pipe_realtime MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]267:DROP PIPE root_pipe_realtime
+-- [1]251:DROP PIPE root_pipe_realtime
 STRICT{
 SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SYSTEM
 }
 
--- [1]273:GRANT SYSTEM to USER user_granted
+-- [1]257:GRANT SYSTEM to USER user_granted
 STRICT{
 PASS
 }
 
--- [1]274:CREATE DATABASE pipe_newDB9
+-- [1]258:CREATE DATABASE pipe_newDB9
 STRICT{
 PASS
 }
 
--- [1]278:LIST PRIVILEGES OF USER user_granted
+-- [1]262:LIST PRIVILEGES OF USER user_granted
 STRICT{
 Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
 ---------------------------------------------------------------------------------
@@ -776,14 +791,14 @@ Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)  
                 |*.*              |CREATE                |false                     |
 总数目：4
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.2
 
--- [1]280:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB9') WITH SINK ('sink'='write-back-sink')
+-- [1]264:CREATE PIPE "中文pipe" WITH SOURCE ('forwarding-pipe-requests'='false', 'database-name'='test_pipe_authentication','table-name'='table_0') WITH PROCESSOR ('processor'='rename-database-processor', 'new-db-name'='pipe_newDB9') WITH SINK ('sink'='write-back-sink')
 STRICT{
 PASS
 }
 
--- [1]282:SHOW PIPES
+-- [1]266:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -806,7 +821,7 @@ e             |                 | processor=rename-databa|                      
 }
 Elapsed Time: 0.0.2
 
--- [1]284:SHOW PIPES
+-- [1]268:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
@@ -823,15 +838,15 @@ e             |                 | processor=rename-databa|                      
               |                 |se-processor}            |                            |
 总数目：3
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.3
 
--- [1]285:ALTER PIPE "中文pipe_realtime" MODIFY SOURCE('forwarding-pipe-requests'='true')
+-- [1]269:ALTER PIPE "中文pipe_realtime" MODIFY SOURCE('forwarding-pipe-requests'='true')
 STRICT{
 0
 }
-Elapsed Time: 0.0.74
+Elapsed Time: 0.0.85
 
--- [1]287:DESC pipe_newDB9.table_0
+-- [1]271:DESC pipe_newDB9.table_0
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -844,9 +859,9 @@ unit                  |STRING              |TAG                 |
 s_0                   |BOOLEAN             |FIELD               |
 总数目：4
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]289:SELECT time,device_id,unit,s_0 FROM pipe_newDB9.table_0 ORDER BY time
+-- [1]274:SELECT time,device_id,unit,s_0 FROM pipe_newDB9.table_0 ORDER BY time
 STRICT{
 time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)      |
 --------------------------------------------------------------------------------
@@ -857,19 +872,19 @@ time(TIMESTAMP)      |device_id(STRING)      |unit(STRING)      |s_0(BOOLEAN)   
 00+08:00             |                       |                  |                  |
 总数目：2
 }
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.11
 
--- [1]292:DROP PIPE "user-role-pipe6_realtime"
+-- [1]276:DROP PIPE "user-role-pipe6_realtime"
 STRICT{
 PASS
 }
 
--- [1]294:DROP PIPE "中文pipe_realtime"
+-- [1]277:DROP PIPE "中文pipe_realtime"
 STRICT{
 PASS
 }
 
--- [1]295:SHOW PIPES
+-- [1]278:SHOW PIPES
 STRICT{
 ID(TEXT)      |State(TEXT)      |PipeProcessor(TEXT)      |ExceptionMessage(TEXT)      |
 ------------------------------------------------------------------------------------
