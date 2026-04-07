@@ -1,0 +1,226 @@
+// approx_percentile：该函数用于计算数据集中指定百分位数的值
+// 1. 参数说明：
+//（1）x：待计算列，支持所有数字类型，例如INT32、INT64、FLOAT、DOUBLE、TIMESTAMP
+//（2）percentage: 目标分位数，Double类型
+//2. 返回值：与待计算列类型相同
+//3. approx_percentile(x, percentage) → [Same as x]
+//4. approx_percentile(x, w, percentage) → [Same as x]
+// w: 权重，与待计算列长度对齐，整型，表示在第 i 位的值重复 w 次
+
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+--1. 创建元数据
+create database test_db;
+use test_db;
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+show tables;
+desc t1;
+
+--2. 插入数据
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1)
+	values(1001,'d1', 1, 10, 1.1, 10.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(1002, 'd1', 2, 20, 2.2, 20.2, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(1003, 'd1', 3, 30, 3.3, 30.3, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(1004, 'd1', 4, 40, 4.4, 40.4, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(1005, 'd1', 5, 50, 5.5, 50.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23');
+		
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1)
+	values(1006, 'd2', 1, 10, 0.0, 0.0, 0),
+		 (1007, 'd2', 1, 20, 0.0, 0.0, 0),
+		 (1008, 'd2', 0, 999, 0.0, 0.0, 0);
+		 
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1009, 'd1', 0, 100, 1.0, 1.0, NULL);
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1010, 'd1', NULL, 200, 2.0, 2.0, NULL);
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1011, 'd1', 1, NULL, NULL, NULL, NULL);
+
+select * from t1 order by time;
+
+--3. pprox_percentile执行查询
+--3.1 不支持的数据类型校验（STRING, TEXT, BLOB, OBJECT, DATE）
+select approx_percentile(device_id,0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(boolean_1,0.5) as p50 from t1;
+<<SQLSTATE; 
+select approx_percentile(text_1,0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(string_1,0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(blob_1,0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(object_1,0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(date_1,0.5) as p50 from t1;
+<<SQLSTATE;
+
+--3.2 支持的数据类型：【目前是INT32, INT64, FLOAT, DOUBLE, TIMESTAMP】中位数+权重列
+select approx_percentile(time,0.5) as p50 from t1;
+select approx_percentile(int32_1,0.5) as p50 from t1;
+select approx_percentile(int64_1,0.5) as p50 from t1;
+select approx_percentile(float_1,0.5) as p50 from t1;
+select approx_percentile(double_1,0.5) as p50 from t1;
+select approx_percentile(timestamp_1,0.5) as p50 from t1;
+
+--3.3 权重为0和权重为NULL校验
+select approx_percentile(int32_1, 0, 0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, 0, 0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, 0, 0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(double_1,0, 0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1,0, 0.5) as p50 from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, null, 0.5) as p50 from t1;
+select approx_percentile(float_1, null, 0.5) as p50 from t1;
+select approx_percentile(double_1, null, 0.5) as p50 from t1;
+select approx_percentile(int32_1, null, 0.5) as p50 from t1;
+
+--3.4 权重非0
+select approx_percentile(int32_1, 1, 0.5) as p50 from t1;
+select approx_percentile(int64_1, 2, 0.5) as p50 from t1;
+select approx_percentile(float_1, 3, 0.5) as p50 from t1;
+select approx_percentile(double_1,1, 0.5) as p50 from t1;
+select approx_percentile(timestamp_1,2, 0.5) as p50 from t1;
+
+--3.5 边界百分位
+--3.5.1 percentage=0.0（最小值）
+select approx_percentile(int32_1, 0.0) as min_val from t1;
+select approx_percentile(int64_1, 0.0) as min_val from t1;
+select approx_percentile(float_1, 0.0) as min_val from t1;
+select approx_percentile(double_1, 0.0) as min_val from t1;
+select approx_percentile(timestamp_1, 0.0) as min_val from t1;
+
+--3.5.2 percentage=1.0（最大值）
+select approx_percentile(int32_1, 1.0) as max_val from t1;
+select approx_percentile(int64_1, 1.0) as max_val from t1;
+select approx_percentile(float_1, 1.0) as max_val from t1;
+select approx_percentile(double_1, 1.0) as max_val from t1;
+select approx_percentile(timestamp_1, 1.0) as max_val from t1;
+
+--3.5.3 percentage=0.999（接近上限）
+select approx_percentile(int32_1, 0.999) as near_max_val from t1;
+select approx_percentile(int64_1, 0.999) as near_max_val from t1;
+select approx_percentile(float_1, 0.999) as near_max_val from t1;
+select approx_percentile(double_1, 0.999) as near_max_val from t1;
+select approx_percentile(timestamp_1, 0.999) as near_max_val from t1;
+
+--3.5.4 percentage=0.001（接近下限）
+select approx_percentile(int32_1, 0.001) as near_min_val from t1;
+select approx_percentile(int64_1, 0.001) as near_min_val from t1;
+select approx_percentile(float_1, 0.001) as near_min_val from t1;
+select approx_percentile(double_1, 0.001) as near_min_val from t1;
+select approx_percentile(timestamp_1, 0.001) as near_min_val from t1;
+
+--3.6 目标分位数为0.333
+select approx_percentile(int32_1, 0.333) as p333 from t1;
+select approx_percentile(int64_1, 0.3330) as p333 from t1;
+select approx_percentile(float_1, 0.333) as p333 from t1;
+select approx_percentile(double_1, 0.333) as p333 from t1;
+select approx_percentile(timestamp_1, 0.333) as p333 from t1;
+
+--3.7 按设备分组
+select time, device_id, int32_1, int64_1, float_1, double_1, timestamp_1 from t1 order by 1, 2;
+select device_id, approx_percentile(int32_1, 2, 0.5) as p50 from t1 group by device_id;
+select device_id, approx_percentile(int64_1, 2, 0.5) as p50 from t1 group by device_id;
+select device_id, approx_percentile(double_1, 2, 0.5) as p50 from t1 group by device_id;
+select device_id, approx_percentile(float_1, 2, 0.5) as p50 from t1 group by device_id;
+select device_id, approx_percentile(timestamp_1, 2, 0.5) as p50 from t1 group by device_id order by 1;
+
+--3.8 权重为INT32数据类型的列名(数值中含有NULL值和0值)
+select approx_percentile(int32_1, int32_1, 0.5) as p50_w_int32 from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, int32_1, 0.5) as p50_w_int32 from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, int32_1, 0.5) as p50_w_int32 from t1;
+<<SQLSTATE;
+select approx_percentile(double_1, int32_1, 0.5) as p50_w_int32 from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1, int32_1, 0.5) as p50_w_int32 from t1;
+<<SQLSTATE;
+
+--3.9 权重为非INT32数据类型的列名
+select approx_percentile(int32_1, int64_1, 0.5) as p50_w_int64 from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, int64_1, 0.5) as p50_w_int64 from t1;
+<<SQLSTATE;
+select approx_percentile(double_1, int64_1, 0.5) as p50_w_int64 from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, int64_1, 0.5) as p50_w_int64 from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1, int64_1, 0.5) as p50_w_int64 from t1;
+<<SQLSTATE;
+select approx_percentile(int32_1, float_1, 0.5) as p50_w_float from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, float_1, 0.5) as p50_w_float from t1;
+<<SQLSTATE;
+select approx_percentile(double_1, float_1, 0.5) as p50_w_float from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, float_1, 0.5) as p50_w_float from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1, float_1, 0.5) as p50_w_float from t1;
+<<SQLSTATE;
+select approx_percentile(int32_1, double_1, 0.5) as p50_w_double from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, double_1, 0.5) as p50_w_double from t1;
+<<SQLSTATE;
+select approx_percentile(double_1, double_1, 0.5) as p50_w_double from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, double_1, 0.5) as p50_w_double from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1, double_1, 0.5) as p50_w_double from t1;
+<<SQLSTATE;
+select approx_percentile(int32_1, timestamp_1, 0.5) as p50_w_timestamp from t1;
+<<SQLSTATE;
+select approx_percentile(int64_1, timestamp_1, 0.5) as p50_w_timestamp from t1;
+<<SQLSTATE;
+select approx_percentile(double_1, timestamp_1, 0.5) as p50_w_timestamp from t1;
+<<SQLSTATE;
+select approx_percentile(float_1, timestamp_1, 0.5) as p50_w_timestamp from t1;
+<<SQLSTATE;
+select approx_percentile(timestamp_1, timestamp_1, 0.5) as p50_w_timestamp from t1;
+<<SQLSTATEG;
+
+--3.10 其他四分位数（25% | 75% ）
+select approx_percentile(int32_1, 0.25) as p25 from t1;
+select approx_percentile(int64_1, 0.25) as p25_int32 from t1;
+select approx_percentile(float_1, 0.25) as p25_int32 from t1;
+select approx_percentile(double_1, 0.25) as p25 from t1;
+select approx_percentile(timestamp_1, 0.25) as p25 from t1;
+select approx_percentile(int32_1, 0.75) as p75 from t1;
+select approx_percentile(int64_1, 0.75) as p75 from t1;
+select approx_percentile(float_1, 0.75) as p75 from t1;
+select approx_percentile(double_1, 0.75) as p75 from t1;
+select approx_percentile(timestamp_1, 0.75) as p75 from t1;
+
+
+--3.11 负权重
+select approx_percentile(int32_1, -1, 0.5) as p50 from t1;
+<<SQLSTATE;
+
+--3.12 非法百分位
+select approx_percentile(int32_1, 1.2) as p120 from t1;
+<<SQLSTATE;
+
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

@@ -1,0 +1,878 @@
+
+-- [1]17:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]18:use test_db
+STRICT{
+PASS
+}
+
+-- [1]20:create table t1( device_id tag, int32_1 INT32, int64_1 INT64, double_1 DOUBLE, float_1 FLOAT, boolean_1 BOOLEAN, text_1 TEXT, string_1 STRING, blob_1 BLOB, object_1 OBJECT, timestamp_1 TIMESTAMP, date_1 DATE )
+STRICT{
+PASS
+}
+
+-- [1]33:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]34:desc t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+int32_1               |INT32               |FIELD               |
+--------------------------------------------------------------
+int64_1               |INT64               |FIELD               |
+--------------------------------------------------------------
+double_1              |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+float_1               |FLOAT               |FIELD               |
+--------------------------------------------------------------
+boolean_1             |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+text_1                |TEXT                |FIELD               |
+--------------------------------------------------------------
+string_1              |STRING              |FIELD               |
+--------------------------------------------------------------
+blob_1                |BLOB                |FIELD               |
+--------------------------------------------------------------
+object_1              |OBJECT              |FIELD               |
+--------------------------------------------------------------
+timestamp_1           |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+date_1                |DATE                |FIELD               |
+总数目：13
+}
+Elapsed Time: 0.0.1
+
+-- [1]41:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) 	values(1001,'d1', 1, 10, 1.1, 10.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'), 		(1002, 'd1', 2, 20, 2.2, 20.2, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'), 		(1003, 'd1', 3, 30, 3.3, 30.3, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'), 		(1004, 'd1', 4, 40, 4.4, 40.4, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'), 		(1005, 'd1', 5, 50, 5.5, 50.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23')
+STRICT{
+0
+}
+Elapsed Time: 0.0.170
+
+-- [1]46:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) 	values(1006, 'd2', 1, 10, 0.0, 0.0, 0), 		 (1007, 'd2', 1, 20, 0.0, 0.0, 0), 		 (1008, 'd2', 0, 999, 0.0, 0.0, 0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.66
+
+-- [1]49:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1009, 'd1', 0, 100, 1.0, 1.0, NULL)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]50:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1010, 'd1', NULL, 200, 2.0, 2.0, NULL)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]51:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1011, 'd1', 1, NULL, NULL, NULL, NULL)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]53:select * from t1 order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |int32_1(INT32)      |int64_1(INT64)      |double_1(DOUBLE)      |float_1(FLOAT)      |boolean_1(BOOLEAN)      |text_1(TEXT)      |string_1(STRING)      |blob_1(BLOB)      |object_1(null)      |timestamp_1(TIMESTAMP)      |date_1(DATE)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1                   |10                  |1.1                   |10.1                |false                   |v1                |s1                    |0x00              |null                |1970-01-01T08:00:00.100+08:0|2026-03-20        |
+01+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |2                   |20                  |2.2                   |20.2                |true                    |v2                |s2                    |0x01              |null                |1970-01-01T08:00:00.200+08:0|2026-03-21        |
+02+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |3                   |30                  |3.3                   |30.3                |true                    |v3                |s3                    |0x02              |null                |1970-01-01T08:00:00.300+08:0|2026-03-22        |
+03+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |4                   |40                  |4.4                   |40.4                |false                   |v4                |s4                    |0x03              |null                |1970-01-01T08:00:01.000+08:0|2026-03-23        |
+04+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |5                   |50                  |5.5                   |50.5                |false                   |v5                |s5                    |0x04              |null                |1970-01-01T08:00:02.000+08:0|2026-03-23        |
+05+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |1                   |10                  |0.0                   |0.0                 |null                    |null              |null                  |null              |null                |1970-01-01T08:00:00.000+08:0|null              |
+06+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |1                   |20                  |0.0                   |0.0                 |null                    |null              |null                  |null              |null                |1970-01-01T08:00:00.000+08:0|null              |
+07+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |0                   |999                 |0.0                   |0.0                 |null                    |null              |null                  |null              |null                |1970-01-01T08:00:00.000+08:0|null              |
+08+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |0                           |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |0                   |100                 |1.0                   |1.0                 |null                    |null              |null                  |null              |null                |null                        |null              |
+09+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |                            |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |null                |200                 |2.0                   |2.0                 |null                    |null              |null                  |null              |null                |null                        |null              |
+10+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |                            |                  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1                   |null                |null                  |null                |null                    |null              |null                  |null              |null                |null                        |null              |
+11+08:00             |                       |                    |                    |                      |                    |                        |                  |                      |                  |                    |                            |                  |
+总数目：11
+}
+Elapsed Time: 0.0.10
+
+-- [1]57:select approx_percentile(device_id,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]59:select approx_percentile(boolean_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]61:select approx_percentile(text_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]63:select approx_percentile(string_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]65:select approx_percentile(blob_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]67:select approx_percentile(object_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]69:select approx_percentile(date_1,0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] should have value column as numeric type [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]73:select approx_percentile(time,0.5) as p50 from t1
+STRICT{
+p50(TIMESTAMP)      |
+--------------------
+1970-01-01T08:00:01.|
+006+08:00           |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]74:select approx_percentile(int32_1,0.5) as p50 from t1
+STRICT{
+p50(INT32)      |
+----------------
+1               |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]75:select approx_percentile(int64_1,0.5) as p50 from t1
+STRICT{
+p50(INT64)      |
+----------------
+40              |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]76:select approx_percentile(float_1,0.5) as p50 from t1
+STRICT{
+p50(FLOAT)      |
+----------------
+10.1            |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]77:select approx_percentile(double_1,0.5) as p50 from t1
+STRICT{
+p50(DOUBLE)      |
+-----------------
+2.0              |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]78:select approx_percentile(timestamp_1,0.5) as p50 from t1
+STRICT{
+p50(TIMESTAMP)      |
+--------------------
+1970-01-01T08:00:00.|
+200+08:00           |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]81:select approx_percentile(int32_1, 0, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]83:select approx_percentile(int64_1, 0, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]85:select approx_percentile(float_1, 0, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]87:select approx_percentile(double_1,0, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]89:select approx_percentile(timestamp_1,0, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]91:select approx_percentile(int64_1, null, 0.5) as p50 from t1
+STRICT{
+p50(INT64)      |
+----------------
+null            |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]92:select approx_percentile(float_1, null, 0.5) as p50 from t1
+STRICT{
+p50(FLOAT)      |
+----------------
+null            |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]93:select approx_percentile(double_1, null, 0.5) as p50 from t1
+STRICT{
+p50(DOUBLE)      |
+-----------------
+null             |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]94:select approx_percentile(int32_1, null, 0.5) as p50 from t1
+STRICT{
+p50(INT32)      |
+----------------
+null            |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]97:select approx_percentile(int32_1, 1, 0.5) as p50 from t1
+STRICT{
+p50(INT32)      |
+----------------
+1               |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]98:select approx_percentile(int64_1, 2, 0.5) as p50 from t1
+STRICT{
+p50(INT64)      |
+----------------
+35              |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]99:select approx_percentile(float_1, 3, 0.5) as p50 from t1
+STRICT{
+p50(FLOAT)      |
+----------------
+6.05            |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]100:select approx_percentile(double_1,1, 0.5) as p50 from t1
+STRICT{
+p50(DOUBLE)      |
+-----------------
+2.0              |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]101:select approx_percentile(timestamp_1,2, 0.5) as p50 from t1
+STRICT{
+p50(TIMESTAMP)      |
+--------------------
+1970-01-01T08:00:00.|
+150+08:00           |
+总数目：1
+}
+Elapsed Time: 0.0.19
+
+-- [1]105:select approx_percentile(int32_1, 0.0) as min_val from t1
+STRICT{
+min_val(INT32)      |
+--------------------
+0                   |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]106:select approx_percentile(int64_1, 0.0) as min_val from t1
+STRICT{
+min_val(INT64)      |
+--------------------
+10                  |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]107:select approx_percentile(float_1, 0.0) as min_val from t1
+STRICT{
+min_val(FLOAT)      |
+--------------------
+0.0                 |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]108:select approx_percentile(double_1, 0.0) as min_val from t1
+STRICT{
+min_val(DOUBLE)      |
+---------------------
+0.0                  |
+总数目：1
+}
+Elapsed Time: 0.0.12
+
+-- [1]109:select approx_percentile(timestamp_1, 0.0) as min_val from t1
+STRICT{
+min_val(TIMESTAMP)      |
+------------------------
+1970-01-01T08:00:00.000+|
+08:00                   |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]112:select approx_percentile(int32_1, 1.0) as max_val from t1
+STRICT{
+max_val(INT32)      |
+--------------------
+5                   |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]113:select approx_percentile(int64_1, 1.0) as max_val from t1
+STRICT{
+max_val(INT64)      |
+--------------------
+999                 |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]114:select approx_percentile(float_1, 1.0) as max_val from t1
+STRICT{
+max_val(FLOAT)      |
+--------------------
+50.5                |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]115:select approx_percentile(double_1, 1.0) as max_val from t1
+STRICT{
+max_val(DOUBLE)      |
+---------------------
+5.5                  |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]116:select approx_percentile(timestamp_1, 1.0) as max_val from t1
+STRICT{
+max_val(TIMESTAMP)      |
+------------------------
+1970-01-01T08:00:02.000+|
+08:00                   |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]119:select approx_percentile(int32_1, 0.999) as near_max_val from t1
+STRICT{
+near_max_val(INT32)      |
+-------------------------
+5                        |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]120:select approx_percentile(int64_1, 0.999) as near_max_val from t1
+STRICT{
+near_max_val(INT64)      |
+-------------------------
+999                      |
+总数目：1
+}
+Elapsed Time: 0.0.10
+
+-- [1]121:select approx_percentile(float_1, 0.999) as near_max_val from t1
+STRICT{
+near_max_val(FLOAT)      |
+-------------------------
+50.5                     |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]122:select approx_percentile(double_1, 0.999) as near_max_val from t1
+STRICT{
+near_max_val(DOUBLE)      |
+--------------------------
+5.5                       |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]123:select approx_percentile(timestamp_1, 0.999) as near_max_val from t1
+STRICT{
+near_max_val(TIMESTAMP)      |
+-----------------------------
+1970-01-01T08:00:02.000+08:00|
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]126:select approx_percentile(int32_1, 0.001) as near_min_val from t1
+STRICT{
+near_min_val(INT32)      |
+-------------------------
+0                        |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]127:select approx_percentile(int64_1, 0.001) as near_min_val from t1
+STRICT{
+near_min_val(INT64)      |
+-------------------------
+10                       |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]128:select approx_percentile(float_1, 0.001) as near_min_val from t1
+STRICT{
+near_min_val(FLOAT)      |
+-------------------------
+0.0                      |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]129:select approx_percentile(double_1, 0.001) as near_min_val from t1
+STRICT{
+near_min_val(DOUBLE)      |
+--------------------------
+0.0                       |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]130:select approx_percentile(timestamp_1, 0.001) as near_min_val from t1
+STRICT{
+near_min_val(TIMESTAMP)      |
+-----------------------------
+1970-01-01T08:00:00.000+08:00|
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]133:select approx_percentile(int32_1, 0.333) as p333 from t1
+STRICT{
+p333(INT32)      |
+-----------------
+1                |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]134:select approx_percentile(int64_1, 0.3330) as p333 from t1
+STRICT{
+p333(INT64)      |
+-----------------
+20               |
+总数目：1
+}
+Elapsed Time: 0.0.22
+
+-- [1]135:select approx_percentile(float_1, 0.333) as p333 from t1
+STRICT{
+p333(FLOAT)      |
+-----------------
+1.0              |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]136:select approx_percentile(double_1, 0.333) as p333 from t1
+STRICT{
+p333(DOUBLE)      |
+------------------
+1.0               |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]137:select approx_percentile(timestamp_1, 0.333) as p333 from t1
+STRICT{
+p333(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+00+08:00             |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]140:select time, device_id, int32_1, int64_1, float_1, double_1, timestamp_1 from t1 order by 1, 2
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |int32_1(INT32)      |int64_1(INT64)      |float_1(FLOAT)      |double_1(DOUBLE)      |timestamp_1(TIMESTAMP)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1                   |10                  |10.1                |1.1                   |1970-01-01T08:00:00.100+08:0|
+01+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |2                   |20                  |20.2                |2.2                   |1970-01-01T08:00:00.200+08:0|
+02+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |3                   |30                  |30.3                |3.3                   |1970-01-01T08:00:00.300+08:0|
+03+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |4                   |40                  |40.4                |4.4                   |1970-01-01T08:00:01.000+08:0|
+04+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |5                   |50                  |50.5                |5.5                   |1970-01-01T08:00:02.000+08:0|
+05+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |1                   |10                  |0.0                 |0.0                   |1970-01-01T08:00:00.000+08:0|
+06+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |1                   |20                  |0.0                 |0.0                   |1970-01-01T08:00:00.000+08:0|
+07+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d2                     |0                   |999                 |0.0                 |0.0                   |1970-01-01T08:00:00.000+08:0|
+08+08:00             |                       |                    |                    |                    |                      |0                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |0                   |100                 |1.0                 |1.0                   |null                        |
+09+08:00             |                       |                    |                    |                    |                      |                            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |null                |200                 |2.0                 |2.0                   |null                        |
+10+08:00             |                       |                    |                    |                    |                      |                            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|d1                     |1                   |null                |null                |null                  |null                        |
+11+08:00             |                       |                    |                    |                    |                      |                            |
+总数目：11
+}
+Elapsed Time: 0.0.8
+
+-- [1]141:select device_id, approx_percentile(int32_1, 2, 0.5) as p50 from t1 group by device_id
+STRICT{
+device_id(STRING)      |p50(INT32)      |
+---------------------------------------
+d1                     |2               |
+---------------------------------------
+d2                     |1               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]142:select device_id, approx_percentile(int64_1, 2, 0.5) as p50 from t1 group by device_id
+STRICT{
+device_id(STRING)      |p50(INT64)      |
+---------------------------------------
+d1                     |40              |
+---------------------------------------
+d2                     |20              |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]143:select device_id, approx_percentile(double_1, 2, 0.5) as p50 from t1 group by device_id
+STRICT{
+device_id(STRING)      |p50(DOUBLE)      |
+----------------------------------------
+d1                     |2.2              |
+----------------------------------------
+d2                     |0.0              |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]144:select device_id, approx_percentile(float_1, 2, 0.5) as p50 from t1 group by device_id
+STRICT{
+device_id(STRING)      |p50(FLOAT)      |
+---------------------------------------
+d1                     |20.2            |
+---------------------------------------
+d2                     |0.0             |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]145:select device_id, approx_percentile(timestamp_1, 2, 0.5) as p50 from t1 group by device_id order by 1
+STRICT{
+device_id(STRING)      |p50(TIMESTAMP)      |
+-------------------------------------------
+d1                     |1970-01-01T08:00:00.|
+                       |300+08:00           |
+-------------------------------------------
+d2                     |1970-01-01T08:00:00.|
+                       |000+08:00           |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]148:select approx_percentile(int32_1, int32_1, 0.5) as p50_w_int32 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]150:select approx_percentile(int64_1, int32_1, 0.5) as p50_w_int32 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]152:select approx_percentile(float_1, int32_1, 0.5) as p50_w_int32 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]154:select approx_percentile(double_1, int32_1, 0.5) as p50_w_int32 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]156:select approx_percentile(timestamp_1, int32_1, 0.5) as p50_w_int32 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was 0
+}
+
+-- [1]160:select approx_percentile(int32_1, int64_1, 0.5) as p50_w_int64 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as INT64 type
+}
+
+-- [1]162:select approx_percentile(int64_1, int64_1, 0.5) as p50_w_int64 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as INT64 type
+}
+
+-- [1]164:select approx_percentile(double_1, int64_1, 0.5) as p50_w_int64 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as INT64 type
+}
+
+-- [1]166:select approx_percentile(float_1, int64_1, 0.5) as p50_w_int64 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as INT64 type
+}
+
+-- [1]168:select approx_percentile(timestamp_1, int64_1, 0.5) as p50_w_int64 from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as INT64 type
+}
+
+-- [1]170:select approx_percentile(int32_1, float_1, 0.5) as p50_w_float from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as FLOAT type
+}
+
+-- [1]172:select approx_percentile(int64_1, float_1, 0.5) as p50_w_float from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as FLOAT type
+}
+
+-- [1]174:select approx_percentile(double_1, float_1, 0.5) as p50_w_float from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as FLOAT type
+}
+
+-- [1]176:select approx_percentile(float_1, float_1, 0.5) as p50_w_float from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as FLOAT type
+}
+
+-- [1]178:select approx_percentile(timestamp_1, float_1, 0.5) as p50_w_float from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as FLOAT type
+}
+
+-- [1]180:select approx_percentile(int32_1, double_1, 0.5) as p50_w_double from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as DOUBLE type
+}
+
+-- [1]182:select approx_percentile(int64_1, double_1, 0.5) as p50_w_double from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as DOUBLE type
+}
+
+-- [1]184:select approx_percentile(double_1, double_1, 0.5) as p50_w_double from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as DOUBLE type
+}
+
+-- [1]186:select approx_percentile(float_1, double_1, 0.5) as p50_w_double from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as DOUBLE type
+}
+
+-- [1]188:select approx_percentile(timestamp_1, double_1, 0.5) as p50_w_double from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as DOUBLE type
+}
+
+-- [1]190:select approx_percentile(int32_1, timestamp_1, 0.5) as p50_w_timestamp from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as TIMESTAMP type
+}
+
+-- [1]192:select approx_percentile(int64_1, timestamp_1, 0.5) as p50_w_timestamp from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as TIMESTAMP type
+}
+
+-- [1]194:select approx_percentile(double_1, timestamp_1, 0.5) as p50_w_timestamp from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as TIMESTAMP type
+}
+
+-- [1]196:select approx_percentile(float_1, timestamp_1, 0.5) as p50_w_timestamp from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as TIMESTAMP type
+}
+
+-- [1]198:select approx_percentile(timestamp_1, timestamp_1, 0.5) as p50_w_timestamp from t1
+STRICT{
+SQLSTATE : 701: Aggregation functions [approx_percentile] do not support weight as TIMESTAMP type
+EXPECT:PASS
+}
+
+-- [1]202:select approx_percentile(int32_1, 0.25) as p25 from t1
+STRICT{
+p25(INT32)      |
+----------------
+1               |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]203:select approx_percentile(int64_1, 0.25) as p25_int32 from t1
+STRICT{
+p25_int32(INT64)      |
+----------------------
+20                    |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]204:select approx_percentile(float_1, 0.25) as p25_int32 from t1
+STRICT{
+p25_int32(FLOAT)      |
+----------------------
+0.0                   |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]205:select approx_percentile(double_1, 0.25) as p25 from t1
+STRICT{
+p25(DOUBLE)      |
+-----------------
+0.0              |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]206:select approx_percentile(timestamp_1, 0.25) as p25 from t1
+STRICT{
+p25(TIMESTAMP)      |
+--------------------
+1970-01-01T08:00:00.|
+000+08:00           |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]207:select approx_percentile(int32_1, 0.75) as p75 from t1
+STRICT{
+p75(INT32)      |
+----------------
+3               |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]208:select approx_percentile(int64_1, 0.75) as p75 from t1
+STRICT{
+p75(INT64)      |
+----------------
+100             |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]209:select approx_percentile(float_1, 0.75) as p75 from t1
+STRICT{
+p75(FLOAT)      |
+----------------
+30.3            |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]210:select approx_percentile(double_1, 0.75) as p75 from t1
+STRICT{
+p75(DOUBLE)      |
+-----------------
+3.3              |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]211:select approx_percentile(timestamp_1, 0.75) as p75 from t1
+STRICT{
+p75(TIMESTAMP)      |
+--------------------
+1970-01-01T08:00:01.|
+000+08:00           |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]215:select approx_percentile(int32_1, -1, 0.5) as p50 from t1
+STRICT{
+SQLSTATE : 701: weight must be >= 1, was -1
+}
+
+-- [1]219:select approx_percentile(int32_1, 1.2) as p120 from t1
+STRICT{
+SQLSTATE : 701: percentage should be in [0,1], got 1.2
+}
