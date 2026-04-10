@@ -1,0 +1,383 @@
+// UNION：用于将两个查询结果集中的所有行组合在一起。
+
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+
+--1. 创建元数据
+create database test_db;
+
+use test_db;
+
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t2(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+show tables;
+desc t1;
+desc t2;
+
+--2. 插入数据
+insert into t1
+	(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1) 
+values
+	(1, 'device_001', 123, 123456789012345, 123.45, 67.89, TRUE, '这是文本数据1', '这是字符串数据1', X'48656C6C6F', to_object(false, 0, X'696F746462'), '2023-01-01 10:30:00', '2023-01-01'),
+	(2, 'device_002', 456, 987654321098765, 456.78, 12.34, FALSE, '这是文本数据2', '这是字符串数据2', X'576F726C64', to_object(false, 0, X'696F'), '2023-02-01 11:45:00', '2023-02-01'),
+	(3, 'device_003', 789, 456123789012345, 789.01, 45.67, TRUE, '这是文本数据3', '这是字符串数据3', X'54657374', to_object(false, 0, X'7464'), '2023-03-01 12:15:00', '2023-03-01'),
+	(4, 'device_004', 321, 789456123098765, 321.65, 89.01, FALSE, '这是文本数据4', '这是字符串数据4', X'44617461', to_object(false, 0, X'62'), '2023-04-01 13:20:00', '2023-04-01'),
+	(5, 'device_005', 654, 321654987012345, 654.32, 23.45, TRUE, '这是文本数据5', '这是字符串数据5', X'426C6F62', to_object(false, 0, X'7862'), '2023-05-01 14:10:00', '2023-05-01');
+	
+insert into t2 
+	(time, device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1) 
+values
+	(1, 'device_006', 987, 654987321054321, 987.65, 56.78, TRUE, '这是t2表文本数据1', '这是t2表字符串数据1', X'4E657754657374', to_object(false, 0, X'696F746462'), '2023-06-01 15:30:00', '2023-06-01'),
+	(2, 'device_007', 147, 753159852046802, 147.89, 34.56, FALSE, '这是t2表文本数据2', '这是t2表字符串数据2', X'4D6F726554657374', to_object(false, 0, X'696F'), '2023-07-01 16:45:00', '2023-07-01'),
+	(3, 'device_008', 258, 852963741014725, 258.12, 67.89, TRUE, '这是t2表文本数据3', '这是t2表字符串数据3', X'4461746154657374',  to_object(false, 0, X'7464'), '2023-08-01 17:20:00', '2023-08-01'),
+	(4, 'device_009', 369, 963852741025836, 369.45, 90.12, FALSE, '这是t2表文本数据4', '这是t2表字符串数据4', X'424C4F4254657374', to_object(false, 0, X'7862'), '2023-09-01 18:35:00', '2023-09-01'),
+	(5, 'device_010', 159, 159357284065498, 159.78, 12.34, TRUE, '这是t2表文本数据5', '这是t2表字符串数据5', X'4F626A65637454657374', to_object(false, 0, X'62'), '2023-10-01 19:40:00', '2023-10-01');
+	
+--3. 全量数据查询
+select * from t1 order by time;
+select * from t2 order by time;
+
+--4. 合并t1和t2的所有数据:【UNION ALL 保留所有记录】
+select * from t1
+union all
+select * from t2
+order by 1,2;
+
+select * from t1 where device_id = 'device_001'
+union all
+select * from t2 where device_id = 'device_006'
+order by 1,2;
+
+select * from t1 where int32_1 > 300
+union all
+select * from t2 where int32_1 < 500
+order by 1,2;	
+
+--5. union 【去重】
+select time, device_id, int32_1, int64_1, double_1, float_1, 
+       boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 
+from t1
+union
+select time, device_id, int32_1, int64_1, double_1, float_1, 
+       boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 
+from t2
+order by 1,2;
+
+select time, device_id, int32_1, double_1, boolean_1 from t1
+union
+select time, device_id, int32_1, double_1, boolean_1 from t2
+order by 1,2;
+	
+select device_id, text_1, string_1 from t1
+union distinct
+select device_id, text_1, string_1 from t2
+order by device_id;	
+
+select device_id, date_1, timestamp_1 from t1
+union
+select device_id, date_1, timestamp_1 from t2
+order by 1,2,3;
+
+--6. 条件过滤union
+--6.1 数值过滤
+select device_id, int32_1, double_1 from t1 where int32_1 > 300
+union
+select device_id, int32_1, double_1 from t2 where int32_1 > 300
+order by 1,2;
+
+--6.2 boolean值过滤
+select device_id, int32_1, boolean_1 from t1 where boolean_1 = true
+union
+select device_id, int32_1, boolean_1 from t2 where boolean_1 = true
+order by 1,2;
+
+--6.3 多条件过滤
+select device_id, int32_1, double_1, boolean_1 
+from t1 
+where (int32_1 > 200 and double_1 > 300) or boolean_1 = true
+union
+select device_id, int32_1, double_1, boolean_1 
+from t2 
+where (int32_1 < 500 and double_1 < 400) or boolean_1 = false
+order by 1,2;
+
+--7. 时间范围查询
+select time, device_id, int32_1 from t1 
+	where time >= 2
+union
+select time, device_id, int32_1 from t2 
+	where time <= 4
+order by 1,2,3;
+
+--8. 分组union
+select 't1' as table_name, count(*) as device_count from t1
+union
+select 't2' as table_name, count(*) as device_count from t2;
+
+select 
+    't1' as table_name,
+    count(*) as record_count,
+    avg(int32_1) as avg_int32,
+    max(double_1) as max_double,
+    min(float_1) as min_float,
+    sum(int64_1) as sum_int64
+from t1
+union
+select 
+    't2' as table_name,
+    count(*) as record_count,
+    avg(int32_1) as avg_int32,
+    max(double_1) as max_double,
+    min(float_1) as min_float,
+    sum(int64_1) as sum_int64
+from t2;
+
+select 't1' as table_name, boolean_1, count(*) as count from t1 group by boolean_1
+union
+select 't2' as table_name, boolean_1, count(*) as count from t2 group by boolean_1
+order by 1,2,3;
+
+select 
+    't1' as table_name,
+    min(int32_1) AS min_int32,
+    max(int32_1) AS max_int32,
+    avg(int32_1) AS avg_int32,
+    min(double_1) AS min_double,
+    max(double_1) AS max_double,
+    avg(double_1) AS avg_double
+from t1
+union
+select 
+    't2' AS table_name,
+    min(int32_1) as min_int32,
+    max(int32_1) as max_int32,
+    avg(int32_1) as avg_int32,
+    min(double_1) as min_double,
+    max(double_1) as max_double,
+    avg(double_1) as avg_double
+from t2;
+
+--7. 多union查询
+select device_id, int32_1, 'High_Value' as category from t1 where int32_1 > 500
+union
+select device_id, int32_1, 'Medium_Value' as category from t1 where int32_1 BETWEEN 300 AND 500
+union
+select device_id, int32_1, 'Low_Value' as category from t1 where int32_1 < 300
+order by 1,2,3;
+
+select device_id, int32_1, 't1_High' as category from t1 where int32_1 > 500
+union
+select device_id, int32_1, 't1_Medium' as category from t1 where int32_1 BETWEEN 300 AND 500
+union
+select device_id, int32_1, 't2_High' as category from t2 where int32_1 > 500
+union
+select device_id, int32_1, 't2_Medium' as category from t2 where int32_1 BETWEEN 300 AND 500
+order by 1,2;
+
+--8. union 结果作为子查询
+select avg(int32_1) as avg_value, max(double_1) AS max_value
+	from(
+		select int32_1, double_1 from t1
+    union
+		select int32_1, double_1 from t2
+) as combined_data;
+
+--9. 完全相同数据
+select int32_1, int64_1 from t1 where device_id = 'device_001'
+union
+select int32_1, int64_1 from t1 where device_id = 'device_001';
+
+--10. 列数不匹配
+select time, device_id, int32_1 from t1
+union
+select time, device_id from t2;
+<<SQLSTATE;
+
+--11.数据类型兼容验证
+--11.1 INT32 + INT32
+SELECT int32_1 FROM t1
+UNION
+SELECT int32_1 FROM t2
+ORDER BY int32_1;
+
+--11.2 INT64 + INT64
+SELECT int64_1 FROM t1
+UNION
+SELECT int64_1 FROM t2
+ORDER BY int64_1;
+
+--11.3 FLOAT + FLOAT
+SELECT float_1 FROM t1
+UNION
+SELECT float_1 FROM t2
+ORDER BY float_1;
+
+--11.4 DOUBLE + DOUBLE
+SELECT double_1 FROM t1
+UNION
+SELECT double_1 FROM t2
+ORDER BY double_1;
+
+--11.5 TIMESTAMP + TIMESTAMP
+SELECT timestamp_1 FROM t1
+UNION
+SELECT timestamp_1 FROM t2
+ORDER BY timestamp_1;
+
+--11.6 DATE + DATE 
+SELECT date_1 FROM t1
+UNION
+SELECT date_1 FROM t2
+ORDER BY date_1;
+
+--11.7 TEXT + TEXT
+SELECT text_1 FROM t1
+UNION
+SELECT text_1 FROM t2
+order by text_1;
+
+--11.8 STRING + STRING
+SELECT string_1 FROM t1
+UNION
+SELECT string_1 FROM t2
+ORDER BY string_1;
+
+--11.9 BLOB + BLOB
+SELECT blob_1 FROM t1
+UNION
+SELECT blob_1 FROM t2
+ORDER BY blob_1;
+
+--11.10 BOOLEAN + BOOLEAN
+SELECT boolean_1 FROM t1
+UNION
+SELECT boolean_1 FROM t2
+ORDER BY boolean_1;
+
+--11.12  不支持：OBJECT + OBJECT
+SELECT object_1 FROM t1
+UNION
+SELECT object_1 FROM t2;
+<<SQLSTATE;
+
+--11.13 TEXT + STRING
+SELECT text_1 FROM t1
+UNION
+SELECT string_1 FROM t2
+order by text_1;
+
+--11.14 INT32 + FL OAT（兼容）
+SELECT int32_1 FROM t1
+UNION
+SELECT float_1 FROM t2
+ORDER BY int32_1;
+
+--11.15 INT64 + DOUBLE（兼容）
+SELECT int64_1 FROM t1
+UNION
+SELECT double_1 FROM t2
+ORDER BY int64_1;
+
+--11.16 FLOAT + DOUBLE（兼容，需要转换）
+SELECT float_1 FROM t1
+UNION
+SELECT double_1 FROM t2
+ORDER BY float_1;
+
+--11.17 INT32 + DOUBLE（兼容）
+SELECT int32_1 FROM t1
+UNION
+SELECT double_1 FROM t2
+ORDER BY int32_1;
+
+--11.18 INT32 + INT64（兼容，需要转换）
+SELECT int32_1 FROM t1
+UNION
+SELECT int64_1 FROM t2
+ORDER BY int32_1;
+
+--11.19 INT64 + TIMESTAMP（兼容）
+SELECT int64_1 FROM t1
+UNION
+SELECT timestamp_1 FROM t2
+ORDER BY int64_1;
+
+--11.20 TEXT -> STRING（兼容，需要转换）
+SELECT text_1 AS msg FROM t1
+UNION
+SELECT string_1 AS msg FROM t2
+ORDER BY msg;
+
+--11.21 DATE + DOUBLE（不兼容，应报错）
+SELECT date_1 FROM t1
+UNION
+SELECT double_1 FROM t2;
+<<SQLSTATE;
+
+--11.22 TIMESTAMP + INT32（不兼容，应报错）
+SELECT timestamp_1 FROM t1
+UNION
+SELECT int32_1 FROM t2;
+<<SQLSTATE;
+
+--11.23 BOOLEAN + TEXT（不兼容，应报错）
+SELECT boolean_1 FROM t1
+UNION
+SELECT text_1 FROM t2;
+<<SQLSTATE;
+
+--11.24 DATE + INT32（不兼容，应报错）
+SELECT date_1 FROM t1
+UNION
+SELECT int32_1 FROM t2;
+<<SQLSTATE;
+
+--11.25 TIMESTAMP + BOOLEAN（不兼容，应报错）
+SELECT timestamp_1 FROM t1
+UNION
+SELECT boolean_1 FROM t2;
+<<SQLSTATE;
+
+--11.26 BLOB + BOOLEAN（不兼容，应报错）
+SELECT blob_1 FROM t1
+UNION
+SELECT boolean_1 FROM t2;
+<<SQLSTATE;
+
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;
