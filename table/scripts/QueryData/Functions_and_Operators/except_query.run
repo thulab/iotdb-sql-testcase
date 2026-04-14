@@ -1,0 +1,580 @@
+// EXCEPT：两个查询结果集中共同出现的行返回（不保证结果集顺序），支持加上all或者distinct
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+
+--1. 创建元数据
+create database test_db;
+
+use test_db;
+
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t2(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t3(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+show tables;
+desc t1;
+desc t2;
+desc t3;
+
+--2. 插入数据
+insert into t1(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 100.0, 200.0, false, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-08'),
+	(2, 'd1', 100, 200, 200.0, 200.0, false, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-08'),
+	(3, 'd2', 200, 200, 300.0, 300.0, false, NULL, 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-09'),
+	(4, 'd2', 200, 200, 300.0, 300.0, true, 'test2', 'test1', X'426C6F62', to_object(false, 0, X'7464'), 1704067200000,'2026-04-10'),
+	(5, 'd3', 300, 300, 400.0, 300.0, true, NULL, NULL, X'426C6F62', to_object(false, 0, X'62'), 1704067200000, '2026-04-10'),
+	(6, 'd4', NULL, 400, 400.0, 300.0, true, 'test3', 'stest3', X'576F726C64', to_object(false, 0, X'62'), 1718409600000,'2026-04-11');
+
+insert into t2(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 100.0, 100.0, true, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'696F'), 200, '2026-04-09'),
+	(2, 'd2', 200, 100, 100.0, 200.0, false, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'696F'),200, '2026-04-09'),
+	(3, 'd2', 200, 200, 300.0, 300.0, false, NULL, 'test1', X'48454C4C4F', to_object(false, 0, X'7464'),1704067200000, '2026-04-09'),
+	(4, 'd2', 200, 200, 200.0, 300.0, false, 'test2', 'test2', X'426C6F62', to_object(false, 0, X'7464'),1718409600000, '2026-04-10'),
+	(5, 'd5', 500, 300, 300.0, 400.0, true, NULL, NULL, X'426C6F62', to_object(false, 0, X'62'),1718409600000, '2026-04-11'),
+	(6, 'd4', NULL, 300, 400.0, 500.0, true, 'test3', 'test4', X'576F726C64',to_object(false, 0, X'62'),1718409600000, '2026-04-11');
+	
+insert into t3(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 200.0, 300.0, true, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'62'), 1704067200000, '2026-04-08' ),
+	(2, 'd2', 200, 200, 200.0, 300.0, false, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'7464'), 1708409620000, '2026-04-09'),
+	(3, 'd3', 600, 200, 300.0, 400.0, true, 'test2', 'test2', X'576F726C64', to_object(false, 0, X'7464'),1708409620000, '2026-04-10'),
+	(4, 'd4', 600, 200, 300.0, 400.0, true, 'test2', 'test2', X'576F726C64', to_object(false, 0, X'7464'),1708409620000, '2026-04-10');
+	
+--3. 全量数据查询
+select * from t1 order by time;
+select * from t2 order by time;
+select * from t3 order by time;
+
+--4. EXCEPT 去重
+select device_id, int32_1 from t1
+except 
+select device_id, int32_1 from t2
+order by 1,2;
+
+--5. EXCEPT DISTINCT 结果去重
+select device_id,int32_1 from t1
+except distinct
+select device_id,int32_1 from t2
+order by 1,2;
+
+--6. EXCEPT ALL 结果不去重
+select device_id,int32_1 from t1
+except all
+select device_id,int32_1 from t2
+order by 1,2;
+
+--7. EXCEPT 交空集
+select device_id,int32_1, int64_1, float_1, double_1 from t1 where device_id='d5'
+except all
+select device_id,int32_1, int64_1, float_1, double_1 from t2 where device_id='d5'
+order by 1,2;
+
+--8. 多表EXCEPT交集
+select device_id, int32_1, int64_1 from t1 
+except
+select device_id, int32_1, int64_1 from t2
+except
+select device_id, int32_1, int64_1 from t3
+order by 1,2,3;
+
+--9. 多表EXCEPT ALL
+select device_id, int32_1, int64_1 from t1 
+except all
+select device_id, int32_1, int64_1 from t2
+except all
+select device_id, int32_1, int64_1 from t3
+order by 1,2,3;
+
+--10. UNION / EXCEPT 混合使用
+select device_id, int32_1, text_1 from t1
+union
+select device_id, int32_1, text_1 from t2
+except
+select device_id, int32_1, text_1 from t3
+order by 1,2,3;
+
+select device_id from t1 
+union
+select device_id from t2
+except
+select device_id from t3 
+union 
+select device_id from t1 where int32_1 = 200
+order by device_id;
+
+--11. INTERSECT 优先于 EXCEPT
+--不加括号（默认优先级）
+select device_id, int32_1, float_1 from t1
+except
+select device_id, int32_1, float_1 from t2
+intersect
+select device_id, int32_1, float_1 from t3
+order by 1,2,3;
+
+--加括号（等价性）
+select device_id, int32_1, float_1 from t1
+except
+(
+select device_id, int32_1, float_1 from t2
+intersect
+select device_id, int32_1, float_1 from t3
+)
+order by 1,2,3;
+
+--12. EXCEPT 与 UNION 同级
+--不加括号（默认优先级）
+select device_id, int64_1, double_1 from t1
+except
+select device_id, int32_1, float_1 from t2
+union
+select device_id, int32_1, float_1 from t3
+order by 1,2,3;
+
+--加括号（等价性）
+(
+select device_id, int64_1, double_1 from t1
+except
+select device_id, int32_1, float_1 from t2
+)
+union
+select device_id, int32_1, float_1 from t3
+order by 1,2,3;
+
+--13. INTERSECT 结合 UNION/EXCEPT
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 from t1
+intersect
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 from t2
+union
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 from t3
+except
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, timestamp_1, date_1 from t1
+order by 1,2,3,4;
+
+--14. CTE(公用表表达式)
+with 
+cte1 as(
+	select device_id, double_1, string_1 from t1 where double_1 <= 300
+	),
+cte2 as(
+	select device_id, double_1, string_1 from t2 where double_1 <= 300
+	)
+select * from cte1 
+except
+select * from cte2
+order by 1,2,3;
+
+with
+cte1 as(
+	select device_id, int32_1 from t1 where int32_1 > 100 or int32_1 IS NULL
+),
+cte2 as(
+	select device_id, int32_1 from t2 where int32_1 > 100 or int32_1 IS NULL
+)
+select * from cte1
+except
+select * from cte2
+order by device_id;
+
+--15. 聚合函数EXCEPT
+select device_id, sum(int32_1) as sum_result1 from t1 group by device_id 
+except
+select device_id, sum(int32_1) as sum_result2 from t2 group by device_id
+order by device_id;
+
+--16. 数据类型兼容
+--16.1 INT32 与 INT64（兼容）
+select int32_1 from t1
+except
+select int64_1 from t2
+order by int32_1;
+
+--16.2 INT32  与 FLOAT（兼容）
+select int32_1 from t1
+except
+select float_1 from t2
+order by int32_1;
+
+--16.3 INT32 与 DOUBLE（兼容）
+select int32_1 from t1
+except
+select double_1 from t2
+order by int32_1;
+
+--16.4 INT64 与 FLOAT （兼容）
+select int64_1 from t1
+except
+select float_1 from t2
+order by int64_1;
+
+--16.5 INT64 与 DOUBLE （兼容） 
+select int64_1 from t1
+except
+select double_1 from t2
+order by int64_1;
+
+--16.6 INT64 与 TIMESTAMP（兼容）
+select int64_1 from t1
+except
+select timestamp_1 from t2
+order by int64_1;
+
+--16.7 FLOAT 与 DOUBLE（兼容）
+select float_1 from t1
+except
+select double_1 from t2
+order by float_1;
+
+--16.8 TEXT 与 STRING（兼容）
+select text_1 from t1
+except
+select string_1 from t2
+order by text_1;
+
+--16.9 INT32 与 BOOLEAN（不兼容）
+select int32_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.10 INT32 与 DATE（不兼容）
+select int32_1 from t1
+except
+select date_1 from t2;
+<<SQLSTATE;
+
+--16.11 INT32 与 TIMESTAMP（不兼容）
+select int32_1 from t1
+except
+select timestamp_1 from t2;
+<<SQLSTATE;
+
+--16.12 INT32 与 TEXT（不兼容）
+select int32_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.13 INT32 与 STRING（不兼容）
+select int32_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.14 INT32 与 BLOB（不兼容）
+select int32_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.15 INT64 与 DATE（不兼容）
+select int64_1 from t1
+except
+select date_1 from t2;
+<<SQLSTATE;
+
+--16.16 INT64 与 BOOLEAN（不兼容）
+select int64_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.17 INT64 与 TEXT（不兼容）
+select int64_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.18 INT64 与 STRING（不兼容）
+select int64_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.19 INT64 与 BLOB (不兼容）
+select int64_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.20 FLOAT 与 DATE (不兼容）
+select float_1 from t1
+except
+select date_1 from t2;
+<<SQLSTATE;
+
+--16.21 FLOAT 与 TIMESTAMP (不兼容）
+select float_1 from t1
+except
+select timestamp_1 from t2;
+<<SQLSTATE;
+
+--16.22 FLOAT 与 BOOLEAN (不兼容）
+select float_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.23 FLOAT 与 TEXT (不兼容）
+select float_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.24 FLOAT 与 STRING (不兼容）
+select float_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.25 FLOAT 与 BLOB (不兼容）
+select float_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.26 DOUBLE 与 DATE (不兼容）
+select double_1 from t1
+except
+select date_1 from t2;
+<<SQLSTATE;
+
+--16.27 DOUBLE 与 TIMESTAMP (不兼容）
+select double_1 from t1
+except
+select timestamp_1 from t2;
+<<SQLSTATE;
+
+--16.28 DOUBLE 与 BOOLEAN (不兼容）
+select double_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.29 DOUBLE 与 TEXT (不兼容）
+select double_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.30 DOUBLE 与 STRING (不兼容）
+select double_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.31 DOUBLE 与 BLOB (不兼容）
+select double_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.32 DATE 与 TIMESTAMP (不兼容）
+select date_1 from t1
+except
+select timestamp_1 from t2;
+<<SQLSTATE;
+
+--16.33 DATE 与 BOOLEAN (不兼容）
+select date_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.34 DATE 与 TEXT (不兼容）
+select date_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.35 DATE 与 STRING (不兼容）
+select date_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.36 DATE 与 BLOB (不兼容）
+select date_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.37 TIMESTAMP 与 BOOLEAN (不兼容）
+select timestamp_1 from t1
+except
+select boolean_1 from t2;
+<<SQLSTATE;
+
+--16.38 TIMESTAMP 与 TEXT (不兼容）
+select timestamp_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.39 TIMESTAMP 与 STRING (不兼容）
+select timestamp_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.40 TIMESTAMP 与 BLOB (不兼容）
+select timestamp_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.41 TIMESTAMP 与 BLOB (不兼容）
+select timestamp_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.42 BOOLEAN 与 TEXT (不兼容）
+select boolean_1 from t1
+except
+select text_1 from t2;
+<<SQLSTATE;
+
+--16.43 BOOLEAN 与 STRING (不兼容）
+select boolean_1 from t1
+except
+select string_1 from t2;
+<<SQLSTATE;
+
+--16.44 BOOLEAN 与 BLOB (不兼容）
+select boolean_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.45 TEXT 与 BLOB (不兼容）
+select text_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--16.46 STRING 与 BLOB (不兼容）
+select string_1 from t1
+except
+select blob_1 from t2;
+<<SQLSTATE;
+
+--17. 数据类型OBJECT 不支持EXCEPT
+select object_1 from t1
+except
+select object_1 from t2;
+<<SQLSTATE;
+
+--18. 列数不匹配
+select device_id, int32_1, float_1 from t1
+except
+select device_id, int32_1 from t2;
+<<SQLSTATE;
+
+select device_id, int32_1 from t1
+except
+select device_id, int32_1, float_1 from t2;
+<<SQLSTATE;
+
+--19. EXCEPT执行多列
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, date_1, timestamp_1, blob_1 from t1
+except
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, date_1, timestamp_1, blob_1 from t2
+except
+select device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, date_1, timestamp_1, blob_1 from t3
+order by 1, 2, 3, 4;
+
+--20. 子查询作为EXCEPT操作数
+select * from (select device_id, int32_1 from t1 where int32_1 > 200) result_1
+except
+select * from (select device_id, int32_1 from t1 where int32_1 > 300) result_2
+order by 1, 2;
+
+select device_id, sum_val from (
+	select device_id, sum(int32_1) as sum_val from t1 group by device_id
+) as sub_t1
+except
+select device_id, sum_val from (
+    select device_id, sum(int32_1) as sum_val from t2 group by device_id
+) as sub_t2
+order by device_id;
+
+select * from t1
+where int32_1 NOT IN (
+    select int32_1 from t2
+    except
+    select int32_1 from t3
+)
+order by time;
+
+--21. 带聚合函数COUNT的EXCEPT
+select device_id, count(*) as count_result1 from t1 group by device_id 
+except
+select device_id, count(*) as count_result2 from t2 group by device_id
+order by device_id;
+
+--22. 含NULL支持的EXCEPT:NULL值被视为相等的
+select text_1, string_1 from t1
+except
+select text_1, string_1 from t2
+order by 1,2;
+
+--23. 相同的EXCEPT
+select device_id from t1 
+except
+select device_id from t1 
+except
+select device_id from t1
+order by device_id;
+
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;
