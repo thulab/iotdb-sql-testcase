@@ -1,0 +1,909 @@
+// 时间序列趋势匹配表值函数
+// 新增patter_match内置表值函数完成相似度匹配的筛选
+// data参数为必填项
+// time_col 参数为可选项
+// data_col 参数为必填项
+// pattern参数为必填项
+// smooth为必填项
+// threshold为必填项
+// width 选填项
+// height选填项
+// smooth_on_pattern为选填项
+
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+show databases;
+
+--2. 使用数据库
+use test_db;
+
+--3. 创建表
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+show tables;
+desc t1;
+
+--4. 插入数据
+insert into t1
+			(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1)
+values  (1, 'd1', 1, 0, 1.1, 0.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(2, 'd1', 2, 0, 1.1, 0.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(3, 'd1', 1, 0, 1.1, 0.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(4, 'd1', 1, 0, 2.1, 1.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(5, 'd1', 1, 0, 2.1, 1.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(6, 'd1', 2, 1, 2.1, 1.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(7, 'd1', 2, 1, 2.1, 1.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(8, 'd1', 2, 1, 2.1, 1.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(9, 'd1', 2, 1, 2.1, 1.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(10, 'd1', 3, 0, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(11, 'd1', 4, 0, 3.1, 2.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(12, 'd1', 3, 0, 3.1, 2.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(13, 'd1', 2, 0, 3.1, 2.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(14, 'd1', 3, 0, 3.1, 2.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(15, 'd1', 4, 0, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(16, 'd1', 2, 0, 3.1, 2.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(17, 'd1', 1, 2, 3.1, 2.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(18, 'd1', 1, 2, 3.1, 2.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(19, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(20, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(21, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(41, 'd1', 1, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(42, 'd1', 2, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(43, 'd1', 3, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(44, 'd1', 4, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(45, 'd1', 3, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(46, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(47, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(48, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(49, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(50, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(51, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(52, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23');
+				
+--5. 全量数据查询
+select * from t1 order by time;
+
+--6. pattern_match内置表值函数查询
+--6.1 验证data参数为必填项
+--6.1.1 data参数为空
+select * from pattern_match(
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.1.2 data参数为不存在的tableName
+select * from pattern_match(
+	data => t2, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.1.3 data参数为存在的子查询
+select * from pattern_match(
+	data => t1 partition by device_id order by time, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.2 验证time_col参数为可选项，只能为时间戳类型
+select * from pattern_match(
+	data => t1,  
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time',	
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+select * from pattern_match(
+	data => t1, 
+	time_col => 'timestamp_1',	
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+select * from pattern_match(
+	data => t1, 
+	time_col => '1',	
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.3 data_col参数验证：当前仅支持 INT32|INT64 | FLOAT | DOUBLE
+--6.3.1 数据类型：INT32
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+select * from pattern_match(
+	data => (select time, int32_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'int32_1',
+	pattern => '1, 2, 3',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+
+--6.3.2 数据类型：INT64
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int64_1',
+	pattern => '0,0,0,0,0,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+select * from pattern_match(
+	data => (select time, int64_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'int64_1',
+	pattern => '0,0,0,0,0,1,1,1,1',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+
+--6.3.3 数据类型：FLOAT
+select * from pattern_match(
+	data => t1,
+	time_col => 'time',
+	data_col => 'float_1',
+	pattern => '0.1, 0.1, 0.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3;
+
+select * from pattern_match(
+	data => (select time, float_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'float_1',
+	pattern => '0.1, 0.1, 0.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+
+--6.3.4 数据类型：DOUBLE
+select * from pattern_match(
+	data => t1,
+	time_col => 'time',
+	data_col => 'double_1',
+	pattern => '1.1, 1.1, 1.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3;
+
+select * from pattern_match(
+	data => (select time, double_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'double_1',
+	pattern => '1.1, 1.1, 1.1, 2.1, 2.1, 2.1, 2.1, 2.1, 2.1',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+
+--6.3.5 数据类型：BOOLEAN 【不支持】
+select * from pattern_match(
+	data => (select time, boolean_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'boolean_1',
+	pattern => 'false,true,true',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.6 数据类型：TEXT 【不支持】
+select * from pattern_match(
+	data => (select time, text_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'text_1',
+	pattern => 'v2,v3,v4',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.7 数据类型：STRING 【不支持】
+select * from pattern_match(
+	data => (select time, string_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'string_1',
+	pattern => 's2,s3,s4',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.8 数据类型：BLOB 【不支持】
+select * from pattern_match(
+	data => (select time, blob_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'blob_1',
+	pattern => '0x02,0x03,0x04',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.9 数据类型：OBJECT 【不支持】
+select * from pattern_match(
+	data => (select time, object_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'object_1',
+	pattern => 'null,null,null',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.10 数据类型：TIMESTAMP 【不支持】
+select * from pattern_match(
+	data => (select time, timestamp_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'timestamp_1',
+	pattern => '2000,2000,2000',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.11 数据类型：DATE 【不支持】
+select * from pattern_match(
+	data => (select time, date_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'date_1',
+	pattern => '2026-03-23,2026-03-23,2026-03-23',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.3.12 不存在的列名
+select * from pattern_match(
+	data => (select time, date_1 from t1 order by time),
+	time_col => 'time',
+	data_col => 'non_existent_column',
+	pattern => '1.0,2.0,3.0',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_on_pattern => false
+) order by 1,2,3,4;
+<<SQLSTATE;
+
+--6.4 不同的pattern 长度验证
+--6.4.1 pattern对应的列表为空时
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.4.2 单点pattern测试：为1个时
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.4.3 为2个时
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.4.4 为3个时
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.4.4 多个时
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,4,3,2,3,4,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.4.5 无效的pattern格式
+select * from pattern_match(
+     data => t1,
+     time_col => 'time',
+     data_col => 'int32_1',
+     pattern => 'abc,def,ghi',
+     smooth => 0.5,
+     threshold => 10.0,
+     width => 1000.0,
+     height => 500.0,
+     smooth_on_pattern => false
+ );
+<<SQLSTATE;
+
+--6.5 参数smooth：必填项，非负实数(≥ 0)
+--6.5.1 smooth为空
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.5.2 smooth为0或0.0：无平滑
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.0, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.5.3 smooth为负数
+select * from pattern_match(
+   data => t1,
+   time_col => 'time',
+   data_col => 'int32_1',
+   pattern => '1, 2, 1',
+   smooth => -0.5,
+   threshold => 10.0,
+   width => 1000.0,
+   height => 500.0,
+   smooth_On_Pattern=> false
+ )order by 1,2,3;
+<<SQLSTATE;
+ 
+--6.5.4 smooth:低平滑度0.1
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,1,1,1',
+    smooth => 0.1,
+    threshold => 10.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.5.4 smooth:高平滑度0.9
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,1,1,1',
+    smooth => 0.9,
+    threshold => 10.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.5.5 smooth:最大平滑1
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,1',
+    smooth => 1.0,
+    threshold => 10.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.5.6 smooth:2
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,1',
+    smooth => 2.0,
+    threshold => 10.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.6 参数threshold：必填项，非负实数(≥ 0)
+--6.6.1 threshold为空
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.0,  
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.6.2 threshold为0或0.0
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.5, 
+	threshold => 0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.5, 
+	threshold => 0.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+--6.6.3 threshold为负数
+select * from pattern_match(
+   data => t1,
+   time_col => 'time',
+   data_col => 'int32_1',
+   pattern => '1, 2, 1',
+   smooth => 0.5,
+   threshold => -1.1,
+   width => 1000.0,
+   height => 500.0,
+   smooth_On_Pattern=> false
+ )order by 1,2,3;
+<<SQLSTATE;
+ 
+--6.6.4 threshold为1.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 1.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.6.5 threshold为100.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.6.6 threshold为1000.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 1000.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.6.7 threshold为0.01
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 0.01,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.7 参数width：选填，非负实数
+--6.7.1 width为空
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 1.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.7.2 width为0或0.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => 0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+<<SQLSTATE;
+
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => 0.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.7.3 width为负数，进行校验
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => -1.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.7.4 width为10.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 10.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.8 参数height：选填，非负实数
+--6.8.1 height 为空
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 10.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.8.2 参数height为0或0.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 10.0,
+    height => 0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+<<SQLSTATE;
+
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 10.0,
+    height => 0.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.8.3 参数height为负数，进行校验
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 100.0,
+    height => -10.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+<<SQLSTATE;
+
+--6.8.4 参数height为2.0
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 1000.0,
+    height => 2.0,
+    smooth_on_pattern => false
+);
+
+--6.9 参数smooth_on_pattern：选填，false 或true
+--6.9.1 smooth_on_pattern为空
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 100.0,
+    height => 500.0
+)order by 1,2,3;
+
+--6.9.2 smooth_on_pattern为false：不对pattern进行平滑
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 100.0,
+    height => 500.0,
+	smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.9.3 smooth_on_pattern为true：对pattern进行平滑处理后再匹配
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,2,3,2,1,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 10.0,
+    width => 100.0,
+    height => 500.0,
+	smooth_on_pattern => true
+)order by 1,2,3;
+
+--6.10 正则查询:+ | *
+--6.10.1 {pattern}+ 表示匹配1次或多次
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,{2,3,2}+,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+)order by 1,2,3;
+
+--6.10.2 {pattern}* 表示匹配0次或多次
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '1,1.0,{1,2,3,2}*,1,1,1,1,1',
+    smooth => 0.5,
+    threshold => 100.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+) order by 1,2,3;
+
+--6.10.3 复杂通配符组合测试
+select * from pattern_match(
+    data => t1,
+    time_col => 'time',
+    data_col => 'int32_1',
+    pattern => '{1}+,{2,3}*,{1}+',
+    smooth => 0.5,
+    threshold => 50.0,
+    width => 1000.0,
+    height => 500.0,
+    smooth_on_pattern => false
+);
+
+--7. 按设备分区的pattern匹配
+select * from pattern_match(
+     data => t1 PARTITION BY device_id ORDER BY time,
+     time_col => 'time',
+     data_col => 'double_1',
+     pattern => '1.1,1.1,1.1,2.1,2.1,2.1,2.1',
+     smooth => 0.5,
+     threshold => 10.0,
+     width => 1000.0,
+     height => 500.0,
+     smooth_on_pattern => false
+ )order by 1,2,3;
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;
