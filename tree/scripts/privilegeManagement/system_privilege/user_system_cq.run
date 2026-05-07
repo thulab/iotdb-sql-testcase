@@ -88,7 +88,7 @@ drop cq cq1;
 --6. 超级管理员再次创建CQ,插入数据
 connect root/TimechoDB@2021;
 show current_user;
-CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 10s RANGE 30s, 10s BEGIN SELECT sum(temperature) INTO root.ln.wf01(temperature_sum) FROM root.ln.wf01 GROUP BY(10s) FILL(100.0) END;
+CREATE CONTINUOUS QUERY cq4 RESAMPLE EVERY 20s RANGE 30s, 10s BEGIN SELECT sum(temperature) INTO root.ln.wf01(temperature_sum) FROM root.ln.wf01 GROUP BY(10s) FILL(100.0) END;
 CREATE CONTINUOUS QUERY cq5 RESAMPLE EVERY 10s BEGIN SELECT temperature + 1 INTO root.test.wf01(temperature_add) FROM root.ln.wf01 align by device END;
 show cqs;
 insert into root.ln.wf01(time,status,temperature) values(now(),1,22.0);
@@ -121,7 +121,7 @@ connect user_01/Pass@123456789;
 show current_user;
 list privileges of user user_01;
 show timeseries;
-sleep 20000;
+sleep 30000;
 select count(temperature_sum) from root.ln.wf01;
 
 --7. user_02拥有源序列路径上的READ_DATA权限,目标序列路径上的WRITE_DATA权限:执行CQ查询
@@ -133,7 +133,7 @@ list privileges of user user_02;
 select count(temperature_add) from root.test.wf01;
 
 --7.2 源序列和目标序列均存在,CQ查询结构返回正确
-sleep 20000;
+sleep 40000;
 select count(temperature_sum) from root.ln.wf01;
 
 
