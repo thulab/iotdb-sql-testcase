@@ -1,0 +1,68 @@
+// describe query : 展示该查询的表结构
+// describe output :已经 prepare 的queryStatement展示对应查询的表结构
+
+connect root/TimechoDB@2021;
+
+
+--0.清理环境
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库并查看数据库
+create database if not exists test_db;
+show databases;
+
+--2. 创建表并查看表
+create table test_db.t1(
+device_id string tag,
+region_id string attribute,
+int32 int32 field,
+int64 int64 field,
+double double field,
+float float field,
+text text field,
+boolean boolean field
+);
+
+show tables from test_db;
+desc test_db.t1;
+
+--3. 对表1，写入数据
+insert into test_db.t1(
+  time, device_id, region_id, int32, int64, double, float, text, boolean
+) values
+(1, 'd1', 'Beijing', 1, 1, 1.1, 1.1, 'test1', false),
+(2, 'd1', 'Beijing', 2, 2, 2.1, 2.1, 'test2', true),
+(3, 'd2', 'Shanghai', 3, 3, 3.1, 3.1, 'test3', false);
+
+--4. 查询数据并展示查询表结构
+select * from test_db.t1 order by time;
+
+--4.1 describe query 
+describe select time, device_id, region_id, int32, int64, double, float, text, boolean from test_db.t1;
+describe select time, device_id, int32 + 1 as result from test_db.t1;
+
+--4.2 describe output 已经 prepare 的 queryStatement
+--4.2.1 不含动态参数
+prepare select1 from select time, device_id, region_id, double + 1 as result from test_db.t1;
+describe output select1;
+
+--4.2.2 包含动态参数
+prepare select2 from select time, device_id, text, boolean from test_db.t1 where device_id=?;
+describe output select2 using 'd1';
+describe output select2 using 'd2';
+
+--4.2.3 异常场景用例
+-- prepare 包含动态参数时，未传parameter，报错
+describe output select2;
+<<SQLSTATE;
+describe output select2 using;
+<<SQLSTATE;
+-- describe 不存在的statement
+describe output select_not_exists;
+<<SQLSTATE;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test_db; 
+<<NULL;
