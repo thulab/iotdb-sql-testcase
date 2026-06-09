@@ -1,0 +1,4187 @@
+
+-- [1]10:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]11:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]12:INSERT INTO wv(time, station, device, region, model, temperature, humidity) VALUES (1, 's1', 'd1', 'r1', 'm1', 10.1, 60.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.272
+
+-- [1]13:SELECT time, station, device, region, model, temperature, humidity FROM wv ORDER BY time, station, device
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |model(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |r1                  |m1                 |10.1                     |60.1                  |
+01+08:00             |                     |                    |                    |                   |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.218
+
+-- [1]14:SELECT time, station, device, region, model, temperature, humidity FROM base_table ORDER BY time, station, device
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |model(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |r1                  |m1                 |10.1                     |60.1                  |
+01+08:00             |                     |                    |                    |                   |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.25
+
+-- [1]26:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]27:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]28:INSERT INTO base_table(time, station, device, region, model, temperature, humidity) VALUES (1, 's1', 'd1', 'r1', 'm1', 10.1, 60.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.273
+
+-- [1]29:INSERT INTO base_table(time, station, device, region, model, temperature, humidity) VALUES (2, 's1', 'd2', 'r1', 'm1', 20.2, 70.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.77
+
+-- [1]30:DELETE FROM wv WHERE time=1 AND station='s1' AND device='d1' AND region='r1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]31:SELECT time, station, device, region, model, temperature, humidity FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |model(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d2                  |r1                  |m1                 |20.2                     |70.2                  |
+02+08:00             |                     |                    |                    |                   |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.27
+
+-- [1]32:SELECT time, station, device, region, model, temperature, humidity FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |model(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d2                  |r1                  |m1                 |20.2                     |70.2                  |
+02+08:00             |                     |                    |                    |                   |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.25
+
+-- [1]44:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]45:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]46:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |INF                |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]47:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：7
+}
+Elapsed Time: 0.0.11
+
+-- [1]59:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=3600000)
+STRICT{
+PASS
+}
+
+-- [1]60:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]61:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |3600000            |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |3600000            |USING             |null               |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]73:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=7200000)
+STRICT{
+PASS
+}
+
+-- [1]74:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]75:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |7200000            |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |7200000            |USING             |null               |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]88:CREATE WRITABLE VIEW wv AS SELECT station, device, region, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]89:INSERT INTO wv(time, station, device, region, temperature) VALUES (1, 's1', 'd1', 'r1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.256
+
+-- [1]90:SELECT time, station, device, region, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |temperature(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |r1                  |10.1                     |
+01+08:00             |                     |                    |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.19
+
+-- [1]91:SELECT time, station, device, region, temperature FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |temperature(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |r1                  |10.1                     |
+01+08:00             |                     |                    |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.27
+
+-- [1]103:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]104:CREATE WRITABLE VIEW wv AS SELECT station, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]105:INSERT INTO wv(time, station, temperature) VALUES (1, 's1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.190
+
+-- [1]106:SELECT time, station, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |temperature(DOUBLE)      |
+-------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |10.1                     |
+01+08:00             |                     |                         |
+总数目：1
+}
+Elapsed Time: 0.0.16
+
+-- [1]107:SELECT time, station, device, region, temperature FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |region(STRING)      |temperature(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |null                |null                |10.1                     |
+01+08:00             |                     |                    |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.13
+
+-- [1]119:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]120:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]121:INSERT INTO wv(time, station, device, temperature) VALUES (1, 's1', 'd1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.262
+
+-- [1]122:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |10.1                     |
+01+08:00             |                     |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.17
+
+-- [1]123:SELECT time, station, device, temperature, humidity FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |10.1                     |null                  |
+01+08:00             |                     |                    |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.13
+
+-- [1]124:SELECT humidity FROM wv
+STRICT{
+SQLSTATE : 616: Column 'humidity' cannot be resolved
+}
+
+-- [1]137:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]138:CREATE WRITABLE VIEW wv AS SELECT station, device, model, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]139:INSERT INTO wv(time, station, device, model, temperature) VALUES (1, 's1', 'd1', 'm1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.208
+
+-- [1]140:SELECT time, station, device, model, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |model(STRING)      |temperature(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |m1                 |10.1                     |
+01+08:00             |                     |                    |                   |                         |
+总数目：1
+}
+Elapsed Time: 0.0.15
+
+-- [1]141:SELECT time, station, device, model, temperature FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |model(STRING)      |temperature(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |m1                 |10.1                     |
+01+08:00             |                     |                    |                   |                         |
+总数目：1
+}
+Elapsed Time: 0.0.14
+
+-- [1]153:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]154:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]155:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.2
+
+-- [1]156:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.8
+
+-- [1]168:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]169:CREATE WRITABLE VIEW wv AS SELECT time, station, device, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]170:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]171:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.9
+
+-- [1]183:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]184:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_a, temperature AS temp_b FROM base_table
+STRICT{
+SQLSTATE : 701: The view column temp_a and temp_b cannot be from the same source column temperature
+}
+
+-- [1]201:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]204:CREATE WRITABLE VIEW wv AS SELECT * FROM wv_case_013_src.base_table
+STRICT{
+SQLSTATE : 701: Currently, the original table shall be in the same database as the view.
+}
+
+-- [1]219:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]220:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]221:ALTER VIEW wv SET PROPERTIES ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.33
+
+-- [1]222:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |36000              |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.4
+
+-- [1]234:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]235:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]236:ALTER VIEW wv SET PROPERTIES ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.17
+
+-- [1]237:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]249:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]250:CREATE WRITABLE VIEW wv_old AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]251:ALTER VIEW wv_old RENAME TO wv_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.24
+
+-- [1]252:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv_new               |INF                |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]253:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]265:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]266:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]267:ALTER VIEW wv RENAME COLUMN temperature TO temp_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.25
+
+-- [1]268:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.2
+
+-- [1]269:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：7
+}
+Elapsed Time: 0.0.2
+
+-- [1]281:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]282:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]283:ALTER VIEW wv ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.25
+
+-- [1]284:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |
+总数目：8
+}
+Elapsed Time: 0.0.2
+
+-- [1]285:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |pressure                      |
+总数目：8
+}
+Elapsed Time: 0.0.2
+
+-- [1]297:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]298:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]299:ALTER VIEW wv ADD COLUMN temperature AS temp_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.23
+
+-- [1]300:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.2
+
+-- [1]301:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]313:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]314:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]315:ALTER VIEW wv ADD COLUMN station STRING FIELD
+STRICT{
+SQLSTATE : 701: Writable view column 'station' must match source column 'wv_case_020.base_table.station' in category and data type
+}
+
+-- [1]328:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]329:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]330:ALTER VIEW wv ADD COLUMN temperature INT32 FIELD
+STRICT{
+SQLSTATE : 701: Writable view column 'temperature' must match source column 'wv_case_021.base_table.temperature' in category and data type
+}
+
+-- [1]343:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]344:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]345:ALTER VIEW wv ADD COLUMN temperature AS temp_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.24
+
+-- [1]346:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.2
+
+-- [1]347:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]359:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]360:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]361:ALTER VIEW wv ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+SQLSTATE : 701: When schema_cascade=false, writable view column 'pressure' must already exist in source table 'wv_case_023.base_table'
+}
+
+-- [1]374:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]375:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]376:ALTER VIEW wv ADD COLUMN station STRING FIELD
+STRICT{
+SQLSTATE : 701: Writable view column 'station' must match source column 'wv_case_024.base_table.station' in category and data type
+}
+
+-- [1]389:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]390:CREATE WRITABLE VIEW wv AS SELECT station, device FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]391:ALTER VIEW wv ADD COLUMN temperature INT32 FIELD
+STRICT{
+SQLSTATE : 701: Writable view column 'temperature' must match source column 'wv_case_025.base_table.temperature' in category and data type
+}
+
+-- [1]404:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]405:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]406:ALTER VIEW wv ADD COLUMN temp_from_tree DOUBLE FIELD FROM original_measurement 'root.sg.d1.temperature'
+STRICT{
+SQLSTATE : 700: line 1:80: mismatched input ''root.sg.d1.temperature''. Expecting: 'COMMENT', <EOF>
+}
+
+-- [1]419:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]420:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]421:ALTER VIEW wv DROP COLUMN station
+STRICT{
+0
+}
+Elapsed Time: 0.0.27
+
+-- [1]422:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]423:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]435:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]436:CREATE TABLE type_table (station STRING TAG, device STRING TAG, value INT32 FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]437:CREATE WRITABLE VIEW wv_type AS SELECT * FROM type_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]438:ALTER TABLE wv_type ALTER COLUMN value SET DATA TYPE INT64
+STRICT{
+0
+}
+Elapsed Time: 0.0.25
+
+-- [1]439:DESC type_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+value                 |INT64               |FIELD               |USING             |null               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]440:DESC wv_type DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+value                 |INT64               |FIELD               |USING             |null               |value                         |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]452:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]453:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]454:ALTER VIEW wv SET PROPERTIES schema_cascade=false, ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]455:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |36000              |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]467:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]468:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]469:ALTER VIEW wv SET PROPERTIES schema_cascade=true, ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]470:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]482:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]483:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table COMMENT 'view comment' WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]484:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |view comment       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |INF                |USING             |view comment       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]496:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]497:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table COMMENT 'view comment' WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]498:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |INF                |USING             |view comment       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]510:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]511:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature COMMENT 'view col comment' FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]512:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |view col comment   |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]513:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |view col comment   |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]525:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]526:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature COMMENT 'view col comment' FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]527:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]528:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |view col comment   |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]540:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]541:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false, ttl=7200000)
+STRICT{
+PASS
+}
+
+-- [1]542:ALTER TABLE base_table SET PROPERTIES ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]543:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |36000              |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |7200000            |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]555:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]556:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false, ttl=7200000)
+STRICT{
+PASS
+}
+
+-- [1]557:ALTER TABLE base_table ADD COLUMN source_only DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]558:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+source_only           |DOUBLE              |FIELD               |USING             |null               |
+总数目：8
+}
+Elapsed Time: 0.0.1
+
+-- [1]559:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]560:SELECT source_only FROM wv
+STRICT{
+SQLSTATE : 616: Column 'source_only' cannot be resolved
+}
+
+-- [1]573:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]574:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false, ttl=7200000)
+STRICT{
+PASS
+}
+
+-- [1]575:ALTER TABLE base_table DROP COLUMN humidity
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]576:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]577:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：7
+}
+Elapsed Time: 0.0.4
+
+-- [1]578:SELECT humidity FROM wv
+STRICT{
+SQLSTATE : 616: Column 'humidity' in writable view 'wv_case_039.wv' cannot be resolved because it does not exist in source table 'wv_case_039.base_table'.
+}
+
+-- [1]591:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]592:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=false, ttl=7200000)
+STRICT{
+PASS
+}
+
+-- [1]593:COMMENT ON COLUMN base_table.temperature IS 'source new comment'
+STRICT{
+PASS
+}
+
+-- [1]594:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |source new comment |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]595:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]607:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]608:CREATE WRITABLE VIEW wv AS SELECT * FROM missing_table
+STRICT{
+SQLSTATE : 550: Source table 'wv_case_041.missing_table' does not exist.
+}
+
+-- [1]621:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]622:CREATE WRITABLE VIEW wv AS SELECT station, device, missing_col FROM base_table
+STRICT{
+SQLSTATE : 616: Source column 'wv_case_042.base_table.missing_col' does not exist.
+}
+
+-- [1]635:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]636:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]637:CREATE WRITABLE VIEW wv_child AS SELECT * FROM wv
+STRICT{
+SQLSTATE : 554: Source table 'wv_case_047.wv' is not a base table.
+}
+
+-- [1]650:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]651:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]652:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |INF                |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]664:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]665:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]666:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]678:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]679:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]680:SHOW CREATE TABLE wv
+STRICT{
+Table(TEXT)      |Create Table(TEXT)      |
+-----------------------------------------
+wv               |CREATE WRITABLE VIEW "wv|
+                 |" AS SELECT "time" AS "|
+                 |time","station" AS "sta|
+                 |tion","device" AS "devi|
+                 |ce","temperature" AS "t|
+                 |emp_new" FROM "base_tab|
+                 |le" COMMENT 'source tab|
+                 |le' WITH (ttl='INF', sc|
+                 |hema_cascade=true)      |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]692:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]693:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]694:SHOW CREATE VIEW wv
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+wv              |CREATE WRITABLE VIEW "w|
+                |v" AS SELECT "time" AS|
+                | "time","station" AS "|
+                |station","device" AS "|
+                |device","temperature" |
+                |AS "temp_new" FROM "ba|
+                |se_table" COMMENT 'sou|
+                |rce table' WITH (ttl='|
+                |INF', schema_cascade=t|
+                |rue)                   |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]706:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]707:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]708:SELECT * FROM information_schema.tables WHERE database='wv_case_052' AND table_name='wv' ORDER BY database, table_name
+STRICT{
+database(STRING)      |table_name(STRING)      |ttl(ms)(STRING)      |status(STRING)      |comment(STRING)      |table_type(STRING)      |original_table_name(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_052           |wv                      |INF                  |USING               |source table         |WRITABLE VIEW           |base_table                       |
+总数目：1
+}
+Elapsed Time: 0.0.54
+
+-- [1]709:SELECT * FROM information_schema.columns WHERE database='wv_case_052' AND table_name='wv' ORDER BY database, table_name, column_name
+STRICT{
+database(STRING)      |table_name(STRING)      |column_name(STRING)      |datatype(STRING)      |category(STRING)      |status(STRING)      |comment(STRING)      |original_column_name(STRING)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_052           |wv                      |device                   |STRING                |TAG                   |USING               |null                 |device                            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_052           |wv                      |station                  |STRING                |TAG                   |USING               |null                 |station                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_052           |wv                      |temp_new                 |DOUBLE                |FIELD                 |USING               |null                 |temperature                       |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_052           |wv                      |time                     |TIMESTAMP             |TIME                  |USING               |null                 |time                              |
+总数目：4
+}
+Elapsed Time: 0.0.22
+
+-- [1]721:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]722:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]723:SELECT * FROM information_schema.tables WHERE database='wv_case_053' AND table_name='wv' ORDER BY database, table_name
+STRICT{
+database(STRING)      |table_name(STRING)      |ttl(ms)(STRING)      |status(STRING)      |comment(STRING)      |table_type(STRING)      |original_table_name(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_053           |wv                      |INF                  |USING               |source table         |WRITABLE VIEW           |base_table                       |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]724:SELECT * FROM information_schema.columns WHERE database='wv_case_053' AND table_name='wv' ORDER BY database, table_name, column_name
+STRICT{
+database(STRING)      |table_name(STRING)      |column_name(STRING)      |datatype(STRING)      |category(STRING)      |status(STRING)      |comment(STRING)      |original_column_name(STRING)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_053           |wv                      |device                   |STRING                |TAG                   |USING               |null                 |device                            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_053           |wv                      |station                  |STRING                |TAG                   |USING               |null                 |station                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_053           |wv                      |temp_new                 |DOUBLE                |FIELD                 |USING               |null                 |temperature                       |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_053           |wv                      |time                     |TIMESTAMP             |TIME                  |USING               |null                 |time                              |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]736:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]737:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature AS temp_new FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]738:SELECT * FROM information_schema.tables WHERE database='wv_case_054' AND table_name='wv' ORDER BY database, table_name
+STRICT{
+database(STRING)      |table_name(STRING)      |ttl(ms)(STRING)      |status(STRING)      |comment(STRING)      |table_type(STRING)      |original_table_name(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_054           |wv                      |INF                  |USING               |source table         |WRITABLE VIEW           |base_table                       |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]739:SELECT * FROM information_schema.columns WHERE database='wv_case_054' AND table_name='wv' ORDER BY database, table_name, column_name
+STRICT{
+database(STRING)      |table_name(STRING)      |column_name(STRING)      |datatype(STRING)      |category(STRING)      |status(STRING)      |comment(STRING)      |original_column_name(STRING)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_054           |wv                      |device                   |STRING                |TAG                   |USING               |null                 |device                            |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_054           |wv                      |station                  |STRING                |TAG                   |USING               |null                 |station                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_054           |wv                      |temp_new                 |DOUBLE                |FIELD                 |USING               |null                 |temperature                       |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+wv_case_054           |wv                      |time                     |TIMESTAMP             |TIME                  |USING               |null                 |time                              |
+总数目：4
+}
+Elapsed Time: 0.0.11
+
+-- [1]752:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]753:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]754:DROP VIEW wv
+STRICT{
+PASS
+}
+
+-- [1]755:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]756:DESC base_table DETAILS
+STRICT{
+SQLSTATE : 550: Table 'wv_case_069.base_table' does not exist.
+}
+
+-- [1]769:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]770:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]771:DROP TABLE wv
+STRICT{
+PASS
+}
+
+-- [1]772:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]773:DESC base_table DETAILS
+STRICT{
+SQLSTATE : 550: Table 'wv_case_070.base_table' does not exist.
+}
+
+-- [1]786:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]787:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]788:DROP VIEW IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]789:DROP VIEW IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]790:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]802:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]803:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]804:DROP TABLE IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]805:DROP TABLE IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]806:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]818:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]819:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]820:ALTER TABLE wv ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]821:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |
+总数目：8
+}
+Elapsed Time: 0.0.1
+
+-- [1]822:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |pressure                      |
+总数目：8
+}
+Elapsed Time: 0.0.1
+
+-- [1]834:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]835:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]836:ALTER VIEW wv ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]837:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |
+总数目：8
+}
+Elapsed Time: 0.0.2
+
+-- [1]838:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+pressure              |DOUBLE              |FIELD               |USING             |null               |pressure                      |
+总数目：8
+}
+Elapsed Time: 0.0.0
+
+-- [1]850:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]851:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]852:ALTER TABLE wv RENAME TO wv_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.23
+
+-- [1]853:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv_new               |INF                |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]854:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]866:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]867:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]868:ALTER VIEW wv RENAME TO wv_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]869:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |INF                |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv_new               |INF                |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]870:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]882:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]883:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]884:ALTER TABLE wv RENAME COLUMN temperature TO temp_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]885:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]886:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]898:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]899:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]900:ALTER VIEW wv RENAME COLUMN temperature TO temp_new
+STRICT{
+0
+}
+Elapsed Time: 0.0.21
+
+-- [1]901:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]902:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+---------------------------------------------------------------------------------------------------------------------------------
+temp_new              |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]914:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]915:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]916:ALTER TABLE wv DROP COLUMN humidity
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]917:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]918:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：6
+}
+Elapsed Time: 0.0.2
+
+-- [1]930:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]931:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]932:ALTER VIEW wv DROP COLUMN humidity
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]933:DESC base_table DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]934:DESC wv DETAILS
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+station               |STRING              |TAG                 |USING             |null               |station                       |
+---------------------------------------------------------------------------------------------------------------------------------
+device                |STRING              |TAG                 |USING             |null               |device                        |
+---------------------------------------------------------------------------------------------------------------------------------
+region                |STRING              |TAG                 |USING             |null               |region                        |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |USING             |null               |temperature                   |
+总数目：6
+}
+Elapsed Time: 0.0.0
+
+-- [1]946:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]947:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]948:ALTER TABLE wv SET PROPERTIES ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]949:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |36000              |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]961:CREATE TABLE base_table (station STRING TAG, device STRING TAG, region STRING TAG, model STRING ATTRIBUTE, temperature DOUBLE FIELD, humidity DOUBLE FIELD) COMMENT 'source table' WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]962:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]963:ALTER VIEW wv SET PROPERTIES ttl=36000
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]964:SHOW TABLES DETAILS
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+base_table           |36000              |USING             |source table       |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+wv                   |36000              |USING             |source table       |WRITABLE VIEW        |base_table                   |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]978:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]979:CREATE USER u_wv_083 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]980:GRANT SYSTEM TO USER u_wv_083
+STRICT{
+PASS
+}
+
+-- [1]985:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1003:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1004:CREATE USER u_wv_084 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1005:GRANT SYSTEM TO USER u_wv_084
+STRICT{
+PASS
+}
+
+-- [1]1010:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1028:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1029:CREATE USER u_wv_085 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1030:GRANT CREATE ON wv_case_085.wv_auth TO USER u_wv_085
+STRICT{
+PASS
+}
+
+-- [1]1031:GRANT SELECT ON wv_case_085.base_table TO USER u_wv_085
+STRICT{
+PASS
+}
+
+-- [1]1032:GRANT INSERT ON wv_case_085.base_table TO USER u_wv_085
+STRICT{
+PASS
+}
+
+-- [1]1033:GRANT DELETE ON wv_case_085.base_table TO USER u_wv_085
+STRICT{
+PASS
+}
+
+-- [1]1038:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1056:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1057:CREATE USER u_wv_086 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1058:GRANT CREATE ON wv_case_086.wv_auth TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1059:GRANT SELECT ON wv_case_086.base_table TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1060:GRANT INSERT ON wv_case_086.base_table TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1061:GRANT DELETE ON wv_case_086.base_table TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1062:GRANT ALTER ON wv_case_086.base_table TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1063:GRANT DROP ON wv_case_086.base_table TO USER u_wv_086
+STRICT{
+PASS
+}
+
+-- [1]1068:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1086:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1087:CREATE USER u_wv_087 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1088:GRANT CREATE ON DATABASE wv_case_087 TO USER u_wv_087
+STRICT{
+PASS
+}
+
+-- [1]1089:GRANT SELECT ON DATABASE wv_case_087 TO USER u_wv_087
+STRICT{
+PASS
+}
+
+-- [1]1090:GRANT INSERT ON DATABASE wv_case_087 TO USER u_wv_087
+STRICT{
+PASS
+}
+
+-- [1]1091:GRANT DELETE ON DATABASE wv_case_087 TO USER u_wv_087
+STRICT{
+PASS
+}
+
+-- [1]1096:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1114:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1115:CREATE USER u_wv_088 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1116:GRANT CREATE ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1117:GRANT SELECT ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1118:GRANT INSERT ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1119:GRANT DELETE ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1120:GRANT ALTER ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1121:GRANT DROP ON DATABASE wv_case_088 TO USER u_wv_088
+STRICT{
+PASS
+}
+
+-- [1]1126:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1144:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1145:CREATE USER u_wv_089 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1146:GRANT CREATE ON ANY TO USER u_wv_089
+STRICT{
+PASS
+}
+
+-- [1]1147:GRANT SELECT ON ANY TO USER u_wv_089
+STRICT{
+PASS
+}
+
+-- [1]1148:GRANT INSERT ON ANY TO USER u_wv_089
+STRICT{
+PASS
+}
+
+-- [1]1149:GRANT DELETE ON ANY TO USER u_wv_089
+STRICT{
+PASS
+}
+
+-- [1]1154:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1172:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1173:CREATE USER u_wv_090 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1178:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]1197:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1198:CREATE USER u_wv_091 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1199:GRANT SYSTEM TO USER u_wv_091
+STRICT{
+PASS
+}
+
+-- [1]1200:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1205:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]1223:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1224:CREATE USER u_wv_092 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1225:GRANT DROP ON wv_case_092.wv_auth TO USER u_wv_092
+STRICT{
+PASS
+}
+
+-- [1]1226:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1231:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]1249:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1250:CREATE USER u_wv_093 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1251:GRANT DROP ON DATABASE wv_case_093 TO USER u_wv_093
+STRICT{
+PASS
+}
+
+-- [1]1252:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1257:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]1275:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1276:CREATE USER u_wv_094 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1277:GRANT DROP ON ANY TO USER u_wv_094
+STRICT{
+PASS
+}
+
+-- [1]1278:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1283:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]1301:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1302:CREATE USER u_wv_095 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1303:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1308:DROP VIEW wv_auth
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]1327:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1328:CREATE USER u_wv_096 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1329:GRANT SYSTEM TO USER u_wv_096
+STRICT{
+PASS
+}
+
+-- [1]1330:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1335:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]1353:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1354:CREATE USER u_wv_097 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1355:GRANT ALTER ON wv_case_097.wv_auth TO USER u_wv_097
+STRICT{
+PASS
+}
+
+-- [1]1356:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1361:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]1379:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1380:CREATE USER u_wv_098 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1381:GRANT ALTER ON DATABASE wv_case_098 TO USER u_wv_098
+STRICT{
+PASS
+}
+
+-- [1]1382:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1387:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]1405:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1406:CREATE USER u_wv_099 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1407:GRANT ALTER ON ANY TO USER u_wv_099
+STRICT{
+PASS
+}
+
+-- [1]1408:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1413:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]1431:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1432:CREATE USER u_wv_100 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1433:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1438:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]1457:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1458:CREATE USER u_wv_105 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1459:GRANT SYSTEM TO USER u_wv_105
+STRICT{
+PASS
+}
+
+-- [1]1464:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1482:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1483:CREATE USER u_wv_106 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1484:GRANT CREATE ON wv_case_106.wv_auth TO USER u_wv_106
+STRICT{
+PASS
+}
+
+-- [1]1485:GRANT SELECT ON wv_case_106.base_table TO USER u_wv_106
+STRICT{
+PASS
+}
+
+-- [1]1486:GRANT INSERT ON wv_case_106.base_table TO USER u_wv_106
+STRICT{
+PASS
+}
+
+-- [1]1487:GRANT DELETE ON wv_case_106.base_table TO USER u_wv_106
+STRICT{
+PASS
+}
+
+-- [1]1492:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1510:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1511:CREATE USER u_wv_107 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1512:GRANT CREATE ON wv_case_107.wv_auth TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1513:GRANT SELECT ON wv_case_107.base_table TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1514:GRANT INSERT ON wv_case_107.base_table TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1515:GRANT DELETE ON wv_case_107.base_table TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1516:GRANT ALTER ON wv_case_107.base_table TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1517:GRANT DROP ON wv_case_107.base_table TO USER u_wv_107
+STRICT{
+PASS
+}
+
+-- [1]1522:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1540:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1541:CREATE USER u_wv_108 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1542:GRANT CREATE ON DATABASE wv_case_108 TO USER u_wv_108
+STRICT{
+PASS
+}
+
+-- [1]1543:GRANT SELECT ON DATABASE wv_case_108 TO USER u_wv_108
+STRICT{
+PASS
+}
+
+-- [1]1544:GRANT INSERT ON DATABASE wv_case_108 TO USER u_wv_108
+STRICT{
+PASS
+}
+
+-- [1]1545:GRANT DELETE ON DATABASE wv_case_108 TO USER u_wv_108
+STRICT{
+PASS
+}
+
+-- [1]1550:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1568:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1569:CREATE USER u_wv_109 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1570:GRANT CREATE ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1571:GRANT SELECT ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1572:GRANT INSERT ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1573:GRANT DELETE ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1574:GRANT ALTER ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1575:GRANT DROP ON DATABASE wv_case_109 TO USER u_wv_109
+STRICT{
+PASS
+}
+
+-- [1]1580:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1598:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1599:CREATE USER u_wv_110 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1600:GRANT CREATE ON ANY TO USER u_wv_110
+STRICT{
+PASS
+}
+
+-- [1]1601:GRANT SELECT ON ANY TO USER u_wv_110
+STRICT{
+PASS
+}
+
+-- [1]1602:GRANT INSERT ON ANY TO USER u_wv_110
+STRICT{
+PASS
+}
+
+-- [1]1603:GRANT DELETE ON ANY TO USER u_wv_110
+STRICT{
+PASS
+}
+
+-- [1]1608:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1626:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1627:CREATE USER u_wv_111 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1628:GRANT CREATE ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1629:GRANT SELECT ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1630:GRANT INSERT ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1631:GRANT DELETE ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1632:GRANT ALTER ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1633:GRANT DROP ON ANY TO USER u_wv_111
+STRICT{
+PASS
+}
+
+-- [1]1638:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1656:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1657:CREATE USER u_wv_112 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1658:GRANT CREATE ON wv_case_112.wv_auth TO USER u_wv_112
+STRICT{
+PASS
+}
+
+-- [1]1659:GRANT SELECT ON wv_case_112.base_table TO USER u_wv_112
+STRICT{
+PASS
+}
+
+-- [1]1660:GRANT INSERT ON wv_case_112.base_table TO USER u_wv_112
+STRICT{
+PASS
+}
+
+-- [1]1661:GRANT DELETE ON wv_case_112.base_table TO USER u_wv_112
+STRICT{
+PASS
+}
+
+-- [1]1666:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1684:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1685:CREATE USER u_wv_113 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1686:GRANT CREATE ON wv_case_113.wv_auth TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1687:GRANT SELECT ON wv_case_113.base_table TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1688:GRANT INSERT ON wv_case_113.base_table TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1689:GRANT DELETE ON wv_case_113.base_table TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1690:GRANT ALTER ON wv_case_113.base_table TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1691:GRANT DROP ON wv_case_113.base_table TO USER u_wv_113
+STRICT{
+PASS
+}
+
+-- [1]1696:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1714:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1715:CREATE USER u_wv_114 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1716:GRANT CREATE ON DATABASE wv_case_114 TO USER u_wv_114
+STRICT{
+PASS
+}
+
+-- [1]1717:GRANT SELECT ON DATABASE wv_case_114 TO USER u_wv_114
+STRICT{
+PASS
+}
+
+-- [1]1718:GRANT INSERT ON DATABASE wv_case_114 TO USER u_wv_114
+STRICT{
+PASS
+}
+
+-- [1]1719:GRANT DELETE ON DATABASE wv_case_114 TO USER u_wv_114
+STRICT{
+PASS
+}
+
+-- [1]1724:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1742:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1743:CREATE USER u_wv_115 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1744:GRANT CREATE ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1745:GRANT SELECT ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1746:GRANT INSERT ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1747:GRANT DELETE ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1748:GRANT ALTER ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1749:GRANT DROP ON DATABASE wv_case_115 TO USER u_wv_115
+STRICT{
+PASS
+}
+
+-- [1]1754:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1772:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1773:CREATE USER u_wv_116 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1774:GRANT CREATE ON ANY TO USER u_wv_116
+STRICT{
+PASS
+}
+
+-- [1]1775:GRANT SELECT ON ANY TO USER u_wv_116
+STRICT{
+PASS
+}
+
+-- [1]1776:GRANT INSERT ON ANY TO USER u_wv_116
+STRICT{
+PASS
+}
+
+-- [1]1777:GRANT DELETE ON ANY TO USER u_wv_116
+STRICT{
+PASS
+}
+
+-- [1]1782:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1800:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1801:CREATE USER u_wv_117 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1802:GRANT CREATE ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1803:GRANT SELECT ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1804:GRANT INSERT ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1805:GRANT DELETE ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1806:GRANT ALTER ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1807:GRANT DROP ON ANY TO USER u_wv_117
+STRICT{
+PASS
+}
+
+-- [1]1812:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1830:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1831:CREATE USER u_wv_118 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1832:GRANT CREATE ON wv_case_118.wv_auth TO USER u_wv_118
+STRICT{
+PASS
+}
+
+-- [1]1833:GRANT SELECT ON wv_case_118.base_table TO USER u_wv_118
+STRICT{
+PASS
+}
+
+-- [1]1834:GRANT INSERT ON wv_case_118.base_table TO USER u_wv_118
+STRICT{
+PASS
+}
+
+-- [1]1835:GRANT DELETE ON wv_case_118.base_table TO USER u_wv_118
+STRICT{
+PASS
+}
+
+-- [1]1840:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1858:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1859:CREATE USER u_wv_119 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1860:GRANT CREATE ON wv_case_119.wv_auth TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1861:GRANT SELECT ON wv_case_119.base_table TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1862:GRANT INSERT ON wv_case_119.base_table TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1863:GRANT DELETE ON wv_case_119.base_table TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1864:GRANT ALTER ON wv_case_119.base_table TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1865:GRANT DROP ON wv_case_119.base_table TO USER u_wv_119
+STRICT{
+PASS
+}
+
+-- [1]1870:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1888:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1889:CREATE USER u_wv_120 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1890:GRANT CREATE ON DATABASE wv_case_120 TO USER u_wv_120
+STRICT{
+PASS
+}
+
+-- [1]1891:GRANT SELECT ON DATABASE wv_case_120 TO USER u_wv_120
+STRICT{
+PASS
+}
+
+-- [1]1892:GRANT INSERT ON DATABASE wv_case_120 TO USER u_wv_120
+STRICT{
+PASS
+}
+
+-- [1]1893:GRANT DELETE ON DATABASE wv_case_120 TO USER u_wv_120
+STRICT{
+PASS
+}
+
+-- [1]1898:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1916:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1917:CREATE USER u_wv_121 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1918:GRANT CREATE ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1919:GRANT SELECT ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1920:GRANT INSERT ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1921:GRANT DELETE ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1922:GRANT ALTER ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1923:GRANT DROP ON DATABASE wv_case_121 TO USER u_wv_121
+STRICT{
+PASS
+}
+
+-- [1]1928:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]1946:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1947:CREATE USER u_wv_122 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1948:GRANT CREATE ON ANY TO USER u_wv_122
+STRICT{
+PASS
+}
+
+-- [1]1949:GRANT SELECT ON ANY TO USER u_wv_122
+STRICT{
+PASS
+}
+
+-- [1]1950:GRANT INSERT ON ANY TO USER u_wv_122
+STRICT{
+PASS
+}
+
+-- [1]1951:GRANT DELETE ON ANY TO USER u_wv_122
+STRICT{
+PASS
+}
+
+-- [1]1956:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]1974:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]1975:CREATE USER u_wv_123 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]1976:GRANT CREATE ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1977:GRANT SELECT ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1978:GRANT INSERT ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1979:GRANT DELETE ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1980:GRANT ALTER ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1981:GRANT DROP ON ANY TO USER u_wv_123
+STRICT{
+PASS
+}
+
+-- [1]1986:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2004:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2005:CREATE USER u_wv_124 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2010:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=false)
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]2029:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2030:CREATE USER u_wv_125 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2031:GRANT SYSTEM TO USER u_wv_125
+STRICT{
+PASS
+}
+
+-- [1]2032:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2037:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2055:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2056:CREATE USER u_wv_126 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2057:GRANT DROP ON wv_case_126.wv_auth TO USER u_wv_126
+STRICT{
+PASS
+}
+
+-- [1]2058:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2063:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2081:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2082:CREATE USER u_wv_127 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2083:GRANT DROP ON DATABASE wv_case_127 TO USER u_wv_127
+STRICT{
+PASS
+}
+
+-- [1]2084:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2089:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2107:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2108:CREATE USER u_wv_128 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2109:GRANT DROP ON ANY TO USER u_wv_128
+STRICT{
+PASS
+}
+
+-- [1]2110:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2115:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2133:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2134:CREATE USER u_wv_129 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2135:GRANT DROP ON wv_case_129.wv_auth TO USER u_wv_129
+STRICT{
+PASS
+}
+
+-- [1]2136:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2141:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2159:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2160:CREATE USER u_wv_130 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2161:GRANT DROP ON DATABASE wv_case_130 TO USER u_wv_130
+STRICT{
+PASS
+}
+
+-- [1]2162:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2167:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2185:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2186:CREATE USER u_wv_131 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2187:GRANT DROP ON ANY TO USER u_wv_131
+STRICT{
+PASS
+}
+
+-- [1]2188:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2193:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2211:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2212:CREATE USER u_wv_132 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2213:GRANT DROP ON wv_case_132.wv_auth TO USER u_wv_132
+STRICT{
+PASS
+}
+
+-- [1]2214:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2219:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2237:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2238:CREATE USER u_wv_133 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2239:GRANT DROP ON DATABASE wv_case_133 TO USER u_wv_133
+STRICT{
+PASS
+}
+
+-- [1]2240:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2245:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2263:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2264:CREATE USER u_wv_134 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2265:GRANT DROP ON ANY TO USER u_wv_134
+STRICT{
+PASS
+}
+
+-- [1]2266:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2271:DROP VIEW wv_auth
+STRICT{
+PASS
+}
+
+-- [1]2289:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2290:CREATE USER u_wv_135 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2291:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2296:DROP VIEW wv_auth
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]2315:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2316:CREATE USER u_wv_136 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2317:GRANT SYSTEM TO USER u_wv_136
+STRICT{
+PASS
+}
+
+-- [1]2318:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2323:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]2341:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2342:CREATE USER u_wv_137 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2343:GRANT ALTER ON wv_case_137.wv_auth TO USER u_wv_137
+STRICT{
+PASS
+}
+
+-- [1]2344:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2349:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]2367:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2368:CREATE USER u_wv_138 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2369:GRANT ALTER ON DATABASE wv_case_138 TO USER u_wv_138
+STRICT{
+PASS
+}
+
+-- [1]2370:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2375:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]2393:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2394:CREATE USER u_wv_139 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2395:GRANT ALTER ON ANY TO USER u_wv_139
+STRICT{
+PASS
+}
+
+-- [1]2396:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2401:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.14
+
+-- [1]2419:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2420:CREATE USER u_wv_140 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2421:GRANT ALTER ON wv_case_140.wv_auth TO USER u_wv_140
+STRICT{
+PASS
+}
+
+-- [1]2422:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2427:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]2445:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2446:CREATE USER u_wv_141 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2447:GRANT ALTER ON DATABASE wv_case_141 TO USER u_wv_141
+STRICT{
+PASS
+}
+
+-- [1]2448:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2453:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]2471:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2472:CREATE USER u_wv_142 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2473:GRANT ALTER ON ANY TO USER u_wv_142
+STRICT{
+PASS
+}
+
+-- [1]2474:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2479:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]2497:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2498:CREATE USER u_wv_143 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2499:GRANT ALTER ON wv_case_143.wv_auth TO USER u_wv_143
+STRICT{
+PASS
+}
+
+-- [1]2500:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2505:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.21
+
+-- [1]2523:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2524:CREATE USER u_wv_144 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2525:GRANT ALTER ON DATABASE wv_case_144 TO USER u_wv_144
+STRICT{
+PASS
+}
+
+-- [1]2526:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2531:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]2549:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2550:CREATE USER u_wv_145 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2551:GRANT ALTER ON ANY TO USER u_wv_145
+STRICT{
+PASS
+}
+
+-- [1]2552:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2557:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]2575:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2576:CREATE USER u_wv_146 'Timecho@2026'
+STRICT{
+PASS
+}
+
+-- [1]2577:CREATE WRITABLE VIEW wv_auth AS SELECT * FROM base_table WITH (schema_cascade=true)
+STRICT{
+PASS
+}
+
+-- [1]2582:ALTER VIEW wv_auth ADD COLUMN pressure DOUBLE FIELD
+STRICT{
+SQLSTATE : 701: database is not specified
+}
+
+-- [1]2599:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD, humidity DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2600:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]2601:INSERT INTO base_table(time, station, device, temperature, humidity) VALUES (1, 's1', 'd1', 10.1, 60.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.245
+
+-- [1]2602:SELECT time, station, device, temperature, humidity FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |10.1                     |60.1                  |
+01+08:00             |                     |                    |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.12
+
+-- [1]2603:SELECT time, station, device, temperature, humidity FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |10.1                     |60.1                  |
+01+08:00             |                     |                    |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]2615:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2616:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]2617:INSERT INTO base_table(time, station, device, temperature) VALUES (1, 's1', 'd1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.235
+
+-- [1]2618:INSERT INTO base_table(time, station, device, temperature) VALUES (2, 's1', 'd2', 20.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.61
+
+-- [1]2619:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |10.1                     |
+01+08:00             |                     |                    |                         |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d2                  |20.2                     |
+02+08:00             |                     |                    |                         |
+总数目：2
+}
+Elapsed Time: 0.0.15
+
+-- [1]2620:DELETE FROM base_table WHERE time=1 AND station='s1' AND device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]2621:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d2                  |20.2                     |
+02+08:00             |                     |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]2622:SELECT time, station, device, temperature FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d2                  |20.2                     |
+02+08:00             |                     |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.13
+
+-- [1]2634:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2635:CREATE WRITABLE VIEW wv AS SELECT * FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]2636:INSERT INTO wv(time, station, device, temperature) VALUES (1, 's1', 'd1', 10.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.206
+
+-- [1]2637:INSERT INTO wv(time, station, device, temperature) VALUES (1, 's1', 'd1', 99.9)
+STRICT{
+0
+}
+Elapsed Time: 0.0.8
+
+-- [1]2638:SELECT time, station, device, temperature FROM wv ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |99.9                     |
+01+08:00             |                     |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]2639:SELECT time, station, device, temperature FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |99.9                     |
+01+08:00             |                     |                    |                         |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]2651:CREATE TABLE turbine (plant STRING TAG, device STRING TAG, voltage INT32 FIELD, var_001 INT32 FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2652:CREATE WRITABLE VIEW turbines AS SELECT plant, device, voltage, var_001 AS serial_num FROM turbine
+STRICT{
+PASS
+}
+
+-- [1]2653:INSERT INTO turbines(time, plant, device, voltage, serial_num) VALUES (1, 'p1', 'd1', 220, 10001)
+STRICT{
+0
+}
+Elapsed Time: 0.0.175
+
+-- [1]2654:SELECT time, plant, device, voltage, serial_num FROM turbines ORDER BY time
+STRICT{
+time(TIMESTAMP)      |plant(STRING)      |device(STRING)      |voltage(INT32)      |serial_num(INT32)      |
+-------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|p1                 |d1                  |220                 |10001                  |
+01+08:00             |                   |                    |                    |                       |
+总数目：1
+}
+Elapsed Time: 0.0.14
+
+-- [1]2655:SELECT time, plant, device, voltage, var_001 FROM turbine ORDER BY time
+STRICT{
+time(TIMESTAMP)      |plant(STRING)      |device(STRING)      |voltage(INT32)      |var_001(INT32)      |
+----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|p1                 |d1                  |220                 |10001               |
+01+08:00             |                   |                    |                    |                    |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]2667:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD, humidity DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2668:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]2669:INSERT INTO wv(time, station, device, temperature, humidity) VALUES (1, 's1', 'd1', 10.1, 60.1)
+STRICT{
+SQLSTATE : 507: Insert column 'humidity' is not exposed by writable view 'wv_case_164.wv'.
+}
+
+-- [1]2682:CREATE TABLE base_table (station STRING TAG, device STRING TAG, temperature DOUBLE FIELD, humidity DOUBLE FIELD) WITH (ttl=default)
+STRICT{
+PASS
+}
+
+-- [1]2683:INSERT INTO base_table(time, station, device, temperature, humidity) VALUES (1, 's1', 'd1', 10.1, 60.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.183
+
+-- [1]2684:CREATE WRITABLE VIEW wv AS SELECT station, device, temperature FROM base_table
+STRICT{
+PASS
+}
+
+-- [1]2685:INSERT INTO wv(time, station, device, temperature) VALUES (1, 's1', 'd1', 99.9)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]2686:SELECT time, station, device, temperature, humidity FROM base_table ORDER BY time
+STRICT{
+time(TIMESTAMP)      |station(STRING)      |device(STRING)      |temperature(DOUBLE)      |humidity(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|s1                   |d1                  |99.9                     |60.1                  |
+01+08:00             |                     |                    |                         |                      |
+总数目：1
+}
+Elapsed Time: 0.0.7
