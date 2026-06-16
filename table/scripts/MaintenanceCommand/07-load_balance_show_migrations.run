@@ -1,0 +1,94 @@
+connect root/TimechoDB@2021;
+// 关闭三权分立: LOAD BALANCE / SHOW MIGRATIONS 权限与 tree/table 方言
+
+-- prepare
+DROP USER user_load_balance;
+<<NULL;
+DROP USER user_system_lb;
+<<NULL;
+DROP USER user_maintain_lb;
+<<NULL;
+
+-- 1. 无权限用户在 tree/table 模式下均不允许执行
+CREATE USER user_load_balance 'TimechoDB@2021';
+LIST PRIVILEGES OF USER user_load_balance;
+<<CHECKCODE;
+connect user_load_balance/TimechoDB@2021;
+show version;
+<<CHECKCODE;
+set sql_dialect=tree;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+set sql_dialect=table;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+
+-- 2. SYSTEM 权限用户在 tree/table 模式下均允许执行
+connect root/TimechoDB@2021;
+CREATE USER user_system_lb 'TimechoDB@2021';
+set sql_dialect=table;
+GRANT SYSTEM TO USER user_system_lb;
+LIST PRIVILEGES OF USER user_system_lb;
+<<CHECKCODE;
+connect user_system_lb/TimechoDB@2021;
+show version;
+<<CHECKCODE;
+set sql_dialect=tree;
+SHOW MIGRATIONS;
+<<CHECKCODE;
+LOAD BALANCE;
+set sql_dialect=table;
+SHOW MIGRATIONS;
+<<CHECKCODE;
+LOAD BALANCE;
+
+-- 2.1 回收 SYSTEM 权限后，tree/table 模式下再次不允许执行
+connect root/TimechoDB@2021;
+set sql_dialect=table;
+REVOKE SYSTEM FROM USER user_system_lb;
+LIST PRIVILEGES OF USER user_system_lb;
+<<CHECKCODE;
+connect user_system_lb/TimechoDB@2021;
+show version;
+<<CHECKCODE;
+set sql_dialect=tree;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+set sql_dialect=table;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+
+-- 3. MAINTAIN 已废弃，且不具备 LOAD BALANCE / SHOW MIGRATIONS 权限
+connect root/TimechoDB@2021;
+CREATE USER user_maintain_lb 'TimechoDB@2021';
+GRANT MAINTAIN ON root.** TO USER user_maintain_lb;
+<<SQLSTATE;
+LIST PRIVILEGES OF USER user_maintain_lb;
+<<CHECKCODE;
+connect user_maintain_lb/TimechoDB@2021;
+show version;
+<<CHECKCODE;
+set sql_dialect=tree;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+set sql_dialect=table;
+SHOW MIGRATIONS;
+<<SQLSTATE;
+LOAD BALANCE;
+<<SQLSTATE;
+
+-- cleanup
+connect root/TimechoDB@2021;
+DROP USER user_load_balance;
+DROP USER user_system_lb;
+DROP USER user_maintain_lb;
