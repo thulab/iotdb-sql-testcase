@@ -1,0 +1,734 @@
+
+-- [1]3:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]8:create database if not exists writable_view_db
+STRICT{
+PASS
+}
+
+-- [1]9:use writable_view_db
+STRICT{
+PASS
+}
+
+-- [1]13:create table factory(   plant string tag,   line string tag,   device_id string tag,   model string attribute,   voltage int32 field,   temperature float field,   reserved_code string field )
+STRICT{
+PASS
+}
+
+-- [1]24:insert into factory(time,plant,line,device_id,model,voltage,temperature,reserved_code) values (1000,'north','l1','d1','m1',220,36.5,'r001'), (2000,'north','l1','d2','m1',221,36.7,'r002'), (3000,'south','l2','d3','m2',222,37.0,'r003')
+STRICT{
+0
+}
+Elapsed Time: 0.2.42
+
+-- [1]27:select count(*) as source_rows_initial from factory
+STRICT{
+source_rows_initial(INT64)      |
+--------------------------------
+3                               |
+总数目：1
+}
+Elapsed Time: 0.0.37
+
+-- [1]28:select time,plant,line,device_id,model,voltage,temperature,reserved_code from factory order by time
+STRICT{
+time(TIMESTAMP)      |plant(STRING)      |line(STRING)      |device_id(STRING)      |model(STRING)      |voltage(INT32)      |temperature(FLOAT)      |reserved_code(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|north              |l1                |d1                     |m1                 |220                 |36.5                    |r001                       |
+00+08:00             |                   |                  |                       |                   |                    |                        |                           |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|north              |l1                |d2                     |m1                 |221                 |36.7                    |r002                       |
+00+08:00             |                   |                  |                       |                   |                    |                        |                           |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|south              |l2                |d3                     |m2                 |222                 |37.0                    |r003                       |
+00+08:00             |                   |                  |                       |                   |                    |                        |                           |
+总数目：3
+}
+Elapsed Time: 0.0.17
+
+-- [1]31:create writable view factory_view as select plant as area, line, device_id, model, voltage as v, temperature, reserved_code as serial_num from factory comment 'main writable view' with (schema_cascade=true, ttl='INF')
+STRICT{
+PASS
+}
+
+-- [1]36:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+factory              |INF                |USING             |main writable view |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+factory_view         |INF                |USING             |main writable view |WRITABLE VIEW        |factory                      |
+总数目：2
+}
+Elapsed Time: 0.0.12
+
+-- [1]37:show views
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+factory_view         |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]38:show writable views
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+factory_view         |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]39:desc factory_view
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+area                  |STRING              |TAG                 |
+--------------------------------------------------------------
+line                  |STRING              |TAG                 |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+v                     |INT32               |FIELD               |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+serial_num            |STRING              |FIELD               |
+总数目：8
+}
+Elapsed Time: 0.0.11
+
+-- [1]40:desc factory_view details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+area                  |STRING              |TAG                 |USING             |null               |plant                         |
+---------------------------------------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |line                          |
+---------------------------------------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |device_id                     |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+v                     |INT32               |FIELD               |USING             |null               |voltage                       |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+serial_num            |STRING              |FIELD               |USING             |null               |reserved_code                 |
+总数目：8
+}
+Elapsed Time: 0.0.3
+
+-- [1]41:show create view factory_view
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+factory_view    |CREATE WRITABLE VIEW "f|
+                |actory_view" AS SELECT|
+                | "time" AS "time","pla|
+                |nt" AS "area","line" A|
+                |S "line","device_id" A|
+                |S "device_id","model" |
+                |AS "model","voltage" A|
+                |S "v","temperature" AS|
+                | "temperature","reserv|
+                |ed_code" AS "serial_nu|
+                |m" FROM "factory" COMM|
+                |ENT 'main writable vie|
+                |w' WITH (ttl='INF', sc|
+                |hema_cascade=true)     |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]42:select * from information_schema.tables where database='writable_view_db' and table_name='factory_view'
+STRICT{
+database(STRING)      |table_name(STRING)      |ttl(ms)(STRING)      |status(STRING)      |comment(STRING)      |table_type(STRING)      |original_table_name(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |INF                  |USING               |main writable view   |WRITABLE VIEW           |factory                          |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]43:select * from information_schema.views where database='writable_view_db' and table_name='factory_view'
+STRICT{
+database(STRING)      |table_name(STRING)      |view_definition(STRING)      |
+---------------------------------------------------------------------------
+writable_view_db      |factory_view            |CREATE WRITABLE VIEW "factory|
+                      |                        |_view" AS SELECT "time" AS "|
+                      |                        |time","plant" AS "area","lin|
+                      |                        |e" AS "line","device_id" AS |
+                      |                        |"device_id","model" AS "mode|
+                      |                        |l","voltage" AS "v","tempera|
+                      |                        |ture" AS "temperature","rese|
+                      |                        |rved_code" AS "serial_num" F|
+                      |                        |ROM "factory" COMMENT 'main |
+                      |                        |writable view' WITH (ttl='IN|
+                      |                        |F', schema_cascade=true)     |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]44:select * from information_schema.columns where database='writable_view_db' and table_name='factory_view'
+STRICT{
+database(STRING)      |table_name(STRING)      |column_name(STRING)      |datatype(STRING)      |category(STRING)      |status(STRING)      |comment(STRING)      |original_column_name(STRING)      |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |time                     |TIMESTAMP             |TIME                  |USING               |null                 |time                              |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |area                     |STRING                |TAG                   |USING               |null                 |plant                             |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |line                     |STRING                |TAG                   |USING               |null                 |line                              |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |device_id                |STRING                |TAG                   |USING               |null                 |device_id                         |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |model                    |STRING                |ATTRIBUTE             |USING               |null                 |model                             |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |v                        |INT32                 |FIELD                 |USING               |null                 |voltage                           |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |temperature              |FLOAT                 |FIELD                 |USING               |null                 |temperature                       |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |serial_num               |STRING                |FIELD                 |USING               |null                 |reserved_code                     |
+总数目：8
+}
+Elapsed Time: 0.0.10
+
+-- [1]45:select time,area,line,device_id,model,v,temperature,serial_num from factory_view order by time
+STRICT{
+time(TIMESTAMP)      |area(STRING)      |line(STRING)      |device_id(STRING)      |model(STRING)      |v(INT32)      |temperature(FLOAT)      |serial_num(STRING)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|north             |l1                |d1                     |m1                 |220           |36.5                    |r001                    |
+00+08:00             |                  |                  |                       |                   |              |                        |                        |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:02.0|north             |l1                |d2                     |m1                 |221           |36.7                    |r002                    |
+00+08:00             |                  |                  |                       |                   |              |                        |                        |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:03.0|south             |l2                |d3                     |m2                 |222           |37.0                    |r003                    |
+00+08:00             |                  |                  |                       |                   |              |                        |                        |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]49:insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num) values (4000,'north','l3','d4','m3',223,37.2,'r004')
+STRICT{
+0
+}
+Elapsed Time: 0.0.8
+
+-- [1]52:select count(*) as source_rows_after_view_insert from factory
+STRICT{
+source_rows_after_view_insert(INT64)      |
+------------------------------------------
+4                                         |
+总数目：1
+}
+Elapsed Time: 0.0.24
+
+-- [1]53:select time,plant,line,device_id,model,voltage,temperature,reserved_code from factory where time=4000
+STRICT{
+time(TIMESTAMP)      |plant(STRING)      |line(STRING)      |device_id(STRING)      |model(STRING)      |voltage(INT32)      |temperature(FLOAT)      |reserved_code(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:04.0|north              |l3                |d4                     |m3                 |223                 |37.2                    |r004                       |
+00+08:00             |                   |                  |                       |                   |                    |                        |                           |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]54:select time,area,line,device_id,model,v,temperature,serial_num from factory_view where time=4000
+STRICT{
+time(TIMESTAMP)      |area(STRING)      |line(STRING)      |device_id(STRING)      |model(STRING)      |v(INT32)      |temperature(FLOAT)      |serial_num(STRING)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:04.0|north             |l3                |d4                     |m3                 |223           |37.2                    |r004                    |
+00+08:00             |                  |                  |                       |                   |              |                        |                        |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]57:select count(*) as source_delete_target_before from factory where time=2000 and plant='north' and line='l1'
+STRICT{
+source_delete_target_before(INT64)      |
+----------------------------------------
+1                                       |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]58:select count(*) as view_delete_target_before from factory_view where time=2000 and area='north' and line='l1'
+STRICT{
+view_delete_target_before(INT64)      |
+--------------------------------------
+1                                     |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]59:delete from factory_view where time=2000 and area='north' and line='l1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.20
+
+-- [1]60:select count(*) as source_delete_target_after from factory where time=2000 and plant='north' and line='l1'
+STRICT{
+source_delete_target_after(INT64)      |
+---------------------------------------
+0                                      |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]61:select count(*) as view_delete_target_after from factory_view where time=2000 and area='north' and line='l1'
+STRICT{
+view_delete_target_after(INT64)      |
+-------------------------------------
+0                                    |
+总数目：1
+}
+Elapsed Time: 0.0.19
+
+-- [1]64:create writable view factory_partial_tag as select plant as area, voltage as v from factory with (schema_cascade=false, ttl='INF')
+STRICT{
+PASS
+}
+
+-- [1]68:show create view factory_partial_tag
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+factory_partial_|CREATE WRITABLE VIEW "f|
+tag             |actory_partial_tag" AS|
+                | SELECT "time" AS "tim|
+                |e","plant" AS "area","|
+                |voltage" AS "v" FROM "|
+                |factory" COMMENT 'main|
+                | writable view' WITH (|
+                |ttl='INF', schema_casc|
+                |ade=false)             |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]70:insert into factory_partial_tag(time,area,v) values (5000,'west',230)
+STRICT{
+0
+}
+Elapsed Time: 0.0.20
+
+-- [1]73:select time,plant,line,device_id,voltage from factory where time=5000
+STRICT{
+time(TIMESTAMP)      |plant(STRING)      |line(STRING)      |device_id(STRING)      |voltage(INT32)      |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:05.0|west               |null              |null                   |230                 |
+00+08:00             |                   |                  |                       |                    |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]74:select time,area,v from factory_partial_tag where time=5000
+STRICT{
+time(TIMESTAMP)      |area(STRING)      |v(INT32)      |
+-----------------------------------------------------
+1970-01-01T08:00:05.0|west              |230           |
+00+08:00             |                  |              |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]75:drop view factory_partial_tag
+STRICT{
+PASS
+}
+
+-- [1]78:alter view factory_view add column humidity double field
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]79:desc factory_view details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+area                  |STRING              |TAG                 |USING             |null               |plant                         |
+---------------------------------------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |line                          |
+---------------------------------------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |device_id                     |
+---------------------------------------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |model                         |
+---------------------------------------------------------------------------------------------------------------------------------
+v                     |INT32               |FIELD               |USING             |null               |voltage                       |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+serial_num            |STRING              |FIELD               |USING             |null               |reserved_code                 |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：9
+}
+Elapsed Time: 0.0.1
+
+-- [1]80:desc factory details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+plant                 |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+voltage               |INT32               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+reserved_code         |STRING              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：9
+}
+Elapsed Time: 0.0.1
+
+-- [1]82:insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num,humidity) values (6000,'north','l6','d6','m6',226,37.6,'r006',45.6)
+STRICT{
+0
+}
+Elapsed Time: 0.0.26
+
+-- [1]85:select time,humidity from factory where time=6000
+STRICT{
+time(TIMESTAMP)      |humidity(DOUBLE)      |
+-------------------------------------------
+1970-01-01T08:00:06.0|45.6                  |
+00+08:00             |                      |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]86:select time,humidity from factory_view where time=6000
+STRICT{
+time(TIMESTAMP)      |humidity(DOUBLE)      |
+-------------------------------------------
+1970-01-01T08:00:06.0|45.6                  |
+00+08:00             |                      |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]87:comment on view factory_view is 'main writable view v2'
+STRICT{
+PASS
+}
+
+-- [1]88:show create view factory_view
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+factory_view    |CREATE WRITABLE VIEW "f|
+                |actory_view" AS SELECT|
+                | "time" AS "time","pla|
+                |nt" AS "area","line" A|
+                |S "line","device_id" A|
+                |S "device_id","model" |
+                |AS "model","voltage" A|
+                |S "v","temperature" AS|
+                | "temperature","reserv|
+                |ed_code" AS "serial_nu|
+                |m","humidity" AS "humi|
+                |dity" FROM "factory" C|
+                |OMMENT 'main writable |
+                |view v2' WITH (ttl='IN|
+                |F', schema_cascade=tru|
+                |e)                     |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]89:alter view factory_view set properties ttl=3600000
+STRICT{
+0
+}
+Elapsed Time: 0.0.32
+
+-- [1]90:show tables details
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+factory              |3600000            |USING             |main writable view |BASE TABLE           |null                         |
+                     |                   |                  |v2                 |                     |                             |
+-------------------------------------------------------------------------------------------------------------------------------
+factory_view         |3600000            |USING             |main writable view |WRITABLE VIEW        |factory                      |
+                     |                   |                  |v2                 |                     |                             |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]91:select * from information_schema.tables where database='writable_view_db' and table_name='factory_view'
+STRICT{
+database(STRING)      |table_name(STRING)      |ttl(ms)(STRING)      |status(STRING)      |comment(STRING)      |table_type(STRING)      |original_table_name(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+writable_view_db      |factory_view            |3600000              |USING               |main writable view v2|WRITABLE VIEW           |factory                          |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]94:create writable view factory_view_nocascade as select plant, line, device_id, voltage, temperature, reserved_code from factory comment 'non cascade view' with (schema_cascade=false, ttl='INF')
+STRICT{
+PASS
+}
+
+-- [1]99:alter table factory_view_nocascade rename column reserved_code to serial_code
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]100:show create view factory_view_nocascade
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+factory_view_noc|CREATE WRITABLE VIEW "f|
+ascade          |actory_view_nocascade"|
+                | AS SELECT "time" AS "|
+                |time","plant" AS "plan|
+                |t","line" AS "line","d|
+                |evice_id" AS "device_i|
+                |d","voltage" AS "volta|
+                |ge","temperature" AS "|
+                |temperature","reserved|
+                |_code" AS "serial_code|
+                |" FROM "factory" COMME|
+                |NT 'non cascade view' |
+                |WITH (ttl='INF', schem|
+                |a_cascade=false)       |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]101:desc factory_view_nocascade details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+plant                 |STRING              |TAG                 |USING             |null               |plant                         |
+---------------------------------------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |line                          |
+---------------------------------------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |device_id                     |
+---------------------------------------------------------------------------------------------------------------------------------
+voltage               |INT32               |FIELD               |USING             |null               |voltage                       |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+serial_code           |STRING              |FIELD               |USING             |null               |reserved_code                 |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]102:desc factory details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+plant                 |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+voltage               |INT32               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+reserved_code         |STRING              |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |
+总数目：9
+}
+Elapsed Time: 0.0.0
+
+-- [1]103:alter view factory_view_nocascade add column humidity double field
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]104:desc factory_view_nocascade details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |OriginalColumnName(TEXT)      |
+---------------------------------------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |time                          |
+---------------------------------------------------------------------------------------------------------------------------------
+plant                 |STRING              |TAG                 |USING             |null               |plant                         |
+---------------------------------------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |line                          |
+---------------------------------------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |device_id                     |
+---------------------------------------------------------------------------------------------------------------------------------
+voltage               |INT32               |FIELD               |USING             |null               |voltage                       |
+---------------------------------------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |temperature                   |
+---------------------------------------------------------------------------------------------------------------------------------
+serial_code           |STRING              |FIELD               |USING             |null               |reserved_code                 |
+---------------------------------------------------------------------------------------------------------------------------------
+humidity              |DOUBLE              |FIELD               |USING             |null               |humidity                      |
+总数目：8
+}
+Elapsed Time: 0.0.1
+
+-- [1]105:alter view factory_view_nocascade add column local_note string field
+STRICT{
+SQLSTATE : 701: When schema_cascade=false, writable view column 'local_note' must already exist in source table 'writable_view_db.factory'
+}
+
+-- [1]109:create writable view factory_view_dup_source as select voltage as v1, voltage as v2 from factory
+STRICT{
+SQLSTATE : 701: The view column v1 and v2 cannot be from the same source column voltage
+}
+
+-- [1]115:alter table factory drop column humidity
+STRICT{
+0
+}
+Elapsed Time: 0.0.23
+
+-- [1]116:desc factory details
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |Status(TEXT)      |Comment(TEXT)      |
+---------------------------------------------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |USING             |null               |
+---------------------------------------------------------------------------------------------------
+plant                 |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+line                  |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+device_id             |STRING              |TAG                 |USING             |null               |
+---------------------------------------------------------------------------------------------------
+model                 |STRING              |ATTRIBUTE           |USING             |null               |
+---------------------------------------------------------------------------------------------------
+voltage               |INT32               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |USING             |null               |
+---------------------------------------------------------------------------------------------------
+reserved_code         |STRING              |FIELD               |USING             |null               |
+总数目：8
+}
+Elapsed Time: 0.0.1
+
+-- [1]117:select humidity from factory_view
+STRICT{
+SQLSTATE : 616: Column 'humidity' in writable view 'writable_view_db.factory_view' cannot be resolved because it does not exist in source table 'writable_view_db.factory'.
+}
+
+-- [1]120:insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num,humidity) values (7000,'east','l7','d7','m7',227,37.7,'r007',47.7)
+STRICT{
+SQLSTATE : 616: Column 'humidity' in writable view 'writable_view_db.factory_view' cannot be resolved because it does not exist in source table 'writable_view_db.factory'.
+}
+
+-- [1]124:create writable view nested_view as select area, line, device_id, v from factory_view
+STRICT{
+SQLSTATE : 554: Source table 'writable_view_db.factory_view' is not a base table.
+}
+
+-- [1]130:alter table factory_view_nocascade rename to factory_view_alias
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]131:show create view factory_view_alias
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+factory_view_ali|CREATE WRITABLE VIEW "f|
+as              |actory_view_alias" AS |
+                |SELECT "time" AS "time|
+                |","plant" AS "plant","|
+                |line" AS "line","devic|
+                |e_id" AS "device_id","|
+                |voltage" AS "voltage",|
+                |"temperature" AS "temp|
+                |erature","reserved_cod|
+                |e" AS "serial_code","h|
+                |umidity" AS "humidity"|
+                | FROM "factory" COMMEN|
+                |T 'non cascade view' W|
+                |ITH (ttl='INF', schema|
+                |_cascade=false)        |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]132:select time,plant,line,device_id,voltage,temperature,serial_code from factory_view_alias order by time
+STRICT{
+SQLSTATE : 616: Column 'humidity' in writable view 'writable_view_db.factory_view_alias' cannot be resolved because it does not exist in source table 'writable_view_db.factory'.
+}
+
+-- [1]134:create writable view factory_view_drop as select plant, line, device_id, voltage from factory with (schema_cascade=false, ttl='INF')
+STRICT{
+PASS
+}
+
+-- [1]138:show writable views
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+factory_view         |3600000            |
+----------------------------------------
+factory_view_alias   |INF                |
+----------------------------------------
+factory_view_drop    |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]139:drop table factory_view_drop
+STRICT{
+PASS
+}
+
+-- [1]140:show writable views
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+factory_view         |3600000            |
+----------------------------------------
+factory_view_alias   |INF                |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]141:drop view factory_view_alias
+STRICT{
+PASS
+}
+
+-- [1]143:drop view factory_view
+STRICT{
+PASS
+}
+
+-- [1]144:drop table factory
+STRICT{
+SQLSTATE : 550: Table 'writable_view_db.factory' does not exist
+}

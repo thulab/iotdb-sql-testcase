@@ -1,0 +1,342 @@
+-- V2-916: 表模型中，time 列名不是 time 时，DELETE 的时间条件也应正常生效
+connect root/TimechoDB@2021;
+set sql_dialect=table;
+
+drop database if exists v2_916;
+<<NULL;
+
+create database if not exists v2_916;
+use v2_916;
+
+-- 1. 默认 time 列对照场景
+create table t_default(device_id string tag, s1 double field);
+insert into t_default(time,device_id,s1) values
+(1779933599000,'d1',1.0),
+(1779933600000,'d1',2.0),
+(1779935000000,'d1',3.0),
+(1779937199999,'d1',4.0),
+(1779937200000,'d1',5.0);
+flush;
+<<NULL;
+select count(*) as total_rows_before from t_default;
+delete from t_default where time >= 1779933600000 and time <= 1779937199999;
+select count(*) as total_rows_after from t_default;
+select count(*) as deleted_range_rows from t_default where time >= 1779933600000 and time <= 1779937199999;
+select count(*) as remained_edge_rows from t_default where time < 1779933600000 or time > 1779937199999;
+drop table t_default;
+
+-- 2. 非默认 time 列名 d_datetime
+create table t_d_datetime(d_datetime timestamp time, device_id string tag, s1 double field);
+insert into t_d_datetime(d_datetime,device_id,s1) values
+(1779933599000,'d1',1.0),
+(1779933600000,'d1',2.0),
+(1779935000000,'d1',3.0),
+(1779937199999,'d1',4.0),
+(1779937200000,'d1',5.0);
+flush;
+<<NULL;
+select count(*) as total_rows_before from t_d_datetime;
+delete from t_d_datetime where d_datetime >= 1779933600000 and d_datetime <= 1779937199999;
+select count(*) as total_rows_after from t_d_datetime;
+select count(*) as deleted_range_rows from t_d_datetime where d_datetime >= 1779933600000 and d_datetime <= 1779937199999;
+select count(*) as remained_edge_rows from t_d_datetime where d_datetime < 1779933600000 or d_datetime > 1779937199999;
+drop table t_d_datetime;
+
+-- 3. 另一种非默认 time 列名，并叠加 tag 条件
+create table t_event_time(event_time timestamp time, device_id string tag, s1 int32 field);
+insert into t_event_time(event_time,device_id,s1) values
+(1779933599000,'d1',10),
+(1779933600000,'d1',20),
+(1779935000000,'d1',30),
+(1779937199999,'d1',40),
+(1779937200000,'d1',50),
+(1779933600000,'d2',60),
+(1779937200000,'d2',70);
+flush;
+<<NULL;
+select count(*) as d1_rows_before from t_event_time where device_id='d1';
+select count(*) as d2_rows_before from t_event_time where device_id='d2';
+delete from t_event_time where device_id='d1' and event_time >= 1779933600000 and event_time <= 1779937199999;
+select count(*) as d1_rows_after from t_event_time where device_id='d1';
+select count(*) as d1_deleted_range_rows from t_event_time where device_id='d1' and event_time >= 1779933600000 and event_time <= 1779937199999;
+select count(*) as d1_remained_edge_rows from t_event_time where device_id='d1' and (event_time < 1779933600000 or event_time > 1779937199999);
+select count(*) as d2_rows_after from t_event_time where device_id='d2';
+drop table t_event_time;
+
+-- 4. 指定非默认 time 列名写入，并验证 NULL 值查询
+create table t_insert_named_time(
+region string tag,
+event_time timestamp time,
+device_id string tag,
+model string attribute,
+s1 double field,
+s2 boolean field,
+note string field
+);
+insert into t_insert_named_time(region,event_time,device_id,model,s1,s2,note) values
+('north',1779933600000,'d1',null,10.5,true,'alpha'),
+('north',1779933601000,'d1','m1',null,false,null),
+('south',1779933602000,'d2',null,20.5,null,'beta');
+flush;
+<<NULL;
+select count(*) as total_rows from t_insert_named_time;
+select event_time,region,device_id,model,s1,s2,note from t_insert_named_time order by event_time;
+select count(*) as null_model_rows from t_insert_named_time where model is null;
+select count(*) as null_s1_rows from t_insert_named_time where s1 is null;
+select count(*) as null_s2_rows from t_insert_named_time where s2 is null;
+select count(*) as null_note_rows from t_insert_named_time where note is null;
+select count(*) as north_rows from t_insert_named_time where region='north' and event_time >= 1779933600000 and event_time <= 1779933601000;
+select count(*) as south_rows from t_insert_named_time where region='south' and event_time = 1779933602000;
+drop table t_insert_named_time;
+
+-- 5. 非默认 time 列位于中间位置，按表定义顺序写入并执行精确删除
+create table t_values_insert(
+site string tag,
+sample_time timestamp time,
+device_id string tag,
+s1 int32 field,
+remark string field
+);
+insert into t_values_insert values
+('bj',1779933600000,'d1',1,'ok'),
+('bj',1779933601000,'d2',2,null),
+('sh',1779933602000,'d3',null,'done');
+flush;
+<<NULL;
+select count(*) as total_rows_before_delete from t_values_insert;
+select sample_time,site,device_id,s1,remark from t_values_insert order by sample_time;
+select count(*) as null_remark_rows from t_values_insert where remark is null;
+select count(*) as null_s1_rows from t_values_insert where s1 is null;
+select count(*) as gt_first_time_rows from t_values_insert where sample_time > 1779933600000;
+delete from t_values_insert where sample_time = 1779933601000;
+select count(*) as total_rows_after_delete from t_values_insert;
+select sample_time,site,device_id,s1,remark from t_values_insert order by sample_time;
+select count(*) as deleted_exact_time_rows from t_values_insert where sample_time = 1779933601000;
+select count(*) as remained_rows_outside_delete from t_values_insert where sample_time != 1779933601000;
+drop table t_values_insert;
+
+-- 6. DELETE 仅允许时间列和 TAG 条件，FIELD 条件应报错
+create table t_invalid_delete(
+region string tag,
+record_time timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_invalid_delete(record_time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'north','d2',2),
+(1779933602000,'south','d3',3);
+flush;
+<<NULL;
+delete from t_invalid_delete where s1 > 0;
+<<SQLSTATE;
+delete from t_invalid_delete where record_time > 1779933600000 and s1 > 0;
+<<SQLSTATE;
+select count(*) as remained_rows_after_invalid_delete from t_invalid_delete;
+drop table t_invalid_delete;
+
+-- 7. 只有一个 TIME 列，但其他普通列名包含 time，应正常读写
+create table t_one_real_time_with_time_named_columns(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+event_time timestamp field,
+time_label string field,
+s1 int32 field
+);
+insert into t_one_real_time_with_time_named_columns(region,d_datetime,device_id,event_time,time_label,s1) values
+('north',1779933600000,'d1',1779933605000,'first',1),
+('north',1779933601000,'d2',null,'second',2),
+('south',1779933602000,'d3',1779933607000,null,3);
+flush;
+<<NULL;
+select count(*) as total_rows_time_named_columns from t_one_real_time_with_time_named_columns;
+select d_datetime,region,device_id,event_time,time_label,s1 from t_one_real_time_with_time_named_columns order by d_datetime;
+select count(*) as null_event_time_rows from t_one_real_time_with_time_named_columns where event_time is null;
+select count(*) as null_time_label_rows from t_one_real_time_with_time_named_columns where time_label is null;
+delete from t_one_real_time_with_time_named_columns where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+select count(*) as total_rows_after_time_delete from t_one_real_time_with_time_named_columns;
+select count(*) as deleted_rows_in_time_range from t_one_real_time_with_time_named_columns where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+drop table t_one_real_time_with_time_named_columns;
+
+-- 8. 一张表定义两个 TIMESTAMP TIME 列，应报错
+create table t_two_time_columns(
+region string tag,
+d_datetime timestamp time,
+event_time timestamp time,
+device_id string tag,
+s1 int32 field
+);
+<<SQLSTATE;
+
+-- 9. 未显式定义 TIME 列时，非 TIME 列名直接叫 time，应报错
+create table t_non_time_column_named_time(
+region string tag,
+time int32 field,
+device_id string tag,
+s1 string field
+);
+<<SQLSTATE;
+
+-- 10. 显式自定义 TIME 列存在时，其他非 TIME 列名叫 time，应正常读写
+create table t_custom_time_with_field_named_time(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+time blob field,
+s1 int32 field
+);
+insert into t_custom_time_with_field_named_time(region,d_datetime,device_id,time,s1) values
+('north',1779933600000,'d1','aa',1),
+('north',1779933601000,'d2',null,2),
+('south',1779933602000,'d3','cc',3);
+flush;
+<<NULL;
+select count(*) as total_rows_field_named_time from t_custom_time_with_field_named_time;
+select d_datetime,region,device_id,cast(time as string),s1 from t_custom_time_with_field_named_time order by d_datetime;
+select count(*) as null_field_named_time_rows from t_custom_time_with_field_named_time where time is null;
+delete from t_custom_time_with_field_named_time where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+select count(*) as total_rows_after_custom_time_delete from t_custom_time_with_field_named_time;
+select count(*) as deleted_rows_after_custom_time_delete from t_custom_time_with_field_named_time where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+drop table t_custom_time_with_field_named_time;
+
+-- 11. 表模型手册未支持 ALTER TABLE RENAME COLUMN，普通列重命名为 time 应报错
+create table t_rename_field_to_time(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+blob_col blob field,
+s1 int32 field
+);
+insert into t_rename_field_to_time(region,d_datetime,device_id,blob_col,s1) values
+('north',1779933600000,'d1','aa',1),
+('south',1779933601000,'d2',null,2);
+flush;
+<<NULL;
+alter table t_rename_field_to_time rename column blob_col to time;
+<<SQLSTATE;
+drop table t_rename_field_to_time;
+
+-- 12. 表模型手册未支持 ALTER TABLE RENAME COLUMN，自定义 TIME 列重命名为 time 应报错
+create table t_rename_custom_time_to_time(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_rename_custom_time_to_time(region,d_datetime,device_id,s1) values
+('north',1779933600000,'d1',1),
+('south',1779933601000,'d2',2);
+flush;
+<<NULL;
+alter table t_rename_custom_time_to_time rename column d_datetime to time;
+<<SQLSTATE;
+drop table t_rename_custom_time_to_time;
+
+-- 13. 表模型手册未支持 ALTER TABLE RENAME COLUMN，time 列重命名为非 time 应报错
+create table t_rename_time_to_custom(
+time timestamp time,
+region string tag,
+device_id string tag,
+s1 int32 field
+);
+insert into t_rename_time_to_custom(time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'south','d2',2);
+flush;
+<<NULL;
+alter table t_rename_time_to_custom rename column time to d_datetime;
+<<SQLSTATE;
+drop table t_rename_time_to_custom;
+
+-- 14. TIME 列名为 time 时，ALTER COLUMN 修改数据类型应报错
+create table t_alter_time_column_type_default(
+time timestamp time,
+region string tag,
+device_id string tag,
+s1 int32 field
+);
+insert into t_alter_time_column_type_default(time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'south','d2',2);
+flush;
+<<NULL;
+alter table t_alter_time_column_type_default alter column time set data type string;
+<<SQLSTATE;
+drop table t_alter_time_column_type_default;
+
+-- 15. TIME 列名非 time 时，ALTER COLUMN 修改数据类型应报错
+create table t_alter_time_column_type_custom(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_alter_time_column_type_custom(region,d_datetime,device_id,s1) values
+('north',1779933600000,'d1',1),
+('south',1779933601000,'d2',2);
+flush;
+<<NULL;
+alter table t_alter_time_column_type_custom alter column d_datetime set data type string;
+<<SQLSTATE;
+drop table t_alter_time_column_type_custom;
+
+-- 16. 自定义 TIME 列的查询场景：WHERE 组合条件、GROUP BY/HAVING、OFFSET/LIMIT
+create table t_select_custom_time(
+region string tag,
+event_ts timestamp time,
+device_id string tag,
+s1 int32 field,
+s2 double field,
+status boolean field,
+note string field
+);
+insert into t_select_custom_time(region,event_ts,device_id,s1,s2,status,note) values
+('north',1779933600000,'d1',10,1.5,true,'a'),
+('north',1779933601000,'d1',20,2.5,false,null),
+('north',1779933602000,'d2',30,3.5,true,'c'),
+('south',1779933603000,'d2',40,4.5,false,'d'),
+('south',1779933604000,'d3',50,null,true,null);
+flush;
+<<NULL;
+select event_ts,region,device_id,s1,status,note
+from t_select_custom_time
+where event_ts >= 1779933601000 and event_ts <= 1779933603000
+  and (region='north' or device_id='d2')
+order by event_ts;
+select count(*) as matched_rows_with_field_and_tag
+from t_select_custom_time
+where event_ts >= 1779933601000 and event_ts <= 1779933604000
+  and (region='north' or status = true);
+select device_id, count(*) as cnt, avg(s1) as avg_s1
+from t_select_custom_time
+where event_ts >= 1779933600000 and event_ts <= 1779933603000
+group by device_id
+having count(*) >= 2
+order by device_id;
+select event_ts,device_id,s1
+from t_select_custom_time
+order by event_ts
+offset 1
+limit 2;
+select event_ts,device_id,s2
+from t_select_custom_time
+order by s2 desc nulls last, event_ts
+limit 5;
+select event_ts,device_id,s1
+from t_select_custom_time
+order by event_ts desc nulls last
+limit 2;
+select date_bin(2s, event_ts) as bucket_ts, count(*) as cnt, avg(s1) as avg_s1
+from t_select_custom_time
+group by 1
+order by bucket_ts;
+select date_bin(2s, event_ts) as bucket_ts, count(*) as cnt
+from t_select_custom_time
+group by 1
+having count(*) >= 2
+order by bucket_ts;
+drop table t_select_custom_time;
+
+drop database if exists v2_916;
+<<NULL;

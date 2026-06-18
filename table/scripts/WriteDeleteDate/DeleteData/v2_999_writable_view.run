@@ -1,0 +1,147 @@
+-- Writable View: 表模型可写视图基础功能、级联与限制场景
+connect root/TimechoDB@2021;
+set sql_dialect=table;
+
+drop database if exists writable_view_db;
+<<NULL;
+
+create database if not exists writable_view_db;
+use writable_view_db;
+
+-- 1. 准备源表数据
+create table factory(
+  plant string tag,
+  line string tag,
+  device_id string tag,
+  model string attribute,
+  voltage int32 field,
+  temperature float field,
+  reserved_code string field
+);
+insert into factory(time,plant,line,device_id,model,voltage,temperature,reserved_code) values
+(1000,'north','l1','d1','m1',220,36.5,'r001'),
+(2000,'north','l1','d2','m1',221,36.7,'r002'),
+(3000,'south','l2','d3','m2',222,37.0,'r003');
+flush;
+<<NULL;
+select count(*) as source_rows_initial from factory;
+select time,plant,line,device_id,model,voltage,temperature,reserved_code from factory order by time;
+
+-- 2. 创建可写视图，不显式选择 time，验证自动补 time 与展示能力
+create writable view factory_view as
+select plant as area, line, device_id, model, voltage as v, temperature, reserved_code as serial_num
+from factory
+comment 'main writable view'
+with (schema_cascade=true, ttl='INF');
+show tables details;
+show views;
+show writable views;
+desc factory_view;
+desc factory_view details;
+show create view factory_view;
+select * from information_schema.tables where database='writable_view_db' and table_name='factory_view';
+select * from information_schema.views where database='writable_view_db' and table_name='factory_view';
+select * from information_schema.columns where database='writable_view_db' and table_name='factory_view';
+select time,area,line,device_id,model,v,temperature,serial_num from factory_view order by time;
+
+-- 3. 通过可写视图写入，验证与源表同步
+insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num) values
+(4000,'north','l3','d4','m3',223,37.2,'r004');
+flush;
+<<NULL;
+select count(*) as source_rows_after_view_insert from factory;
+select time,plant,line,device_id,model,voltage,temperature,reserved_code from factory where time=4000;
+select time,area,line,device_id,model,v,temperature,serial_num from factory_view where time=4000;
+
+-- 4. 通过可写视图删除，验证与源表同步
+select count(*) as source_delete_target_before from factory where time=2000 and plant='north' and line='l1';
+select count(*) as view_delete_target_before from factory_view where time=2000 and area='north' and line='l1';
+delete from factory_view where time=2000 and area='north' and line='l1';
+select count(*) as source_delete_target_after from factory where time=2000 and plant='north' and line='l1';
+select count(*) as view_delete_target_after from factory_view where time=2000 and area='north' and line='l1';
+
+-- 5. 只选择部分 TAG 列，未选择的 TAG 写入时应以 null 填充
+create writable view factory_partial_tag as
+select plant as area, voltage as v
+from factory
+with (schema_cascade=false, ttl='INF');
+show create view factory_partial_tag;
+insert into factory_partial_tag(time,area,v) values
+(5000,'west',230);
+flush;
+<<NULL;
+select time,plant,line,device_id,voltage from factory where time=5000;
+select time,area,v from factory_partial_tag where time=5000;
+drop view factory_partial_tag;
+
+-- 6. schema_cascade=true：新增列、写入新列、修改注释和 TTL
+alter view factory_view add column humidity double field;
+desc factory_view details;
+desc factory details;
+insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num,humidity) values
+(6000,'north','l6','d6','m6',226,37.6,'r006',45.6);
+flush;
+<<NULL;
+select time,humidity from factory where time=6000;
+select time,humidity from factory_view where time=6000;
+comment on view factory_view is 'main writable view v2';
+show create view factory_view;
+alter view factory_view set properties ttl=3600000;
+show tables details;
+select * from information_schema.tables where database='writable_view_db' and table_name='factory_view';
+
+-- 7. schema_cascade=false：允许重命名视图列，不允许通过视图自动创建源表不存在的列
+create writable view factory_view_nocascade as
+select plant, line, device_id, voltage, temperature, reserved_code
+from factory
+comment 'non cascade view'
+with (schema_cascade=false, ttl='INF');
+alter table factory_view_nocascade rename column reserved_code to serial_code;
+show create view factory_view_nocascade;
+desc factory_view_nocascade details;
+desc factory details;
+alter view factory_view_nocascade add column humidity double field;
+desc factory_view_nocascade details;
+alter view factory_view_nocascade add column local_note string field;
+<<SQLSTATE;
+
+-- 8. 不支持多个新列指向同一个旧列
+create writable view factory_view_dup_source as
+select voltage as v1, voltage as v2
+from factory;
+<<SQLSTATE;
+
+-- 9. 源表列被删除后，视图访问该列应报错
+alter table factory drop column humidity;
+desc factory details;
+select humidity from factory_view;
+<<SQLSTATE;
+insert into factory_view(time,area,line,device_id,model,v,temperature,serial_num,humidity) values
+(7000,'east','l7','d7','m7',227,37.7,'r007',47.7);
+<<SQLSTATE;
+
+-- 10. 不支持在可写视图上再次创建视图
+create writable view nested_view as
+select area, line, device_id, v
+from factory_view;
+<<SQLSTATE;
+
+-- 11. 同时支持 table/view 语义：重命名视图名、通过 DROP TABLE 删除视图
+alter table factory_view_nocascade rename to factory_view_alias;
+show create view factory_view_alias;
+select time,plant,line,device_id,voltage,temperature,serial_code from factory_view_alias order by time;
+<<SQLSTATE;
+create writable view factory_view_drop as
+select plant, line, device_id, voltage
+from factory
+with (schema_cascade=false, ttl='INF');
+show writable views;
+drop table factory_view_drop;
+show writable views;
+drop view factory_view_alias;
+
+drop view factory_view;
+drop table factory;
+<<SQLSTATE;
+drop database if exists writable_view_db;
+<<NULL;

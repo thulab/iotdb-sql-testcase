@@ -1,0 +1,402 @@
+-- V2-916 Writable View: 表模型可写视图中，time 列名不是 time 时，DELETE 的时间条件也应正常生效
+connect root/TimechoDB@2021;
+set sql_dialect=table;
+
+drop database if exists v2_916_writable_view;
+<<NULL;
+
+create database if not exists v2_916_writable_view;
+use v2_916_writable_view;
+
+-- 1. 默认 time 列对照场景：通过可写视图删除
+create table t_default_src(device_id string tag, s1 double field);
+insert into t_default_src(time,device_id,s1) values
+(1779933599000,'d1',1.0),
+(1779933600000,'d1',2.0),
+(1779935000000,'d1',3.0),
+(1779937199999,'d1',4.0),
+(1779937200000,'d1',5.0);
+create writable view t_default_view as
+select device_id, s1 from t_default_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select count(*) as total_rows_before from t_default_view;
+delete from t_default_view where time >= 1779933600000 and time <= 1779937199999;
+select count(*) as total_rows_after from t_default_view;
+select count(*) as deleted_range_rows from t_default_view where time >= 1779933600000 and time <= 1779937199999;
+select count(*) as remained_edge_rows from t_default_view where time < 1779933600000 or time > 1779937199999;
+select count(*) as source_rows_after_delete from t_default_src;
+drop view t_default_view;
+drop table t_default_src;
+
+-- 2. 非默认 time 列名 d_datetime：通过可写视图删除
+create table t_d_datetime_src(d_datetime timestamp time, device_id string tag, s1 double field);
+insert into t_d_datetime_src(d_datetime,device_id,s1) values
+(1779933599000,'d1',1.0),
+(1779933600000,'d1',2.0),
+(1779935000000,'d1',3.0),
+(1779937199999,'d1',4.0),
+(1779937200000,'d1',5.0);
+create writable view t_d_datetime_view as
+select device_id, s1 from t_d_datetime_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select count(*) as total_rows_before from t_d_datetime_view;
+delete from t_d_datetime_view where d_datetime >= 1779933600000 and d_datetime <= 1779937199999;
+select count(*) as total_rows_after from t_d_datetime_view;
+select count(*) as deleted_range_rows from t_d_datetime_view where d_datetime >= 1779933600000 and d_datetime <= 1779937199999;
+select count(*) as remained_edge_rows from t_d_datetime_view where d_datetime < 1779933600000 or d_datetime > 1779937199999;
+select count(*) as source_rows_after_delete from t_d_datetime_src;
+drop view t_d_datetime_view;
+drop table t_d_datetime_src;
+
+-- 3. 另一种非默认 time 列名，并叠加 tag 条件：通过可写视图删除
+create table t_event_time_src(event_time timestamp time, device_id string tag, s1 int32 field);
+insert into t_event_time_src(event_time,device_id,s1) values
+(1779933599000,'d1',10),
+(1779933600000,'d1',20),
+(1779935000000,'d1',30),
+(1779937199999,'d1',40),
+(1779937200000,'d1',50),
+(1779933600000,'d2',60),
+(1779937200000,'d2',70);
+create writable view t_event_time_view as
+select device_id, s1 from t_event_time_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select count(*) as d1_rows_before from t_event_time_view where device_id='d1';
+select count(*) as d2_rows_before from t_event_time_view where device_id='d2';
+delete from t_event_time_view where device_id='d1' and event_time >= 1779933600000 and event_time <= 1779937199999;
+select count(*) as d1_rows_after from t_event_time_view where device_id='d1';
+select count(*) as d1_deleted_range_rows from t_event_time_view where device_id='d1' and event_time >= 1779933600000 and event_time <= 1779937199999;
+select count(*) as d1_remained_edge_rows from t_event_time_view where device_id='d1' and (event_time < 1779933600000 or event_time > 1779937199999);
+select count(*) as d2_rows_after from t_event_time_view where device_id='d2';
+drop view t_event_time_view;
+drop table t_event_time_src;
+
+-- 4. 指定非默认 time 列名写入可写视图，并验证 NULL 值查询
+create table t_insert_named_time_src(
+region string tag,
+event_time timestamp time,
+device_id string tag,
+model string attribute,
+s1 double field,
+s2 boolean field,
+note string field
+);
+create writable view t_insert_named_time_view as
+select region, device_id, model, s1, s2, note from t_insert_named_time_src
+with (schema_cascade=false, ttl='INF');
+insert into t_insert_named_time_view(event_time,region,device_id,model,s1,s2,note) values
+(1779933600000,'north','d1',null,10.5,true,'alpha'),
+(1779933601000,'north','d1','m1',null,false,null),
+(1779933602000,'south','d2',null,20.5,null,'beta');
+flush;
+<<NULL;
+select count(*) as total_rows from t_insert_named_time_view;
+select event_time,region,device_id,model,s1,s2,note from t_insert_named_time_view order by event_time;
+select count(*) as null_model_rows from t_insert_named_time_view where model is null;
+select count(*) as null_s1_rows from t_insert_named_time_view where s1 is null;
+select count(*) as null_s2_rows from t_insert_named_time_view where s2 is null;
+select count(*) as null_note_rows from t_insert_named_time_view where note is null;
+select count(*) as north_rows from t_insert_named_time_view where region='north' and event_time >= 1779933600000 and event_time <= 1779933601000;
+select count(*) as south_rows from t_insert_named_time_view where region='south' and event_time = 1779933602000;
+drop view t_insert_named_time_view;
+drop table t_insert_named_time_src;
+
+-- 5. 非默认 time 列位于中间位置，按视图列顺序写入并执行精确删除
+create table t_values_insert_src(
+site string tag,
+sample_time timestamp time,
+device_id string tag,
+s1 int32 field,
+remark string field
+);
+create writable view t_values_insert_view as
+select site, device_id, s1, remark from t_values_insert_src
+with (schema_cascade=false, ttl='INF');
+insert into t_values_insert_view values
+(1779933600000,'bj','d1',1,'ok'),
+(1779933601000,'bj','d2',2,null),
+(1779933602000,'sh','d3',null,'done');
+flush;
+<<NULL;
+select count(*) as total_rows_before_delete from t_values_insert_view;
+select sample_time,site,device_id,s1,remark from t_values_insert_view order by sample_time;
+select count(*) as null_remark_rows from t_values_insert_view where remark is null;
+select count(*) as null_s1_rows from t_values_insert_view where s1 is null;
+select count(*) as gt_first_time_rows from t_values_insert_view where sample_time > 1779933600000;
+delete from t_values_insert_view where sample_time = 1779933601000;
+select count(*) as total_rows_after_delete from t_values_insert_view;
+select sample_time,site,device_id,s1,remark from t_values_insert_view order by sample_time;
+select count(*) as deleted_exact_time_rows from t_values_insert_view where sample_time = 1779933601000;
+select count(*) as remained_rows_outside_delete from t_values_insert_view where sample_time != 1779933601000;
+drop view t_values_insert_view;
+drop table t_values_insert_src;
+
+-- 6. DELETE 仅允许时间列和 TAG 条件，FIELD 条件应报错：通过可写视图删除
+create table t_invalid_delete_src(
+region string tag,
+record_time timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_invalid_delete_src(record_time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'north','d2',2),
+(1779933602000,'south','d3',3);
+create writable view t_invalid_delete_view as
+select region, device_id, s1 from t_invalid_delete_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+delete from t_invalid_delete_view where s1 > 0;
+<<SQLSTATE;
+delete from t_invalid_delete_view where record_time > 1779933600000 and s1 > 0;
+<<SQLSTATE;
+select count(*) as remained_rows_after_invalid_delete from t_invalid_delete_view;
+drop view t_invalid_delete_view;
+drop table t_invalid_delete_src;
+
+-- 7. 只有一个 TIME 列，但其他普通列名包含 time：通过可写视图正常读写删
+create table t_one_real_time_with_time_named_columns_src(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+event_time timestamp field,
+time_label string field,
+s1 int32 field
+);
+insert into t_one_real_time_with_time_named_columns_src(region,d_datetime,device_id,event_time,time_label,s1) values
+('north',1779933600000,'d1',1779933605000,'first',1),
+('north',1779933601000,'d2',null,'second',2),
+('south',1779933602000,'d3',1779933607000,null,3);
+create writable view t_one_real_time_with_time_named_columns_view as
+select region, device_id, event_time, time_label, s1 from t_one_real_time_with_time_named_columns_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select count(*) as total_rows_time_named_columns from t_one_real_time_with_time_named_columns_view;
+select d_datetime,region,device_id,event_time,time_label,s1 from t_one_real_time_with_time_named_columns_view order by d_datetime;
+select count(*) as null_event_time_rows from t_one_real_time_with_time_named_columns_view where event_time is null;
+select count(*) as null_time_label_rows from t_one_real_time_with_time_named_columns_view where time_label is null;
+delete from t_one_real_time_with_time_named_columns_view where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+select count(*) as total_rows_after_time_delete from t_one_real_time_with_time_named_columns_view;
+select count(*) as deleted_rows_in_time_range from t_one_real_time_with_time_named_columns_view where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+drop view t_one_real_time_with_time_named_columns_view;
+drop table t_one_real_time_with_time_named_columns_src;
+
+-- 8. 一张表定义两个 TIMESTAMP TIME 列，应报错
+create table t_two_time_columns_src(
+region string tag,
+d_datetime timestamp time,
+event_time timestamp time,
+device_id string tag,
+s1 int32 field
+);
+<<SQLSTATE;
+
+-- 9. 未显式定义 TIME 列时，非 TIME 列名直接叫 time，应报错
+create table t_non_time_column_named_time_src(
+region string tag,
+time int32 field,
+device_id string tag,
+s1 string field
+);
+<<SQLSTATE;
+
+-- 10. 显式自定义 TIME 列存在时，其他非 TIME 列名叫 time：通过可写视图正常读写
+create table t_custom_time_with_field_named_time_src(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+time blob field,
+s1 int32 field
+);
+insert into t_custom_time_with_field_named_time_src(region,d_datetime,device_id,time,s1) values
+('north',1779933600000,'d1','aa',1),
+('north',1779933601000,'d2',null,2),
+('south',1779933602000,'d3','cc',3);
+create writable view t_custom_time_with_field_named_time_view as
+select region, device_id, time, s1 from t_custom_time_with_field_named_time_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select count(*) as total_rows_field_named_time from t_custom_time_with_field_named_time_view;
+select d_datetime,region,device_id,cast(time as string),s1 from t_custom_time_with_field_named_time_view order by d_datetime;
+select count(*) as null_field_named_time_rows from t_custom_time_with_field_named_time_view where time is null;
+delete from t_custom_time_with_field_named_time_view where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+select count(*) as total_rows_after_custom_time_delete from t_custom_time_with_field_named_time_view;
+select count(*) as deleted_rows_after_custom_time_delete from t_custom_time_with_field_named_time_view where d_datetime >= 1779933601000 and d_datetime <= 1779933602000;
+drop view t_custom_time_with_field_named_time_view;
+drop table t_custom_time_with_field_named_time_src;
+
+-- 11. 可写视图中，普通列重命名为 time 应报错
+create table t_rename_field_to_time_src(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+blob_col blob field,
+s1 int32 field
+);
+insert into t_rename_field_to_time_src(region,d_datetime,device_id,blob_col,s1) values
+('north',1779933600000,'d1','aa',1),
+('south',1779933601000,'d2',null,2);
+create writable view t_rename_field_to_time_view as
+select region, device_id, blob_col, s1 from t_rename_field_to_time_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+alter table t_rename_field_to_time_view rename column blob_col to time;
+select d_datetime,region,device_id,cast(time as string),s1 from t_rename_field_to_time_view order by d_datetime;
+drop view t_rename_field_to_time_view;
+drop table t_rename_field_to_time_src;
+
+-- 12. 可写视图中，自定义 TIME 列重命名为 time 应报错
+create table t_rename_custom_time_to_time_src(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_rename_custom_time_to_time_src(region,d_datetime,device_id,s1) values
+('north',1779933600000,'d1',1),
+('south',1779933601000,'d2',2);
+create writable view t_rename_custom_time_to_time_view as
+select region, device_id, s1 from t_rename_custom_time_to_time_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+alter table t_rename_custom_time_to_time_view rename column d_datetime to time;
+<<SQLSTATE;
+drop view t_rename_custom_time_to_time_view;
+drop table t_rename_custom_time_to_time_src;
+
+-- 13. 可写视图中，time 列重命名为非 time 应报错
+create table t_rename_time_to_custom_src(
+time timestamp time,
+region string tag,
+device_id string tag,
+s1 int32 field
+);
+insert into t_rename_time_to_custom_src(time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'south','d2',2);
+create writable view t_rename_time_to_custom_view as
+select region, device_id, s1 from t_rename_time_to_custom_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+alter table t_rename_time_to_custom_view rename column time to d_datetime;
+<<SQLSTATE;
+drop view t_rename_time_to_custom_view;
+drop table t_rename_time_to_custom_src;
+
+-- 14. TIME 列名为 time 时，可写视图 ALTER COLUMN 修改数据类型应报错
+create table t_alter_time_column_type_default_src(
+time timestamp time,
+region string tag,
+device_id string tag,
+s1 int32 field
+);
+insert into t_alter_time_column_type_default_src(time,region,device_id,s1) values
+(1779933600000,'north','d1',1),
+(1779933601000,'south','d2',2);
+create writable view t_alter_time_column_type_default_view as
+select region, device_id, s1 from t_alter_time_column_type_default_src
+with (schema_cascade=true, ttl='INF');
+flush;
+<<NULL;
+alter table t_alter_time_column_type_default_view alter column time set data type string;
+<<SQLSTATE;
+drop view t_alter_time_column_type_default_view;
+drop table t_alter_time_column_type_default_src;
+<<SQLSTATE;
+
+-- 15. TIME 列名非 time 时，可写视图 ALTER COLUMN 修改数据类型应报错
+create table t_alter_time_column_type_custom_src(
+region string tag,
+d_datetime timestamp time,
+device_id string tag,
+s1 int32 field
+);
+insert into t_alter_time_column_type_custom_src(region,d_datetime,device_id,s1) values
+('north',1779933600000,'d1',1),
+('south',1779933601000,'d2',2);
+create writable view t_alter_time_column_type_custom_view as
+select region, device_id, s1 from t_alter_time_column_type_custom_src
+with (schema_cascade=true, ttl='INF');
+flush;
+<<NULL;
+alter table t_alter_time_column_type_custom_view alter column d_datetime set data type string;
+<<SQLSTATE;
+drop view t_alter_time_column_type_custom_view;
+drop table t_alter_time_column_type_custom_src;
+<<SQLSTATE;
+
+-- 16. 自定义 TIME 列的查询场景：通过可写视图执行 WHERE 组合条件、GROUP BY/HAVING、OFFSET/LIMIT
+create table t_select_custom_time_src(
+region string tag,
+event_ts timestamp time,
+device_id string tag,
+s1 int32 field,
+s2 double field,
+status boolean field,
+note string field
+);
+insert into t_select_custom_time_src(region,event_ts,device_id,s1,s2,status,note) values
+('north',1779933600000,'d1',10,1.5,true,'a'),
+('north',1779933601000,'d1',20,2.5,false,null),
+('north',1779933602000,'d2',30,3.5,true,'c'),
+('south',1779933603000,'d2',40,4.5,false,'d'),
+('south',1779933604000,'d3',50,null,true,null);
+create writable view t_select_custom_time_view as
+select region, device_id, s1, s2, status, note from t_select_custom_time_src
+with (schema_cascade=false, ttl='INF');
+flush;
+<<NULL;
+select event_ts,region,device_id,s1,status,note
+from t_select_custom_time_view
+where event_ts >= 1779933601000 and event_ts <= 1779933603000
+  and (region='north' or device_id='d2')
+order by event_ts;
+select count(*) as matched_rows_with_field_and_tag
+from t_select_custom_time_view
+where event_ts >= 1779933601000 and event_ts <= 1779933604000
+  and (region='north' or status = true);
+select device_id, count(*) as cnt, avg(s1) as avg_s1
+from t_select_custom_time_view
+where event_ts >= 1779933600000 and event_ts <= 1779933603000
+group by device_id
+having count(*) >= 2
+order by device_id;
+select event_ts,device_id,s1
+from t_select_custom_time_view
+order by event_ts
+offset 1
+limit 2;
+select event_ts,device_id,s2
+from t_select_custom_time_view
+order by s2 desc nulls last, event_ts
+limit 5;
+select event_ts,device_id,s1
+from t_select_custom_time_view
+order by event_ts desc nulls last
+limit 2;
+select date_bin(2s, event_ts) as bucket_ts, count(*) as cnt, avg(s1) as avg_s1
+from t_select_custom_time_view
+group by 1
+order by bucket_ts;
+select date_bin(2s, event_ts) as bucket_ts, count(*) as cnt
+from t_select_custom_time_view
+group by 1
+having count(*) >= 2
+order by bucket_ts;
+drop view t_select_custom_time_view;
+drop table t_select_custom_time_src;
+
+drop database if exists v2_916_writable_view;
+<<NULL;
