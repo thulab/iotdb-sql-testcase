@@ -1,0 +1,144 @@
+// show timeseries order by timeseries ：查询结果按时间序列名称排序
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
+
+--1. 创建数据库
+create database root.dv;
+create database root.sg1;
+create database root.db;
+create database root.db1;
+create database root.db2;
+create database root.db_verify;
+create database root.multi_level;
+create database root.empty;
+
+--2. 创建时间序列
+create timeseries root.dv.status with datatype=boolean;
+
+create aligned timeseries root.sg1.d1(temperature float, status boolean);
+
+create timeseries root.db.devB.m2 with datatype=float;
+create timeseries root.db.devA.m1 with datatype=float;
+create timeseries root.db.devB.m1 with datatype=float;
+create timeseries root.db.devA.m2 with datatype=float;
+
+create timeseries root.db1.d1.s1 with datatype=int32;
+create timeseries root.db1.d2.s1 with datatype=int64;
+create timeseries root.db2.d1.s1 with datatype=double;
+create timeseries root.db2.s1 with datatype=int32;
+create timeseries root.db2.d2.s1 with datatype=int32;
+
+create timeseries root.multi_level.area2.device1.group1.s2 with datatype=FLOAT;
+create timeseries root.multi_level.area1.device2.s1 with datatype=FLOAT;
+create timeseries root.multi_level.area1.device1.group2.s1 with datatype=FLOAT;
+create timeseries root.multi_level.area1.device1.group1.s1 with datatype=FLOAT;
+
+create timeseries root.db_verify.devB.m2(temprature)with datatype=FLOAT tags(tag1=v1, tag2=v2) attributes(attr1=v1, attr2=v2);
+create timeseries root.db_verify.devA.m1 with datatype=FLOAT tags(tag1=v1) attributes(attr1=v1);
+create timeseries root.db_verify.devC.m1 with datatype=FLOAT tags(tag1=v1, tag2=v2) attributes(attr1=v1, attr2=v2);
+create timeseries root.db_verify.devA.m3(temperature) with datatype=FLOAT;
+create timeseries root.db_verify.devB.m1(humidity) with datatype=FLOAT;
+
+create timeseries root.perf.branchB.dev0003.s0002 with datatype=FLOAT;
+create timeseries root.perf.branchA.dev0001.s0003 with datatype=FLOAT;
+create timeseries root.perf.branchA.dev0001.s0001 with datatype=FLOAT;
+create timeseries root.perf.branchA.dev0002.s0001 with datatype=FLOAT;
+create timeseries root.perf.branchB.dev0001.s0001 with datatype=FLOAT;
+create timeseries root.perf.branchB.dev0002.s0005 with datatype=FLOAT;
+create timeseries root.perf.branchA.dev0003.s0004 with datatype=FLOAT;
+create timeseries root.perf.branchB.dev0004.s0001 with datatype=FLOAT;
+
+--2.查看设备
+show devices root.dv.**;
+show devices root.sg1.**;
+show devices root.db.**;
+show devices root.db1.**;
+show devices root.db2.**;
+show devices root.multi_level.**;
+show devices root.db_verify.**;
+show devices root.perf.**;
+
+--3.查看时间序列基线
+show timeseries root.dv.**;
+show timeseries root.sg1.**;
+show timeseries root.db.**;
+show timeseries root.db1.**;
+show timeseries root.db2.**;
+show timeseries root.multi_level.**;
+show timeseries root.db_verify.**;
+show timeseries root.perf.**;
+
+--4. 基于前缀的时间序列排序
+show timeseries root.dv.** order by timeseries;
+show timeseries root.dv.** order by timeseries desc;
+show timeseries root.db.** order by timeseries;
+show timeseries root.db.** order by timeseries asc;
+show timeseries root.db.** order by timeseries desc;
+show timeseries root.db1.** order by timeseries;
+show timeseries root.db1.** order by timeseries asc;
+show timeseries root.db2.** order by timeseries desc;
+show timeseries root.db*.** order by timeseries asc;
+show timeseries root.db*.** order by timeseries desc;
+show timeseries root.db_verify.** order by timeseries asc;
+show timeseries root.multi_level.** order by timeseries asc;
+show timeseries root.multi_level.** order by timeseries desc;
+show timeseries root.sg1.** order by timeseries asc;
+show timeseries root.not_exist.** order by timeseries asc;
+
+--5. 按时间序列排序并结合LIMIT和OFFSET进行分页查询
+show timeseries root.db.** order by timeseries asc limit 1;
+show timeseries root.db.** order by timeseries asc limit 2;
+show timeseries root.db.** order by timeseries desc limit 2;
+show timeseries root.db.** order by timeseries asc offset 1;
+show timeseries root.db.** order by timeseries desc offset 1;
+show timeseries root.db.** order by timeseries asc limit 2 offset 0;
+show timeseries root.db.** order by timeseries asc limit 2 offset 1;
+show timeseries root.db.** order by timeseries desc limit 2 offset 1;
+show timeseries root.db.** order by timeseries asc limit 100;
+show timeseries root.db.** order by timeseries asc offset 4;
+show timeseries root.db.** order by timeseries asc offset 100;
+show timeseries root.db*.** order by timeseries asc limit 4 offset 2;
+show timeseries root.db*.** order by timeseries desc limit 4 offset 2;
+show timeseries root.multi_level.** order by timeseries asc limit 3 offset 1;
+show timeseries root.perf.** order by timeseries asc limit 4 offset 2;
+show timeseries root.perf.** order by timeseries desc limit 4 offset 2;
+show timeseries root.perf.branchA.** order by timeseries asc limit 3 offset 1;
+show timeseries root.perf.branchB.** order by timeseries asc limit 3 offset 1;
+
+--6. 原始时间序列分页展示
+show timeseries root.db.** limit 2;
+show timeseries root.db.** limit 2 offset 1;
+show timeseries root.db*.** limit 5 offset 2;
+show timeseries root.multi_level.** limit 2 offset 1;
+show timeseries root.perf.** limit 1 offset 1;
+
+--7. order by 时间序列语法错误 
+show timeseries root.db.** order by timeseries invalid;
+<<SQLSTATE;
+show timeseries root.db.** order by abc;
+<<SQLSTATE;
+show timeseries root.db.** order by alias;
+<<SQLSTATE;
+show timeseries root.db.** limit 2 order by timeseries;
+<<SQLSTATE;
+show timeseries root.db.** order by;
+<<SQLSTATE;
+show timeseries root.db.** order by timeseries descx;
+<<SQLSTATE;
+show timeseries root.db.** order by timeseries asc limit -1;
+<<SQLSTATE;
+show timeseries root.db.** order by timeseries asc offset -1;
+<<SQLSTATE;
+show timeseries root.db.** order by timeseries asc limit a;
+<<SQLSTATE;
+show timeseries root.db.** order by timeseries asc ' OR '1'='1;
+<<SQLSTATE;
+
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database root.**;
+<<NULL;
