@@ -124,7 +124,7 @@ alter view root.view.v2.c2 upsert tags(city_region=changping, description='this 
 
 
 CREATE CONTINUOUS QUERY cq1
-RESAMPLE EVERY 1s
+RESAMPLE EVERY 1s RANGE 3s, 2s
 BEGIN
   SELECT max_value(s01)
   INTO root.view.v1(c1)
@@ -134,11 +134,10 @@ END;
 
 
 insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(now(),666,444,false,2.3,4.5,"hello");
-flush;
-sleep 30000;
-select count(c2) from root.view.v1 having count(c1) > 0;
-select count(s02),count(s03),count(s04),count(s05),count(s06) from root.db.d1 having count(c1) > 0;
-select count(s02),count(s03),count(s04),count(s05),count(s06) from root.db.d2 having count(c1) > 0;
+sleep 16000;
+select count(c1), count(c2) from root.view.v1;
+select count(s01), count(s02), count(s03), count(s04), count(s05), count(s06) from root.db.d1;
+select count(s01), count(s02), count(s03), count(s04), count(s05), count(s06) from root.db.d2;
 drop database root.db;
 drop database root.view;
 drop CONTINUOUS QUERY cq1;
