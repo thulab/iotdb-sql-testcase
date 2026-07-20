@@ -1,0 +1,38 @@
+// data_bin_gap_fill 嵌套查询报错：301: Cannot invoke "java.lang.Integer.intValue()" because the return value of "java.util.Map.get(Object)" is null
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+
+--1. 创建数据库并查看数据库
+create database test;
+show databases;
+
+--2. 使用指定的数据库
+use test;
+
+--3. 创建表并查看表
+create table m1(device_id string tag, s1 int64 field);
+show tables;
+desc m1;
+
+--4. 插入数据
+insert into m1(time, device_id, s1) values(2024-09-24T06:15:46.565+00:00, 'd1', 2);
+insert into m1(time, device_id, s1) values(2024-09-24T07:16:15.297+00:00, 'd1', 10);
+insert into m1(time, device_id, s1) values(2024-09-24T08:16:21.907+00:00, 'd2', 20);
+
+--5. 数据查询
+select * from m1 order by time;
+
+-- 执行data_bin_gapfill查询
+select h as tm, sum(v) as sv from 
+	(select date_bin_gapfill(1h, time) as h, device_id, avg(s1) as v from m1
+		 where time >= 2024-09-24T04:00:00.000+00:00 and time < 2024-09-24T12:00:00.000+00:00
+	 group by 1, 2 fill method previous time_column 1 fill_group 2) t group by h order by h;
+
+
+--清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
