@@ -1,0 +1,187 @@
+// 基于表模型UDF框架，将IoTDBLocal作为参数显示传入UDF的各数据处理方法中，调用IoTDBLocal执行query
+
+
+--0.清理环境
+connect root/TimechoDB@2021;
+drop function device_name;
+<<NULL;
+drop function device_summary;
+<<NULL;
+drop function local_count_in_evaluate;
+<<NULL;
+drop function local_autoclose_probe;
+<<NULL;
+drop function local_log_probe;
+<<NULL;
+drop function empty_next_probe;
+<<NULL;
+drop function non_query_probe;
+<<NULL;
+drop function invalid_sql_probe;
+<<NULL;
+drop function secret_probe;
+<<NULL;
+drop function old_contains_null;
+<<NULL;
+drop function local_count_plus_mapping;
+<<NULL;
+drop database iotdblocal_test;
+<<NULL;
+drop user user1;
+<<NULL;
+
+--1. 注册udf
+create function device_name AS 'org.apache.iotdb.udf.iotdblocal.DeviceNameFunction';
+create function device_summary AS 'org.apache.iotdb.udf.iotdblocal.DeviceSummaryFunction';
+create function local_count_in_evaluate AS 'org.apache.iotdb.udf.iotdblocal.LocalCountInEvaluateFunction';
+create function local_autoclose_probe AS 'org.apache.iotdb.udf.iotdblocal.LocalAutoCloseProbeFunction';
+create function local_log_probe AS 'org.apache.iotdb.udf.iotdblocal.LocalLogProbeFunction';
+create function empty_next_probe AS 'org.apache.iotdb.udf.iotdblocal.EmptyNextProbeFunction';
+create function non_query_probe AS 'org.apache.iotdb.udf.iotdblocal.NonQueryProbeFunction';
+create function invalid_sql_probe AS 'org.apache.iotdb.udf.iotdblocal.InvalidSqlProbeFunction';
+create function secret_probe AS 'org.apache.iotdb.udf.iotdblocal.SecretProbeFunction';
+create function old_contains_null AS 'org.apache.iotdb.udf.iotdblocal.OldContainsNullFunction';
+create function local_count_plus_mapping AS 'org.apache.iotdb.udf.iotdblocal.LocalCountPlusMappingAggregateFunction';
+
+--2. 查看functions列表
+show functions;
+
+--3. 准备数据
+create database iotdblocal_test;
+show databases;
+use iotdblocal_test;
+
+create table readings (
+  device_id STRING TAG,
+  temperature DOUBLE FIELD
+);
+
+show tables;
+desc readings;
+
+create table device_info (
+  device_id STRING TAG,
+  device_name STRING FIELD
+);
+
+show tables;
+desc device_info;
+
+create table device_limits (
+  device_id STRING TAG,
+  max_temp DOUBLE FIELD
+);
+show tables;
+desc device_limits;
+
+create table secret_table (
+  device_id STRING TAG,
+  secret_value STRING FIELD
+);
+show tables;
+desc secret_table;
+
+insert into readings(time, device_id, temperature)
+values
+  (1000, 'd1', 25.5),
+  (1001, 'd2', 32.0),
+  (1002, 'd3', 20.0);
+  
+select * from readings order by time;
+  
+insert into device_info(time, device_id, device_name)
+values
+  (1, 'd1', '一号车间温度传感器'),
+  (1, 'd2', '二号车间温度传感器');
+
+select * from device_info order by 1, 2, 3;
+
+insert into device_limits(time, device_id, max_temp)
+values
+  (1, 'd1', 30.0),
+  (1, 'd2', 35.0);
+
+select * from device_limits order by 1, 2, 3;
+
+insert into secret_table(time, device_id, secret_value)
+values
+  (1, 'd1', 'hidden');
+select * from secret_table;
+
+--4. UDF查询
+--4.1 beforeStart(args, local) 内执行单条查询，预期d1,d2返回设备名，d3返回未知设备
+select time, device_id, device_name(device_id) AS name, temperature from readings order by 1, 2, 3, 4;
+
+--4.2 同一UDF同时打开两个结果集并交错读取，预期d1，d2返回设备名和上限，d3返回未知设备和未知上限
+select time, device_id, temperature, device_summary(device_id) AS summary from readings order by 1, 2, 3, 4;
+
+--4.3 evaluate(input, local)每行执行查询，预期每行返回对应设备在readings中的行数
+select time, device_id, local_count_in_evaluate(device_id) AS reading_count from readings order by 1, 2, 3;
+
+--4.4 AggregateFunction.beforeStart(args, local)内查询，预期输出为输入行数加device_info映射数量
+select local_count_plus_mapping(temperature) AS count_plus_mapping from readings;
+
+--4.5 旧标量UDF只实现无local方法，预期正常执行
+select time, device_id, old_contains_null(temperature) AS contains_null from readings order by 1, 2;
+
+--4.6 覆盖info/warn/error的9个负载
+select time, device_id, local_log_probe(device_id) AS log_status from readings order by 1, 2;
+
+--4.7 用户不手动close结果集，查询成功并返回映射数量 2
+select time, device_id, local_autoclose_probe(device_id) AS mapping_count from readings order by 1, 2;
+
+--4.8 hasNext()为false后调用next()，UDF捕获结果集显示：no_such_element
+select time, device_id, empty_next_probe(device_id) AS empty_next_status from readings order by 1, 2;
+
+--4.9 UDF内调用local.query("INSERT..."),非查询被拒绝，给出报错提示
+select time, device_id, non_query_probe(device_id) AS non_query_status from readings;
+<<SQLSTATE;
+
+--4.10 UDF内执行非法SQL，预期给出报错信息
+select time, device_id, invalid_sql_probe(device_id) AS invalid_sql_status from readings;
+<<SQLSTATE;
+
+--5. 权限与审计
+create user user1 'Pass@123456789';
+grant select on table iotdblocal_test.readings to user user1;
+grant select on table iotdblocal_test.device_info to user user1;
+grant select on table iotdblocal_test.device_limits to user user1;
+
+--5.1 普通用户user1登录，进行权限继承查询
+connect user1/Pass@123456789;
+list privileges of user user1;
+select device_id,temperature from iotdblocal_test.readings order by 1, 2;
+select device_id, device_name from iotdblocal_test.device_info order by 1, 2;
+select device_id, max_temp from iotdblocal_test.device_limits order by 1, 2;
+select time, device_id, device_name(device_id) AS name, temperature from iotdblocal_test.readings order by 1, 2, 3;
+select time, device_id, secret_probe(device_id) AS secret_count from iotdblocal_test.readings;
+<<SQLSTATE;
+
+--.清理环境
+connect root/TimechoDB@2021;
+drop function device_name;
+<<NULL;
+drop function device_summary;
+<<NULL;
+drop function local_count_in_evaluate;
+<<NULL;
+drop function local_autoclose_probe;
+<<NULL;
+drop function local_log_probe;
+<<NULL;
+drop function empty_next_probe;
+<<NULL;
+drop function non_query_probe;
+<<NULL;
+drop function invalid_sql_probe;
+<<NULL;
+drop function secret_probe;
+<<NULL;
+drop function old_contains_null;
+<<NULL;
+drop function local_count_plus_mapping;
+<<NULL;
+drop database iotdblocal_test;
+<<NULL;
+drop user user1;
+<<NULL;
