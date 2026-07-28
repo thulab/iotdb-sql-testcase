@@ -1,0 +1,689 @@
+
+-- [1]10:create database alias_test
+STRICT{
+PASS
+}
+
+-- [1]11:use alias_test
+STRICT{
+PASS
+}
+
+-- [1]15:create table table1 (   device STRING TAG,   temperature DOUBLE FIELD,   s1 INT32 FIELD,   s2 INT32 FIELD )
+STRICT{
+PASS
+}
+
+-- [1]22:create table table_with_x (   device STRING TAG,   x INT32 FIELD,   s1 INT32 FIELD,   s2 INT32 FIELD )
+STRICT{
+PASS
+}
+
+-- [1]29:create table table_null (   device STRING TAG,   value INT32 FIELD )
+STRICT{
+PASS
+}
+
+-- [1]33:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+table1               |INF                |
+----------------------------------------
+table_null           |INF                |
+----------------------------------------
+table_with_x         |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]34:desc table1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device                |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+--------------------------------------------------------------
+s2                    |INT32               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.2
+
+-- [1]35:desc table_with_x
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device                |STRING              |TAG                 |
+--------------------------------------------------------------
+x                     |INT32               |FIELD               |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+--------------------------------------------------------------
+s2                    |INT32               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]36:desc table_null
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device                |STRING              |TAG                 |
+--------------------------------------------------------------
+value                 |INT32               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]43:insert into table1(time, device, temperature, s1, s2) values   ('2026-06-08 00:10:00', 'd1', 20.0, 1, 10),   ('2026-06-08 00:40:00', 'd1', 22.0, 3, 30),   ('2026-06-08 01:15:00', 'd1', 24.0, 5, 50),   ('2026-06-08 03:05:00', 'd1', 30.0, 7, 70)
+STRICT{
+0
+}
+Elapsed Time: 0.0.249
+
+-- [1]48:insert into table_with_x(time, device, x, s1, s2) values   ('2026-06-08 00:00:00', 'd1', 1, 20, 200),   ('2026-06-08 00:01:00', 'd1', 2, 10, 100),   ('2026-06-08 00:02:00', 'd1', 1, 30, 300)
+STRICT{
+0
+}
+Elapsed Time: 0.0.75
+
+-- [1]53:insert into table_null(time, device, value) values   ('2026-06-08 00:00:00', 'd1', 2),   ('2026-06-08 00:01:00', 'd1', NULL),   ('2026-06-08 00:02:00', 'd1', 1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]57:select * from table1 order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |temperature(DOUBLE)      |s1(INT32)      |s2(INT32)      |
+------------------------------------------------------------------------------------------------
+2026-06-08T00:10:00.0|d1                  |20.0                     |1              |10             |
+00+08:00             |                    |                         |               |               |
+------------------------------------------------------------------------------------------------
+2026-06-08T00:40:00.0|d1                  |22.0                     |3              |30             |
+00+08:00             |                    |                         |               |               |
+------------------------------------------------------------------------------------------------
+2026-06-08T01:15:00.0|d1                  |24.0                     |5              |50             |
+00+08:00             |                    |                         |               |               |
+------------------------------------------------------------------------------------------------
+2026-06-08T03:05:00.0|d1                  |30.0                     |7              |70             |
+00+08:00             |                    |                         |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.10
+
+-- [1]58:select * from table_with_x order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |x(INT32)      |s1(INT32)      |s2(INT32)      |
+-------------------------------------------------------------------------------------
+2026-06-08T00:00:00.0|d1                  |1             |20             |200            |
+00+08:00             |                    |              |               |               |
+-------------------------------------------------------------------------------------
+2026-06-08T00:01:00.0|d1                  |2             |10             |100            |
+00+08:00             |                    |              |               |               |
+-------------------------------------------------------------------------------------
+2026-06-08T00:02:00.0|d1                  |1             |30             |300            |
+00+08:00             |                    |              |               |               |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]59:select * from table_null order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |value(INT32)      |
+-----------------------------------------------------------
+2026-06-08T00:00:00.0|d1                  |2                 |
+00+08:00             |                    |                  |
+-----------------------------------------------------------
+2026-06-08T00:01:00.0|d1                  |null              |
+00+08:00             |                    |                  |
+-----------------------------------------------------------
+2026-06-08T00:02:00.0|d1                  |1                 |
+00+08:00             |                    |                  |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]64:select date_bin(1h, time) AS hour_time, avg(temperature) AS avg_temp from table1  	GROUP BY hour_time ORDER BY hour_time
+STRICT{
+hour_time(TIMESTAMP)      |avg_temp(DOUBLE)      |
+------------------------------------------------
+2026-06-08T00:00:00.000+08|21.0                  |
+:00                       |                      |
+------------------------------------------------
+2026-06-08T01:00:00.000+08|24.0                  |
+:00                       |                      |
+------------------------------------------------
+2026-06-08T03:00:00.000+08|30.0                  |
+:00                       |                      |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]66:select date_bin_gapfill(1h, time) AS hour_time, avg(s1) AS avg_s1 from table1  	where time > 2026-06-08 00:00:00 and time < 2026-06-08 04:00:00  		GROUP BY hour_time ORDER BY hour_time
+STRICT{
+hour_time(TIMESTAMP)      |avg_s1(DOUBLE)      |
+----------------------------------------------
+2026-06-08T00:00:00.000+08|2.0                 |
+:00                       |                    |
+----------------------------------------------
+2026-06-08T01:00:00.000+08|5.0                 |
+:00                       |                    |
+----------------------------------------------
+2026-06-08T02:00:00.000+08|null                |
+:00                       |                    |
+----------------------------------------------
+2026-06-08T03:00:00.000+08|7.0                 |
+:00                       |                    |
+总数目：4
+}
+Elapsed Time: 0.0.10
+
+-- [1]68:select x + 1 AS gx, count(s1) AS cnt from table_with_x GROUP BY gx ORDER BY gx
+STRICT{
+gx(INT32)      |cnt(INT64)      |
+-------------------------------
+2              |2               |
+-------------------------------
+3              |1               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]69:select x + 1 gx, COUNT(s1) cnt from table_with_x GROUP BY gx ORDER BY gx
+STRICT{
+gx(INT32)      |cnt(INT64)      |
+-------------------------------
+2              |2               |
+-------------------------------
+3              |1               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]70:select x AS gx, s1 / 10 AS level, COUNT(*) AS cnt from table_with_x GROUP BY gx, level ORDER BY gx, level
+STRICT{
+gx(INT32)      |level(INT32)      |cnt(INT64)      |
+-------------------------------------------------
+1              |2                 |1               |
+-------------------------------------------------
+1              |3                 |1               |
+-------------------------------------------------
+2              |1                 |1               |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]71:select x + 1 AS gx, s2 / 100 AS level, COUNT(*) AS cnt from table_with_x GROUP BY gx, s2 / 100 ORDER BY gx
+STRICT{
+gx(INT32)      |level(INT32)      |cnt(INT64)      |
+-------------------------------------------------
+2              |2                 |1               |
+-------------------------------------------------
+2              |3                 |1               |
+-------------------------------------------------
+3              |1                 |1               |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]72:select 1 AS k, COUNT(*) AS cnt from table_with_x GROUP BY k
+STRICT{
+k(INT32)      |cnt(INT64)      |
+------------------------------
+1             |3               |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]73:select 0 AS x, COUNT(*) AS cnt from table_with_x GROUP BY x ORDER BY cnt DESC
+STRICT{
+x(INT32)      |cnt(INT64)      |
+------------------------------
+0             |2               |
+------------------------------
+0             |1               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]74:select x + 1 AS gx, COUNT(*) AS cnt from table_with_x GROUP BY 1 ORDER BY 1
+STRICT{
+gx(INT32)      |cnt(INT64)      |
+-------------------------------
+2              |2               |
+-------------------------------
+3              |1               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]75:select x + 1 AS gx, COUNT(*) AS cnt from table_with_x GROUP BY x + 1 ORDER BY x + 1
+STRICT{
+gx(INT32)      |cnt(INT64)      |
+-------------------------------
+2              |2               |
+-------------------------------
+3              |1               |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]76:select x, COUNT(*) AS cnt from table_with_x GROUP BY x ORDER BY x
+STRICT{
+x(INT32)      |cnt(INT64)      |
+------------------------------
+1             |2               |
+------------------------------
+2             |1               |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]77:select abs(x - 2) AS distance, COUNT(*) AS cnt from table_with_x GROUP BY distance ORDER BY distance
+STRICT{
+distance(INT32)      |cnt(INT64)      |
+-------------------------------------
+0                    |1               |
+-------------------------------------
+1                    |2               |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]79:select o.x from table_with_x o  	where exists( 		select i.s1 + 1 as x from table1 i group by x 		) order by o.x
+STRICT{
+x(INT32)      |
+--------------
+1             |
+--------------
+1             |
+--------------
+2             |
+总数目：3
+}
+Elapsed Time: 0.0.26
+
+-- [1]83:select x + 1 AS "GroupKey", COUNT(*) from table_with_x GROUP BY "GroupKey" ORDER BY "GroupKey"
+STRICT{
+GroupKey(INT32)      |_col1(INT64)      |
+---------------------------------------
+2                    |2                 |
+---------------------------------------
+3                    |1                 |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]86:select s1 AS metric from table_with_x ORDER BY metric
+STRICT{
+metric(INT32)      |
+-------------------
+10                 |
+-------------------
+20                 |
+-------------------
+30                 |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]87:select s1 AS metric from table_with_x ORDER BY metric DESC
+STRICT{
+metric(INT32)      |
+-------------------
+30                 |
+-------------------
+20                 |
+-------------------
+10                 |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]88:select s1 AS x, table_with_x.x AS source_x from table_with_x ORDER BY x
+STRICT{
+x(INT32)      |source_x(INT32)      |
+-----------------------------------
+10            |2                    |
+-----------------------------------
+20            |1                    |
+-----------------------------------
+30            |1                    |
+总数目：3
+}
+Elapsed Time: 0.0.8
+
+-- [1]89:select x, SUM(s1) AS total from table_with_x GROUP BY x ORDER BY total DESC
+STRICT{
+x(INT32)      |total(DOUBLE)      |
+---------------------------------
+1             |50.0               |
+---------------------------------
+2             |10.0               |
+总数目：2
+}
+Elapsed Time: 0.0.8
+
+-- [1]90:select time, row_number() OVER (ORDER BY time) AS rn from table1 ORDER BY rn DESC
+STRICT{
+time(TIMESTAMP)      |rn(INT64)      |
+------------------------------------
+2026-06-08T03:05:00.0|4              |
+00+08:00             |               |
+------------------------------------
+2026-06-08T01:15:00.0|3              |
+00+08:00             |               |
+------------------------------------
+2026-06-08T00:40:00.0|2              |
+00+08:00             |               |
+------------------------------------
+2026-06-08T00:10:00.0|1              |
+00+08:00             |               |
+总数目：4
+}
+Elapsed Time: 0.0.7
+
+-- [1]91:select DISTINCT x + 1 AS gx from table_with_x ORDER BY gx
+STRICT{
+gx(INT32)      |
+---------------
+2              |
+---------------
+3              |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]92:select value AS metric from table_null ORDER BY metric ASC NULLS FIRST
+STRICT{
+metric(INT32)      |
+-------------------
+null               |
+-------------------
+1                  |
+-------------------
+2                  |
+总数目：3
+}
+Elapsed Time: 0.0.5
+
+-- [1]93:select value AS metric from table_null ORDER BY metric ASC NULLS LAST
+STRICT{
+metric(INT32)      |
+-------------------
+1                  |
+-------------------
+2                  |
+-------------------
+null               |
+总数目：3
+}
+Elapsed Time: 0.0.5
+
+-- [1]94:select x AS gx, s1 AS metric from table_with_x ORDER BY gx ASC, metric DESC
+STRICT{
+gx(INT32)      |metric(INT32)      |
+----------------------------------
+1              |30                 |
+----------------------------------
+1              |20                 |
+----------------------------------
+2              |10                 |
+总数目：3
+}
+Elapsed Time: 0.0.5
+
+-- [1]95:select s1 AS x, s2 AS x from table1 ORDER BY time
+STRICT{
+x(INT32)      |x(INT32)      |
+----------------------------
+1             |10            |
+----------------------------
+3             |30            |
+----------------------------
+5             |50            |
+----------------------------
+7             |70            |
+总数目：4
+}
+Elapsed Time: 0.0.6
+
+-- [1]96:select s1 AS metric, x from table_with_x ORDER BY x, metric
+STRICT{
+metric(INT32)      |x(INT32)      |
+---------------------------------
+20                 |1             |
+---------------------------------
+30                 |1             |
+---------------------------------
+10                 |2             |
+总数目：3
+}
+Elapsed Time: 0.0.5
+
+-- [1]97:select s1 AS metric from table1 ORDER BY metric + 1
+STRICT{
+metric(INT32)      |
+-------------------
+1                  |
+-------------------
+3                  |
+-------------------
+5                  |
+-------------------
+7                  |
+总数目：4
+}
+Elapsed Time: 0.0.6
+
+-- [1]98:select s1 AS metric from table_with_x ORDER BY 1 DESC
+STRICT{
+metric(INT32)      |
+-------------------
+30                 |
+-------------------
+20                 |
+-------------------
+10                 |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]99:select s1 AS metric from table_with_x ORDER BY s1 + 1 DESC
+STRICT{
+metric(INT32)      |
+-------------------
+30                 |
+-------------------
+20                 |
+-------------------
+10                 |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]100:select s1 metric from table_with_x ORDER BY metric
+STRICT{
+metric(INT32)      |
+-------------------
+10                 |
+-------------------
+20                 |
+-------------------
+30                 |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]101:select s1 AS x, table_with_x.x AS source_x from table_with_x ORDER BY table_with_x.x, s1
+STRICT{
+x(INT32)      |source_x(INT32)      |
+-----------------------------------
+20            |1                    |
+-----------------------------------
+30            |1                    |
+-----------------------------------
+10            |2                    |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]102:select -s1 AS score from table_with_x ORDER BY score DESC NULLS LAST
+STRICT{
+score(INT32)      |
+------------------
+-10               |
+------------------
+-20               |
+------------------
+-30               |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]103:select DISTINCT s1 AS x from table_with_x ORDER BY x
+STRICT{
+x(INT32)      |
+--------------
+10            |
+--------------
+20            |
+--------------
+30            |
+总数目：3
+}
+Elapsed Time: 0.0.6
+
+-- [1]104:select s1 AS "Metric" from table_with_x ORDER BY "Metric" DESC
+STRICT{
+Metric(INT32)      |
+-------------------
+30                 |
+-------------------
+20                 |
+-------------------
+10                 |
+总数目：3
+}
+Elapsed Time: 0.0.5
+
+-- [1]105:select s1 + 1 AS x, x * 2 AS y from table1
+STRICT{
+x(INT32)      |y(INT32)      |
+----------------------------
+2             |4             |
+----------------------------
+4             |8             |
+----------------------------
+6             |12            |
+----------------------------
+8             |16            |
+总数目：4
+}
+Elapsed Time: 0.0.6
+
+-- [1]106:select d.x from (select s1 AS x from table1) d ORDER BY x
+STRICT{
+x(INT32)      |
+--------------
+1             |
+--------------
+3             |
+--------------
+5             |
+--------------
+7             |
+总数目：4
+}
+Elapsed Time: 0.0.5
+
+-- [1]107:select d.x from (select s1 + 1 AS x from table1 GROUP BY x) d ORDER BY x
+STRICT{
+x(INT32)      |
+--------------
+2             |
+--------------
+4             |
+--------------
+6             |
+--------------
+8             |
+总数目：4
+}
+Elapsed Time: 0.0.7
+
+-- [1]108:select s1 AS x from table_with_x where x = 1 ORDER BY s1
+STRICT{
+x(INT32)      |
+--------------
+20            |
+--------------
+30            |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]113:select avg(temperature) AS avg_temp from table1 GROUP BY avg_temp
+STRICT{
+SQLSTATE : 701: GROUP BY clause cannot contain aggregations, window functions or grouping operations: [avg(temperature)]
+}
+
+-- [1]117:select x + 1 AS k, s1 + 1 AS k, COUNT(*) from table_with_x GROUP BY k
+STRICT{
+SQLSTATE : 701: Column alias 'k' is ambiguous at positions 1, 2
+}
+
+-- [1]119:select s1 AS x, s2 AS x from table1 ORDER BY x
+STRICT{
+SQLSTATE : 701: Column alias 'x' is ambiguous at positions 1, 2
+}
+
+-- [1]123:select row_number() OVER (ORDER BY time) AS rn from table1 GROUP BY rn
+STRICT{
+SQLSTATE : 701: GROUP BY clause cannot contain aggregations, window functions or grouping operations: [row_number() OVER (ORDER BY time ASC)]
+}
+
+-- [1]127:select x + 1 AS gx, COUNT(*) from table_with_x GROUP BY gx + 1
+STRICT{
+SQLSTATE : 616: Column 'gx' cannot be resolved
+}
+
+-- [1]131:select x + 1 AS gx, COUNT(*) from table_with_x GROUP BY table_with_x.gx
+STRICT{
+SQLSTATE : 616: Column 'table_with_x.gx' cannot be resolved.
+}
+
+-- [1]133:select s1 AS metric FROM table1 ORDER BY table1.metric
+STRICT{
+SQLSTATE : 616: Column 'table1.metric' cannot be resolved.
+}
+
+-- [1]137:select s1 AS metric from table1 WHERE metric > 1
+STRICT{
+SQLSTATE : 616: Column 'metric' cannot be resolved
+}
+
+-- [1]141:select avg(s1) AS avg_s1 from table1 HAVING avg_s1 > 1
+STRICT{
+SQLSTATE : 616: Column 'avg_s1' cannot be resolved
+}
+
+-- [1]145:select o.s1 AS outer_alias from table1 o where EXISTS (select 1 from table1 i GROUP BY outer_alias)
+STRICT{
+SQLSTATE : 616: Column 'outer_alias' cannot be resolved
+}
+
+-- [1]149:select d.s1 AS outer_alias from (select s1 from table1 ORDER BY outer_alias) d
+STRICT{
+SQLSTATE : 616: Column 'outer_alias' cannot be resolved
+}

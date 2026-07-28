@@ -1,0 +1,156 @@
+// SELECT alias 在GROUP BY 和 ORDER BY 中的可见性、解析优先级、错误处理和兼容行为。
+
+--0.清理数据：
+connect root/TimechoDB@2021;
+drop database alias_test;
+<<NULL;
+
+
+--1. 创建数据库并使用该数据库
+create database alias_test;
+use alias_test;
+
+--2.创建表并查看表，以及表结构
+create table table1 (
+  device STRING TAG,
+  temperature DOUBLE FIELD,
+  s1 INT32 FIELD,
+  s2 INT32 FIELD
+);
+
+create table table_with_x (
+  device STRING TAG,
+  x INT32 FIELD,
+  s1 INT32 FIELD,
+  s2 INT32 FIELD
+);
+
+create table table_null (
+  device STRING TAG,
+  value INT32 FIELD
+);
+
+show tables;
+desc table1;
+desc table_with_x;
+desc table_null;
+
+--3. 插入数据
+insert into table1(time, device, temperature, s1, s2) values
+  ('2026-06-08 00:10:00', 'd1', 20.0, 1, 10),
+  ('2026-06-08 00:40:00', 'd1', 22.0, 3, 30),
+  ('2026-06-08 01:15:00', 'd1', 24.0, 5, 50),
+  ('2026-06-08 03:05:00', 'd1', 30.0, 7, 70);
+  
+insert into table_with_x(time, device, x, s1, s2) values
+  ('2026-06-08 00:00:00', 'd1', 1, 20, 200),
+  ('2026-06-08 00:01:00', 'd1', 2, 10, 100),
+  ('2026-06-08 00:02:00', 'd1', 1, 30, 300);
+  
+insert into table_null(time, device, value) values
+  ('2026-06-08 00:00:00', 'd1', 2),
+  ('2026-06-08 00:01:00', 'd1', NULL),
+  ('2026-06-08 00:02:00', 'd1', 1);
+
+--4. 数据查询
+--4.1 原始数据全量查询
+select * from table1 order by time;
+select * from table_with_x order by time;
+select * from table_null order by time;
+
+--4.2 GROUP BY 和 ORDER BY 别名查询
+--4.2.1 GROUP BY
+select date_bin(1h, time) AS hour_time, avg(temperature) AS avg_temp from table1 
+	GROUP BY hour_time ORDER BY hour_time;
+select date_bin_gapfill(1h, time) AS hour_time, avg(s1) AS avg_s1 from table1 
+	where time > 2026-06-08 00:00:00 and time < 2026-06-08 04:00:00 
+		GROUP BY hour_time ORDER BY hour_time;
+select x + 1 AS gx, count(s1) AS cnt from table_with_x GROUP BY gx ORDER BY gx;
+select x + 1 gx, COUNT(s1) cnt from table_with_x GROUP BY gx ORDER BY gx;
+select x AS gx, s1 / 10 AS level, COUNT(*) AS cnt from table_with_x GROUP BY gx, level ORDER BY gx, level;
+select x + 1 AS gx, s2 / 100 AS level, COUNT(*) AS cnt from table_with_x GROUP BY gx, s2 / 100 ORDER BY gx;
+select 1 AS k, COUNT(*) AS cnt from table_with_x GROUP BY k;
+select 0 AS x, COUNT(*) AS cnt from table_with_x GROUP BY x ORDER BY cnt DESC;
+select x + 1 AS gx, COUNT(*) AS cnt from table_with_x GROUP BY 1 ORDER BY 1;
+select x + 1 AS gx, COUNT(*) AS cnt from table_with_x GROUP BY x + 1 ORDER BY x + 1;
+select x, COUNT(*) AS cnt from table_with_x GROUP BY x ORDER BY x;
+select abs(x - 2) AS distance, COUNT(*) AS cnt from table_with_x GROUP BY distance ORDER BY distance;
+select o.x from table_with_x o 
+	where exists(
+		select i.s1 + 1 as x from table1 i group by x
+		)
+order by o.x;
+select x + 1 AS "GroupKey", COUNT(*) from table_with_x GROUP BY "GroupKey" ORDER BY "GroupKey";
+
+--4.2.2 ORDER BY
+select s1 AS metric from table_with_x ORDER BY metric;
+select s1 AS metric from table_with_x ORDER BY metric DESC;
+select s1 AS x, table_with_x.x AS source_x from table_with_x ORDER BY x;
+select x, SUM(s1) AS total from table_with_x GROUP BY x ORDER BY total DESC;
+select time, row_number() OVER (ORDER BY time) AS rn from table1 ORDER BY rn DESC;
+select DISTINCT x + 1 AS gx from table_with_x ORDER BY gx;
+select value AS metric from table_null ORDER BY metric ASC NULLS FIRST;
+select value AS metric from table_null ORDER BY metric ASC NULLS LAST;
+select x AS gx, s1 AS metric from table_with_x ORDER BY gx ASC, metric DESC;
+select s1 AS x, s2 AS x from table1 ORDER BY time;
+select s1 AS metric, x from table_with_x ORDER BY x, metric;
+select s1 AS metric from table1 ORDER BY metric + 1;
+select s1 AS metric from table_with_x ORDER BY 1 DESC;
+select s1 AS metric from table_with_x ORDER BY s1 + 1 DESC;
+select s1 metric from table_with_x ORDER BY metric;
+select s1 AS x, table_with_x.x AS source_x from table_with_x ORDER BY table_with_x.x, s1;
+select -s1 AS score from table_with_x ORDER BY score DESC NULLS LAST;
+select DISTINCT s1 AS x from table_with_x ORDER BY x;
+select s1 AS "Metric" from table_with_x ORDER BY "Metric" DESC;
+select s1 + 1 AS x, x * 2 AS y from table1;
+select d.x from (select s1 AS x from table1) d ORDER BY x;
+select d.x from (select s1 + 1 AS x from table1 GROUP BY x) d ORDER BY x;
+select s1 AS x from table_with_x where x = 1 ORDER BY s1;
+
+
+--4.3 异常用例校验	
+--4.3.1 聚合别名不能作为 GROUP BY 关键字
+select avg(temperature) AS avg_temp from table1 GROUP BY avg_temp;
+<<SQLSTATE;
+
+--4.3.2 重复别名歧义
+select x + 1 AS k, s1 + 1 AS k, COUNT(*) from table_with_x GROUP BY k;
+<<SQLSTATE;
+select s1 AS x, s2 AS x from table1 ORDER BY x;
+<<SQLSTATE;
+
+--4.3.3 GROUP BY 键不能包含窗口函数
+select row_number() OVER (ORDER BY time) AS rn from table1 GROUP BY rn;
+<<SQLSTATE;
+
+--4.3.4复合表达式不展开别名
+select x + 1 AS gx, COUNT(*) from table_with_x GROUP BY gx + 1;
+<<SQLSTATE;
+
+--4.3.5 限定名称不展开别名
+select x + 1 AS gx, COUNT(*) from table_with_x GROUP BY table_with_x.gx;
+<<SQLSTATE;
+select s1 AS metric FROM table1 ORDER BY table1.metric;
+<<SQLSTATE;
+
+--4.3.6 where 不能引用SELECT别名
+select s1 AS metric from table1 WHERE metric > 1;
+<<SQLSTATE;
+
+--4.3.7 HAVING 不能引用SELECT别名
+select avg(s1) AS avg_s1 from table1 HAVING avg_s1 > 1;
+<<SQLSTATE;
+
+--4.3.8 别名不泄露到子查询
+select o.s1 AS outer_alias from table1 o where EXISTS (select 1 from table1 i GROUP BY outer_alias);
+<<SQLSTATE;
+
+--4.3.9 内层 ORDER BY 不能解析外层 SELECT 别名
+select d.s1 AS outer_alias from (select s1 from table1 ORDER BY outer_alias) d;
+<<SQLSTATE;
+
+
+-- 清理数据：
+connect root/TimechoDB@2021;
+drop database alias_test;
+<<NULL;
