@@ -1,0 +1,91 @@
+// 无表查询：允许用户在不依赖实际数据库表的情况下，直接执行SQL查询语句，获取计算结果、常量或系统值
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+
+--1. 无表查询单个常量
+select 1 as c1;
+
+--2. 无表查询算术表达式且不指定别名
+select 1 + 1;
+
+--3. 同一条 SQL 返回多个算术表达式列
+select 10 * 5 AS product, 10 - 3 AS diff;
+
+--4. 括号优先级表达式计算
+select (2 + 3) * 4 AS calc;
+
+--5. 无表查询调用 SQRT 函数
+select SQRT(144) AS square_root;
+
+--6. 无表查询调用 ABS 函数
+select ABS(-25) AS absolute_value;
+
+--7. 无表查询调用 SIN 函数
+select SIN(1) AS sin_result;
+
+--8. 无表查询调用 CONCAT 函数
+select CONCAT('Hello', ' ', 'World') AS greeting;
+
+--9. 无表查询调用大小写转换函数
+select UPPER('hello') AS uppercase, LOWER('HELLO') AS lowercase;
+
+--10. 无表查询调用 LENGTH 函数
+select LENGTH('database') AS str_length;
+
+--11. 无表查询调用 NOW 函数
+--select NOW() as "now";
+
+--12. 无表查询对常量执行 SUM 聚合
+select SUM(10) AS total_sum;
+
+--13. 无表查询对常量执行 AVG 聚合
+select AVG(10) AS average;
+
+--14. 无表查询对常量执行 COUNT(expr) 聚合
+select COUNT(10) AS total_count;
+
+--15. 无表查询执行 COUNT(*)
+select COUNT(*) AS total_count;
+
+--16.无表查询在同一条 SQL 中组合多个聚合函数
+select AVG(10) AS avg_result, SUM(10) AS sum_result, COUNT(10) AS count_const, COUNT(*) AS count_all;
+
+--17. 无表查询直接使用 SELECT *
+select * ;
+<<SQLSTATE;
+
+--18.无表查询将 * 与其他表达式混用
+select COUNT(*), *;
+<<SQLSTATE;
+
+--19. 仅输入不完整 SELECT 语句
+select;
+<<SQLSTATE;
+
+--20. 无表查询对不存在的列执行聚合
+select SUM(s1);
+<<SQLSTATE;
+
+--21. 无表查询调用不存在的函数
+select NOT_EXIST_FUNC(1);
+<<SQLSTATE;
+
+--22. 普通表查询仍可正常读取列值
+create database test;
+create table test.t1(device_id string tag, s1 int32 field);
+insert into test.t1(time, device_id, s1) values(1000, 'd1', 1),(2000, 'd1', 2),(3000, 'd2', 3);
+select s1 from test.t1 ORDER BY time LIMIT 1;
+
+--23. 普通表查询中的 SELECT * 保持原有语义
+select * from test.t1 ORDER BY time LIMIT 1;
+
+--24. 普通表查询中的 COUNT(*) 保持按行数统计
+select COUNT(*) AS total_count from test.t1;
+
+-- 清理环境
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
