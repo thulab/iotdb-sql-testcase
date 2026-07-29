@@ -1,0 +1,721 @@
+
+-- [1]11:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]12:show databases
+STRICT{
+Database(TEXT)      |TTL(ms)(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionInterval(INT64)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+__audit             |INF                |1                                   |1                                 |604800000                         |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+information_schema  |INF                |null                                |null                              |null                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------
+test_db             |INF                |1                                   |1                                 |604800000                         |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]15:use test_db
+STRICT{
+PASS
+}
+
+-- [1]18:create table t1(   device_id STRING TAG,   s1 OBJECT FIELD,   s2 BOOLEAN FIELD,   s3 INT32 FIELD,   s4 INT64 FIELD,   s5 TEXT FIELD,   s6 DOUBLE FIELD,   s7 FLOAT FIELD,   s8 TIMESTAMP FIELD,   s9 DATE FIELD,   s10 STRING FIELD,   s11 BLOB FIELD )
+STRICT{
+PASS
+}
+
+-- [1]33:create table t_ts(   device_id STRING TAG,   event_time TIMESTAMP FIELD,   ingest_time TIMESTAMP FIELD,   temperature FLOAT FIELD )
+STRICT{
+PASS
+}
+
+-- [1]40:create table t_group(   plant_id STRING TAG,   device_id STRING TAG,   temperature FLOAT FIELD,   status BOOLEAN FIELD )
+STRICT{
+PASS
+}
+
+-- [1]46:show tables from test_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+t1                   |INF                |
+----------------------------------------
+t_group              |INF                |
+----------------------------------------
+t_ts                 |INF                |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]47:desc t1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |OBJECT              |FIELD               |
+--------------------------------------------------------------
+s2                    |BOOLEAN             |FIELD               |
+--------------------------------------------------------------
+s3                    |INT32               |FIELD               |
+--------------------------------------------------------------
+s4                    |INT64               |FIELD               |
+--------------------------------------------------------------
+s5                    |TEXT                |FIELD               |
+--------------------------------------------------------------
+s6                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s7                    |FLOAT               |FIELD               |
+--------------------------------------------------------------
+s8                    |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+s9                    |DATE                |FIELD               |
+--------------------------------------------------------------
+s10                   |STRING              |FIELD               |
+--------------------------------------------------------------
+s11                   |BLOB                |FIELD               |
+总数目：13
+}
+Elapsed Time: 0.0.2
+
+-- [1]48:desc t_ts
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+event_time            |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+ingest_time           |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.2
+
+-- [1]49:desc t_group
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+plant_id              |STRING              |TAG                 |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |FLOAT               |FIELD               |
+--------------------------------------------------------------
+status                |BOOLEAN             |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.2
+
+-- [1]54:insert into t1(time, device_id, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) values (1000, 'd1', to_object(true, 0, X'696F746462'), true, 1, 100, 'text-1', 1.11, 1.10, 1000, '2026-07-01', 'string-1', X'01')
+STRICT{
+0
+}
+Elapsed Time: 0.0.476
+
+-- [1]56:insert into t1(time, device_id, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) values (1060, 'd1', null, null, null, null, null, null, null, null, null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]58:insert into t1(time, device_id, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) values (1120, 'd1', to_object(true, 0, X'6E657874'), false, 10, 10000000000, 'text-next', 1.23456789, 1.25, 2220, '2026-07-06', 'next-value', X'0A0B0C')
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]60:insert into t1(time, device_id, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11) values (1180, 'd1', null, null, null, null, null, null, null, null, null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]67:insert into t1(time, device_id, s2, s7) values (1000, 'base', true, 21.93), (1060, 'base', false, null), (1120, 'base', null, 22.23), (1180, 'base', null, 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.70
+
+-- [1]72:insert into t1(time, device_id, s7) values (1000, 'chain', null), (1060, 'chain', null), (1120, 'chain', 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]77:insert into t1(time, device_id, s2, s3, s7) values (1000, 'multi', null, 1, null), (1060, 'multi', false, null, 22.23), (1120, 'multi', true, 3, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]81:insert into t1(time, device_id, s2, s7) values (1000, 'full', true, 21.93), (1060, 'full', false, 22.23)
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]85:insert into t1(time, device_id, s7) values (1000, 'bound_ok', null), (1020, 'bound_ok', 22.88)
+STRICT{
+0
+}
+Elapsed Time: 0.0.8
+
+-- [1]89:insert into t_ts(time, device_id, event_time, ingest_time, temperature) values (1, 'd1', 1000, 1050, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]91:insert into t_ts(time, device_id, event_time, ingest_time, temperature) values (2, 'd1', 1060, 1070, 25.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]93:insert into t_ts(time, device_id, event_time, ingest_time, temperature) values (3, 'd1', 1120, 1125, 26.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]97:insert into t_group(time, plant_id, device_id, temperature, status) values (1000, 'plant_a', 'dev_x', null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]99:insert into t_group(time, plant_id, device_id, temperature, status) values (1010, 'plant_b', 'dev_x', 31.0, false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.8
+
+-- [1]101:insert into t_group(time, plant_id, device_id, temperature, status) values (1020, 'plant_a', 'dev_y', 16.0, false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]103:insert into t_group(time, plant_id, device_id, temperature, status) values (1030, 'plant_a', 'dev_x', 21.0, true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]105:insert into t_group(time, plant_id, device_id, temperature, status) values (1090, 'plant_a', 'dev_x', null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]107:insert into t_group(time, plant_id, device_id, temperature, status) values (1150, 'plant_a', 'dev_x', 40.0, true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]111:select time, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11 from t1 where device_id = 'd1' order by time
+STRICT{
+time(TIMESTAMP)      |s1(null)      |s2(BOOLEAN)      |s3(INT32)      |s4(INT64)      |s5(TEXT)      |s6(DOUBLE)      |s7(FLOAT)      |s8(TIMESTAMP)      |s9(DATE)      |s10(STRING)      |s11(BLOB)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|(Object) 5 B  |true             |1              |100            |text-1        |1.11            |1.1            |1970-01-01T08:00:01|2026-07-01    |string-1         |0x01           |
+00+08:00             |              |                 |               |               |              |                |               |.000+08:00         |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|null          |null             |null           |null           |null          |null            |null           |null               |null          |null             |null           |
+60+08:00             |              |                 |               |               |              |                |               |                   |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|(Object) 4 B  |false            |10             |10000000000    |text-next     |1.23456789      |1.25           |1970-01-01T08:00:02|2026-07-06    |next-value       |0x0a0b0c       |
+20+08:00             |              |                 |               |               |              |                |               |.220+08:00         |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|null          |null             |null           |null           |null          |null            |null           |null               |null          |null             |null           |
+80+08:00             |              |                 |               |               |              |                |               |                   |              |                 |               |
+总数目：4
+}
+Elapsed Time: 0.0.13
+
+-- [1]118:select time, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11 from t1 where device_id = 'd1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |s1(null)      |s2(BOOLEAN)      |s3(INT32)      |s4(INT64)      |s5(TEXT)      |s6(DOUBLE)      |s7(FLOAT)      |s8(TIMESTAMP)      |s9(DATE)      |s10(STRING)      |s11(BLOB)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|(Object) 5 B  |true             |1              |100            |text-1        |1.11            |1.1            |1970-01-01T08:00:01|2026-07-01    |string-1         |0x01           |
+00+08:00             |              |                 |               |               |              |                |               |.000+08:00         |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|(Object) 4 B  |false            |10             |10000000000    |text-next     |1.23456789      |1.25           |1970-01-01T08:00:02|2026-07-06    |next-value       |0x0a0b0c       |
+60+08:00             |              |                 |               |               |              |                |               |.220+08:00         |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|(Object) 4 B  |false            |10             |10000000000    |text-next     |1.23456789      |1.25           |1970-01-01T08:00:02|2026-07-06    |next-value       |0x0a0b0c       |
+20+08:00             |              |                 |               |               |              |                |               |.220+08:00         |              |                 |               |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|null          |null             |null           |null           |null          |null            |null           |null               |null          |null             |null           |
+80+08:00             |              |                 |               |               |              |                |               |                   |              |                 |               |
+总数目：4
+}
+Elapsed Time: 0.0.13
+
+-- [1]125:select event_time, ingest_time, temperature from t_ts where device_id = 'd1' FILL METHOD NEXT TIME_BOUND 30ms order by time
+STRICT{
+event_time(TIMESTAMP)      |ingest_time(TIMESTAMP)      |temperature(FLOAT)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.000+08:|1970-01-01T08:00:01.050+08:0|null                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.060+08:|1970-01-01T08:00:01.070+08:0|25.5                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.120+08:|1970-01-01T08:00:01.125+08:0|26.1                    |
+00                         |0                           |                        |
+总数目：3
+}
+Elapsed Time: 0.0.10
+
+-- [1]131:select time, s7 AS temperature from t1  where device_id='base'  FILL METHOD NEXT TIME_BOUND 30ms order by time
+STRICT{
+time(TIMESTAMP)      |temperature(FLOAT)      |
+---------------------------------------------
+1970-01-01T08:00:01.0|21.93                   |
+00+08:00             |                        |
+---------------------------------------------
+1970-01-01T08:00:01.0|null                    |
+60+08:00             |                        |
+---------------------------------------------
+1970-01-01T08:00:01.1|22.23                   |
+20+08:00             |                        |
+---------------------------------------------
+1970-01-01T08:00:01.1|23.43                   |
+80+08:00             |                        |
+总数目：4
+}
+Elapsed Time: 0.0.11
+
+-- [1]138:select time, s7 AS temperature  from t1  where device_id='bound_ok'  FILL METHOD NEXT TIME_BOUND 30ms  order by time
+STRICT{
+time(TIMESTAMP)      |temperature(FLOAT)      |
+---------------------------------------------
+1970-01-01T08:00:01.0|22.88                   |
+00+08:00             |                        |
+---------------------------------------------
+1970-01-01T08:00:01.0|22.88                   |
+20+08:00             |                        |
+总数目：2
+}
+Elapsed Time: 0.0.10
+
+-- [1]146:select event_time, ingest_time, temperature  from t_ts  where device_id='d1'  FILL METHOD NEXT TIME_BOUND 100ms ORDER BY time
+STRICT{
+event_time(TIMESTAMP)      |ingest_time(TIMESTAMP)      |temperature(FLOAT)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.000+08:|1970-01-01T08:00:01.050+08:0|25.5                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.060+08:|1970-01-01T08:00:01.070+08:0|25.5                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.120+08:|1970-01-01T08:00:01.125+08:0|26.1                    |
+00                         |0                           |                        |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]152:select event_time, ingest_time, temperature from t_ts where device_id = 'd1' FILL METHOD NEXT TIME_BOUND 30ms TIME_COLUMN 2 order by time
+STRICT{
+event_time(TIMESTAMP)      |ingest_time(TIMESTAMP)      |temperature(FLOAT)      |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.000+08:|1970-01-01T08:00:01.050+08:0|25.5                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.060+08:|1970-01-01T08:00:01.070+08:0|25.5                    |
+00                         |0                           |                        |
+-------------------------------------------------------------------------------
+1970-01-01T08:00:01.120+08:|1970-01-01T08:00:01.125+08:0|26.1                    |
+00                         |0                           |                        |
+总数目：3
+}
+Elapsed Time: 0.0.10
+
+-- [1]159:select time, plant_id, temperature from t_group FILL METHOD NEXT FILL_GROUP 2 order by time
+STRICT{
+time(TIMESTAMP)      |plant_id(STRING)      |temperature(FLOAT)      |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |16.0                    |
+00+08:00             |                      |                        |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_b               |31.0                    |
+10+08:00             |                      |                        |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |16.0                    |
+20+08:00             |                      |                        |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |21.0                    |
+30+08:00             |                      |                        |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |40.0                    |
+90+08:00             |                      |                        |
+-------------------------------------------------------------------
+1970-01-01T08:00:01.1|plant_a               |40.0                    |
+50+08:00             |                      |                        |
+总数目：6
+}
+Elapsed Time: 0.0.17
+
+-- [1]165:select time, plant_id, device_id, status from t_group FILL METHOD NEXT FILL_GROUP 2,3 order by time
+STRICT{
+time(TIMESTAMP)      |plant_id(STRING)      |device_id(STRING)      |status(BOOLEAN)      |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |true                 |
+00+08:00             |                      |                       |                     |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_b               |dev_x                  |false                |
+10+08:00             |                      |                       |                     |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_y                  |false                |
+20+08:00             |                      |                       |                     |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |true                 |
+30+08:00             |                      |                       |                     |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |true                 |
+90+08:00             |                      |                       |                     |
+---------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|plant_a               |dev_x                  |true                 |
+50+08:00             |                      |                       |                     |
+总数目：6
+}
+Elapsed Time: 0.0.17
+
+-- [1]171:select time, plant_id, device_id, temperature from t_group FILL METHOD NEXT TIME_BOUND 30ms FILL_GROUP 2,3 order by time
+STRICT{
+time(TIMESTAMP)      |plant_id(STRING)      |device_id(STRING)      |temperature(FLOAT)      |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |21.0                    |
+00+08:00             |                      |                       |                        |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_b               |dev_x                  |31.0                    |
+10+08:00             |                      |                       |                        |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_y                  |16.0                    |
+20+08:00             |                      |                       |                        |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |21.0                    |
+30+08:00             |                      |                       |                        |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|plant_a               |dev_x                  |null                    |
+90+08:00             |                      |                       |                        |
+------------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|plant_a               |dev_x                  |40.0                    |
+50+08:00             |                      |                       |                        |
+总数目：6
+}
+Elapsed Time: 0.0.16
+
+-- [1]176:select time, s2 AS status from t1 WHERE device_id='base' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |status(BOOLEAN)      |
+------------------------------------------
+1970-01-01T08:00:01.0|true                 |
+00+08:00             |                     |
+------------------------------------------
+1970-01-01T08:00:01.0|false                |
+60+08:00             |                     |
+------------------------------------------
+1970-01-01T08:00:01.1|null                 |
+20+08:00             |                     |
+------------------------------------------
+1970-01-01T08:00:01.1|null                 |
+80+08:00             |                     |
+总数目：4
+}
+Elapsed Time: 0.0.12
+
+-- [1]179:select time, s7 AS temperature, s2 AS status, s3 AS quality from t1 WHERE device_id='multi' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |temperature(FLOAT)      |status(BOOLEAN)      |quality(INT32)      |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|22.23                   |false                |1                   |
+00+08:00             |                        |                     |                    |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|22.23                   |false                |3                   |
+60+08:00             |                        |                     |                    |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|null                    |true                 |3                   |
+20+08:00             |                        |                     |                    |
+总数目：3
+}
+Elapsed Time: 0.0.13
+
+-- [1]182:select time, s7 AS temperature, s2 AS status from t1 WHERE device_id='full' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |temperature(FLOAT)      |status(BOOLEAN)      |
+------------------------------------------------------------------
+1970-01-01T08:00:01.0|21.93                   |true                 |
+00+08:00             |                        |                     |
+------------------------------------------------------------------
+1970-01-01T08:00:01.0|22.23                   |false                |
+60+08:00             |                        |                     |
+总数目：2
+}
+Elapsed Time: 0.0.13
+
+-- [1]185:select time, s2 AS flag from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |flag(BOOLEAN)      |
+----------------------------------------
+1970-01-01T08:00:01.0|true               |
+00+08:00             |                   |
+----------------------------------------
+1970-01-01T08:00:01.0|false              |
+60+08:00             |                   |
+----------------------------------------
+1970-01-01T08:00:01.1|false              |
+20+08:00             |                   |
+----------------------------------------
+1970-01-01T08:00:01.1|null               |
+80+08:00             |                   |
+总数目：4
+}
+Elapsed Time: 0.0.10
+
+-- [1]186:select time, s3 AS v_int32 from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_int32(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|1                   |
+00+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.0|10                  |
+60+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|10                  |
+20+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|null                |
+80+08:00             |                    |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]187:select time, s4 AS v_int64 from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_int64(INT64)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|100                 |
+00+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.0|10000000000         |
+60+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|10000000000         |
+20+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|null                |
+80+08:00             |                    |
+总数目：4
+}
+Elapsed Time: 0.0.8
+
+-- [1]188:select time, s7 AS v_float from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_float(FLOAT)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|1.1                 |
+00+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.0|1.25                |
+60+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|1.25                |
+20+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|null                |
+80+08:00             |                    |
+总数目：4
+}
+Elapsed Time: 0.0.8
+
+-- [1]189:select time, s6 AS v_double from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_double(DOUBLE)      |
+-------------------------------------------
+1970-01-01T08:00:01.0|1.11                  |
+00+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.0|1.23456789            |
+60+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.1|1.23456789            |
+20+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.1|null                  |
+80+08:00             |                      |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]190:select time, s5 AS v_text from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_text(TEXT)      |
+---------------------------------------
+1970-01-01T08:00:01.0|text-1            |
+00+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.0|text-next         |
+60+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|text-next         |
+20+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|null              |
+80+08:00             |                  |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]191:select time, s10 AS v_string from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_string(STRING)      |
+-------------------------------------------
+1970-01-01T08:00:01.0|string-1              |
+00+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.0|next-value            |
+60+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.1|next-value            |
+20+08:00             |                      |
+-------------------------------------------
+1970-01-01T08:00:01.1|null                  |
+80+08:00             |                      |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]192:select time, s11 AS v_blob from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_blob(BLOB)      |
+---------------------------------------
+1970-01-01T08:00:01.0|0x01              |
+00+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.0|0x0a0b0c          |
+60+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|0x0a0b0c          |
+20+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|null              |
+80+08:00             |                  |
+总数目：4
+}
+Elapsed Time: 0.0.8
+
+-- [1]193:select time, s8 AS v_ts from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_ts(TIMESTAMP)      |
+------------------------------------------
+1970-01-01T08:00:01.0|1970-01-01T08:00:01.0|
+00+08:00             |00+08:00             |
+------------------------------------------
+1970-01-01T08:00:01.0|1970-01-01T08:00:02.2|
+60+08:00             |20+08:00             |
+------------------------------------------
+1970-01-01T08:00:01.1|1970-01-01T08:00:02.2|
+20+08:00             |20+08:00             |
+------------------------------------------
+1970-01-01T08:00:01.1|null                 |
+80+08:00             |                     |
+总数目：4
+}
+Elapsed Time: 0.0.8
+
+-- [1]194:select time, s9 AS v_date from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_date(DATE)      |
+---------------------------------------
+1970-01-01T08:00:01.0|2026-07-01        |
+00+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.0|2026-07-06        |
+60+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|2026-07-06        |
+20+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:01.1|null              |
+80+08:00             |                  |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]195:select time, s1 AS v_object from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_object(null)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|(Object) 5 B        |
+00+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.0|(Object) 4 B        |
+60+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|(Object) 4 B        |
+20+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|null                |
+80+08:00             |                    |
+总数目：4
+}
+Elapsed Time: 0.0.9
+
+-- [1]200:select time, s3 from t1 FILL METHOD NEXT TIME_COLUMN 1 order by time
+STRICT{
+SQLSTATE : 701: Don't need to specify TIME_COLUMN while either TIME_BOUND or FILL_GROUP parameter is not specified
+}
+
+-- [1]207:select time, s7  from t1  where device_id='base'  FILL METHOD NEXT TIME_COLUMN 1  ORDER BY time
+STRICT{
+SQLSTATE : 701: Don't need to specify TIME_COLUMN while either TIME_BOUND or FILL_GROUP parameter is not specified
+}
+
+-- [1]214:select s3, s5 from t1 FILL METHOD NEXT TIME_BOUND 30ms order by time
+STRICT{
+SQLSTATE : 701: Cannot infer TIME_COLUMN for NEXT FILL, there exists no column whose type is TIMESTAMP
+}
+
+-- [1]220:select plant_id, temperature  from t_group  FILL METHOD NEXT FILL_GROUP 1  order by time
+STRICT{
+SQLSTATE : 701: Cannot infer TIME_COLUMN for NEXT FILL, there exists no column whose type is TIMESTAMP
+}
+
+-- [1]227:select time, s3, s5 from t1 FILL METHOD NEXT TIME_BOUND 30ms TIME_COLUMN 2 order by time
+STRICT{
+SQLSTATE : 701: Type of TIME_COLUMN for NEXT FILL should only be TIMESTAMP, but type of the column you specify is INT32
+}
+
+-- [1]234:select event_time, ingest_time, temperature from t_ts FILL METHOD NEXT TIME_BOUND 30ms TIME_COLUMN 0 order by time
+STRICT{
+SQLSTATE : 701: NEXT FILL TIME_COLUMN position 0 is not in select list
+}
+
+-- [1]240:select event_time, ingest_time, temperature from t_ts FILL METHOD NEXT TIME_BOUND 30ms TIME_COLUMN 4 order by time
+STRICT{
+SQLSTATE : 701: NEXT FILL TIME_COLUMN position 4 is not in select list
+}
+
+-- [1]247:select time, plant_id, temperature from t_group FILL METHOD NEXT FILL_GROUP 0 order by time
+STRICT{
+SQLSTATE : 701: NEXT FILL FILL_GROUP position 0 is not in select list
+}
+
+-- [1]253:select time, plant_id, temperature from t_group FILL METHOD NEXT FILL_GROUP 4 order by time
+STRICT{
+SQLSTATE : 701: NEXT FILL FILL_GROUP position 4 is not in select list
+}
