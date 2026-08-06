@@ -1,0 +1,301 @@
+// logical view full SQL execution cases
+
+connect root/TimechoDB@2021;
+
+-- 0. clean environment
+drop user logical_view_no_create_user;
+<<NULL;
+drop user logical_view_no_select_user;
+<<NULL;
+drop user logical_view_reader_user;
+<<NULL;
+drop user logical_view_no_alter_user;
+<<NULL;
+drop user logical_view_no_drop_user;
+<<NULL;
+drop database logical_view_auth_db;
+<<NULL;
+drop database logical_view_core_db;
+<<NULL;
+set sql_dialect=tree;
+<<NULL;
+drop database root.logical_view_tree_db;
+<<NULL;
+
+-- 1. create core database and base tables
+set sql_dialect=table;
+create database logical_view_core_db;
+use logical_view_core_db;
+
+create table table1
+(
+  device_id STRING TAG,
+  region STRING ATTRIBUTE,
+  s1 INT32 FIELD,
+  s2 DOUBLE FIELD
+);
+
+create table table2
+(
+  device_id STRING TAG,
+  region STRING ATTRIBUTE,
+  s1 INT32 FIELD,
+  s2 DOUBLE FIELD
+);
+
+create table turbine
+(
+  plant_id STRING TAG,
+  voltage DOUBLE FIELD,
+  speed DOUBLE FIELD,
+  var_001 STRING FIELD
+);
+
+insert into table1(time, device_id, region, s1, s2) values
+(1, 'd1', 'north', 1, 1.5),
+(2, 'd1', 'north', 2, 2.5),
+(3, 'd2', 'south', 3, 3.5);
+
+insert into table2(time, device_id, region, s1, s2) values
+(1, 'd3', 'east', 10, 10.5),
+(2, 'd3', 'east', 20, 20.5);
+
+insert into turbine(time, plant_id, voltage, speed, var_001) values
+(1, 'p1', 220.5, 35.2, 'sn-001'),
+(2, 'p1', 221.5, 36.2, 'sn-002');
+
+-- 2. core functional cases
+create view lv_base as
+select time, device_id, s1, s2 from table1;
+
+show create view lv_base;
+show create table lv_base;
+describe lv_base;
+select * from lv_base order by time;
+show tables details from logical_view_core_db;
+select * from information_schema.views;
+
+create view lv_replace as
+select time, s1 from table1;
+
+create or replace view lv_replace as
+select time, s1 + 10 as s1_plus_10 from table1;
+
+select * from lv_replace order by time;
+
+create view lv_l1 as
+select time, s1 + 1 as s1_new from table1;
+
+create view lv_l2 as
+select time, s1_new + 1 as s1_new2 from lv_l1;
+
+select * from lv_l2 order by time;
+
+-- 3. optional functional cases
+set sql_dialect=tree;
+create database root.logical_view_tree_db;
+create timeseries root.logical_view_tree_db.dev1.value with datatype=FLOAT, encoding=RLE;
+create timeseries root.logical_view_tree_db.dev2.value with datatype=FLOAT, encoding=RLE;
+insert into root.logical_view_tree_db.dev1(time, value) values(1, 11.0);
+insert into root.logical_view_tree_db.dev2(time, value) values(1, 22.0);
+
+set sql_dialect=table;
+use logical_view_core_db;
+create view tree_src
+(
+  dev STRING TAG,
+  value FLOAT FIELD
+) as root.logical_view_tree_db.**;
+
+create view lv_from_tree as
+select value from tree_src;
+
+select * from lv_from_tree order by value;
+
+create writable view turbines_v as
+select voltage, speed, var_001 as serial_num from turbine;
+
+create view lv_from_writable as
+select voltage from turbines_v;
+
+select * from lv_from_writable order by voltage;
+
+-- 4. rename, comment and drop
+create view lv_rename_src as
+select time, s1 from table1;
+
+alter view lv_rename_src rename to lv_rename_dst;
+select * from lv_rename_dst order by time;
+select * from lv_rename_src order by time;
+<<SQLSTATE;
+
+create view lv_comment as
+select time, s1 from table1;
+
+comment on view lv_comment is 'logical view comment';
+show tables details from logical_view_core_db;
+
+comment on view lv_comment is null;
+show tables details from logical_view_core_db;
+
+create view lv_drop_src as
+select time, s1 from table1;
+
+drop view lv_drop_src;
+select * from lv_drop_src;
+<<SQLSTATE;
+
+drop view if exists lv_not_exists;
+drop view if exists lv_not_exists;
+
+-- 5. query equivalence and technical design additions
+create view lv_compare as
+select time, device_id, s1 + 1 as s1_inc from table2;
+
+select 'view' as src, time, device_id, s1_inc from lv_compare order by time;
+select 'subquery' as src, time, device_id, s1 + 1 as s1_inc from table2 order by time;
+
+create view lv_expand_compare as
+select device_id, s1 + 1 as s1_inc from table2;
+
+select max(s1_inc) from lv_expand_compare where device_id = 'd3';
+select max(t.s1_inc) from (select device_id, s1 + 1 as s1_inc from table2) t where device_id = 'd3';
+
+create view lv_invalid_table as
+select * from not_exist_table;
+<<SQLSTATE;
+
+show tables details from logical_view_core_db;
+select count(*) from information_schema.views where table_name = 'lv_invalid_table';
+
+create view lv_invalid_column as
+select time, s_not_exist from table2;
+<<SQLSTATE;
+
+show tables details from logical_view_core_db;
+select count(*) from information_schema.views where table_name = 'lv_invalid_column';
+
+create view lv_derived_col as
+select time, s1 + 1 as plus_1 from table1;
+
+describe lv_derived_col;
+show create view lv_derived_col;
+select * from lv_derived_col order by time;
+
+-- 6. invalid and stale scenarios
+create view a as select * from table1;
+create view b as select * from a;
+
+create or replace view a as select * from b;
+<<SQLSTATE;
+
+show create view table2;
+<<SQLSTATE;
+
+show create view information_schema.tables;
+<<SQLSTATE;
+
+show create table information_schema.tables;
+<<SQLSTATE;
+
+create view lv_src as
+select time, s1 from table2;
+
+create view lv_outer as
+select time, s1 from lv_src;
+
+create or replace view lv_src as
+select time, s2 from table2;
+
+select * from lv_outer;
+<<SQLSTATE;
+
+create view lv_broken_drop as
+select time, s1 from table1;
+
+drop table table1;
+select * from lv_broken_drop;
+<<SQLSTATE;
+
+-- 7. permission cases
+create database logical_view_auth_db;
+use logical_view_auth_db;
+
+create table table2
+(
+  device_id STRING TAG,
+  region STRING ATTRIBUTE,
+  s1 INT32 FIELD,
+  s2 DOUBLE FIELD
+);
+
+insert into table2(time, device_id, region, s1, s2) values
+(1, 'd3', 'east', 10, 10.5),
+(2, 'd3', 'east', 20, 20.5);
+
+create view lv_query_only as
+select time, s1 from table2;
+
+create view lv_rename_src2 as
+select time, s1 from table2;
+
+create view lv_drop_src2 as
+select time, s1 from table2;
+
+create user logical_view_no_create_user 'Pass@123456789';
+create user logical_view_no_select_user 'Pass@123456789';
+create user logical_view_reader_user 'Pass@123456789';
+create user logical_view_no_alter_user 'Pass@123456789';
+create user logical_view_no_drop_user 'Pass@123456789';
+
+grant select on table logical_view_auth_db.table2 to user logical_view_no_create_user;
+grant create on database logical_view_auth_db to user logical_view_no_select_user;
+grant select on database logical_view_auth_db to user logical_view_no_alter_user;
+grant select on database logical_view_auth_db to user logical_view_no_drop_user;
+grant select on table logical_view_auth_db.lv_query_only to user logical_view_reader_user;
+
+connect logical_view_no_create_user/Pass@123456789;
+create view logical_view_auth_db.lv_no_create as
+select time, s1 from logical_view_auth_db.table2;
+<<SQLSTATE;
+
+connect logical_view_no_select_user/Pass@123456789;
+use logical_view_auth_db;
+create view logical_view_auth_db.lv_need_source_select as
+select time, s1 from logical_view_auth_db.table2;
+<<SQLSTATE;
+
+connect logical_view_reader_user/Pass@123456789;
+select * from logical_view_auth_db.lv_query_only order by time;
+select * from logical_view_auth_db.table2;
+<<SQLSTATE;
+
+connect logical_view_no_alter_user/Pass@123456789;
+alter view logical_view_auth_db.lv_rename_src2 rename to lv_rename_dst2;
+<<SQLSTATE;
+
+connect logical_view_no_drop_user/Pass@123456789;
+drop view logical_view_auth_db.lv_drop_src2;
+<<SQLSTATE;
+
+
+-- 8. cleanup
+connect root/TimechoDB@2021;
+drop user logical_view_no_create_user;
+<<NULL;
+drop user logical_view_no_select_user;
+<<NULL;
+drop user logical_view_reader_user;
+<<NULL;
+drop user logical_view_no_alter_user;
+<<NULL;
+drop user logical_view_no_drop_user;
+<<NULL;
+drop database logical_view_auth_db;
+<<NULL;
+drop database logical_view_core_db;
+<<NULL;
+set sql_dialect=tree;
+<<NULL;
+drop database root.logical_view_tree_db;
+<<NULL;

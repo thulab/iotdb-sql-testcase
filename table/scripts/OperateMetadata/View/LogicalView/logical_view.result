@@ -1,0 +1,841 @@
+
+-- [1]26:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]27:create database logical_view_core_db
+STRICT{
+PASS
+}
+
+-- [1]28:use logical_view_core_db
+STRICT{
+PASS
+}
+
+-- [1]32:create table table1 (   device_id STRING TAG,   region STRING ATTRIBUTE,   s1 INT32 FIELD,   s2 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]40:create table table2 (   device_id STRING TAG,   region STRING ATTRIBUTE,   s1 INT32 FIELD,   s2 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]48:create table turbine (   plant_id STRING TAG,   voltage DOUBLE FIELD,   speed DOUBLE FIELD,   var_001 STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]57:insert into table1(time, device_id, region, s1, s2) values (1, 'd1', 'north', 1, 1.5), (2, 'd1', 'north', 2, 2.5), (3, 'd2', 'south', 3, 3.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.207
+
+-- [1]61:insert into table2(time, device_id, region, s1, s2) values (1, 'd3', 'east', 10, 10.5), (2, 'd3', 'east', 20, 20.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]65:insert into turbine(time, plant_id, voltage, speed, var_001) values (1, 'p1', 220.5, 35.2, 'sn-001'), (2, 'p1', 221.5, 36.2, 'sn-002')
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]68:create view lv_base as select time, device_id, s1, s2 from table1
+STRICT{
+PASS
+}
+
+-- [1]71:show create view lv_base
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+lv_base         |CREATE VIEW "lv_base" A|
+                |S SELECT time , device|
+                |_id , s1 , s2 FROM log|
+                |ical_view_core_db.tabl|
+                |e1                     |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]72:show create table lv_base
+STRICT{
+Table(TEXT)      |Create Table(TEXT)      |
+-----------------------------------------
+lv_base          |CREATE TABLE "lv_base" (|
+                 |"time" TIMESTAMP FIELD,|
+                 |"device_id" STRING FIEL|
+                 |D,"s1" INT32 FIELD,"s2"|
+                 | DOUBLE FIELD) WITH (tt|
+                 |l='INF')                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]73:describe lv_base
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+device_id             |STRING              |FIELD               |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]74:select * from lv_base order by time
+STRICT{
+time(TIMESTAMP)      |device_id(STRING)      |s1(INT32)      |s2(DOUBLE)      |
+---------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |1              |1.5             |
+01+08:00             |                       |               |                |
+---------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                     |2              |2.5             |
+02+08:00             |                       |               |                |
+---------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2                     |3              |3.5             |
+03+08:00             |                       |               |                |
+总数目：3
+}
+Elapsed Time: 0.0.22
+
+-- [1]75:show tables details from logical_view_core_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_base              |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table1               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table2               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbine              |INF                |USING             |null               |BASE TABLE           |null                         |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]76:select * from information_schema.views
+STRICT{
+database(STRING)      |table_name(STRING)      |view_definition(STRING)      |
+---------------------------------------------------------------------------
+__audit               |audit_log               |CREATE VIEW "audit_log" ("tim|
+                      |                        |e" TIMESTAMP TIME,"node_id" |
+                      |                        |STRING TAG,"user_id" STRING |
+                      |                        |TAG,"username" STRING FIELD,|
+                      |                        |"cli_hostname" STRING FIELD,|
+                      |                        |"audit_event_type" STRING FI|
+                      |                        |ELD,"operation_type" STRING |
+                      |                        |FIELD,"privilege_type" STRIN|
+                      |                        |G FIELD,"privilege_level" ST|
+                      |                        |RING FIELD,"result" BOOLEAN |
+                      |                        |FIELD,"database" STRING FIEL|
+                      |                        |D,"sql_string" STRING FIELD,|
+                      |                        |"log" STRING FIELD) WITH (tt|
+                      |                        |l='INF') AS root."__audit"."|
+                      |                        |log".**                      |
+---------------------------------------------------------------------------
+__audit               |login_history           |CREATE VIEW "login_history" (|
+                      |                        |"time" TIMESTAMP TIME,"user_|
+                      |                        |id" STRING TAG,"node_id" STR|
+                      |                        |ING TAG,"username" STRING FI|
+                      |                        |ELD,"ip" STRING FIELD,"resul|
+                      |                        |t" BOOLEAN FIELD) WITH (ttl=|
+                      |                        |'INF') AS root."__audit"."lo|
+                      |                        |gin".**                      |
+---------------------------------------------------------------------------
+logical_view_core_db  |lv_base                 |CREATE VIEW "lv_base" AS SELE|
+                      |                        |CT time , device_id , s1 , s|
+                      |                        |2 FROM logical_view_core_db.|
+                      |                        |table1                       |
+---------------------------------------------------------------------------
+lv_db                 |lv_src                  |CREATE VIEW "lv_src" AS SELEC|
+                      |                        |T time , s2 FROM lv_db.table|
+                      |                        |2                            |
+---------------------------------------------------------------------------
+lv_db                 |lv_outer                |CREATE VIEW "lv_outer" AS SEL|
+                      |                        |ECT time , s1 FROM lv_db.lv_|
+                      |                        |src                          |
+总数目：5
+}
+Elapsed Time: 0.0.9
+
+-- [1]78:create view lv_replace as select time, s1 from table1
+STRICT{
+PASS
+}
+
+-- [1]81:create or replace view lv_replace as select time, s1 + 10 as s1_plus_10 from table1
+STRICT{
+PASS
+}
+
+-- [1]84:select * from lv_replace order by time
+STRICT{
+time(TIMESTAMP)      |s1_plus_10(INT32)      |
+--------------------------------------------
+1970-01-01T08:00:00.0|11                     |
+01+08:00             |                       |
+--------------------------------------------
+1970-01-01T08:00:00.0|12                     |
+02+08:00             |                       |
+--------------------------------------------
+1970-01-01T08:00:00.0|13                     |
+03+08:00             |                       |
+总数目：3
+}
+Elapsed Time: 0.0.18
+
+-- [1]86:create view lv_l1 as select time, s1 + 1 as s1_new from table1
+STRICT{
+PASS
+}
+
+-- [1]89:create view lv_l2 as select time, s1_new + 1 as s1_new2 from lv_l1
+STRICT{
+PASS
+}
+
+-- [1]92:select * from lv_l2 order by time
+STRICT{
+time(TIMESTAMP)      |s1_new2(INT32)      |
+-----------------------------------------
+1970-01-01T08:00:00.0|3                   |
+01+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|4                   |
+02+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:00.0|5                   |
+03+08:00             |                    |
+总数目：3
+}
+Elapsed Time: 0.0.16
+
+-- [1]95:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]96:create database root.logical_view_tree_db
+STRICT{
+PASS
+}
+
+-- [1]97:create timeseries root.logical_view_tree_db.dev1.value with datatype=FLOAT, encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]98:create timeseries root.logical_view_tree_db.dev2.value with datatype=FLOAT, encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]99:insert into root.logical_view_tree_db.dev1(time, value) values(1, 11.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.67
+
+-- [1]100:insert into root.logical_view_tree_db.dev2(time, value) values(1, 22.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.53
+
+-- [1]102:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]103:use logical_view_core_db
+STRICT{
+PASS
+}
+
+-- [1]106:create view tree_src (   dev STRING TAG,   value FLOAT FIELD ) as root.logical_view_tree_db.**
+STRICT{
+PASS
+}
+
+-- [1]110:create view lv_from_tree as select value from tree_src
+STRICT{
+PASS
+}
+
+-- [1]113:select * from lv_from_tree order by value
+STRICT{
+value(FLOAT)      |
+------------------
+11.0              |
+------------------
+22.0              |
+总数目：2
+}
+Elapsed Time: 0.0.23
+
+-- [1]115:create writable view turbines_v as select voltage, speed, var_001 as serial_num from turbine
+STRICT{
+PASS
+}
+
+-- [1]118:create view lv_from_writable as select voltage from turbines_v
+STRICT{
+PASS
+}
+
+-- [1]121:select * from lv_from_writable order by voltage
+STRICT{
+voltage(DOUBLE)      |
+---------------------
+220.5                |
+---------------------
+221.5                |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]124:create view lv_rename_src as select time, s1 from table1
+STRICT{
+PASS
+}
+
+-- [1]127:alter view lv_rename_src rename to lv_rename_dst
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]128:select * from lv_rename_dst order by time
+STRICT{
+time(TIMESTAMP)      |s1(INT32)      |
+------------------------------------
+1970-01-01T08:00:00.0|1              |
+01+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|2              |
+02+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|3              |
+03+08:00             |               |
+总数目：3
+}
+Elapsed Time: 0.0.14
+
+-- [1]129:select * from lv_rename_src order by time
+STRICT{
+SQLSTATE : 550: Table 'logical_view_core_db.lv_rename_src' does not exist.
+}
+
+-- [1]132:create view lv_comment as select time, s1 from table1
+STRICT{
+PASS
+}
+
+-- [1]135:comment on view lv_comment is 'logical view comment'
+STRICT{
+PASS
+}
+
+-- [1]136:show tables details from logical_view_core_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_base              |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_comment           |INF                |USING             |logical view commen|VIEW                 |null                         |
+                     |                   |                  |t                  |                     |                             |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_tree         |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_writable     |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l1                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l2                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_rename_dst        |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_replace           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table1               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table2               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+tree_src             |INF                |USING             |null               |VIEW FROM TREE       |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbine              |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbines_v           |INF                |USING             |null               |WRITABLE VIEW        |turbine                      |
+总数目：13
+}
+Elapsed Time: 0.0.2
+
+-- [1]138:comment on view lv_comment is null
+STRICT{
+PASS
+}
+
+-- [1]139:show tables details from logical_view_core_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_base              |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_comment           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_tree         |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_writable     |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l1                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l2                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_rename_dst        |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_replace           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table1               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table2               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+tree_src             |INF                |USING             |null               |VIEW FROM TREE       |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbine              |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbines_v           |INF                |USING             |null               |WRITABLE VIEW        |turbine                      |
+总数目：13
+}
+Elapsed Time: 0.0.1
+
+-- [1]141:create view lv_drop_src as select time, s1 from table1
+STRICT{
+PASS
+}
+
+-- [1]144:drop view lv_drop_src
+STRICT{
+PASS
+}
+
+-- [1]145:select * from lv_drop_src
+STRICT{
+SQLSTATE : 550: Table 'logical_view_core_db.lv_drop_src' does not exist.
+}
+
+-- [1]148:drop view if exists lv_not_exists
+STRICT{
+PASS
+}
+
+-- [1]149:drop view if exists lv_not_exists
+STRICT{
+PASS
+}
+
+-- [1]152:create view lv_compare as select time, device_id, s1 + 1 as s1_inc from table2
+STRICT{
+PASS
+}
+
+-- [1]155:select 'view' as src, time, device_id, s1_inc from lv_compare order by time
+STRICT{
+src(STRING)      |time(TIMESTAMP)      |device_id(STRING)      |s1_inc(INT32)      |
+--------------------------------------------------------------------------------
+view             |1970-01-01T08:00:00.0|d3                     |11                 |
+                 |01+08:00             |                       |                   |
+--------------------------------------------------------------------------------
+view             |1970-01-01T08:00:00.0|d3                     |21                 |
+                 |02+08:00             |                       |                   |
+总数目：2
+}
+Elapsed Time: 0.0.14
+
+-- [1]156:select 'subquery' as src, time, device_id, s1 + 1 as s1_inc from table2 order by time
+STRICT{
+src(STRING)      |time(TIMESTAMP)      |device_id(STRING)      |s1_inc(INT32)      |
+--------------------------------------------------------------------------------
+subquery         |1970-01-01T08:00:00.0|d3                     |11                 |
+                 |01+08:00             |                       |                   |
+--------------------------------------------------------------------------------
+subquery         |1970-01-01T08:00:00.0|d3                     |21                 |
+                 |02+08:00             |                       |                   |
+总数目：2
+}
+Elapsed Time: 0.0.11
+
+-- [1]158:create view lv_expand_compare as select device_id, s1 + 1 as s1_inc from table2
+STRICT{
+PASS
+}
+
+-- [1]161:select max(s1_inc) from lv_expand_compare where device_id = 'd3'
+STRICT{
+_col0(INT32)      |
+------------------
+21                |
+总数目：1
+}
+Elapsed Time: 0.0.15
+
+-- [1]162:select max(t.s1_inc) from (select device_id, s1 + 1 as s1_inc from table2) t where device_id = 'd3'
+STRICT{
+_col0(INT32)      |
+------------------
+21                |
+总数目：1
+}
+Elapsed Time: 0.0.12
+
+-- [1]164:create view lv_invalid_table as select * from not_exist_table
+STRICT{
+SQLSTATE : 550: Table 'logical_view_core_db.not_exist_table' does not exist.
+}
+
+-- [1]168:show tables details from logical_view_core_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_base              |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_comment           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_compare           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_expand_compare    |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_tree         |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_writable     |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l1                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l2                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_rename_dst        |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_replace           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table1               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table2               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+tree_src             |INF                |USING             |null               |VIEW FROM TREE       |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbine              |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbines_v           |INF                |USING             |null               |WRITABLE VIEW        |turbine                      |
+总数目：15
+}
+Elapsed Time: 0.0.2
+
+-- [1]169:select count(*) from information_schema.views where table_name = 'lv_invalid_table'
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]171:create view lv_invalid_column as select time, s_not_exist from table2
+STRICT{
+SQLSTATE : 616: Column 's_not_exist' cannot be resolved
+}
+
+-- [1]175:show tables details from logical_view_core_db
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |Status(TEXT)      |Comment(TEXT)      |TableType(TEXT)      |OriginalTableName(TEXT)      |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_base              |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_comment           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_compare           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_expand_compare    |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_tree         |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_from_writable     |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l1                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_l2                |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_rename_dst        |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+lv_replace           |INF                |USING             |null               |VIEW                 |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table1               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+table2               |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+tree_src             |INF                |USING             |null               |VIEW FROM TREE       |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbine              |INF                |USING             |null               |BASE TABLE           |null                         |
+-------------------------------------------------------------------------------------------------------------------------------
+turbines_v           |INF                |USING             |null               |WRITABLE VIEW        |turbine                      |
+总数目：15
+}
+Elapsed Time: 0.0.1
+
+-- [1]176:select count(*) from information_schema.views where table_name = 'lv_invalid_column'
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+Elapsed Time: 0.0.14
+
+-- [1]178:create view lv_derived_col as select time, s1 + 1 as plus_1 from table1
+STRICT{
+PASS
+}
+
+-- [1]181:describe lv_derived_col
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |FIELD               |
+--------------------------------------------------------------
+plus_1                |INT32               |FIELD               |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]182:show create view lv_derived_col
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+lv_derived_col  |CREATE VIEW "lv_derived|
+                |_col" AS SELECT time ,|
+                | (s1 + 1) plus_1 FROM |
+                |logical_view_core_db.t|
+                |able1                  |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]183:select * from lv_derived_col order by time
+STRICT{
+time(TIMESTAMP)      |plus_1(INT32)      |
+----------------------------------------
+1970-01-01T08:00:00.0|2                  |
+01+08:00             |                   |
+----------------------------------------
+1970-01-01T08:00:00.0|3                  |
+02+08:00             |                   |
+----------------------------------------
+1970-01-01T08:00:00.0|4                  |
+03+08:00             |                   |
+总数目：3
+}
+Elapsed Time: 0.0.17
+
+-- [1]186:create view a as select * from table1
+STRICT{
+PASS
+}
+
+-- [1]187:create view b as select * from a
+STRICT{
+PASS
+}
+
+-- [1]189:create or replace view a as select * from b
+STRICT{
+SQLSTATE : 701: Failed analyzing stored view 'b': Statement would create a recursive view
+}
+
+-- [1]192:show create view table2
+STRICT{
+SQLSTATE : 701: The table table2 is a base table, does not support show create view.
+}
+
+-- [1]195:show create view information_schema.tables
+STRICT{
+SQLSTATE : 701: The system view does not support show create.
+}
+
+-- [1]198:show create table information_schema.tables
+STRICT{
+SQLSTATE : 701: The system view does not support show create.
+}
+
+-- [1]201:create view lv_src as select time, s1 from table2
+STRICT{
+PASS
+}
+
+-- [1]204:create view lv_outer as select time, s1 from lv_src
+STRICT{
+PASS
+}
+
+-- [1]207:create or replace view lv_src as select time, s2 from table2
+STRICT{
+PASS
+}
+
+-- [1]210:select * from lv_outer
+STRICT{
+SQLSTATE : 701: Failed analyzing stored view 'lv_outer': org.apache.iotdb.commons.exception.IoTDBException: Column 's1' cannot be resolved
+}
+
+-- [1]213:create view lv_broken_drop as select time, s1 from table1
+STRICT{
+PASS
+}
+
+-- [1]216:drop table table1
+STRICT{
+PASS
+}
+
+-- [1]217:select * from lv_broken_drop
+STRICT{
+SQLSTATE : 701: Failed analyzing stored view 'lv_broken_drop': org.apache.iotdb.commons.exception.table.TableNotExistsException: Table 'logical_view_core_db.table1' does not exist.
+}
+
+-- [1]221:create database logical_view_auth_db
+STRICT{
+PASS
+}
+
+-- [1]222:use logical_view_auth_db
+STRICT{
+PASS
+}
+
+-- [1]226:create table table2 (   device_id STRING TAG,   region STRING ATTRIBUTE,   s1 INT32 FIELD,   s2 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]234:insert into table2(time, device_id, region, s1, s2) values (1, 'd3', 'east', 10, 10.5), (2, 'd3', 'east', 20, 20.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.216
+
+-- [1]236:create view lv_query_only as select time, s1 from table2
+STRICT{
+PASS
+}
+
+-- [1]239:create view lv_rename_src2 as select time, s1 from table2
+STRICT{
+PASS
+}
+
+-- [1]242:create view lv_drop_src2 as select time, s1 from table2
+STRICT{
+PASS
+}
+
+-- [1]245:create user logical_view_no_create_user 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]246:create user logical_view_no_select_user 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]247:create user logical_view_reader_user 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]248:create user logical_view_no_alter_user 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]249:create user logical_view_no_drop_user 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]251:grant select on table logical_view_auth_db.table2 to user logical_view_no_create_user
+STRICT{
+PASS
+}
+
+-- [1]252:grant create on database logical_view_auth_db to user logical_view_no_select_user
+STRICT{
+PASS
+}
+
+-- [1]253:grant select on database logical_view_auth_db to user logical_view_no_alter_user
+STRICT{
+PASS
+}
+
+-- [1]254:grant select on database logical_view_auth_db to user logical_view_no_drop_user
+STRICT{
+PASS
+}
+
+-- [1]255:grant select on table logical_view_auth_db.lv_query_only to user logical_view_reader_user
+STRICT{
+PASS
+}
+
+-- [1]258:create view logical_view_auth_db.lv_no_create as select time, s1 from logical_view_auth_db.table2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege CREATE ON logical_view_auth_db.lv_no_create
+}
+
+-- [1]263:use logical_view_auth_db
+STRICT{
+PASS
+}
+
+-- [1]264:create view logical_view_auth_db.lv_need_source_select as select time, s1 from logical_view_auth_db.table2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SELECT ON logical_view_auth_db.table2
+}
+
+-- [1]269:select * from logical_view_auth_db.lv_query_only order by time
+STRICT{
+time(TIMESTAMP)      |s1(INT32)      |
+------------------------------------
+1970-01-01T08:00:00.0|10             |
+01+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|20             |
+02+08:00             |               |
+总数目：2
+}
+Elapsed Time: 0.0.14
+
+-- [1]270:select * from logical_view_auth_db.table2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SELECT ON logical_view_auth_db.table2
+}
+
+-- [1]274:alter view logical_view_auth_db.lv_rename_src2 rename to lv_rename_dst2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege ALTER ON logical_view_auth_db.lv_rename_src2
+}
+
+-- [1]278:drop view logical_view_auth_db.lv_drop_src2
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege DROP ON logical_view_auth_db.lv_drop_src2
+}
