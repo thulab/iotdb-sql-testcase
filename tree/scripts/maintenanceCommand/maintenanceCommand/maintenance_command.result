@@ -43,7 +43,7 @@ PASS
 STRICT{
 0
 }
-Elapsed Time: 0.0.37
+Elapsed Time: 0.0.54
 
 -- [1]33:select * from root.sg1.d2
 STRICT{
@@ -52,7 +52,7 @@ Time(TIMESTAMP)      |root.sg1.d2.s1(INT32)      |root.sg1.d2.s2(DOUBLE)      |
 1                    |1                          |1.0                         |
 总数目：1
 }
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.12
 
 -- [1]37:SET SYSTEM TO READONLY
 STRICT{
@@ -81,65 +81,65 @@ PASS
 
 -- [1]44:CREATE DATABASE root.sg2
 STRICT{
-PASS
+SQLSTATE : 600: Fail to do non-query operations because system is read-only.
 }
 
--- [1]44:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
+-- [1]45:create schema template t2 aligned (lat FLOAT encoding=Gorilla, lon FLOAT encoding=Gorilla)
 STRICT{
 PASS
 }
 
--- [1]45:set schema template t2 to root.sg2.d1
+-- [1]46:set schema template t2 to root.sg1.device_template
 STRICT{
 PASS
 }
 
--- [1]46:unset schema template t2 from root.sg2.d1
+-- [1]47:unset schema template t2 from root.sg1.device_template
 STRICT{
 PASS
 }
 
--- [1]47:create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE)
+-- [1]48:create aligned timeseries root.sg2.d2(s1 INT32, s2 DOUBLE)
 STRICT{
 SQLSTATE : 1003: DataNode is not enough, please register more. Current DataNodes: [], replicationFactor: 1
 }
 
--- [1]49:insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+-- [1]50:insert into root.sg1.d2(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
 STRICT{
 SQLSTATE : 600: Fail to do non-query operations because system is read-only.
 }
 
--- [1]51:select * from root.sg1.d2
+-- [1]52:select * from root.sg1.d2
 STRICT{
 Time(TIMESTAMP)      |root.sg1.d2.s1(INT32)      |root.sg1.d2.s2(DOUBLE)      |
 ----------------------------------------------------------------------------
 1                    |1                          |1.0                         |
 总数目：1
 }
-Elapsed Time: 0.10.7
+Elapsed Time: 0.0.7
 
--- [1]54:SET SYSTEM TO RUNNING
+-- [1]55:SET SYSTEM TO RUNNING
 STRICT{
 PASS
 }
 
--- [1]55:show cluster
+-- [1]56:show cluster
 STRICT{
 PASS
 }
 
--- [1]57:create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE)
+-- [1]58:create aligned timeseries root.sg2.d3(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
 
--- [1]58:insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
+-- [1]59:insert into root.sg2.d3(time, s1, s2) aligned values(2, 2, 2), (3, 3, 3)
 STRICT{
 0
 }
-Elapsed Time: 0.0.37
+Elapsed Time: 0.0.69
 
--- [1]59:select * from root.sg2.d3
+-- [1]60:select * from root.sg2.d3
 STRICT{
 Time(TIMESTAMP)      |root.sg2.d3.s1(INT32)      |root.sg2.d3.s2(DOUBLE)      |
 ----------------------------------------------------------------------------
@@ -148,63 +148,63 @@ Time(TIMESTAMP)      |root.sg2.d3.s1(INT32)      |root.sg2.d3.s2(DOUBLE)      |
 3                    |3                          |3.0                         |
 总数目：2
 }
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.8
 
--- [1]84:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
+-- [1]85:create aligned timeseries root.sg1.d1(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
 
--- [1]85:create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE)
+-- [1]86:create aligned timeseries root.sg2.d1(s1 INT32, s2 DOUBLE)
 STRICT{
 PASS
 }
 
--- [1]86:insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1)
+-- [1]87:insert into root.sg1.d1(time, s1, s2) aligned values(1,0, 1.1)
 STRICT{
 0
 }
-Elapsed Time: 0.0.37
+Elapsed Time: 0.0.804
 
--- [1]87:insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1)
-STRICT{
-0
-}
-Elapsed Time: 0.0.1
-
--- [1]88:insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1)
+-- [1]88:insert into root.sg1.d1(time, s1, s2) aligned values(10,0, 1.1)
 STRICT{
 0
 }
 Elapsed Time: 0.0.1
 
--- [1]89:insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1)
+-- [1]89:insert into root.sg1.d1(time, s1, s2) aligned values(2,0, 1.1)
 STRICT{
 0
 }
-Elapsed Time: 0.0.36
+Elapsed Time: 0.0.0
 
--- [1]97:CLEAR CACHE
+-- [1]90:insert into root.sg2.d1(time, s1, s2) aligned values(1,0, 2.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.187
+
+-- [1]98:CLEAR CACHE
 STRICT{
 PASS
 }
 
--- [1]100:FLUSH
+-- [1]101:FLUSH
 STRICT{
 PASS
 }
 
--- [1]101:FLUSH root.sg1
+-- [1]102:FLUSH root.sg1
 STRICT{
 PASS
 }
 
--- [1]102:FLUSH root.sg1,root.sg2
+-- [1]103:FLUSH root.sg1,root.sg2
 STRICT{
 PASS
 }
 
--- [1]115:SHOW VARIABLES
+-- [1]116:SHOW VARIABLES
 STRICT{
 Variable(TEXT)      |Value(TEXT)      |
 -------------------------------------
@@ -256,7 +256,7 @@ TimestampPrecision  |ms               |
 }
 Elapsed Time: 0.0.1
 
--- [1]118:SHOW CONFIGNODES
+-- [1]119:SHOW CONFIGNODES
 STRICT{
 NodeID(INT32)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(INT32)      |Role(TEXT)      |
 ---------------------------------------------------------------------------------------------------------
@@ -265,74 +265,74 @@ NodeID(INT32)      |Status(TEXT)      |InternalAddress(TEXT)      |InternalPort(
 }
 Elapsed Time: 0.0.1
 
--- [1]120:create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN
+-- [1]121:create timeseries root.sg.d1.s1 with datatype=BOOLEAN,encoding=PLAIN
 STRICT{
 PASS
 }
 
--- [1]121:create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE
+-- [1]122:create timeseries root.sg.d2.s1 with datatype=FLOAT,encoding=RLE
 STRICT{
 PASS
 }
 
--- [1]122:create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN
+-- [1]123:create timeseries root.ln.d1.s1 with datatype=INT32,encoding=PLAIN
 STRICT{
 PASS
 }
 
--- [1]123:insert into root.sg.d1(time,s1) values(1,true),(1000,false)
+-- [1]124:insert into root.sg.d1(time,s1) values(1,true),(1000,false)
 STRICT{
 0
 }
-Elapsed Time: 0.0.37
+Elapsed Time: 0.1.727
 
--- [1]124:insert into root.sg.d2(time,s1) values(1,1.1),(2,3.3)
+-- [1]125:insert into root.sg.d2(time,s1) values(1,1.1),(2,3.3)
 STRICT{
 0
 }
-Elapsed Time: 0.0.36
+Elapsed Time: 0.0.55
 
--- [1]125:insert into root.ln.wf01.wt01(time,temperature) values(1,1),(1000,2)
+-- [1]126:insert into root.ln.wf01.wt01(time,temperature) values(1,1),(1000,2)
 STRICT{
 0
 }
-Elapsed Time: 0.0.39
+Elapsed Time: 0.0.75
 
--- [1]127:SHOW DATANODES
+-- [1]128:SHOW DATANODES
 STRICT{
 NodeID(INT32)      |Status(TEXT)      |RpcAddress(TEXT)      |RpcPort(INT32)      |DataRegionNum(INT32)      |SchemaRegionNum(INT32)      |
 -------------------------------------------------------------------------------------------------------------------------------------
-1                  |Running           |127.0.0.1             |6667                |5                         |3                           |
+1                  |Running           |127.0.0.1             |6667                |4                         |3                           |
 总数目：1
 }
 Elapsed Time: 0.0.1
 
--- [1]130:SHOW CLUSTER
+-- [1]131:SHOW CLUSTER
 STRICT{
 PASS
 }
 
--- [1]132:SHOW CLUSTER DETAILS
+-- [1]133:SHOW CLUSTER DETAILS
 STRICT{
 PASS
 }
 
--- [1]136:SHOW REGIONS
+-- [1]137:SHOW REGIONS
 STRICT{
 PASS
 }
 
--- [1]138:SHOW SCHEMA REGIONS
+-- [1]139:SHOW SCHEMA REGIONS
 STRICT{
 PASS
 }
 
--- [1]140:SHOW DATA REGIONS
+-- [1]141:SHOW DATA REGIONS
 STRICT{
 PASS
 }
 
--- [1]141:show databases
+-- [1]142:show databases
 STRICT{
 Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -345,37 +345,37 @@ root.sg             |1                                   |1                     
 }
 Elapsed Time: 0.0.1
 
--- [1]142:show regions of database root.sg
+-- [1]143:show regions of database root.sg
 STRICT{
 PASS
 }
 
--- [1]144:show regions of database root.ln
+-- [1]145:show regions of database root.ln
 STRICT{
 PASS
 }
 
--- [1]146:show data regions of database root.sg, root.ln
+-- [1]147:show data regions of database root.sg, root.ln
 STRICT{
 PASS
 }
 
--- [1]148:show schema regions of database root.sg, root.ln
+-- [1]149:show schema regions of database root.sg, root.ln
 STRICT{
 PASS
 }
 
--- [1]150:show regions on nodeid 1
+-- [1]151:show regions on nodeid 1
 STRICT{
 PASS
 }
 
--- [1]152:show regions of database root.sg on nodeid 1
+-- [1]153:show regions of database root.sg on nodeid 1
 STRICT{
 PASS
 }
 
--- [1]156:show databases
+-- [1]157:show databases
 STRICT{
 Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -388,107 +388,107 @@ root.sg             |1                                   |1                     
 }
 Elapsed Time: 0.0.2
 
--- [1]157:show data regionid where database=root.ln
+-- [1]158:show data regionid where database=root.ln
 STRICT{
 PASS
 }
 
--- [1]159:show data regionid where database=root.sg
+-- [1]160:show data regionid where database=root.sg
 STRICT{
 PASS
 }
 
--- [1]161:show data regionid where database=root.sg,root.ln
+-- [1]162:show data regionid where database=root.sg,root.ln
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:41 mismatched input ',' expecting {<EOF>, ';'}
 }
 
--- [1]163:show data regionid where database=sg
+-- [1]164:show data regionid where database=sg
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:34 mismatched input 'sg' expecting ROOT
 }
 
--- [1]165:show data regionid where database=root.**
+-- [1]166:show data regionid where database=root.**
 STRICT{
 PASS
 }
 
--- [1]167:show data regionid where database=root.sg and time=1
+-- [1]168:show data regionid where database=root.sg and time=1
 STRICT{
 PASS
 }
 
--- [1]169:show data regionid where database=root.sg and time=1970-01-08T00:00:00.001
+-- [1]170:show data regionid where database=root.sg and time=1970-01-08T00:00:00.001
 STRICT{
 PASS
 }
 
--- [1]171:show devices
+-- [1]172:show devices
 STRICT{
 PASS
 }
 
--- [1]173:show data regionid where device=root.sg.d1
+-- [1]174:show data regionid where device=root.sg.d1
 STRICT{
 PASS
 }
 
--- [1]175:show data regionid where device=root.ln
+-- [1]176:show data regionid where device=root.ln
 STRICT{
 PASS
 }
 
--- [1]177:show data regionid where device=root.ln.wf01.wt01
+-- [1]178:show data regionid where device=root.ln.wf01.wt01
 STRICT{
 PASS
 }
 
--- [1]179:show data regionid where device=root.sg.d1,root.ln.wf01.wt01
+-- [1]180:show data regionid where device=root.sg.d1,root.ln.wf01.wt01
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:42 mismatched input ',' expecting {<EOF>, ';'}
 }
 
--- [1]181:show data regionid where device=root.ln.**
+-- [1]182:show data regionid where device=root.ln.**
 STRICT{
 PASS
 }
 
--- [1]183:show data regionid where device=sg.d1
+-- [1]184:show data regionid where device=sg.d1
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:32 mismatched input 'sg' expecting ROOT
 }
 
--- [1]185:show data regionid where device=root.ln.wf01.wt01 and time=1
+-- [1]186:show data regionid where device=root.ln.wf01.wt01 and time=1
 STRICT{
 PASS
 }
 
--- [1]187:show data regionid where device=root.ln.wf01.wt01 and time=-1
+-- [1]188:show data regionid where device=root.ln.wf01.wt01 and time=-1
 STRICT{
 PASS
 }
 
--- [1]189:show data regionid where device=root.ln.wf01.wt01 and time=1970-01-01T08:00:00.001
+-- [1]190:show data regionid where device=root.ln.wf01.wt01 and time=1970-01-01T08:00:00.001
 STRICT{
 PASS
 }
 
--- [1]191:show data regionid where device=root.ln.wf01.wt01 and time=1969-01-01T08:00:00.001
+-- [1]192:show data regionid where device=root.ln.wf01.wt01 and time=1969-01-01T08:00:00.001
 STRICT{
 PASS
 }
 
--- [1]195:show schema regionid where database=root.sg
+-- [1]196:show schema regionid where database=root.sg
 STRICT{
 PASS
 }
 
--- [1]197:show schema regionid where device=root.ln.wf01.wt01
+-- [1]198:show schema regionid where device=root.ln.wf01.wt01
 STRICT{
 PASS
 }
 
--- [1]201:show data seriesslotid where database=root.sg
+-- [1]202:show data seriesslotid where database=root.sg
 STRICT{
 SeriesSlotId(INT32)      |
 -------------------------
@@ -497,9 +497,9 @@ SeriesSlotId(INT32)      |
 108                      |
 总数目：2
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]202:show data seriesslotid where database=root.ln
+-- [1]203:show data seriesslotid where database=root.ln
 STRICT{
 SeriesSlotId(INT32)      |
 -------------------------
@@ -508,12 +508,12 @@ SeriesSlotId(INT32)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]203:show data seriesslotid where device=root.ln.wf01.wt01
+-- [1]204:show data seriesslotid where device=root.ln.wf01.wt01
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:29 mismatched input 'device' expecting DATABASE
 }
 
--- [1]205:show schema seriesslotid where database=root.sg
+-- [1]206:show schema seriesslotid where database=root.sg
 STRICT{
 SeriesSlotId(INT32)      |
 -------------------------
@@ -522,14 +522,14 @@ SeriesSlotId(INT32)      |
 108                      |
 总数目：2
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]206:show schema seriesslotid where device=root.sg.d1
+-- [1]207:show schema seriesslotid where device=root.sg.d1
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:31 mismatched input 'device' expecting DATABASE
 }
 
--- [1]208:show schema seriesslotid where database=root.ln
+-- [1]209:show schema seriesslotid where database=root.ln
 STRICT{
 SeriesSlotId(INT32)      |
 -------------------------
@@ -540,7 +540,7 @@ SeriesSlotId(INT32)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]211:show timepartition where database=root.sg
+-- [1]212:show timepartition where database=root.sg
 STRICT{
 TimePartition(INT64)      |StartTime(TEXT)      |
 -----------------------------------------------
@@ -549,7 +549,7 @@ TimePartition(INT64)      |StartTime(TEXT)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]212:show timepartition where device=root.ln.wf01.wt01
+-- [1]213:show timepartition where device=root.ln.wf01.wt01
 STRICT{
 TimePartition(INT64)      |StartTime(TEXT)      |
 -----------------------------------------------
@@ -558,19 +558,19 @@ TimePartition(INT64)      |StartTime(TEXT)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]213:show timePartition where regionid=2
+-- [1]214:show timePartition where regionid=2
 STRICT{
 TimePartition(INT64)      |StartTime(TEXT)      |
 总数目：0
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]214:show timePartition where regionid=1,2
+-- [1]215:show timePartition where regionid=1,2
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:35 mismatched input ',' expecting {<EOF>, ';'}
 }
 
--- [1]216:show timepartition where device=root.ln.wf01.wt01 and starttime=0
+-- [1]217:show timepartition where device=root.ln.wf01.wt01 and starttime=0
 STRICT{
 TimePartition(INT64)      |StartTime(TEXT)      |
 -----------------------------------------------
@@ -579,7 +579,7 @@ TimePartition(INT64)      |StartTime(TEXT)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]217:show timepartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000
+-- [1]218:show timepartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000
 STRICT{
 TimePartition(INT64)      |StartTime(TEXT)      |
 -----------------------------------------------
@@ -588,34 +588,43 @@ TimePartition(INT64)      |StartTime(TEXT)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]220:count timePartition where database=root.sg
+-- [1]221:count timePartition where database=root.sg
 STRICT{
 count(timePartition)(INT64)      |
 ---------------------------------
 1                                |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]221:count timePartition where device=root.ln.wf01.wt01
+-- [1]222:count timePartition where device=root.ln.wf01.wt01
 STRICT{
 count(timePartition)(INT64)      |
 ---------------------------------
 1                                |
 总数目：1
 }
-Elapsed Time: 0.0.1
+Elapsed Time: 0.0.0
 
--- [1]222:count timePartition where regionid=2
+-- [1]223:count timePartition where regionid=2
 STRICT{
 count(timePartition)(INT64)      |
 ---------------------------------
 0                                |
 总数目：1
 }
-Elapsed Time: 0.0.2
+Elapsed Time: 0.0.1
 
--- [1]223:count timePartition where device=root.ln.wf01.wt01 and starttime=0
+-- [1]224:count timePartition where device=root.ln.wf01.wt01 and starttime=0
+STRICT{
+count(timePartition)(INT64)      |
+---------------------------------
+1                                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]225:count timePartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000
 STRICT{
 count(timePartition)(INT64)      |
 ---------------------------------
@@ -624,26 +633,17 @@ count(timePartition)(INT64)      |
 }
 Elapsed Time: 0.0.1
 
--- [1]224:count timePartition where device=root.ln.wf01.wt01 and starttime=0 and endtime=1000
-STRICT{
-count(timePartition)(INT64)      |
----------------------------------
-1                                |
-总数目：1
-}
-Elapsed Time: 0.0.1
-
--- [1]227:show clusterid
+-- [1]228:show clusterid
 STRICT{
 PASS
 }
 
--- [1]236:SHOW CURRENT_TIMESTAMP
+-- [1]237:SHOW CURRENT_TIMESTAMP
 STRICT{
 PASS
 }
 
--- [1]239:show activation
+-- [1]240:show activation
 STRICT{
 PASS
 }
