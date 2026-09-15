@@ -7563,7 +7563,105 @@ delete from sensor_data where color = 'red';
 --after result：16
 select * from sensor_data order by device_id, time;
 
+
+--10. New devices matching the attribute, added after deletion, will not be retroactively deleted
+connect root/TimechoDB@2021;
+use delete_from_where_test_db;
+drop table sensor_data;
+create table sensor_data (device_id STRING TAG, site STRING TAG, color STRING ATTRIBUTE, size STRING ATTRIBUTE, zone STRING ATTRIBUTE, temp DOUBLE FIELD, status STRING FIELD);
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd1', 'north', 'red', 'small', 'A', 11, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd1', 'north', 'red', 'small', 'A', 12, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd1', 'north', 'red', 'small', 'A', 13, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd1', 'north', 'red', 'small', 'A', 14, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd2', 'north', 'red', 'large', 'B', 21, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd2', 'north', 'red', 'large', 'B', 22, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd2', 'north', 'red', 'large', 'B', 23, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd2', 'north', 'red', 'large', 'B', 24, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd3', 'south', 'blue', 'small', NULL, 31, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd3', 'south', 'blue', 'small', NULL, 32, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd3', 'south', 'blue', 'small', NULL, 33, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd3', 'south', 'blue', 'small', NULL, 34, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd4', 'north', 'blue', 'small', 'A', 41, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd4', 'north', 'blue', 'small', 'A', 42, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd4', 'north', 'blue', 'small', 'A', 43, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd4', 'north', 'blue', 'small', 'A', 44, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd5', 'south', NULL, 'large', 'C', 51, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd5', 'south', NULL, 'large', 'C', 52, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd5', 'south', NULL, 'large', 'C', 53, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd5', 'south', NULL, 'large', 'C', 54, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd6', 'east', 'white', 'medium', 'D', 61, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd6', 'east', 'white', 'medium', 'D', 62, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd6', 'east', 'white', 'medium', 'D', 63, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd6', 'east', 'white', 'medium', 'D', 64, 'ok');
+flush;
+
+--query:24
+select count(*) as before_count from sensor_data;
+select * from sensor_data order by  device_id, time;
+
+delete from sensor_data where color = 'red';
+
+--query:16
+select count(*) as after_delete_count from sensor_data;
+select * from sensor_data order by  device_id, time;
+
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values(1, 'd7', 'north', 'red', 'small', 'A', 70, 'new');
+
+--query:17
+select count(*) as after_insert_count from sensor_data;
+select * from sensor_data order by  device_id, time;
+
+
+--11.After a device is deleted, new data points can be written for the same device
+connect root/timechoDB@2021;
+use delete_from_where_test_db;
+drop table sensor_data;
+create table sensor_data (device_id STRING TAG, site STRING TAG, color STRING ATTRIBUTE, size STRING ATTRIBUTE, zone STRING ATTRIBUTE, temp DOUBLE FIELD, status STRING FIELD);
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd1', 'north', 'red', 'small', 'A', 11, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd1', 'north', 'red', 'small', 'A', 12, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd1', 'north', 'red', 'small', 'A', 13, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd1', 'north', 'red', 'small', 'A', 14, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd2', 'north', 'red', 'large', 'B', 21, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd2', 'north', 'red', 'large', 'B', 22, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd2', 'north', 'red', 'large', 'B', 23, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd2', 'north', 'red', 'large', 'B', 24, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd3', 'south', 'blue', 'small', NULL, 31, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd3', 'south', 'blue', 'small', NULL, 32, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd3', 'south', 'blue', 'small', NULL, 33, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd3', 'south', 'blue', 'small', NULL, 34, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd4', 'north', 'blue', 'small', 'A', 41, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd4', 'north', 'blue', 'small', 'A', 42, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd4', 'north', 'blue', 'small', 'A', 43, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd4', 'north', 'blue', 'small', 'A', 44, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd5', 'south', NULL, 'large', 'C', 51, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd5', 'south', NULL, 'large', 'C', 52, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd5', 'south', NULL, 'large', 'C', 53, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd5', 'south', NULL, 'large', 'C', 54, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (1, 'd6', 'east', 'white', 'medium', 'D', 61, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (2, 'd6', 'east', 'white', 'medium', 'D', 62, 'ok');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (3, 'd6', 'east', 'white', 'medium', 'D', 63, 'warn');
+insert into sensor_data(time, device_id, site, color, size, zone, temp, status)  values (4, 'd6', 'east', 'white', 'medium', 'D', 64, 'ok');
+flush;
+
+--query:24
+select count(*) as before_count from sensor_data;
+select * from sensor_data order by device_id, time;
+
+delete from sensor_data where color = 'red';
+
+--query:16
+select count(*) as after_delete_count from sensor_data;
+select * from sensor_data order by  device_id, time;
+
+insert into sensor_data(device_id,time,site,color,size,zone,temp,status)  values (5, 'd1', 'north', 'red', 'small', 'A', 15, 'new');
+
+--query:17
+select count(*) as after_insert_count from sensor_data;
+select * from sensor_data order by  device_id, time;
+
+
 -- clear data 
+connect root/TimechoDB@2021;
 drop database delete_from_where_test_db;
 <<NULL;
 drop user user_1;
