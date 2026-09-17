@@ -1,0 +1,34 @@
+connect root/TimechoDB@2021;
+--清理环境
+drop database root.**;
+<<NULL;
+
+// 用户场景：使用通配符删除测点后再向同一个测点写入新的数据，之前开源版本V1.3.7仍可以查询到已被删除的旧数据 
+
+--1. 通过insert 写入几条数据
+insert into root.test.d0(timestamp, s3) values(2026-09-09T10:18:00, 'abc');
+insert into root.test.d0(timestamp, s3) values(2026-09-09T10:19:00, 'abcd');
+insert into root.test.d0(timestamp, s3) values(2026-09-09T10:20:00, 'abcde');
+insert into root.test.d0(timestamp, s3) values(2026-09-09T10:21:00, 'abcdef');
+
+
+--2. 写入之后，查询一次数据，结果为：4
+select * from root.test.**;
+
+--3. 执行flush，再查询一次数据
+flush;
+select * from root.test.**;
+
+--4. 使用通配符，删除时间序列，查询一次数据
+delete timeseries root.test.*.s*;
+select * from root.test.**;
+
+--5. 向同一个测点root.test.d0.s3插入1条新数据，执行数据查询
+insert into root.test.d0(timestamp, s3) values(2026-10-09T10:21:00, 'gggggggggg');
+
+select * from root.test.**;
+
+
+-- 清理环境
+drop database root.**;
+<<NULL;
