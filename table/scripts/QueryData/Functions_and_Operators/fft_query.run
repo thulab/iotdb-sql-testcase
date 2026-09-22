@@ -1,0 +1,834 @@
+// 表模型内置表值函数FFT ，对输入表中每个分区的一个或多个实值数值序列执行一维快速傅里叶变换。
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理测试数据库
+drop user fft_reader;
+<<NULL;
+
+drop database test_fft;
+<<NULL;
+
+-- 1. 创建并使用测试数据库
+create database test_fft;
+use test_fft;
+
+-- 2. 创建基础测试表
+create table signal
+(
+    device_id STRING TAG,
+    temperature DOUBLE FIELD,
+    speed INT32 FIELD,
+    note STRING FIELD
+);
+
+create table impulse
+(
+    value DOUBLE FIELD
+);
+
+create table seq
+(
+    value DOUBLE FIELD
+);
+
+create table irregular
+(
+    device_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table single_row
+(
+    device_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table empty_signal
+(
+    value DOUBLE FIELD
+);
+
+create table custom_signal
+(
+    event_time TIMESTAMP TIME,
+    value DOUBLE FIELD
+);
+
+create table numeric_types
+(
+    i32 INT32 FIELD,
+    i64 INT64 FIELD,
+    f32 FLOAT FIELD,
+    f64 DOUBLE FIELD
+);
+
+create table no_numeric
+(
+    device_id STRING TAG,
+    note STRING FIELD
+);
+
+create table with_null
+(
+    device_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table duplicate_time
+(
+    device_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+-- FFT-036：128 个数值列，验证频谱缓存恰好达到上限
+create table wide_128
+(
+    c001 DOUBLE FIELD,
+    c002 DOUBLE FIELD,
+    c003 DOUBLE FIELD,
+    c004 DOUBLE FIELD,
+    c005 DOUBLE FIELD,
+    c006 DOUBLE FIELD,
+    c007 DOUBLE FIELD,
+    c008 DOUBLE FIELD,
+    c009 DOUBLE FIELD,
+    c010 DOUBLE FIELD,
+    c011 DOUBLE FIELD,
+    c012 DOUBLE FIELD,
+    c013 DOUBLE FIELD,
+    c014 DOUBLE FIELD,
+    c015 DOUBLE FIELD,
+    c016 DOUBLE FIELD,
+    c017 DOUBLE FIELD,
+    c018 DOUBLE FIELD,
+    c019 DOUBLE FIELD,
+    c020 DOUBLE FIELD,
+    c021 DOUBLE FIELD,
+    c022 DOUBLE FIELD,
+    c023 DOUBLE FIELD,
+    c024 DOUBLE FIELD,
+    c025 DOUBLE FIELD,
+    c026 DOUBLE FIELD,
+    c027 DOUBLE FIELD,
+    c028 DOUBLE FIELD,
+    c029 DOUBLE FIELD,
+    c030 DOUBLE FIELD,
+    c031 DOUBLE FIELD,
+    c032 DOUBLE FIELD,
+    c033 DOUBLE FIELD,
+    c034 DOUBLE FIELD,
+    c035 DOUBLE FIELD,
+    c036 DOUBLE FIELD,
+    c037 DOUBLE FIELD,
+    c038 DOUBLE FIELD,
+    c039 DOUBLE FIELD,
+    c040 DOUBLE FIELD,
+    c041 DOUBLE FIELD,
+    c042 DOUBLE FIELD,
+    c043 DOUBLE FIELD,
+    c044 DOUBLE FIELD,
+    c045 DOUBLE FIELD,
+    c046 DOUBLE FIELD,
+    c047 DOUBLE FIELD,
+    c048 DOUBLE FIELD,
+    c049 DOUBLE FIELD,
+    c050 DOUBLE FIELD,
+    c051 DOUBLE FIELD,
+    c052 DOUBLE FIELD,
+    c053 DOUBLE FIELD,
+    c054 DOUBLE FIELD,
+    c055 DOUBLE FIELD,
+    c056 DOUBLE FIELD,
+    c057 DOUBLE FIELD,
+    c058 DOUBLE FIELD,
+    c059 DOUBLE FIELD,
+    c060 DOUBLE FIELD,
+    c061 DOUBLE FIELD,
+    c062 DOUBLE FIELD,
+    c063 DOUBLE FIELD,
+    c064 DOUBLE FIELD,
+    c065 DOUBLE FIELD,
+    c066 DOUBLE FIELD,
+    c067 DOUBLE FIELD,
+    c068 DOUBLE FIELD,
+    c069 DOUBLE FIELD,
+    c070 DOUBLE FIELD,
+    c071 DOUBLE FIELD,
+    c072 DOUBLE FIELD,
+    c073 DOUBLE FIELD,
+    c074 DOUBLE FIELD,
+    c075 DOUBLE FIELD,
+    c076 DOUBLE FIELD,
+    c077 DOUBLE FIELD,
+    c078 DOUBLE FIELD,
+    c079 DOUBLE FIELD,
+    c080 DOUBLE FIELD,
+    c081 DOUBLE FIELD,
+    c082 DOUBLE FIELD,
+    c083 DOUBLE FIELD,
+    c084 DOUBLE FIELD,
+    c085 DOUBLE FIELD,
+    c086 DOUBLE FIELD,
+    c087 DOUBLE FIELD,
+    c088 DOUBLE FIELD,
+    c089 DOUBLE FIELD,
+    c090 DOUBLE FIELD,
+    c091 DOUBLE FIELD,
+    c092 DOUBLE FIELD,
+    c093 DOUBLE FIELD,
+    c094 DOUBLE FIELD,
+    c095 DOUBLE FIELD,
+    c096 DOUBLE FIELD,
+    c097 DOUBLE FIELD,
+    c098 DOUBLE FIELD,
+    c099 DOUBLE FIELD,
+    c100 DOUBLE FIELD,
+    c101 DOUBLE FIELD,
+    c102 DOUBLE FIELD,
+    c103 DOUBLE FIELD,
+    c104 DOUBLE FIELD,
+    c105 DOUBLE FIELD,
+    c106 DOUBLE FIELD,
+    c107 DOUBLE FIELD,
+    c108 DOUBLE FIELD,
+    c109 DOUBLE FIELD,
+    c110 DOUBLE FIELD,
+    c111 DOUBLE FIELD,
+    c112 DOUBLE FIELD,
+    c113 DOUBLE FIELD,
+    c114 DOUBLE FIELD,
+    c115 DOUBLE FIELD,
+    c116 DOUBLE FIELD,
+    c117 DOUBLE FIELD,
+    c118 DOUBLE FIELD,
+    c119 DOUBLE FIELD,
+    c120 DOUBLE FIELD,
+    c121 DOUBLE FIELD,
+    c122 DOUBLE FIELD,
+    c123 DOUBLE FIELD,
+    c124 DOUBLE FIELD,
+    c125 DOUBLE FIELD,
+    c126 DOUBLE FIELD,
+    c127 DOUBLE FIELD,
+    c128 DOUBLE FIELD
+);
+
+-- FFT-037：129 个数值列，验证频谱缓存超过上限
+create table wide_129
+(
+    c001 DOUBLE FIELD,
+    c002 DOUBLE FIELD,
+    c003 DOUBLE FIELD,
+    c004 DOUBLE FIELD,
+    c005 DOUBLE FIELD,
+    c006 DOUBLE FIELD,
+    c007 DOUBLE FIELD,
+    c008 DOUBLE FIELD,
+    c009 DOUBLE FIELD,
+    c010 DOUBLE FIELD,
+    c011 DOUBLE FIELD,
+    c012 DOUBLE FIELD,
+    c013 DOUBLE FIELD,
+    c014 DOUBLE FIELD,
+    c015 DOUBLE FIELD,
+    c016 DOUBLE FIELD,
+    c017 DOUBLE FIELD,
+    c018 DOUBLE FIELD,
+    c019 DOUBLE FIELD,
+    c020 DOUBLE FIELD,
+    c021 DOUBLE FIELD,
+    c022 DOUBLE FIELD,
+    c023 DOUBLE FIELD,
+    c024 DOUBLE FIELD,
+    c025 DOUBLE FIELD,
+    c026 DOUBLE FIELD,
+    c027 DOUBLE FIELD,
+    c028 DOUBLE FIELD,
+    c029 DOUBLE FIELD,
+    c030 DOUBLE FIELD,
+    c031 DOUBLE FIELD,
+    c032 DOUBLE FIELD,
+    c033 DOUBLE FIELD,
+    c034 DOUBLE FIELD,
+    c035 DOUBLE FIELD,
+    c036 DOUBLE FIELD,
+    c037 DOUBLE FIELD,
+    c038 DOUBLE FIELD,
+    c039 DOUBLE FIELD,
+    c040 DOUBLE FIELD,
+    c041 DOUBLE FIELD,
+    c042 DOUBLE FIELD,
+    c043 DOUBLE FIELD,
+    c044 DOUBLE FIELD,
+    c045 DOUBLE FIELD,
+    c046 DOUBLE FIELD,
+    c047 DOUBLE FIELD,
+    c048 DOUBLE FIELD,
+    c049 DOUBLE FIELD,
+    c050 DOUBLE FIELD,
+    c051 DOUBLE FIELD,
+    c052 DOUBLE FIELD,
+    c053 DOUBLE FIELD,
+    c054 DOUBLE FIELD,
+    c055 DOUBLE FIELD,
+    c056 DOUBLE FIELD,
+    c057 DOUBLE FIELD,
+    c058 DOUBLE FIELD,
+    c059 DOUBLE FIELD,
+    c060 DOUBLE FIELD,
+    c061 DOUBLE FIELD,
+    c062 DOUBLE FIELD,
+    c063 DOUBLE FIELD,
+    c064 DOUBLE FIELD,
+    c065 DOUBLE FIELD,
+    c066 DOUBLE FIELD,
+    c067 DOUBLE FIELD,
+    c068 DOUBLE FIELD,
+    c069 DOUBLE FIELD,
+    c070 DOUBLE FIELD,
+    c071 DOUBLE FIELD,
+    c072 DOUBLE FIELD,
+    c073 DOUBLE FIELD,
+    c074 DOUBLE FIELD,
+    c075 DOUBLE FIELD,
+    c076 DOUBLE FIELD,
+    c077 DOUBLE FIELD,
+    c078 DOUBLE FIELD,
+    c079 DOUBLE FIELD,
+    c080 DOUBLE FIELD,
+    c081 DOUBLE FIELD,
+    c082 DOUBLE FIELD,
+    c083 DOUBLE FIELD,
+    c084 DOUBLE FIELD,
+    c085 DOUBLE FIELD,
+    c086 DOUBLE FIELD,
+    c087 DOUBLE FIELD,
+    c088 DOUBLE FIELD,
+    c089 DOUBLE FIELD,
+    c090 DOUBLE FIELD,
+    c091 DOUBLE FIELD,
+    c092 DOUBLE FIELD,
+    c093 DOUBLE FIELD,
+    c094 DOUBLE FIELD,
+    c095 DOUBLE FIELD,
+    c096 DOUBLE FIELD,
+    c097 DOUBLE FIELD,
+    c098 DOUBLE FIELD,
+    c099 DOUBLE FIELD,
+    c100 DOUBLE FIELD,
+    c101 DOUBLE FIELD,
+    c102 DOUBLE FIELD,
+    c103 DOUBLE FIELD,
+    c104 DOUBLE FIELD,
+    c105 DOUBLE FIELD,
+    c106 DOUBLE FIELD,
+    c107 DOUBLE FIELD,
+    c108 DOUBLE FIELD,
+    c109 DOUBLE FIELD,
+    c110 DOUBLE FIELD,
+    c111 DOUBLE FIELD,
+    c112 DOUBLE FIELD,
+    c113 DOUBLE FIELD,
+    c114 DOUBLE FIELD,
+    c115 DOUBLE FIELD,
+    c116 DOUBLE FIELD,
+    c117 DOUBLE FIELD,
+    c118 DOUBLE FIELD,
+    c119 DOUBLE FIELD,
+    c120 DOUBLE FIELD,
+    c121 DOUBLE FIELD,
+    c122 DOUBLE FIELD,
+    c123 DOUBLE FIELD,
+    c124 DOUBLE FIELD,
+    c125 DOUBLE FIELD,
+    c126 DOUBLE FIELD,
+    c127 DOUBLE FIELD,
+    c128 DOUBLE FIELD,
+    c129 DOUBLE FIELD
+);
+
+-- FFT-038：前 N 行合法，但 N 之后存在重复时间戳
+create table invalid_after_n
+(
+    source_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+-- FFT-040：分区列使用不同数据类型，并保留两个待转换数值列
+create table typed_partition
+(
+    region_id STRING TAG,
+    rack_no INT32 FIELD,
+    temperature FLOAT FIELD,
+    amplitude DOUBLE FIELD
+);
+
+
+-- 3. 查看表和表结构
+show tables;
+
+desc signal;
+desc impulse;
+desc seq;
+desc irregular;
+desc single_row;
+desc empty_signal;
+desc custom_signal;
+desc numeric_types;
+desc no_numeric;
+desc with_null;
+desc duplicate_time;
+desc wide_128;
+desc wide_129;
+desc invalid_after_n;
+desc typed_partition; 
+
+
+-- 4. 写入基础测试数据
+insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok');
+
+insert into impulse(time, value) values(0, 1.0);
+insert into impulse(time, value) values(1000, 0.0);
+insert into impulse(time, value) values(2000, 0.0);
+insert into impulse(time, value) values(3000, 0.0);
+
+insert into seq(time, value) values(0, 1.0);
+insert into seq(time, value) values(1000, 2.0);
+insert into seq(time, value) values(2000, 3.0);
+insert into seq(time, value) values(3000, 4.0);
+
+insert into irregular(time, device_id, value) values(0,    'd1', 1.0);
+insert into irregular(time, device_id, value) values(1000, 'd1', 2.0);
+insert into irregular(time, device_id, value) values(2500, 'd1', 3.0);
+
+insert into single_row(time, device_id, value) values(0, 'd1', 2.0);
+
+insert into custom_signal(event_time, value) values(0, 1.0);
+insert into custom_signal(event_time, value) values(1000, 0.0);
+insert into custom_signal(event_time, value) values(2000, 0.0);
+insert into custom_signal(event_time, value) values(3000, 0.0);
+
+insert into numeric_types(time, i32, i64, f32, f64) values(0,    1, 10, 1.0, 10.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(1000, 2, 20, 2.0, 20.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(2000, 3, 30, 3.0, 30.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(3000, 4, 40, 4.0, 40.0);
+
+insert into no_numeric(time, device_id, note) values(0, 'd1', 'ok');
+
+insert into with_null(time, device_id, value) values(0,    'd1', 1.0);
+insert into with_null(time, device_id, value) values(1000, 'd1', 2.0);
+insert into with_null(time, device_id, value) values(2000, 'd1', null);
+
+-- 不分区时，两个 TAG 实体的相同时间戳进入同一个 FFT 分区
+insert into duplicate_time(time, device_id, value) values(0, 'd1', 1.0);
+insert into duplicate_time(time, device_id, value) values(0, 'd2', 2.0);
+
+-- FFT-036/FFT-037：全部数值列写入非 NULL 值，避免 NULL 校验先于缓存上限校验
+insert into wide_128(time, c001, c002, c003, c004, c005, c006, c007, c008, c009, c010, c011, c012, c013, c014, c015, c016, c017, c018, c019, c020, c021, c022, c023, c024, c025, c026, c027, c028, c029, c030, c031, c032, c033, c034, c035, c036, c037, c038, c039, c040, c041, c042, c043, c044, c045, c046, c047, c048, c049, c050, c051, c052, c053, c054, c055, c056, c057, c058, c059, c060, c061, c062, c063, c064, c065, c066, c067, c068, c069, c070, c071, c072, c073, c074, c075, c076, c077, c078, c079, c080, c081, c082, c083, c084, c085, c086, c087, c088, c089, c090, c091, c092, c093, c094, c095, c096, c097, c098, c099, c100, c101, c102, c103, c104, c105, c106, c107, c108, c109, c110, c111, c112, c113, c114, c115, c116, c117, c118, c119, c120, c121, c122, c123, c124, c125, c126, c127, c128) values(0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+insert into wide_129(time, c001, c002, c003, c004, c005, c006, c007, c008, c009, c010, c011, c012, c013, c014, c015, c016, c017, c018, c019, c020, c021, c022, c023, c024, c025, c026, c027, c028, c029, c030, c031, c032, c033, c034, c035, c036, c037, c038, c039, c040, c041, c042, c043, c044, c045, c046, c047, c048, c049, c050, c051, c052, c053, c054, c055, c056, c057, c058, c059, c060, c061, c062, c063, c064, c065, c066, c067, c068, c069, c070, c071, c072, c073, c074, c075, c076, c077, c078, c079, c080, c081, c082, c083, c084, c085, c086, c087, c088, c089, c090, c091, c092, c093, c094, c095, c096, c097, c098, c099, c100, c101, c102, c103, c104, c105, c106, c107, c108, c109, c110, c111, c112, c113, c114, c115, c116, c117, c118, c119, c120, c121, c122, c123, c124, c125, c126, c127, c128, c129) values(0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+
+-- FFT-038：排序后的前两行合法，第 3/4 行时间戳重复
+insert into invalid_after_n(time, source_id, value) values(0,    's1', 1.0);
+insert into invalid_after_n(time, source_id, value) values(1000, 's1', 2.0);
+insert into invalid_after_n(time, source_id, value) values(2000, 's1', 3.0);
+insert into invalid_after_n(time, source_id, value) values(2000, 's2', 4.0);
+
+-- FFT-040：两个分区，每个分区 4 行
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(0,    'east', 1, 1.0, 10.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(1000, 'east', 1, 2.0, 20.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(2000, 'east', 1, 3.0, 30.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(3000, 'east', 1, 4.0, 40.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(0,    'west', 2, 4.0, 40.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(1000, 'west', 2, 3.0, 30.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(2000, 'west', 2, 2.0, 20.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(3000, 'west', 2, 1.0, 10.0);
+
+
+-- 5. 查询原始数据
+select * from signal order by device_id, time;
+select * from impulse order by time;
+select * from seq order by time;
+select * from irregular order by time;
+select * from single_row order by time;
+select * from empty_signal order by time;
+select * from custom_signal order by 1, 2;
+select * from numeric_types order by time;
+select * from no_numeric order by time;
+select * from with_null order by time;
+
+-- 6. FFT 正常场景
+
+-- 6.1 按设备分区，同时转换 DOUBLE 和 INT32；STRING 列 note 应被忽略
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by device_id, frequency_index;
+
+-- 6.2 无分区、单列 FFT，输出完整双边频谱
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 6.3 函数名大小写不敏感
+select frequency_index, frequency, value_real, value_imag
+from fft(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 6.4 DATA 子查询投影：只转换 speed
+select *
+from FFT(
+    DATA => (
+        select time, device_id, speed
+        from signal
+    ) PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by device_id, frequency_index;
+
+-- 6.5 默认 N，并根据首尾时间推断 SAMPLE_INTERVAL
+select frequency_index, frequency, value_real, value_imag
+from FFT(DATA => impulse ORDER BY time)
+order by frequency_index;
+
+-- 6.6 自定义 TIME 列
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => custom_signal ORDER BY event_time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    TIMECOL => 'event_time'
+)
+order by frequency_index;
+
+-- 6.7 支持 INT32、INT64、FLOAT、DOUBLE，输出实部和虚部均为 DOUBLE
+select *
+from FFT(
+    DATA => numeric_types ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 6.8 backward、forward、ortho 三种归一化方式
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'backward'
+)
+order by frequency_index;
+
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'FORWARD'
+)
+order by frequency_index;
+
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'OrThO'
+)
+order by frequency_index;
+
+-- 6.9 位置参数调用，参数顺序为 DATA、SAMPLE_INTERVAL、N、NORM
+select frequency_index, frequency, value_real, value_imag
+from TABLE(
+    FFT(TABLE(impulse) ORDER BY time, 1s, 4, 'ortho')
+)
+order by frequency_index;
+
+--6.10 显式 duration 采样间隔
+select frequency_index, frequency 
+from FFT(DATA => signal ORDER BY time, SAMPLE_INTERVAL => 100ms, N => 4); 
+
+select frequency_index, frequency from FFT(DATA => signal ORDER BY time, SAMPLE_INTERVAL => 1s, N => 4);
+
+-- 7. FFT 边界场景
+
+-- 7.1 N 小于输入长度：只转换排序后的前 N 行
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => seq ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 2
+)
+order by frequency_index;
+
+-- 7.2 N 大于输入长度：在尾部补 0
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => (select time, value from impulse where time < 2000) ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 7.3 非 2 的幂变换长度
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => (select time, value from seq where time <= 2000) ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 3
+)
+order by frequency_index;
+
+-- 7.4 不规则采样：未指定间隔时按首尾跨度的平均值推断
+select *
+from FFT(
+    DATA => irregular PARTITION BY device_id ORDER BY time
+)
+order by device_id, frequency_index;
+
+-- 7.5 不规则采样：显式间隔决定频率轴，不与实际相邻间隔比对
+select * from FFT
+    (DATA => irregular PARTITION BY device_id ORDER BY time)
+order by frequency_index;
+
+select *
+from FFT(
+    DATA => irregular PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s
+)
+order by device_id, frequency_index;
+
+-- 7.6 单行分区显式指定采样间隔，默认 N=1
+select *
+from FFT(
+    DATA => single_row PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s
+)
+order by device_id, frequency_index;
+
+-- 7.7 空输入返回既定 Schema 和 0 行
+select *
+from FFT(DATA => empty_signal ORDER BY time)
+order by frequency_index;
+
+-- 7.8 FFT-021：最大允许变换长度
+select count(*) as count_result
+from FFT(
+    DATA => single_row ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 65536
+);
+
+-- 7.9 FFT 结果继续参与投影、过滤、排序和聚合
+select device_id, count(*) as non_negative_bin_count
+from FFT(
+    DATA => signal PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+where frequency >= 0
+group by device_id
+order by device_id;
+
+-- 8. FFT 异常场景
+
+-- 8.1 DATA 缺少 ORDER BY
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8.2 ORDER BY 列与 TIMECOL 不一致
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id ORDER BY speed,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8.3 TIME 列降序
+select *
+from FFT(
+    DATA => signal ORDER BY time DESC,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8.4 同一 FFT 分区中时间戳重复
+select *
+from FFT(
+    DATA => (select time, value from duplicate_time) ORDER BY time,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8.5 SAMPLE_INTERVAL 不是 duration literal
+select *
+from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 1);
+<<SQLSTATE;
+
+-- 8.6 SAMPLE_INTERVAL 为 0
+select *
+from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 0ms);
+<<SQLSTATE;
+
+-- 8.7 N 为 0
+select *
+from FFT(DATA => impulse ORDER BY time, N => 0);
+<<SQLSTATE;
+
+-- 8.8 N 超过上限 65536
+select *
+from FFT(DATA => impulse ORDER BY time, N => 65537);
+<<SQLSTATE;
+
+-- 8.9 NORM 取值非法
+select *
+from FFT(DATA => impulse ORDER BY time, NORM => 'bad');
+<<SQLSTATE;
+
+-- 8.10 不存在可转换的数值列
+select *
+from FFT(
+    DATA => no_numeric PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8.11 数值列含 NULL；即使 N=2 截断前两行，也必须校验第三行
+select *
+from FFT(
+    DATA => with_null PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 2
+);
+<<SQLSTATE;
+
+-- 8.12 单行分区未指定采样间隔
+select *
+from FFT(DATA => single_row PARTITION BY device_id ORDER BY time);
+<<SQLSTATE;
+
+-- 8.13 TIMECOL 指定列不存在
+select *
+from FFT(
+    DATA => signal ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    TIMECOL => 'event_time'
+);
+<<SQLSTATE;
+
+-- 8.14 TIMECOL 指定列类型错误
+select *
+from FFT(
+    DATA => signal ORDER BY device_id,
+    SAMPLE_INTERVAL => 1s,
+    TIMECOL => 'device_id'
+);
+<<SQLSTATE;
+
+-- 9. 其他场景
+
+-- 9.1 FFT-036：N * 2 * 数值列数 = 65536 * 2 * 128 = 16777216，恰好达到缓存上限
+select count(*) as count_result
+from FFT(
+    DATA => wide_128 ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 65536
+);
+
+-- 9.2 FFT-037：65536 * 2 * 129 超过缓存上限
+select *
+from FFT(
+    DATA => wide_129 ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 65536
+);
+<<SQLSTATE;
+
+-- 9.3 FFT-038：N=2 不能绕过 N 之后的全量时间升序/唯一性校验
+select *
+from FFT(
+    DATA => invalid_after_n ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 2
+);
+<<SQLSTATE;
+
+-- 9.4 FFT-039：权限验证，FFT 沿用源表 SELECT 权限
+create user fft_reader 'Pass@123456789';
+grant select on test_fft.signal to user fft_reader;
+list privileges of user fft_reader;
+
+-- 有权限用户可以读取 signal 并执行 FFT
+connect fft_reader/Pass@123456789;
+use test_fft;
+select count(*) as bin_count
+from FFT(
+    DATA => signal ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+);
+
+-- 撤销权限后，相同 FFT 查询应被 ACL 拒绝
+connect root/TimechoDB@2021;
+use test_fft;
+revoke select on test_fft.signal from user fft_reader;
+list privileges of user fft_reader;
+
+connect fft_reader/FftReader123;
+use test_fft;
+select *
+from FFT(
+    DATA => signal ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+);
+<<SQLSTATE;
+
+-- 切回管理员并清理测试用户
+connect root/TimechoDB@2021;
+use test_fft;
+drop user fft_reader;
+<<NULL;
+
+-- 9.5 FFT-040：验证分区列、固定频率列及 real/imag 列的输出顺序
+select *
+from FFT(
+    DATA => typed_partition PARTITION BY (region_id, rack_no) ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by region_id, rack_no, frequency_index;
+
+-- 10. 验证 FFT 查询不修改源表
+select count(*) as signal_row_count from signal;
+desc signal;
+
+-- 11. 清理测试数据库
+drop database test_fft;
+<<NULL;
+drop user fft_reader;
+<<NULL;
