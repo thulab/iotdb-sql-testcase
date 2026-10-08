@@ -112,11 +112,11 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
@@ -349,11 +349,11 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
@@ -814,7 +814,7 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
@@ -825,7 +825,7 @@ _per_database   |                 |                         |
 schema_region_pe|null             |1                        |
 r_data_node     |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
@@ -920,6 +920,8 @@ num             |                 |                         |
 partition_table_|null             |10                       |
 recover_max_rea|                 |                         |
 d_mb_per_sec    |                 |                         |
+----------------------------------------------------------
+dangerous_mode  |null             |false                    |
 ----------------------------------------------------------
 datanode_memory_|null             |3:3:1:1:1:1              |
 proportion      |                 |                         |
@@ -1411,6 +1413,9 @@ ync_delay_in_ms |                 |                         |
 ----------------------------------------------------------
 wal_buffer_size_|null             |33554432                 |
 in_byte         |                 |                         |
+----------------------------------------------------------
+wal_entry_size_l|null             |-1                       |
+imit_in_byte    |                 |                         |
 ----------------------------------------------------------
 wal_file_list_ca|null             |true                     |
 che_enabled     |                 |                         |
@@ -2062,7 +2067,7 @@ ase             |                 |                         |
 timechodb.auto.a|null             |                         |
 ctivation.api-k|                 |                         |
 ey-file         |                 |                         |
-总数目：463
+总数目：465
 }
 Elapsed Time: 0.0.2
 
@@ -2502,43 +2507,156 @@ effectiv|
 Dat|
                 |                 |                         |atype: String          |
 ---------------------------------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |The policy of extension|
-oup_extension_p|                 |                         | SchemaRegionGroup for|
-olicy           |                 |                         | each Database. These |
-                |                 |                         |policies are currently|
-                |                 |                         | supported: 1. CUSTOM(|
-                |                 |                         |Each Database will all|
-                |                 |                         |ocate schema_region_gr|
-                |                 |                         |oup_per_database Regio|
-                |                 |                         |nGroups as soon as cre|
-                |                 |                         |ated) 2. AUTO(Each Dat|
-                |                 |                         |abase will automatical|
-                |                 |                         |ly extend SchemaRegion|
-                |                 |                         |Groups based on the da|
-                |                 |                         |ta it has)
-effectiveMo|
-                |                 |                         |de: hot_reload
-Datatyp|
-                |                 |                         |e: String              |
+schema_region_gr|CUSTOM           |PROACTIVE                |The policy of extending|
+oup_extension_p|                 |                         | SchemaRegionGroups fo|
+olicy           |                 |                         |r each Database. These|
+                |                 |                         | policies are currentl|
+                |                 |                         |y supported: 1. CUSTOM|
+                |                 |                         |: For known workloads |
+                |                 |                         |that need manual resou|
+                |                 |                         |rce allocation; create|
+                |                 |                         |s the configured targe|
+                |                 |                         |t number of SchemaRegi|
+                |                 |                         |onGroups per Database |
+                |                 |                         |when schema partitions|
+                |                 |                         | are first allocated. |
+                |                 |                         |2. AUTO: For most rout|
+                |                 |                         |ine workloads (roughly|
+                |                 |                         | 80% as an approximate|
+                |                 |                         | planning guideline); |
+                |                 |                         |gradually meets the co|
+                |                 |                         |nfigured minimum and e|
+                |                 |                         |xpands with slot occup|
+                |                 |                         |ancy up to the resourc|
+                |                 |                         |e-based maximum, balan|
+                |                 |                         |cing parallelism and R|
+                |                 |                         |egionGroup management |
+                |                 |                         |overhead. 3. PROACTIVE|
+                |                 |                         |: Complements AUTO whe|
+                |                 |                         |re it does not expand |
+                |                 |                         |eagerly enough, such a|
+                |                 |                         |s very few devices wit|
+                |                 |                         |h many measurements an|
+                |                 |                         |d a high load; creates|
+                |                 |                         | groups earlier for mo|
+                |                 |                         |re parallelism at the |
+                |                 |                         |cost of additional Reg|
+                |                 |                         |ionGroup management ov|
+                |                 |                         |erhead. AUTO and PROAC|
+                |                 |                         |TIVE use the same per-|
+                |                 |                         |Database maximum calcu|
+                |                 |                         |lation, including reso|
+                |                 |                         |urce sharing across Da|
+                |                 |                         |tabases. PROACTIVE exp|
+                |                 |                         |ands more eagerly with|
+                |                 |                         |in this limit; both ha|
+                |                 |                         |ve the same group coun|
+                |                 |                         |t once they reach the |
+                |                 |                         |same maximum. PROACTIV|
+                |                 |                         |E targets one SchemaRe|
+                |                 |                         |gionGroup per distinct|
+                |                 |                         | schema series slot, n|
+                |                 |                         |ot per measurement, an|
+                |                 |                         |d grows toward the con|
+                |                 |                         |figured minimum increm|
+                |                 |                         |entally like AUTO, wit|
+                |                 |                         |hout exceeding the max|
+                |                 |                         |imum. If all SchemaReg|
+                |                 |                         |ionGroups are disabled|
+                |                 |                         |, PROACTIVE may add on|
+                |                 |                         |e group above this tar|
+                |                 |                         |get, without exceeding|
+                |                 |                         | the maximum, to allow|
+                |                 |                         | partition allocation |
+                |                 |                         |to continue. Switching|
+                |                 |                         | policies does not rem|
+                |                 |                         |ove existing RegionGro|
+                |                 |                         |ups.
+effectiveMode: ho|
+                |                 |                         |t_reload
+Datatype: Str|
+                |                 |                         |ing                    |
 ---------------------------------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |The policy of extension|
-p_extension_pol|                 |                         | DataRegionGroup for e|
-icy             |                 |                         |ach Database. These po|
-                |                 |                         |licies are currently s|
-                |                 |                         |upported: 1. CUSTOM(Ea|
-                |                 |                         |ch Database will alloc|
-                |                 |                         |ate data_region_group_|
-                |                 |                         |per_database DataRegio|
-                |                 |                         |nGroups as soon as cre|
-                |                 |                         |ated) 2. AUTO(Each Dat|
-                |                 |                         |abase will automatical|
-                |                 |                         |ly extend DataRegionGr|
-                |                 |                         |oups based on the data|
-                |                 |                         | it has)
-effectiveMode|
-                |                 |                         |: hot_reload
-Datatype:|
-                |                 |                         | String                |
+data_region_grou|CUSTOM           |PROACTIVE                |The policy of extending|
+p_extension_pol|                 |                         | DataRegionGroups for |
+icy             |                 |                         |each Database. These p|
+                |                 |                         |olicies are currently |
+                |                 |                         |supported: 1. CUSTOM: |
+                |                 |                         |For known workloads th|
+                |                 |                         |at need manual resourc|
+                |                 |                         |e allocation; creates |
+                |                 |                         |the configured target |
+                |                 |                         |number of DataRegionGr|
+                |                 |                         |oups per Database when|
+                |                 |                         | data partitions are f|
+                |                 |                         |irst allocated. 2. AUT|
+                |                 |                         |O: For most routine wo|
+                |                 |                         |rkloads (roughly 80% a|
+                |                 |                         |s an approximate plann|
+                |                 |                         |ing guideline); gradua|
+                |                 |                         |lly meets the configur|
+                |                 |                         |ed minimum and expands|
+                |                 |                         | with slot occupancy u|
+                |                 |                         |p to the resource-base|
+                |                 |                         |d maximum, balancing p|
+                |                 |                         |arallelism and RegionG|
+                |                 |                         |roup management overhe|
+                |                 |                         |ad. 3. PROACTIVE: Comp|
+                |                 |                         |lements AUTO where it |
+                |                 |                         |does not expand eagerl|
+                |                 |                         |y enough, such as very|
+                |                 |                         | few devices with many|
+                |                 |                         | measurements and a hi|
+                |                 |                         |gh load; creates group|
+                |                 |                         |s earlier for more par|
+                |                 |                         |allelism at the cost o|
+                |                 |                         |f additional RegionGro|
+                |                 |                         |up management overhead|
+                |                 |                         |. AUTO and PROACTIVE u|
+                |                 |                         |se the same per-Databa|
+                |                 |                         |se maximum calculation|
+                |                 |                         |, including resource s|
+                |                 |                         |haring across Database|
+                |                 |                         |s. PROACTIVE expands m|
+                |                 |                         |ore eagerly within thi|
+                |                 |                         |s limit; both have the|
+                |                 |                         | same group count once|
+                |                 |                         | they reach the same m|
+                |                 |                         |aximum. PROACTIVE targ|
+                |                 |                         |ets one DataRegionGrou|
+                |                 |                         |p per distinct data se|
+                |                 |                         |ries slot, not per mea|
+                |                 |                         |surement, and grows to|
+                |                 |                         |ward the configured mi|
+                |                 |                         |nimum incrementally li|
+                |                 |                         |ke AUTO, without excee|
+                |                 |                         |ding the maximum. New |
+                |                 |                         |time partitions in an |
+                |                 |                         |existing slot can also|
+                |                 |                         | trigger this incremen|
+                |                 |                         |tal growth toward the |
+                |                 |                         |minimum. If all DataRe|
+                |                 |                         |gionGroups are disable|
+                |                 |                         |d, PROACTIVE may add o|
+                |                 |                         |ne group above this ta|
+                |                 |                         |rget, without exceedin|
+                |                 |                         |g the maximum, to allo|
+                |                 |                         |w partition allocation|
+                |                 |                         | to continue. PROACTIV|
+                |                 |                         |E balances active slot|
+                |                 |                         |s in its allocation po|
+                |                 |                         |licy table so new time|
+                |                 |                         | partitions can use ne|
+                |                 |                         |w groups. Existing tim|
+                |                 |                         |e-partition assignment|
+                |                 |                         |s are retained. Switch|
+                |                 |                         |ing policies does not |
+                |                 |                         |remove existing Region|
+                |                 |                         |Groups.
+effectiveMode:|
+                |                 |                         | hot_reload
+Datatype: |
+                |                 |                         |String                 |
 ---------------------------------------------------------------------------------
 time_partition_o|0                |0                        |Time partition origin i|
 rigin           |                 |                         |n milliseconds, defaul|
@@ -3135,11 +3253,11 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
@@ -3377,11 +3495,11 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
@@ -3619,11 +3737,11 @@ _executor_class |commons.partitio|partition.executor.hash.|
                 |n.executor.hash.|BKDRHashExecutor         |
                 |BKDRHashExecutor |                         |
 ----------------------------------------------------------
-schema_region_gr|CUSTOM           |AUTO                     |
+schema_region_gr|CUSTOM           |PROACTIVE                |
 oup_extension_p|                 |                         |
 olicy           |                 |                         |
 ----------------------------------------------------------
-data_region_grou|CUSTOM           |AUTO                     |
+data_region_grou|CUSTOM           |PROACTIVE                |
 p_extension_pol|                 |                         |
 icy             |                 |                         |
 ----------------------------------------------------------
