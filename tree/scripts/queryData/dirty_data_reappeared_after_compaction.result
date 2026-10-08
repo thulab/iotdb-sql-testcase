@@ -1,0 +1,109 @@
+
+-- [1]15:CREATE DATABASE root.repro
+STRICT{
+PASS
+}
+
+-- [1]16:CREATE TIMESERIES root.repro.s1 WITH DATATYPE=INT64
+STRICT{
+PASS
+}
+
+-- [1]19:SHOW DATABASES root.repro
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.repro          |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+Elapsed Time: 0.0.28
+
+-- [1]20:SHOW TIMESERIES root.repro.s1
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.repro.s1         |null             |root.repro          |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+Elapsed Time: 0.0.16
+
+-- [1]24:INSERT INTO root.repro(time, s1) VALUES (1, 1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.103
+
+-- [1]25:FLUSH
+STRICT{
+PASS
+}
+
+-- [1]26:SELECT s1 FROM root.repro
+STRICT{
+Time(TIMESTAMP)      |root.repro.s1(INT64)      |
+-----------------------------------------------
+1                    |1                         |
+总数目：1
+}
+Elapsed Time: 0.0.56
+
+-- [1]27:DELETE TIMESERIES root.repro.s1
+STRICT{
+0
+}
+Elapsed Time: 0.0.93
+
+-- [1]28:SHOW TIMESERIES root.repro.s1
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]29:CREATE TIMESERIES root.repro.s1 WITH DATATYPE=INT64
+STRICT{
+PASS
+}
+
+-- [1]30:SHOW TIMESERIES root.repro.s1
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.repro.s1         |null             |root.repro          |INT64               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]33:INSERT INTO root.repro(time, s1) VALUES (2, 2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]34:FLUSH
+STRICT{
+PASS
+}
+
+-- [1]36:SELECT s1 FROM root.repro
+STRICT{
+Time(TIMESTAMP)      |root.repro.s1(INT64)      |
+-----------------------------------------------
+2                    |2                         |
+总数目：1
+}
+Elapsed Time: 0.0.8
+
+-- [1]39:SET CONFIGURATION 'enable_seq_space_compaction'='true'
+STRICT{
+PASS
+}
+
+-- [1]42:SELECT s1 FROM root.repro
+STRICT{
+Time(TIMESTAMP)      |root.repro.s1(INT64)      |
+-----------------------------------------------
+2                    |2                         |
+总数目：1
+}
+Elapsed Time: 0.0.5
