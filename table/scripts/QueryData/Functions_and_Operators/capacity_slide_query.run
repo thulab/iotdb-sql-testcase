@@ -1,0 +1,334 @@
+// CAPACITY 新增 SLIDE 参数——表模型 SQL 测试集
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop user capacity_slide_reader;
+<<NULL;
+drop database capacity_slide_test_db;
+<<NULL;
+
+-- 1. 创建测试数据库，并准备表和数据
+create database capacity_slide_test_db;
+use capacity_slide_test_db;
+
+create table bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+-- 2. 查看表及其结构
+show tables;
+desc bid;
+
+-- 3. 写入相同的六行基线数据；各分区按晚、早、中时间写入，验证分区内乱序
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0);
+
+-- 4. 查询源数据基线
+select * from bid order by stock_id, time;
+
+-- 5. CAPACITY 正常场景
+
+-- 5.1 CAPACITY_省略SLIDE时默认步长等于SIZE
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2
+)
+order by stock_id, window_index, time;
+
+-- 5.2 CAPACITY_显式 SLIDE = SIZE 与省略 SLIDE 结果一致
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 2
+)
+order by stock_id, window_index, time;
+
+-- 5.3 CAPACITY_SLIDE < SIZE 产生重叠窗口和重复归属
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 5.4 CAPACITY_SLIDE > SIZE 时空档行不输出
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 3
+)
+order by stock_id, window_index, time;
+
+-- 5.5 CAPACITY_各分区独立划窗且window_index从0开始
+select stock_id, window_index, count(*) as row_count
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+group by stock_id, window_index
+order by stock_id, window_index;
+
+-- 每个分区的 window_index 最小值均为 0
+select stock_id, min(window_index) as min_window_index,
+       max(window_index) as max_window_index
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+group by stock_id
+order by stock_id;
+
+-- 5.6 CAPACITY_ORDER BY 决定行号与窗口成员
+select stock_id, window_index, time, price
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time ASC,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 5.7 CAPACITY_不指定 PARTITION BY 时全表作为单一输入分区
+select *
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => 2
+)
+order by window_index, time, stock_id;
+
+-- 5.8 CAPACITY_DATA使用过滤子查询时按过滤结果重新划窗
+select *
+from CAPACITY(
+    DATA => (select time, stock_id, price, s1 from bid where price >= 102.0)
+            PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 5.9 CAPACITY_window_index 类型、起始值和透传列校验
+select window_index, time, stock_id, price, s1
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 基于 CAPACITY 结果创建视图并查看结构，验证 window_index 为 INT64，
+-- 同时确认输入列名和类型保持不变；LIMIT 查询用于验证编号从 0 开始
+create view capacity_slide_result_view as
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+desc capacity_slide_result_view;
+select * from capacity_slide_result_view
+order by stock_id, window_index, time
+limit 3;
+drop view capacity_slide_result_view;
+
+-- 5.10 CAPACITY_按stock_id和window_index聚合计算窗口均值
+select stock_id, window_index, avg(price) as avg_price,
+       min(price) as min_price, max(price) as max_price, count(*) as row_count
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+)
+group by stock_id, window_index
+order by stock_id, window_index;
+
+-- 6. 边界窗口场景
+
+-- 6.1 CAPACITY_单行分区不足SIZE时输出一个非完整窗口
+select *
+from CAPACITY(
+    DATA => (select time, stock_id, price, s1 from bid where stock_id = 'AAPL' and price = 100.0)
+            PARTITION BY stock_id ORDER BY time,
+    SIZE => 5,
+    SLIDE => 2
+)
+order by stock_id, window_index, time;
+
+-- 6.2 CAPACITY_SLIDE等于SIZE且行数整除SIZE时不生成空尾窗口
+select window_index, count(*) as row_count
+from CAPACITY(
+    DATA => (
+        select time, stock_id, price, s1
+        from bid
+        where stock_id = 'AAPL'
+           or (stock_id = 'TESL' and price = 200.0)
+    ) ORDER BY time,
+    SIZE => 2,
+    SLIDE => 2
+)
+group by window_index
+order by window_index;
+
+-- 6.3 CAPACITY_空输入返回零行并保留结果列结构
+select *
+from CAPACITY(
+    DATA => (select time, stock_id, price, s1 from bid where 1 = 0)
+            PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+
+-- 6.4 SIZE=1、SLIDE=1，每个窗口仅包含一行
+select stock_id, window_index, time, price
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 1,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 6.5 CAPACITY_SLIDE取INT64最大值及超上限值的边界校验
+select count(*) as row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 1,
+    SLIDE => 9223372036854775807
+);
+
+-- 超出 INT64 最大值 1 的参数必须被拒绝，不能发生溢出或回绕
+select *
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 1,
+    SLIDE => 9223372036854775808
+);
+<<SQLSTATE;
+
+-- 7. 参数及语法异常场景
+
+-- 7.1 缺少必填参数 SIZE
+select * from CAPACITY(DATA => bid ORDER BY time, SLIDE => 1);
+<<SQLSTATE;
+
+-- 7.2 SIZE 必须为正数
+-- CAPACITY_SIZE=0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 0);
+<<SQLSTATE;
+
+-- CAPACITY_SIZE<0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => -1);
+<<SQLSTATE;
+
+-- 7.3 SLIDE 必须为正数
+-- CAPACITY_SLIDE=0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => 0);
+<<SQLSTATE;
+
+-- CAPACITY_SLIDE<0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => -1);
+<<SQLSTATE;
+
+-- 7.4 CAPACITY_SIZE为小数或SLIDE为字符串时拒绝执行
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2.5, SLIDE => 1);
+<<SQLSTATE;
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => '1');
+<<SQLSTATE;
+
+-- 7.5 CAPACITY_NULL SLIDE 被拒绝
+select * from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => NULL
+);
+<<SQLSTATE;
+
+-- 7.6 语法中 ORDER BY 可选，省略后函数调用仍应正常解析
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id,
+    SIZE => 2,
+    SLIDE => 1
+);
+
+-- 7.7 非法参数名称
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, STEPS => 1);
+<<SQLSTATE;
+
+-- 7.8 输入表不存在
+select * from CAPACITY(DATA => not_exists ORDER BY time, SIZE => 2, SLIDE => 1);
+<<SQLSTATE;
+
+-- 8. CAPACITY_关键字大小写兼容及普通SELECT查询回归
+-- 仅验证 PARTITION BY / ORDER BY 大小写；与 5.3 比较，不宣称覆盖参数位置或函数名大小写
+select *
+from CAPACITY(
+    DATA => bid partition by stock_id order by time,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 普通 SELECT 查询不受影响
+select count(*) as source_row_count from bid;
+
+-- 9. CAPACITY_源表SELECT权限控制查询访问
+-- 9.1 管理员创建用户，授予用户权限
+create user capacity_slide_reader 'Pass@123456789';
+list user;
+grant insert, select on capacity_slide_test_db.bid to user capacity_slide_reader;
+list privileges of user capacity_slide_reader;
+
+-- 9.2 已授权用户可以通过 CAPACITY 读取 bid 表
+connect capacity_slide_reader/Pass@123456789;
+show current_user;
+list privileges of user capacity_slide_reader;
+use capacity_slide_test_db;
+select count(*) as capacity_row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+
+-- 9.3 管理员取消用户SELECT权限
+connect root/TimechoDB@2021;
+use capacity_slide_test_db;
+revoke select on capacity_slide_test_db.bid from user capacity_slide_reader;
+list privileges of user capacity_slide_reader;
+
+--9.4 用户被撤销源表SELECT权限后，相同的 CAPACITY 查询被拒绝
+connect capacity_slide_reader/Pass@123456789;
+show current_user;
+list privileges of user capacity_slide_reader;
+use capacity_slide_test_db;
+select count(*) as capacity_row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+<<SQLSTATE;
+
+-- 切回管理员，并删除临时测试用户
+connect root/TimechoDB@2021;
+list user;
+drop user capacity_slide_reader;
+list user;
+
+
+-- 清理测试数据
+drop database capacity_slide_test_db;
+<<NULL;
