@@ -574,7 +574,7 @@ from M4(
 );
 <<SQLSTATE;
 
--- 90.2 TIMECOL 不存在
+-- 9.2 TIMECOL 不存在
 select *
 from M4(
     DATA => m4_table1 PARTITION BY device_id ORDER BY time,
@@ -693,6 +693,16 @@ create view m4_result_view as
 select * from m4_result_view order by device_id,window_start,s1_time,s2_time,s3_time;
 drop view m4_result_view;
 
+-- 11. M4 作为普通子查询被外层查询
+select device_id, window_start, window_end, s1_time, s1
+from(
+  select * from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+  )
+) as m4_result
+order by device_id, window_start, s1_time;
 
 --  清理测试数据库
 drop database m4_query_test;
