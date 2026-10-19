@@ -1,0 +1,699 @@
+// IoTDB / TimechoDB 表模型内置 M4 表值函数 SQL 执行脚本
+// M4 函数支持两种窗口模式： 时间窗口模式 | 点数窗口模式
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database m4_query_test;
+<<NULL;
+
+-- 1. 创建测试数据库
+create database m4_query_test;
+use m4_query_test;
+
+-- 2. 创建基础表
+-- 时间列 time 为表模型隐式主键；device_id / factory_id 为分区维度。
+create table m4_table1
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD,
+    s3 STRING FIELD
+);
+
+create table m4_table2
+(
+    device_id STRING TAG,
+    anchor INT32 FIELD
+);
+
+create table m4_table3
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD,
+    s3 STRING FIELD,
+    anchor INT32 FIELD
+);
+
+create table m4_table4
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s4 OBJECT FIELD
+);
+
+create table m4_table5
+(
+    factory_id STRING TAG,
+    device_id STRING TAG,
+    s1 DOUBLE FIELD
+);
+
+create table m4_boundary
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD
+);
+
+create table m4_feature
+(
+    s1 DOUBLE FIELD
+);
+
+create table m4_duplicate_extreme
+(
+    s1 DOUBLE FIELD
+);
+
+create table m4_single
+(
+    s1 DOUBLE FIELD
+);
+
+create table m4_types
+(
+    device_id STRING TAG,
+    i32 INT32 FIELD,
+    i64 INT64 FIELD,
+    f32 FLOAT FIELD,
+    f64 DOUBLE FIELD,
+    b BOOLEAN FIELD,
+    text_value STRING FIELD
+);
+
+create table m4_empty
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD
+);
+
+-- 跨秒、分钟、小时的数据，用于验证时间长度字面量单位。
+create table m4_table_long
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD
+);
+
+-- 专用表：同时间戳的两个设备，分别使用不同数值范围。
+create table m4_partition_isolation
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD
+);
+
+-- 3. 查看表结构
+show tables;
+desc m4_table1;
+desc m4_table2;
+desc m4_table3;
+desc m4_table4;
+desc m4_table5;
+desc m4_boundary;
+desc m4_feature;
+desc m4_duplicate_extreme;
+desc m4_single;
+desc m4_types;
+desc m4_empty;
+desc m4_table_long;
+desc m4_partition_isolation;
+
+-- 4. 写入需求文档基础数据
+insert into m4_table1(time, device_id, s1, s2, s3) values(1,  'device_1', 15.0, 12.0, 'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(3,  'device_1', 5.0,  null, 'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(6,  'device_1', 30.0, null,  'WARN');
+insert into m4_table1(time, device_id, s1, s2, s3) values(9,  'device_1', 10.0, null,  'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(20, 'device_1', 40.0, 35.0,  'CRIT');
+insert into m4_table1(time, device_id, s1, s2, s3) values(2,  'device_2', 8.0,  8.0,   'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(5,  'device_2', 25.0, 24.0,  'WARN');
+insert into m4_table1(time, device_id, s1, s2, s3) values(8,  'device_2', 12.0, 13.0,  'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(11, 'device_2', 18.0, 19.0,  'OK');
+insert into m4_table1(time, device_id, s1, s2, s3) values(15, 'device_2', 6.0,  7.0,   'WARN');
+
+-- 仅包含时间列和分区列，用于“无有效计算列”异常。
+-- 使用 anchor 保证行中存在非 NULL FIELD；无有效计算列场景通过 M4 子查询排除 anchor。
+insert into m4_table2(time, device_id, anchor) values(1,  'device_1', 0);
+insert into m4_table2(time, device_id, anchor) values(3,  'device_1', 0);
+insert into m4_table2(time, device_id, anchor) values(6,  'device_1', 0);
+insert into m4_table2(time, device_id, anchor) values(9,  'device_1', 0);
+insert into m4_table2(time, device_id, anchor) values(20, 'device_1', 0);
+insert into m4_table2(time, device_id, anchor) values(2,  'device_2', 0);
+insert into m4_table2(time, device_id, anchor) values(5,  'device_2', 0);
+
+-- device_1 的第一个时间窗口全 NULL，后续窗口有有效值。
+-- 表模型不允许整行所有 FIELD 都为 NULL，因此用 anchor 保证物理行合法；M4 查询时通过子查询排除 anchor。
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(1,  'device_1', null, null, null, 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(3,  'device_1', null, null, null, 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(6,  'device_1', null, null, null, 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(9,  'device_1', null, null, null, 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(20, 'device_1', 40.0, 35.0, 'CRIT', 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(2,  'device_2', 8.0,  8.0,  'OK',   0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(5,  'device_2', 25.0, 24.0,  'WARN', 0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(8,  'device_2', 12.0, 13.0,  'OK',   0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(11, 'device_2', 18.0, 19.0,  'OK',   0);
+insert into m4_table3(time, device_id, s1, s2, s3, anchor) values(15, 'device_2', 6.0,  7.0,   'WARN', 0);
+
+-- OBJECT 参与列，用于不可比较类型异常。
+insert into m4_table4(time, device_id, s1, s4) values(1, 'device_1', 10.0, null);
+
+-- 多列分区。
+insert into m4_table5(time, factory_id, device_id, s1) values(1,  'F1', 'device_1', 10.0);
+insert into m4_table5(time, factory_id, device_id, s1) values(5,  'F1', 'device_1', 15.0);
+insert into m4_table5(time, factory_id, device_id, s1) values(9,  'F1', 'device_1', 5.0);
+insert into m4_table5(time, factory_id, device_id, s1) values(2,  'F1', 'device_2', 20.0);
+insert into m4_table5(time, factory_id, device_id, s1) values(11, 'F1', 'device_2', 25.0);
+insert into m4_table5(time, factory_id, device_id, s1) values(3,  'F2', 'device_1', 30.0);
+
+-- 窗口边界：0/9 属于 [0,10)，10/19 属于 [10,20)，20 属于 [20,30)。
+insert into m4_boundary(time, device_id, s1) values(0,  'd1', 0.0);
+insert into m4_boundary(time, device_id, s1) values(9,  'd1', 9.0);
+insert into m4_boundary(time, device_id, s1) values(10, 'd1', 10.0);
+insert into m4_boundary(time, device_id, s1) values(19, 'd1', 19.0);
+insert into m4_boundary(time, device_id, s1) values(20, 'd1', 20.0);
+
+-- 四类特征点均不重合：first=10、bottom=5、top=30、last=20。
+insert into m4_feature(time, s1) values(1, 10.0);
+insert into m4_feature(time, s1) values(2, 5.0);
+insert into m4_feature(time, s1) values(3, 30.0);
+insert into m4_feature(time, s1) values(4, 20.0);
+
+-- 重复极值：bottom/top 均应保留扫描顺序遇到的第一个点。
+insert into m4_duplicate_extreme(time, s1) values(1, 10.0);
+insert into m4_duplicate_extreme(time, s1) values(2, 5.0);
+insert into m4_duplicate_extreme(time, s1) values(3, 5.0);
+insert into m4_duplicate_extreme(time, s1) values(4, 30.0);
+insert into m4_duplicate_extreme(time, s1) values(5, 30.0);
+insert into m4_duplicate_extreme(time, s1) values(6, 20.0);
+
+insert into m4_single(time, s1) values(1, 10.0);
+
+insert into m4_types(time, device_id, i32, i64, f32, f64, b, text_value) values(1, 'd1', 1, 10, 1.0, 10.0, true,  'A');
+insert into m4_types(time, device_id, i32, i64, f32, f64, b, text_value) values(2, 'd1', 2, 20, 2.0, 20.0, false, 'B');
+insert into m4_types(time, device_id, i32, i64, f32, f64, b, text_value) values(3, 'd1', 3, 30, 3.0, 30.0, true,  'C');
+insert into m4_types(time, device_id, i32, i64, f32, f64, b, text_value) values(4, 'd1', 4, 40, 4.0, 40.0, false, 'D');
+
+-- 时间范围覆盖 0ms～3600000ms，并在 1s、5m、1h 边界前后布点。
+insert into m4_table_long(time, device_id, s1) values(0,       'device_1', 10.0);
+insert into m4_table_long(time, device_id, s1) values(999,     'device_1', 5.0);
+insert into m4_table_long(time, device_id, s1) values(1000,    'device_1', 30.0);
+insert into m4_table_long(time, device_id, s1) values(299999,  'device_1', 20.0);
+insert into m4_table_long(time, device_id, s1) values(300000,  'device_1', 40.0);
+insert into m4_table_long(time, device_id, s1) values(3599999, 'device_1', 15.0);
+insert into m4_table_long(time, device_id, s1) values(3600000, 'device_1', 50.0);
+
+-- 交错写入两个设备，每个设备每个窗口 5 点。
+insert into m4_partition_isolation(time, device_id, s1) values(1, 'device_1', 10.0);
+insert into m4_partition_isolation(time, device_id, s1) values(1, 'device_2', 1000.0);
+insert into m4_partition_isolation(time, device_id, s1) values(3, 'device_1', 5.0);
+insert into m4_partition_isolation(time, device_id, s1) values(3, 'device_2', 1500.0);
+insert into m4_partition_isolation(time, device_id, s1) values(5, 'device_1', 12.0);
+insert into m4_partition_isolation(time, device_id, s1) values(5, 'device_2', 3000.0);
+insert into m4_partition_isolation(time, device_id, s1) values(7, 'device_1', 30.0);
+insert into m4_partition_isolation(time, device_id, s1) values(7, 'device_2', 500.0);
+insert into m4_partition_isolation(time, device_id, s1) values(9, 'device_1', 20.0);
+insert into m4_partition_isolation(time, device_id, s1) values(9, 'device_2', 2000.0);
+insert into m4_partition_isolation(time, device_id, s1) values(11, 'device_1', 40.0);
+insert into m4_partition_isolation(time, device_id, s1) values(11, 'device_2', -100.0);
+insert into m4_partition_isolation(time, device_id, s1) values(13, 'device_1', 25.0);
+insert into m4_partition_isolation(time, device_id, s1) values(13, 'device_2', -50.0);
+insert into m4_partition_isolation(time, device_id, s1) values(15, 'device_1', 42.0);
+insert into m4_partition_isolation(time, device_id, s1) values(15, 'device_2', -150.0);
+insert into m4_partition_isolation(time, device_id, s1) values(17, 'device_1', 60.0);
+insert into m4_partition_isolation(time, device_id, s1) values(17, 'device_2', -300.0);
+insert into m4_partition_isolation(time, device_id, s1) values(19, 'device_1', 50.0);
+insert into m4_partition_isolation(time, device_id, s1) values(19, 'device_2', -200.0);
+
+-- 5. 查看源数据
+select * from m4_table1 order by device_id, time;
+select * from m4_table2 order by device_id, time;
+select * from m4_table3 order by device_id, time;
+select * from m4_table4 order by device_id, time;
+select * from m4_table5 order by factory_id, device_id, time;
+select * from m4_boundary order by device_id, time;
+select * from m4_duplicate_extreme order by time;
+select * from m4_empty;
+select * from m4_feature order by time;
+select * from m4_single;
+select * from m4_types order by device_id, time;
+select * from m4_table_long order by device_id, time;
+select * from m4_partition_isolation order by device_id, time;
+
+-- 6. 时间窗口模式
+-- 6.1 基础按名传参
+select window_start, window_end, device_id,
+       s1_time, s1, s2_time, s2, s3_time, s3
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.2 按位传参：顺序 DATA、TIMECOL、SIZE
+select window_start, window_end, device_id,
+       s1_time, s1, s2_time, s2, s3_time, s3
+from M4(m4_table1 PARTITION BY device_id ORDER BY time, 'time', 10ms)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.3 未指定 SLIDE：默认等于 SIZE
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.4 SLIDE = SIZE：应与 6.3 一致
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms,
+    SLIDE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.5 SLIDE < SIZE：重叠窗口
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms,
+    SLIDE => 5ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.6 SLIDE > SIZE：间隔窗口，间隙内的数据不参与
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 5ms,
+    SLIDE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.7 指定 ORIGIN 改变时间窗口对齐原点
+select *
+from M4(
+  DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+  TIMECOL => 'time', 
+  ORIGIN => 1970-01-01T08:00:00.005,
+  SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.8 ORIGIN 早于全部输入数据
+select *
+from M4(
+  DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+  TIMECOL => 'time',
+  ORIGIN => 1969-12-31T23:00:00+08:00,
+  SIZE => 10ms,
+  SLIDE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.9 子查询限制输入时间范围
+select *
+from M4(
+    DATA => (
+        select * from m4_table1
+        where time >= 3 and time < 15
+    ) PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+--6.10 窗口左闭右开边界验证
+--6.10.1 原始查询结果有5行
+select * from m4_boundary order by device_id, time;
+
+--6.10.2 左闭右开边界查询，结果有5行
+select *
+from M4(
+   DATA => m4_boundary PARTITION BY device_id ORDER BY time,
+   TIMECOL => 'time',
+   ORIGIN => 1970-01-01T08:00:00.000,
+   SIZE => 10ms
+ ) order by window_start, window_end, device_id, s1_time;
+
+-- 6.11 支持需求列出的全部时间长度单位
+-- 预期：四条查询均成功；window_end - window_start 分别为 10ms、1s、5m、1h。
+-- 1s = 1000ms，5m = 300000ms，1h = 3600000ms；未指定 SLIDE 时默认等于 SIZE。
+-- 6.11.1 毫秒单位：窗口跨度 10ms
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 6.11.2 秒单位：窗口跨度 1s（1000ms）
+-- 999ms 属于 [0,1000)，1000ms 属于 [1000,2000)。
+select *
+from M4(
+    DATA => m4_table_long PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 1s
+)
+order by device_id, window_start, s1_time;
+
+-- 6.11.3 分钟单位：窗口跨度 5m（300000ms）
+-- 299999ms 属于 [0,300000)，300000ms 属于 [300000,600000)。
+select *
+from M4(
+    DATA => m4_table_long PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 5m
+)
+order by device_id, window_start, s1_time;
+
+-- 6.11.4 小时单位：窗口跨度 1h（3600000ms）
+-- 3599999ms 属于 [0,3600000)，3600000ms 属于 [3600000,7200000)。
+select *
+from M4(
+    DATA => m4_table_long PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 1h
+)
+order by device_id, window_start, s1_time;
+
+-- 6.12 不指定 PARTITION BY：整张表作为单一分区，device_id 参与 M4 并生成 device_id_time/device_id
+select *
+from M4(
+    DATA => m4_table1 ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by window_start, device_id_time, s1_time, s2_time, s3_time;
+
+-- 6.13 多列 PARTITION BY，按声明顺序保留 factory_id、device_id
+select *
+from M4(
+    DATA => m4_table5 PARTITION BY (factory_id, device_id) ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by factory_id, device_id, window_start, s1_time;
+
+-- 6.14 明确投影部分动态列
+select window_start, window_end, device_id, s1_time, s1
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time;
+
+-- 6.15 各分区窗口计算互不影响（优先级 P0）
+-- 6.15.1 双设备按 device_id 分区计算，预期 16 行。
+select window_start, window_end, device_id, s1_time, s1
+from M4(
+    DATA => m4_partition_isolation PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms,
+    SLIDE => 10ms
+)
+order by device_id, window_start, s1_time;
+
+-- 6.15.2 仅输入 device_1，预期 8 行，逐行与 6.15.1 的 device_1 一致。
+-- 过滤放在 DATA 内，确保另一个设备完全不参与计算。
+select window_start, window_end, device_id, s1_time, s1
+from M4(
+    DATA => (
+        select time, device_id, s1 from m4_partition_isolation
+        where device_id = 'device_1'
+    ) PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms,
+    SLIDE => 10ms
+)
+order by device_id, window_start, s1_time;
+
+-- 6.15.3 仅输入 device_2，预期 8 行，逐行与 6.14.1 的 device_2 一致。
+select window_start, window_end, device_id, s1_time, s1
+from M4(
+    DATA => (
+        select time, device_id, s1 from m4_partition_isolation
+        where device_id = 'device_2'
+    ) PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms,
+    SLIDE => 10ms
+)
+order by device_id, window_start, s1_time;
+
+-- 7. M4 特征点算法
+-- 7.1 单列四类特征点均不重合：预期按时间输出 10、5、30、20 对应的四个点
+select *
+from M4(DATA => m4_feature ORDER BY time, TIMECOL => 'time', SIZE => 10ms)
+order by window_start, s1_time;
+
+-- 7.2 单点同时为 first/last/bottom/top，去重后只输出一行
+select *
+from M4(DATA => m4_single ORDER BY time, TIMECOL => 'time', SIZE => 10ms)
+order by window_start, s1_time;
+
+-- 7.3 重复最小值/最大值只保留扫描顺序遇到的第一个点
+select *
+from M4(DATA => m4_duplicate_extreme ORDER BY time, TIMECOL => 'time', SIZE => 10ms)
+order by window_start, s1_time;
+
+-- 7.4 不同参与列独立计算；NULL 不参与该列计算；短列补 NULL
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 7.5 全 NULL 窗口静默跳过
+select *
+from M4(
+    DATA => (
+        select time, device_id, s1, s2, s3
+        from m4_table3
+    ) PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, s1_time, s2_time, s3_time;
+
+-- 7.6 输入类型保持：i32/i64/f32/f64/b/text_value 均应按原始类型生成动态值列
+select *
+from M4(
+    DATA => m4_types PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+)
+order by device_id, window_start, i32_time, i64_time, f32_time, f64_time, b_time, text_value_time;
+
+-- 7.7 空输入：返回正确 Schema 和 0 行
+select *
+from M4(
+    DATA => m4_empty PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+
+-- 8. 点数窗口模式
+-- 8.1 每 2 个点一个窗口，window_index 在每个分区从 0 开始
+select window_index, device_id,
+       s1_time, s1, s2_time, s2, s3_time, s3
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 2
+)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.2 点数窗口按位传参
+select *
+from M4(m4_table1 PARTITION BY device_id ORDER BY time, 'time', 2)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.3 点数窗口 SLIDE < SIZE：重叠点数窗口
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 3,
+    SLIDE => 1
+)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.4 点数窗口 SLIDE > SIZE：跳点窗口
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 2,
+    SLIDE => 3
+)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.5 SIZE=1：每个输入点单独成窗
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 1
+)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.6 SIZE 大于分区点数：每个非空分区一个窗口
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 100
+)
+order by device_id, window_index, s1_time, s2_time, s3_time;
+
+-- 8.7 无 PARTITION BY 的点数窗口
+select *
+from M4(
+    DATA => m4_table1 ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 3
+)
+order by window_index, device_id_time, s1_time, s2_time, s3_time;
+
+-- 9. 参数、语法和类型异常
+-- 9.1 缺少 SIZE
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time'
+);
+<<SQLSTATE;
+
+-- 90.2 TIMECOL 不存在
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'fake_time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.3 TIMECOL 指定非时间戳列
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 's1',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.4 缺少 DATA ORDER BY
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.5 ORDER BY 指定错误列
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY s1,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.6 ORDER BY 包含时间列和额外列
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time, s1,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.7 时间窗口 SIZE=0ms
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 0ms
+);
+<<SQLSTATE;
+
+-- 9.8 点数窗口 SIZE=0 / 负数 / 小数
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 0);
+<<SQLSTATE;
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => -1);
+<<SQLSTATE;
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 1.5);
+<<SQLSTATE;
+
+-- 9.9 SIZE=NULL
+select *
+from M4(
+    DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => null
+);
+<<SQLSTATE;
+
+-- 9.10 SLIDE=0 / 负数
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 10ms, SLIDE => 0ms);
+<<SQLSTATE;
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 2, SLIDE => -1);
+<<SQLSTATE;
+
+-- 9.11 SIZE 与 SLIDE 窗口模式不一致
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 10ms, SLIDE => 5);
+<<SQLSTATE;
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', SIZE => 2, SLIDE => 5ms);
+<<SQLSTATE;
+
+-- 9.12 点数窗口不支持 ORIGIN
+select * from M4(DATA => m4_table1 PARTITION BY device_id ORDER BY time, TIMECOL => 'time', ORIGIN => CAST(CAST(0 AS INT64) AS TIMESTAMP), SIZE => 2);
+<<SQLSTATE;
+
+-- 9.13 参与列包含不可比较 OBJECT 类型
+select *
+from M4(
+    DATA => m4_table4 PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+-- 9.14 排除 TIMECOL/分区列后无可比较列
+select *
+from M4(
+    DATA => (
+        select time, device_id
+        from m4_table2
+    ) PARTITION BY device_id ORDER BY time,
+    TIMECOL => 'time',
+    SIZE => 10ms
+);
+<<SQLSTATE;
+
+
+-- 10. M4作为视图底层查询
+create view m4_result_view as
+	select * from M4(
+				DATA => m4_table1 PARTITION BY device_id ORDER BY time,
+				TIMECOL => 'time', 
+				SIZE => 10ms);
+				
+select * from m4_result_view order by device_id,window_start,s1_time,s2_time,s3_time;
+drop view m4_result_view;
+
+
+--  清理测试数据库
+drop database m4_query_test;
+<<NULL;
