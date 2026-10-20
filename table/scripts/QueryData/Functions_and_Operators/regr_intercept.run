@@ -1,0 +1,146 @@
+// REGR_INTERCEPT 用于计算一组数值对 (Y, X) 的线性回归直线的截距，该函数基于最小二乘法拟合一条直线 y = kx + b，其中 b 即为截距。
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database regr_intercept_test;
+<<NULL;
+
+-- 1. 创建数据库，并指定该数据库
+create database regr_intercept_test;
+use regr_intercept_test;
+
+-- 2. 创建表
+create table table1 (device_id STRING TAG, s1 INT32 FIELD, s2 DOUBLE FIELD, s3 DOUBLE FIELD, txt TEXT FIELD);
+create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD);
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+-- 3. 查看表以及表结构
+show tables;
+desc table1;
+desc numeric_types;
+desc pair_cases;
+
+-- 4. 插入数据
+-- 4.1 table1中有效的 (s1,s2) 数据对为 (10,50)、(20,40)、(30,30)、(40,20)。
+insert into table1(time,device_id,s1,s2,s3,txt) values(1,'d1',10,50.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(2,'d1',20,40.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(3,'d1',30,30.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(4,'d1',null,20.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(5,'d1',50,null,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(6,'d1',40,20.0,100,'test');
+
+-- 4.2 数值类型矩阵。
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(1,'d1',1,10,1.0,10.0,'bad',true);
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(2,'d1',2,20,2.0,20.0,'bad',false);
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(3,'d1',3,30,3.0,30.0,'bad',true);
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(4,'d1',4,40,4.0,40.0,'bad',false);
+
+-- 4.3 查询使用的命名双变量数据集。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'negative',1,8,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'negative',2,6,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'negative',3,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'negative',4,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'zero',1,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'zero',2,-1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'zero',3,-1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'zero',4,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'linear_2x5',1,7,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'linear_2x5',2,9,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'linear_2x5',3,11,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'linear_2x5',4,13,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'x_const',10,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'x_const',10,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'x_const',10,3,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'x_const',10,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'y_const',1,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'y_const',2,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'y_const',3,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'y_const',4,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'large_offset',1000000000001,3000000000010,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'large_offset',1000000000002,3000000000013,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'large_offset',1000000000003,3000000000016,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'large_offset',1000000000004,3000000000019,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'large_offset',1000000000005,3000000000022,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'extreme',-1e+150,1e+150,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'extreme',0,0,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'extreme',1e+150,-1e+150,'bad',1);
+
+-- 4.4 空数据对组和单个有效数据对组；marker 用于保留聚合列全为 NULL 的数据行。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'one',2,9,'bad',1);
+
+-- 4.5 三个 3ms 窗口：依次包含 0、1、3 个有效数据对。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(0,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'window',1,7,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(6,'window',1,7,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(7,'window',2,9,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(8,'window',3,11,'bad',1);
+
+-- 5. 数据查询：
+select * from table1 order by time, device_id;
+select * from numeric_types order by time, device_id;
+select * from pair_cases order by time, case_id;
+
+-- 5.1 基准结果为 60.0，并应用成对 NULL 过滤。
+select time, s2, s1 from table1 where device_id='d1' order by time;
+select regr_intercept(s2,s1) from table1 where device_id='d1';
+
+-- 5.2 当 y=2x+5 时返回 5.0。
+select time, x, y from pair_cases where case_id='linear_2x5' order by time;
+select regr_intercept(y,x) from pair_cases where case_id='linear_2x5';
+
+-- 5.3 y 为常量且 x 变化时返回 10.0。
+select time, x, y from pair_cases where case_id='y_const' order by time;
+select regr_intercept(y,x) from pair_cases where case_id='y_const';
+
+-- 5.4 参数顺序有意义：正向回归与反向回归的结果不同。
+select regr_intercept(y,x),regr_intercept(x,y) from pair_cases where case_id='linear_2x5';
+
+-- 5.5 验证对应的回归公式恒等关系。
+select regr_intercept(y,x),avg(y)-regr_slope(y,x)*avg(x) from pair_cases where case_id='linear_2x5';
+
+-- 5.6 有效数据对为 0 个或 1 个时返回 NULL。
+select time, case_id, y, x from pair_cases where case_id in ('empty','one') order by time, case_id;
+select case_id,regr_intercept(y,x) from pair_cases where case_id in ('empty','one') group by case_id order by case_id;
+
+-- 5.7 x 为常量时返回 NULL。
+select regr_intercept(y,x) from pair_cases where case_id='x_const';
+
+-- 5.8 验证数值类型与 TIMESTAMP 类型组合。
+select regr_intercept(i64,i32),regr_intercept(f64,f32),regr_intercept(i32,time) from numeric_types;
+
+-- 5.9 支持数值表达式。
+select regr_intercept(y*2+1,x/10) from pair_cases where case_id='linear_2x5';
+
+-- 5.10 验证 WHERE、GROUP BY 和 HAVING 组合语义。
+select case_id,regr_intercept(y,x) as v from pair_cases where case_id in ('linear_2x5','positive','x_const','empty') group by case_id having regr_intercept(y,x) is not null order by case_id;
+
+-- 5.11 3ms 窗口依次覆盖样本不足、x 方差为零和多值计算结果。
+select date_bin(3ms,time) as win,regr_intercept(y,x) from pair_cases where case_id='window' group by 1 order by 1;
+
+-- 5.12 验证大偏移量数据的数值稳定性。
+select regr_intercept(y,x) from pair_cases where case_id='large_offset';
+
+-- 5.13 不支持的数据类型应受控报错。
+select regr_intercept(txt,i32) from numeric_types;
+<<SQLSTATE;
+
+-- 5.14 参数数量错误：分别传入 1 个和 3 个参数。
+select regr_intercept(i32) from numeric_types;
+<<SQLSTATE;
+select regr_intercept(i64,i32,f64) from numeric_types;
+<<SQLSTATE;
+
+--  清理环境
+drop database regr_intercept_test;
+<<NULL;
