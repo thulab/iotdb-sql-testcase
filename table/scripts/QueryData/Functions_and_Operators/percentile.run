@@ -1,0 +1,142 @@
+// 该函数用于精确计算数据集中指定百分位数的值
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database percentile_test;
+<<NULL;
+
+-- 1. 创建数据库，并指定该数据库
+create database percentile_test;
+use percentile_test;
+
+-- 2. 创建表
+create table table1 (case_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD, marker INT32 FIELD);
+
+-- 3. 查看表以及表结构
+show tables;
+desc table1;
+
+-- 4. 插入数据
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'base',10.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'base',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'base',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'base',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'base',50.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'odd_with_null',10.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'odd_with_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'odd_with_null',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'odd_with_null',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'odd_with_null',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(6,'odd_with_null',50.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'even',10.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'even',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'even',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'even',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'ordered',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'ordered',2.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'ordered',3.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'ordered',4.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'ordered',5.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'shuffled',5.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'shuffled',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'shuffled',4.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'shuffled',2.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'shuffled',3.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'duplicates',9.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'duplicates',9.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(1,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(3,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(4,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'one',7.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(1,'types',1,1,1.0,1.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'types',2,2,2.0,2.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(4,'types',4,4,4.0,4.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(8,'types',8,8,8.0,8.0,'bad',true,1);
+
+-- 三个 3ms 窗口：依次为全 NULL、单个有效值和三个有效值。
+insert into table1(time,case_id,f64,txt,flag,marker) values(0,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'window',7,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(6,'window',10,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(7,'window',20,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(8,'window',30,'bad',true,1);
+
+-- 5. 数据查询：
+select * from table1 order by time, case_id;
+
+-- 5.1 奇数个有效值并过滤 NULL：p50=30.0。
+select time, f64 from table1 where case_id='odd_with_null' order by time;
+select percentile(f64,0.5) as percentile_result from table1 where case_id='odd_with_null';
+
+-- 5.2 偶数个有效值使用线性插值：p50=25.0。
+select time, f64 from table1 where case_id='even' order by time;
+select percentile(f64,0.5) from table1 where case_id='even';
+
+-- 5.3 p=0 返回最小值，p=1 返回最大值：分别为 10.0 和 50.0。
+select time, f64 from table1 where case_id='base' order by time;
+select percentile(f64,0.0),percentile(f64,1.0) from table1 where case_id='base';
+
+-- 5.4 五值基准数据集的 p25=20.0、p75=40.0。
+select percentile(f64,0.25),percentile(f64,0.75) from table1 where case_id='base';
+
+-- 5.5 输入顺序不影响结果，重复值参与计算。
+select case_id,percentile(f64,0.5) from table1 where case_id in ('ordered','shuffled','duplicates') group by case_id order by case_id;
+
+-- 5.6 全部为 NULL 时返回 NULL。
+select percentile(f64,0.5) from table1 where case_id='all_null';
+
+-- 5.7 仅有一个有效值时，任意合法百分位参数均返回该值。
+select percentile(f64,0.0),percentile(f64,0.37),percentile(f64,1.0) from table1 where case_id='one';
+
+-- 5.8 验证 INT32、INT64、FLOAT、DOUBLE 和 TIMESTAMP 输入。
+select percentile(i32,0.5),percentile(i64,0.5),percentile(f32,0.5),percentile(f64,0.5),percentile(time,0.5) from table1 where case_id='types';
+
+-- 5.9 p25 内部值为 1.75；整数和 TIMESTAMP 输出遵循类型转换规则。
+select percentile(i32,0.25),percentile(i64,0.25),percentile(time,0.25) from table1 where case_id='types';
+
+-- 5.10 支持数值表达式作为待计算值。
+select percentile(f64*10+1,0.5) from table1 where case_id='base';
+
+-- 5.11 验证 WHERE、GROUP BY 和 HAVING 组合语义。
+select case_id,percentile(f64,0.5) as p50 from table1 where f64 is not null group by case_id having percentile(f64,0.5) is not null order by case_id;
+
+-- 5.12 三个 3ms 窗口的结果依次为 NULL、7.0、20.0。
+select date_bin(3ms,time) as win,percentile(f64,0.5) from table1 where case_id='window' group by 1 order by 1;
+
+-- 5.13 百分位参数必须是 DOUBLE 字面量，不能使用列或表达式。
+select percentile(f64,i32) from table1 where case_id='types';
+<<SQLSTATE;
+select percentile(f64,0.25+0.25) from table1 where case_id='base';
+<<SQLSTATE;
+
+-- 5.14 百分位参数超出 [0,1] 范围时应受控报错。
+select percentile(f64,-0.01) from table1 where case_id='base';
+<<SQLSTATE;
+select percentile(f64,1.01) from table1 where case_id='base';
+<<SQLSTATE;
+
+-- 5.15 不支持 TEXT 和 BOOLEAN 输入，应受控报错。
+select percentile(txt,0.5) from table1;
+<<SQLSTATE;
+select percentile(flag,0.5) from table1;
+<<SQLSTATE;
+
+-- 5.16 参数数量错误：分别传入 0 个、1 个和 3 个参数。
+select percentile() from table1;
+<<SQLSTATE;
+select percentile(f64) from table1;
+<<SQLSTATE;
+select percentile(f64,0.5,1) from table1;
+<<SQLSTATE;
+
+-- 清理环境
+drop database percentile_test;
+<<NULL;

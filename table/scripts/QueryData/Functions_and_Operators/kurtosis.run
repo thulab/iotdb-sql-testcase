@@ -1,0 +1,174 @@
+// KURTOSIS 用于计算输入数值型数据的超额峰度，衡量数据分布的陡峭程度与尾部厚度，与正态分布进行对比：
+// 结果 > 0：数据分布比正态分布更陡峭，尾部更厚；
+// 结果 < 0：数据分布比正态分布更平缓，尾部更薄；
+// 结果 ≈ 0：数据分布分布形态接近正态分布。
+
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database kurtosis_test;
+<<NULL;
+
+-- 1. 创建数据库，并指定该数据库
+create database kurtosis_test;
+use kurtosis_test;
+
+-- 2. 创建表
+create table table1 (device_id STRING TAG, s1 INT32 FIELD, s3 DOUBLE FIELD, txt TEXT FIELD);
+create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD);
+create table uni_cases (case_id STRING TAG, v DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+-- 3. 查看表以及表结构
+show tables;
+desc table1;
+desc numeric_types;
+desc uni_cases;
+
+-- 4. 插入数据
+insert into table1(time,device_id,s1,s3,txt) values(1,'d1',10,100,'test');
+insert into table1(time,device_id,s1,s3,txt) values(2,'d1',20,100,'test');
+insert into table1(time,device_id,s1,s3,txt) values(3,'d1',30,100,'test');
+insert into table1(time,device_id,s1,s3,txt) values(4,'d1',null,100,'test');
+insert into table1(time,device_id,s1,s3,txt) values(5,'d1',50,100,'test');
+insert into table1(time,device_id,s1,s3,txt) values(6,'d1',40,100,'test');
+
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt) values(1,'d1',1,10,1.0,10.0,'bad');
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt) values(2,'d1',2,20,2.0,20.0,'bad');
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt) values(3,'d1',3,30,3.0,30.0,'bad');
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt) values(4,'d1',4,40,4.0,40.0,'bad');
+
+-- 命名单变量数据集。
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'symmetric',-2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'symmetric',-1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'symmetric',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'symmetric',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'symmetric',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'uniform',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'uniform',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'uniform',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'uniform',4,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'uniform',5,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(6,'uniform',6,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(7,'uniform',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(8,'uniform',8,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'heavy_tail',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'heavy_tail',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'heavy_tail',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'heavy_tail',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'heavy_tail',100,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'right_tail',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'right_tail',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'right_tail',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'right_tail',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'right_tail',30,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'left_tail',-30,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'left_tail',-3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'left_tail',-2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'left_tail',-2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'left_tail',-1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'constant',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'constant',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'constant',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'constant',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'constant',7,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'n1',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'n2',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'n2',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'n3',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'n3',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'n3',10,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'n4',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'n4',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'n4',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'n4',4,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'large_offset',999999999998,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'large_offset',999999999999,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'large_offset',1000000000000,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'large_offset',1000000000001,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'large_offset',1000000000002,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'extreme',-1e+70,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'extreme',-1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'extreme',0,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'extreme',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'extreme',1e+70,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'n0',null,'bad',1);
+
+-- 窗口数据：三个 5ms 分组依次包含 3、4、5 个有效值。
+insert into uni_cases(time,case_id,v,txt,marker) values(0,'window',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(1,'window',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(2,'window',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(3,'window',null,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(4,'window',null,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(5,'window',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(6,'window',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(7,'window',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(8,'window',4,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(9,'window',null,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(10,'window',1,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(11,'window',2,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(12,'window',3,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(13,'window',4,'bad',1);
+insert into uni_cases(time,case_id,v,txt,marker) values(14,'window',5,'bad',1);
+
+-- 5. 数据查询：
+select * from table1 order by time, device_id;
+select * from numeric_types order by time, device_id;
+select * from uni_cases order by time, case_id;
+
+-- 5.1 NULL 过滤：结果约为 -1.2。
+select time, s1 from table1 where device_id='d1' order by time;
+select kurtosis(s1) as kurtosis_result from table1 where device_id='d1';
+
+-- 5.2 重尾分布的超额峰度为正。
+select time, v from uni_cases where case_id='heavy_tail' order by time;
+select kurtosis(v) as kurtosis_result from uni_cases where case_id='heavy_tail';
+
+-- 5.3 均匀分布的超额峰度为负。
+select time, v from uni_cases where case_id='uniform' order by time;
+select kurtosis(v) as kurtosis_result from uni_cases where case_id='uniform';
+
+-- 5.4  验证平移及非零比例缩放不变性。
+select kurtosis(v),kurtosis(v+100),kurtosis(v*10),kurtosis(-v) from uni_cases where case_id='symmetric';
+
+-- 5.5 有效值为 0 至 3 个时返回 NULL。
+select time, case_id, v from uni_cases where case_id in ('n0','n1','n2','n3') order by time, case_id;
+select case_id,kurtosis(v) from uni_cases where case_id in ('n0','n1','n2','n3') group by case_id order by case_id;
+
+-- 5.6 验证恰好 4 个有效值时的计算结果。
+select time, v from uni_cases where case_id='n4' order by time;
+select kurtosis(v) as kurtosis_result from uni_cases where case_id='n4';
+
+-- 5.7 标准差为零时返回 NULL。
+select time, v from uni_cases where case_id='constant' order by time;
+select kurtosis(v) from uni_cases where case_id='constant';
+
+-- 5.8 验证支持的数值类型和 TIMESTAMP 类型。
+select kurtosis(i32),kurtosis(i64),kurtosis(f32),kurtosis(f64),kurtosis(time) from numeric_types;
+
+-- 5.9  支持数值表达式。
+select kurtosis(v*10+7) from uni_cases where case_id='symmetric';
+
+-- 5.10 验证 WHERE、GROUP BY 和 HAVING 组合语义。
+select case_id,kurtosis(v) as v from uni_cases where case_id in ('symmetric','uniform','heavy_tail','n3') group by case_id having kurtosis(v) is not null order by case_id;
+
+-- 5.11 三个 5ms 窗口依次包含 3、4、5 个有效值。
+select date_bin(5ms,time) as win,kurtosis(v) from uni_cases where case_id='window' group by 1 order by 1;
+
+-- 5.12 验证大偏移量和极端值数据的数值稳定性。
+select case_id,kurtosis(v) from uni_cases where case_id in ('large_offset','extreme') group by case_id order by case_id;
+
+-- 5.13 不支持的数据类型应受控报错。
+select kurtosis(txt) from numeric_types;
+<<SQLSTATE;
+
+-- 5.14 参数数量错误：分别传入 0 个和 2 个参数。
+select kurtosis() from numeric_types;
+<<SQLSTATE;
+select kurtosis(i32,i64) from numeric_types;
+<<SQLSTATE;
+
+-- 清理环境
+drop database kurtosis_test;
+<<NULL;
