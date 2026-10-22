@@ -1,0 +1,527 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop user pattern_match_reader;
+<<NULL;
+drop database test_pattern_match;
+<<NULL;
+
+--1. 创建数据库并指定数据库
+create database test_pattern_match;
+use test_pattern_match;
+
+-- 2. 创建表
+create table pm_base
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    value DOUBLE FIELD,
+    aux INT32 FIELD,
+    note STRING FIELD
+);
+
+create table pm_numeric
+(
+    device_id STRING TAG,
+    i32 INT32 FIELD,
+    i64 INT64 FIELD,
+    f32 FLOAT FIELD,
+    f64 DOUBLE FIELD
+);
+
+create table pm_custom_time
+(
+    device_id STRING TAG,
+    event_time TIMESTAMP TIME,
+    fake_time INT64 FIELD,
+    value DOUBLE FIELD,
+    text_value STRING FIELD,
+    bool_value BOOLEAN FIELD
+);
+
+create table pm_unsupported
+(
+    device_id STRING TAG,
+    text_value STRING FIELD,
+    blob_value BLOB FIELD,
+    object_value OBJECT FIELD,
+    timestamp_value TIMESTAMP FIELD,
+    date_value DATE FIELD
+);
+
+create table pm_scale
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_horizontal
+(
+    value DOUBLE FIELD
+);
+
+create table pm_overlap
+(
+    value DOUBLE FIELD
+);
+
+create table pm_regex
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_smooth
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_limits
+(
+    value DOUBLE FIELD
+);
+
+create table pm_gap
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_edge
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_empty
+(
+    value DOUBLE FIELD
+);
+
+create table pm_stream
+(
+    value DOUBLE FIELD
+);
+
+-- 3. 查看表以及查看表结构信息
+show tables;
+desc pm_base;
+desc pm_custom_time;
+desc pm_unsupported;
+desc pm_edge;
+desc pm_empty;
+desc pm_gap;
+desc pm_horizontal;
+desc pm_limits;
+desc pm_numeric;
+desc pm_overlap;
+desc pm_regex;
+desc pm_scale;
+desc pm_smooth;
+desc pm_stream;
+
+
+-- 4. 插入基础数据：每个 device 各有一个 1,2,3,2,1 趋势
+insert into pm_base(time,device_id,site,value,aux,note) values
+    (1,'d1','s1',1.0,11,'d1-a'),
+    (2,'d1','s1',2.0,12,'d1-b'),
+    (3,'d1','s1',3.0,13,'d1-c'),
+    (4,'d1','s1',2.0,14,'d1-d'),
+    (5,'d1','s1',1.0,15,'d1-e'),
+    (1,'d2','s2',10.0,21,'d2-a'),
+    (2,'d2','s2',20.0,22,'d2-b'),
+    (3,'d2','s2',30.0,23,'d2-c'),
+    (4,'d2','s2',20.0,24,'d2-d'),
+    (5,'d2','s2',10.0,25,'d2-e');
+
+insert into pm_numeric(time,device_id,i32,i64,f32,f64) values
+    (1,'n1',1,10,1.0,10.0),
+    (2,'n1',2,20,2.0,20.0),
+    (3,'n1',3,30,3.0,30.0),
+    (4,'n1',2,20,2.0,20.0),
+    (5,'n1',1,10,1.0,10.0);
+
+insert into pm_custom_time(event_time,device_id,fake_time,value,text_value,bool_value) values
+    (1,'c1',1,1.0,'1',true),
+    (2,'c1',2,2.0,'2',false),
+    (3,'c1',3,3.0,'3',true),
+    (4,'c1',4,2.0,'2',false),
+    (5,'c1',5,1.0,'1',true);
+
+-- 缩放场景：base、height_scale、width_scale 趋势相同
+insert into pm_unsupported(time,device_id,text_value,blob_value,object_value,timestamp_value,date_value) values
+    (1,'u1','text',X'00',to_object(false,0,X'00'),100,'2026-03-20');
+
+insert into pm_scale(time,shape,value) values
+    (1,'base',1.0),(2,'base',2.0),(3,'base',3.0),(4,'base',2.0),(5,'base',1.0),
+    (1,'height_scale',10.0),(2,'height_scale',20.0),(3,'height_scale',30.0),(4,'height_scale',20.0),(5,'height_scale',10.0),
+    (10,'width_scale',1.0),(20,'width_scale',2.0),(30,'width_scale',3.0),(40,'width_scale',2.0),(50,'width_scale',1.0);
+
+insert into pm_horizontal(time,value) values
+    (1,1.0),(2,2.0),(3,2.0),(4,2.0),(5,1.0);
+
+-- 两个共享边界且有近似重叠的峰型候选，用于去重检查
+insert into pm_overlap(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0),
+    (6,2.1),(7,3.1),(8,2.1),(9,1.0);
+
+-- 正则场景
+insert into pm_regex(time,shape,value) values
+    (1,'plus_zero',1.0),(2,'plus_zero',1.0),
+    (1,'plus_one',1.0),(2,'plus_one',2.0),(3,'plus_one',3.0),(4,'plus_one',2.0),(5,'plus_one',1.0),
+    (1,'plus_two',1.0),(2,'plus_two',2.0),(3,'plus_two',3.0),(4,'plus_two',2.0),
+    (5,'plus_two',2.0),(6,'plus_two',3.0),(7,'plus_two',2.0),(8,'plus_two',1.0),
+    (1,'star_zero',1.0),(2,'star_zero',1.0),(3,'star_zero',1.0),(4,'star_zero',1.0),
+    (1,'star_one',1.0),(2,'star_one',1.0),(3,'star_one',1.0),(4,'star_one',2.0),
+    (5,'star_one',3.0),(6,'star_one',2.0),(7,'star_one',1.0),(8,'star_one',1.0),
+    (1,'star_two',1.0),(2,'star_two',1.0),(3,'star_two',1.0),(4,'star_two',2.0),
+    (5,'star_two',3.0),(6,'star_two',2.0),(7,'star_two',1.0),(8,'star_two',2.0),
+    (9,'star_two',3.0),(10,'star_two',2.0),(11,'star_two',1.0),(12,'star_two',1.0);
+
+-- 平滑与异常突刺
+insert into pm_smooth(time,shape,value) values
+    (1,'self',1.0),(2,'self',1.2),(3,'self',1.0),
+    (1,'small_noise',1.0),(2,'small_noise',2.0),(3,'small_noise',2.1),
+    (4,'small_noise',3.0),(5,'small_noise',2.0),(6,'small_noise',1.0),
+    (1,'spike',1.0),(2,'spike',1.0),(3,'spike',3.0),(4,'spike',1.0),(5,'spike',1.0);
+
+insert into pm_limits(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0);
+
+-- gap 组只有跨断层拼接才完整；continuous 是连续对照
+insert into pm_gap(time,shape,value) values
+    (1,'gap',1.0),(2,'gap',2.0),(100,'gap',3.0),(101,'gap',2.0),(102,'gap',1.0),
+    (1,'continuous',1.0),(2,'continuous',2.0),(3,'continuous',3.0),(4,'continuous',2.0),(5,'continuous',1.0);
+
+insert into pm_edge(time,shape,value) values
+    (1,'single',1.0),
+    (1,'short',1.0),(2,'short',2.0),
+    (1,'with_null',1.0),(2,'with_null',2.0),(3,'with_null',null),(4,'with_null',2.0),(5,'with_null',1.0);
+
+-- 小规模流式输出预检：5 个连续峰型单元
+insert into pm_stream(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0),
+    (6,1.0),(7,2.0),(8,3.0),(9,2.0),(10,1.0),
+    (11,1.0),(12,2.0),(13,3.0),(14,2.0),(15,1.0),
+    (16,1.0),(17,2.0),(18,3.0),(19,2.0),(20,1.0),
+    (21,1.0),(22,2.0),(23,3.0),(24,2.0),(25,1.0);
+
+-- 5. 数据检查
+show tables;
+select * from pm_base order by device_id,time;
+select * from pm_custom_time order by device_id, event_time;
+select * from pm_unsupported order by device_id, time;
+select * from pm_edge order by time, shape, value;
+select * from pm_empty;
+select * from pm_gap order by time, shape, value;
+select * from pm_horizontal order by time, value;
+select * from pm_limits order by time, value;
+select * from pm_numeric order by device_id, time;
+
+select * from pm_scale order by shape,time;
+select * from pm_regex order by shape,time;
+select * from pm_overlap order by time, value;
+select * from pm_smooth order by shape, time;
+select * from pm_stream order by time, value;
+
+
+-- 6. API 模块
+-- 6.1 ：直接表输入，time_col 取默认 time；应保留 device_id/site/value/aux/note
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0,
+    width => 1000.0,
+    height => 1000.0,
+    smooth_on_pattern => false
+) order by match_index,device_id,time;
+
+-- 6.2：子查询输入
+select * from pattern_match(
+    data => (select time,device_id,site,value,aux,note from pm_base)
+            partition by device_id order by time,
+    time_col => 'time',
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0
+) order by match_index,device_id,time;
+
+-- 6.3：CTE 输入
+with src as (
+    select time,device_id,site,value,aux,note from pm_base
+)
+select * from pattern_match(
+    data => src partition by device_id order by time,
+    time_col => 'time',
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0
+) order by match_index,device_id,time;
+
+-- 6.4：分区隔离
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by device_id,match_index,time;
+
+-- 6.5：四种数值类型
+select * from pattern_match(data => pm_numeric order by time, data_col => 'i32', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_numeric order by time, data_col => 'i64', pattern => '10,20,30,20,10', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_numeric order by time, data_col => 'f32', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_numeric order by time, data_col => 'f64', pattern => '10,20,30,20,10', smooth => 0.0, threshold => 100.0);
+
+-- 6.6：逐项缺失必填参数，均预期 SQLSTATE
+select * from pattern_match(data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => t2, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_base, pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_base, data_col => 'value', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0);
+<<SQLSTATE;
+
+-- 6.7：非法列类型与不存在列，均预期 SQLSTATE
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'fake_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'bool_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'blob_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'object_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'timestamp_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'date_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'missing_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+
+-- 6.8：合法自定义 TIMESTAMP 时间列
+select * from pattern_match(
+    data => pm_custom_time order by event_time,
+    time_col => 'event_time', data_col => 'value',
+    pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0,
+    width => 10.0
+) order by match_index,event_time;
+
+-- 6.9：整数、浮点、混合字面量应等价
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0) order by match_index,time;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1.0,2.0,3.0,2.0,1.0', smooth => 0.0, threshold => 100.0) order by match_index,time;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2.0,3,2.0,1', smooth => 0.0, threshold => 100.0) order by match_index,time;
+
+-- 6.10：验证时间方向对斜率和匹配结果影响
+select * from pattern_match(
+    data => pm_limits order by time desc,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+
+select * from pattern_match(
+    data => pm_limits order by time asc,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+
+-- 6.11：函数名和参数名大小写不敏感
+select * from PATTERN_MATCH(
+    DATA => pm_limits ORDER BY time,
+    DATA_COL => 'value', PATTERN => '1,2,3,2,1', SMOOTH => 0.0, THRESHOLD => 100.0
+) order by match_index,time;
+
+-- 7. BAS 普通趋势模块
+-- 7.1：多段命中和分组
+select * from pattern_match(
+    data => pm_stream order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0,
+    width => 1000.0, height => 1000.0
+) order by match_index,time;
+
+-- 7.2：横纵缩放不敏感
+select * from pattern_match(
+    data => pm_scale partition by shape order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0,
+    width => 1000.0, height => 1000.0
+) order by shape,match_index,time;
+
+-- 7.3：水平段
+select * from pattern_match(
+    data => pm_horizontal order by time,
+    data_col => 'value', pattern => '1,2,2,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 7.4：重叠候选去重；核对每个 match_index 的首尾和 similarity
+select * from pattern_match(
+    data => pm_overlap order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 8. REG 正则趋势模块
+-- 8.1：+ 至少一次；plus_zero 不应命中，plus_one/plus_two 应命中
+select * from pattern_match(
+    data => pm_regex partition by shape order by time,
+    data_col => 'value', pattern => '1,{,2,3,2,}+,1',
+    smooth => 0.0, threshold => 100.0
+) order by shape,match_index,time;
+
+-- 8.2：* 允许零次、一次、多次
+select * from pattern_match(
+    data => (select time,shape,value from pm_regex where shape like 'star_%')
+            partition by shape order by time,
+    data_col => 'value', pattern => '1,1,{,1,2,3,2,}*,1,1',
+    smooth => 0.0, threshold => 100.0
+) order by shape,match_index,time;
+
+-- 8.3：非法正则，均预期 SQLSTATE
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,{,}+,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,{,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,+,2', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,*,2', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1,1,1,1,1', smooth => 0.0, threshold => 100.0);
+
+-- 9. PAR 参数与边界模块
+-- 9.1：smooth=0 与 smooth=0.5 对小毛刺的差异
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='small_noise') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='small_noise') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.5, threshold => 100.0
+) order by match_index,time;
+select * from pattern_match(data => (select time,value from pm_smooth where shape='small_noise') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.1, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_smooth where shape='small_noise') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.9, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_smooth where shape='small_noise') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 1.0, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_smooth where shape='small_noise') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 2.0, threshold => 100.0);
+
+-- 9.2：省略参数应等价于 false；true 应比 false 更容易识别自身
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='self') order by time,
+    data_col => 'value', pattern => '1,1.2,1',
+    smooth => 0.5, threshold => 10.0
+) order by match_index,time;
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='self') order by time,
+    data_col => 'value', pattern => '1,1.2,1',
+    smooth => 0.5, threshold => 10.0, smooth_on_pattern => false
+) order by match_index,time;
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='self') order by time,
+    data_col => 'value', pattern => '1,1.2,1',
+    smooth => 0.5, threshold => 10.0, smooth_on_pattern => true
+) order by match_index,time;
+
+-- 9.3：阈值从宽到严；threshold=0 预期空结果
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 1.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 0.01);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 1000.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 0.0);
+
+-- 9.4：已知候选宽度=4、高度=2；验证严格小于、零值和四个非负参数
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 10.0, height => 10.0);
+-- 等于候选边界：按严格“小于 width/height”语义应过滤
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 4.0, height => 10.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 10.0, height => 2.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 3.0, height => 10.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 10.0, height => 1.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 0.0, height => 0.0);
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => -1.0, height => 10.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0, width => 10.0, height => -1.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => -0.1, threshold => 100.0, width => 10.0, height => 10.0);
+<<SQLSTATE;
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => -0.1, width => 10.0, height => 10.0);
+<<SQLSTATE;
+
+-- 10. SEG 分段与异常数据模块
+-- 10.1：gap 不得跨断层拼接；continuous 应命中
+select * from pattern_match(
+    data => (select time,value from pm_gap where shape='gap') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+select * from pattern_match(
+    data => (select time,value from pm_gap where shape='continuous') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 10.2：空表、单点、短序列、NULL
+select * from pattern_match(data => pm_empty order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_edge where shape='single') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_edge where shape='short') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+select * from pattern_match(data => (select time,value from pm_edge where shape='with_null') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+
+-- 10.3：多个连续小毛刺融合后不产生错误碎片
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='small_noise') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.5, threshold => 10.0
+) order by match_index,time;
+
+-- 10.4：同量级异常突刺；记录结果作为需求已知限制，不直接据此判缺陷
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='spike') order by time,
+    data_col => 'value', pattern => '1,1,1,1,1', smooth => 0.5, threshold => 10.0
+) order by match_index,time;
+
+-- 11. SEC 安全权限模块
+-- 11.1：pattern_match 必须继承源表 SELECT 权限
+create user pattern_match_reader 'Pass@123456789';
+grant insert, select on test_pattern_match.pm_base to user pattern_match_reader;
+list privileges of user pattern_match_reader;
+
+-- 有权限时可执行
+connect pattern_match_reader/Pass@123456789;
+show current_user;
+use test_pattern_match;
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by device_id,match_index,time;
+
+-- 撤销权限后，相同查询应被 ACL 拒绝
+connect root/TimechoDB@2021;
+use test_pattern_match;
+revoke select on test_pattern_match.pm_base from user pattern_match_reader;
+list privileges of user pattern_match_reader;
+
+connect pattern_match_reader/Pass@123456789;
+show current_user;
+use test_pattern_match;
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+<<SQLSTATE;
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop user pattern_match_reader;
+<<NULL;
+drop database test_pattern_match;
+<<NULL;
