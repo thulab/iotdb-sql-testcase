@@ -279,7 +279,7 @@ select * from xcorr(
 select * from xcorr(
     DATA => xcorr_bid partition by stock_id order by time,
     TIMECOL => 'time'
-);
+) order by stock_id;
 
 -- 6.12 Xcorr_各lag按有效配对数计算乘积均值
 -- lag=-2..2 的期望值：NULL、2.0、1.0、6.0、3.0。
@@ -321,7 +321,8 @@ select * from xcorr(
     DATA => (select time, device_id, s1, s2 from xc_cm_change)
             partition by device_id order by time,
     TIMECOL => 'time'
-);
+) order by device_id;
+
 
 -- 6.16.2 相同 TAG+time 覆盖 d1,time=2，仅将 s1 从 2.0 改为 8.0。
 insert into xc_cm_change(time, device_id, s1, s2) values(2, 'd1', 8.0, 5.0);
@@ -333,7 +334,7 @@ select * from xcorr(
     DATA => (select time, device_id, s1, s2 from xc_cm_change)
             partition by device_id order by time,
     TIMECOL => 'time'
-);
+) order by device_id;
 
 -- 6.16.3 删除 d1 的中间时间点 time=2，再执行完全相同的查询。
 delete from xc_cm_change where device_id='d1' and time=2;
@@ -345,7 +346,7 @@ select * from xcorr(
     DATA => (select time, device_id, s1, s2 from xc_cm_change)
             partition by device_id order by time,
     TIMECOL => 'time'
-);
+) order by device_id;
 
 -- 6.16.4：删除 d2 整个分区的数据，再查询验证分区隔离。
 delete from xc_cm_change where device_id='d2';
@@ -364,7 +365,7 @@ select * from xcorr(
 select * from xcorr(
     DATA => (select time,device_id,s1,s2 from xc_dup_time) partition by device_id order by time,
     TIMECOL => 'time'
-);
+) order by 1, 2;
 
 -- 7. XCORR 参数和输入异常
 -- 7.1 缺少 DATA
