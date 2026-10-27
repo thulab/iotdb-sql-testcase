@@ -89,12 +89,12 @@ set device template t1 to root.db.d3;
 set device template t1 to root.db.d4;
 
 select s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c0,c1,c2,c3 from root.db.** align by device;
-
+// tc4～tc9 显式声明字段和顺序：不依赖未激活模板的列发现行为，保留 c0～c3 及后续 ALTER/TTL 校验
 set sql_dialect=table;
 drop database db;<<null;
 create database db;
 use db;
-create or replace view v1(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column') comment 'this is a view' restrict as root.db.**;
+create or replace view v1("device_id" STRING TAG COMMENT 'this is tag',"time" TIMESTAMP TIME COMMENT 'this is time column',"s3" DOUBLE FIELD,"s4" DOUBLE FIELD,"s5" DOUBLE FIELD,"s6" DOUBLE FIELD,"s7" DOUBLE FIELD,"s8" DOUBLE FIELD,"s9" DOUBLE FIELD,"c0" FLOAT FIELD,"c1" FLOAT FIELD,"c2" BLOB FIELD,"c3" TEXT FIELD,"s10" DOUBLE FIELD,"s0" DOUBLE FIELD,"s1" DOUBLE FIELD,"s2" DOUBLE FIELD) comment 'this is a view' restrict as root.db.**;
 show create view v1;
 alter view v1 add column c0 blob field;<<sqlstate;
 alter view v1 add column c_add blob field;
@@ -161,7 +161,7 @@ set sql_dialect=table;
 drop database db;<<null;
 create database db;
 use db;
-create or replace view v1(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column') comment 'this is a view' restrict as root.db.**;
+create or replace view v1("device_id" STRING TAG COMMENT 'this is tag',"time" TIMESTAMP TIME COMMENT 'this is time column',"s3" DOUBLE FIELD,"s4" DOUBLE FIELD,"s5" DOUBLE FIELD,"s6" DOUBLE FIELD,"s7" DOUBLE FIELD,"s8" DOUBLE FIELD,"s9" DOUBLE FIELD,"c0" FLOAT FIELD,"c1" FLOAT FIELD,"c2" BLOB FIELD,"c3" TEXT FIELD,"s10" DOUBLE FIELD,"s0" DOUBLE FIELD,"s1" DOUBLE FIELD,"s2" DOUBLE FIELD) comment 'this is a view' restrict as root.db.**;
 show create view v1;
 alter view v1 add column c0 blob field;<<sqlstate;
 alter view v1 add column c_add blob field;
@@ -231,7 +231,7 @@ set sql_dialect=table;
 drop database db;<<null;
 create database db;
 use db;
-create or replace view v1(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column') comment 'this is a view' restrict as root.db.**;
+create or replace view v1("device_id" STRING TAG COMMENT 'this is tag',"time" TIMESTAMP TIME COMMENT 'this is time column',"s3" DOUBLE FIELD,"s4" DOUBLE FIELD,"s5" DOUBLE FIELD,"s6" DOUBLE FIELD,"s7" DOUBLE FIELD,"s8" DOUBLE FIELD,"s9" DOUBLE FIELD,"c0" FLOAT FIELD,"c1" FLOAT FIELD,"c2" BLOB FIELD,"c3" TEXT FIELD,"s10" DOUBLE FIELD,"s0" DOUBLE FIELD,"s1" DOUBLE FIELD,"s2" DOUBLE FIELD) comment 'this is a view' restrict as root.db.**;
 show create view v1;
 alter view v1 drop column c0;
 select device_id,time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c1,c2,c3 from v1; 
@@ -275,7 +275,7 @@ show create view v1;<<sqlstate;
 //tc9 alter ttl
 alter view v1 set properties ttl='INF';<<sqlstate;
 alter view if exists v1 set properties ttl=3600000;
-create or replace view v1(device_id string tag comment 'this is tag',time timestamp time comment 'this is time column') comment 'this is a view' restrict as root.db.**;
+create or replace view v1("device_id" STRING TAG COMMENT 'this is tag',"time" TIMESTAMP TIME COMMENT 'this is time column',"s3" DOUBLE FIELD,"s4" DOUBLE FIELD,"s5" DOUBLE FIELD,"s6" DOUBLE FIELD,"s7" DOUBLE FIELD,"s8" DOUBLE FIELD,"s9" DOUBLE FIELD,"c0" FLOAT FIELD,"c1" FLOAT FIELD,"c2" BLOB FIELD,"c3" TEXT FIELD,"s10" DOUBLE FIELD,"s0" DOUBLE FIELD,"s1" DOUBLE FIELD,"s2" DOUBLE FIELD) comment 'this is a view' restrict as root.db.**;
 show create view v1;
 select device_id,time,s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,c1,c2,c3 from v1 order by time,device_id;
 alter view if exists v1 set properties ttl=3600000;

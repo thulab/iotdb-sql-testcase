@@ -140,9 +140,9 @@ values(2, 'd1', 2.0, false, 'text2', 'string2', '2026-01-02', 2, X'02');
 insert into xc_reference(time, device_id, s1, s2) values
 (1,'d_ref',1.0,4.0),(2,'d_ref',2.0,5.0),(3,'d_ref',3.0,6.0);
 
--- 同一分区重复时间戳输入校验
+-- 同一分区重复时间戳输入校验：并列行使用相同数值，避免 ORDER BY time 未定义的并列顺序影响结果；source_id 不同保证两行均保留
 insert into xc_dup_time(time,device_id,source_id,s1,s2) values
-(1,'d1','a',1.0,4.0),(1,'d1','b',2.0,5.0),(2,'d1','a',3.0,6.0);
+(1,'d1','a',1.0,4.0),(1,'d1','b',1.0,4.0),(2,'d1','a',3.0,6.0);
 
 -- 多分区计算结果及分区隔离验证
 insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:05:00', 'AAPL', 100.0, 101.0);
@@ -360,7 +360,7 @@ select * from xcorr(
     TIMECOL => 'time'
 );
 
--- 6.17 Xcorr_同一分区重复时间戳输入校验
+-- 6.17 Xcorr_同一分区重复时间戳输入校验：3 行输入均参与计算，输出 5 行，按值排序为 5.0、6.0、8.0、26/3、12.0
 select * from xcorr(
     DATA => (select time,device_id,s1,s2 from xc_dup_time) partition by device_id order by time,
     TIMECOL => 'time'
