@@ -1,0 +1,555 @@
+-- LBAC 系统表只读与防篡改
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbmeta002_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbmeta002_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbmeta002_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbmeta002_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbmeta002_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbmeta002_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbmeta002_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbmeta002_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbmeta002_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbmeta002_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbmeta002_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbmeta002_t;
+<<NULL;
+
+-- 16. 操作步骤: 分别以 SECURITY、SYSTEM 用户尝试直接 INSERT、UPDATE、DELETE 及 DROP LBAC 系统表，再执行正式安全 DDL。；预期结果: 所有直接改写均明确拒绝，7 张安全表及 tables/columns快照逐行不变且无残留；正式 LBAC DDL 仍能正常维护对应记录。；创建本用例隔离的测试数据库
+CREATE DATABASE lbmeta002_db;
+
+-- 17. 切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+
+-- 18. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbmeta002_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 19. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_a';
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbmeta002_s SET ('RD','QA','OPS');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_s';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbmeta002_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_t';
+
+-- 24. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbmeta002_p COMPONENTS lbmeta002_a,lbmeta002_s,lbmeta002_t WITH LBACRULES;
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta002_p';
+
+-- 26. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbmeta002_p TO USER root;
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbmeta002_p.top COMPONENT lbmeta002_a 'TOP', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='top';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbmeta002_p.secret COMPONENT lbmeta002_a 'SECRET', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='secret';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbmeta002_p.internal COMPONENT lbmeta002_a 'INTERNAL', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='internal';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbmeta002_p.public COMPONENT lbmeta002_a 'PUBLIC', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='public';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbmeta002_p.wide COMPONENT lbmeta002_a 'SECRET', COMPONENT lbmeta002_s 'RD','QA', COMPONENT lbmeta002_t 'ROOT';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='wide';
+
+-- 37. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbmeta002_p TO USER root;
+
+-- 38. 创建用例使用的普通用户
+CREATE USER lbmeta002_u 'LbacTest_2026!';
+
+-- 39. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbmeta002_db TO USER lbmeta002_u;
+
+-- 45. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta002_p;
+
+-- 46. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 47. 执行 GRANT 操作并验证用例行为
+GRANT SECURITY TO USER lbmeta002_u;
+
+-- 48. 使用当前测试账号建立数据库连接
+connect lbmeta002_u/LbacTest_2026!;
+
+-- 49. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 50. 切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+
+-- 51. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policies(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 52. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policies SET invalid_column=1;
+<<SQLSTATE;
+
+-- 53. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policies;
+<<SQLSTATE;
+
+-- 54. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policies;
+<<SQLSTATE;
+
+-- 55. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_components(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 56. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_components SET invalid_column=1;
+<<SQLSTATE;
+
+-- 57. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_components;
+<<SQLSTATE;
+
+-- 58. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_components;
+<<SQLSTATE;
+
+-- 59. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_component_elements(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 60. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_component_elements SET invalid_column=1;
+<<SQLSTATE;
+
+-- 61. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_component_elements;
+<<SQLSTATE;
+
+-- 62. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_component_elements;
+<<SQLSTATE;
+
+-- 63. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policy_component_rules(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 64. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policy_component_rules SET invalid_column=1;
+<<SQLSTATE;
+
+-- 65. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policy_component_rules;
+<<SQLSTATE;
+
+-- 66. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policy_component_rules;
+<<SQLSTATE;
+
+-- 67. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_labels(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 68. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_labels SET invalid_column=1;
+<<SQLSTATE;
+
+-- 69. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_labels;
+<<SQLSTATE;
+
+-- 70. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_labels;
+<<SQLSTATE;
+
+-- 71. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_access(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 72. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_access SET invalid_column=1;
+<<SQLSTATE;
+
+-- 73. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_access;
+<<SQLSTATE;
+
+-- 74. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_access;
+<<SQLSTATE;
+
+-- 75. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policy_exemptions(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 76. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policy_exemptions SET invalid_column=1;
+<<SQLSTATE;
+
+-- 77. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policy_exemptions;
+<<SQLSTATE;
+
+-- 78. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policy_exemptions;
+<<SQLSTATE;
+
+-- 79. 切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+
+-- 80. 执行 REVOKE 操作并验证用例行为
+REVOKE SECURITY FROM USER lbmeta002_u;
+
+-- 81. 执行 GRANT 操作并验证用例行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+GRANT SYSTEM TO USER lbmeta002_u;
+-- 切回测试账号继续用例
+connect lbmeta002_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+
+-- 82. 切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+
+-- 83. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policies(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 84. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policies SET invalid_column=1;
+<<SQLSTATE;
+
+-- 85. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policies;
+<<SQLSTATE;
+
+-- 86. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policies;
+<<SQLSTATE;
+
+-- 87. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_components(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 88. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_components SET invalid_column=1;
+<<SQLSTATE;
+
+-- 89. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_components;
+<<SQLSTATE;
+
+-- 90. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_components;
+<<SQLSTATE;
+
+-- 91. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_component_elements(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 92. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_component_elements SET invalid_column=1;
+<<SQLSTATE;
+
+-- 93. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_component_elements;
+<<SQLSTATE;
+
+-- 94. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_component_elements;
+<<SQLSTATE;
+
+-- 95. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policy_component_rules(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 96. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policy_component_rules SET invalid_column=1;
+<<SQLSTATE;
+
+-- 97. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policy_component_rules;
+<<SQLSTATE;
+
+-- 98. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policy_component_rules;
+<<SQLSTATE;
+
+-- 99. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_labels(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 100. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_labels SET invalid_column=1;
+<<SQLSTATE;
+
+-- 101. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_labels;
+<<SQLSTATE;
+
+-- 102. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_labels;
+<<SQLSTATE;
+
+-- 103. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_label_access(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 104. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_label_access SET invalid_column=1;
+<<SQLSTATE;
+
+-- 105. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_label_access;
+<<SQLSTATE;
+
+-- 106. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_label_access;
+<<SQLSTATE;
+
+-- 107. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO information_schema.security_policy_exemptions(invalid_column) VALUES('invalid');
+<<SQLSTATE;
+
+-- 108. 更新测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+UPDATE information_schema.security_policy_exemptions SET invalid_column=1;
+<<SQLSTATE;
+
+-- 109. 删除测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+DELETE FROM information_schema.security_policy_exemptions;
+<<SQLSTATE;
+
+-- 110. 清理本用例创建的数据表；本语句预期失败，需核对 SQLSTATE 及错误原因
+DROP TABLE information_schema.security_policy_exemptions;
+<<SQLSTATE;
+
+-- 111. 切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+
+-- 112. 执行 REVOKE 操作并验证用例行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+REVOKE SYSTEM FROM USER lbmeta002_u;
+-- 切回测试账号继续用例
+connect lbmeta002_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+
+-- 切回管理员账号执行数据完整性断言
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+-- 113. 设置策略备注并验证元数据
+COMMENT ON SECURITY POLICY lbmeta002_p IS 'still writable through DDL';
+-- 切回测试账号继续用例
+connect lbmeta002_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbmeta002_db;
+
+-- 114. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+<<NULL;
+
+-- 115. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbmeta002_db;
+<<NULL;
+
+-- 116. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 117. 清理本用例创建的数据表
+USE lbmeta002_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 118. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 119. 删除本用例隔离的测试数据库
+DROP DATABASE lbmeta002_db;
+<<NULL;
+
+-- 120. 删除用例创建的普通用户
+DROP USER lbmeta002_u;
+<<NULL;
+
+-- 121. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbmeta002_p FROM USER root;
+<<NULL;
+
+-- 122. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbmeta002_p.wide;
+<<NULL;
+
+-- 123. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbmeta002_p.public;
+<<NULL;
+
+-- 124. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbmeta002_p.internal;
+<<NULL;
+
+-- 125. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbmeta002_p.secret;
+<<NULL;
+
+-- 126. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbmeta002_p.top;
+<<NULL;
+
+-- 127. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbmeta002_p;
+<<NULL;
+
+-- 128. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbmeta002_t;
+
+-- 129. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbmeta002_s;
+
+-- 130. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbmeta002_a;
+
+-- 131. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 132. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 133. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 134. 结束清理：删除本用例对象
+DROP DATABASE lbmeta002_db;
+<<NULL;
+
+-- 135. 结束清理：删除本用例对象
+DROP USER lbmeta002_u;
+<<NULL;
+
+-- 136. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbmeta002_p FROM USER root;
+<<NULL;
+
+-- 137. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbmeta002_p.top;
+<<NULL;
+
+-- 138. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbmeta002_p.secret;
+<<NULL;
+
+-- 139. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbmeta002_p.internal;
+<<NULL;
+
+-- 140. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbmeta002_p.public;
+<<NULL;
+
+-- 141. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbmeta002_p.wide;
+<<NULL;
+
+-- 142. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbmeta002_p;
+<<NULL;
+
+-- 143. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbmeta002_a;
+<<NULL;
+
+-- 144. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbmeta002_s;
+<<NULL;
+
+-- 145. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbmeta002_t;
+<<NULL;

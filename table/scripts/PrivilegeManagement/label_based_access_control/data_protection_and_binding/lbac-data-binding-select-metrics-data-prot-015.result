@@ -1,0 +1,369 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]75:CREATE DATABASE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]78:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbdataprot015_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot015_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot015_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]87:CREATE SECURITY LABEL COMPONENT lbdataprot015_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot015_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot015_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:CREATE SECURITY LABEL COMPONENT lbdataprot015_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]96:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot015_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot015_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]99:CREATE SECURITY POLICY lbdataprot015_p COMPONENTS lbdataprot015_a,lbdataprot015_s,lbdataprot015_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]102:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataprot015_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]105:GRANT EXEMPTION ON RULE ALL FOR lbdataprot015_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]108:CREATE SECURITY LABEL lbdataprot015_p.top COMPONENT lbdataprot015_a 'TOP', COMPONENT lbdataprot015_s 'RD', COMPONENT lbdataprot015_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbdataprot015_p.secret COMPONENT lbdataprot015_a 'SECRET', COMPONENT lbdataprot015_s 'RD', COMPONENT lbdataprot015_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]120:CREATE SECURITY LABEL lbdataprot015_p.internal COMPONENT lbdataprot015_a 'INTERNAL', COMPONENT lbdataprot015_s 'RD', COMPONENT lbdataprot015_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:CREATE SECURITY LABEL lbdataprot015_p.public COMPONENT lbdataprot015_a 'PUBLIC', COMPONENT lbdataprot015_s 'RD', COMPONENT lbdataprot015_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]129:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]132:CREATE SECURITY LABEL lbdataprot015_p.wide COMPONENT lbdataprot015_a 'SECRET', COMPONENT lbdataprot015_s 'RD','QA', COMPONENT lbdataprot015_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]135:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]138:GRANT EXEMPTION ON RULE ALL FOR lbdataprot015_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]141:CREATE USER lbdataprot015_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT SELECT ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT INSERT ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]150:GRANT DELETE ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]153:GRANT ALTER ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]156:GRANT CREATE ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]159:GRANT DROP ON DATABASE lbdataprot015_db TO USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]162:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataprot015_p
+STRICT{
+PASS
+}
+
+-- [1]165:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.170
+
+-- [1]168:CREATE SECURITY LABEL lbdataprot015_p.old COMPONENT lbdataprot015_a 'SECRET', COMPONENT lbdataprot015_s 'RD'
+STRICT{
+PASS
+}
+
+-- [1]171:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='old' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='old'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]174:CREATE SECURITY LABEL lbdataprot015_p.new COMPONENT lbdataprot015_a 'SECRET', COMPONENT lbdataprot015_s 'QA'
+STRICT{
+PASS
+}
+
+-- [1]177:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='new' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='new'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]180:ALTER TABLE metrics ALTER COLUMN high SECURED WITH old
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]183:GRANT SECURITY LABEL lbdataprot015_p.old TO USER lbdataprot015_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]186:GRANT SECURITY LABEL lbdataprot015_p.old TO USER lbdataprot015_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]189:CREATE SECURITY LABEL lbdataprot015_p.both COMPONENT lbdataprot015_a 'SECRET', COMPONENT lbdataprot015_s 'RD','QA'
+STRICT{
+PASS
+}
+
+-- [1]192:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot015_p' AND MIN(label_name)='both' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot015_p' AND label_name='both'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]195:REVOKE SECURITY LABEL lbdataprot015_p.old FROM USER lbdataprot015_u
+STRICT{
+PASS
+}
+
+-- [1]198:GRANT SECURITY LABEL lbdataprot015_p.old TO USER lbdataprot015_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]201:GRANT SECURITY LABEL lbdataprot015_p.both TO USER lbdataprot015_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]207:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]210:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]213:ALTER TABLE metrics ALTER COLUMN high SECURED WITH new
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]216:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]219:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbdataprot015_db' AND table_name='metrics' AND column_name='high' AND security_label='new'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]222:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]226:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]227:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]229:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(plain)=10 AND MIN(low)=20 AND MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]232:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]233:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]247:USE lbdataprot015_db
+STRICT{
+PASS
+}
+
+-- [1]252:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]299:DROP SECURITY POLICY lbdataprot015_p
+STRICT{
+PASS
+}
+
+-- [1]302:DROP SECURITY LABEL COMPONENT lbdataprot015_t
+STRICT{
+PASS
+}
+
+-- [1]305:DROP SECURITY LABEL COMPONENT lbdataprot015_s
+STRICT{
+PASS
+}
+
+-- [1]308:DROP SECURITY LABEL COMPONENT lbdataprot015_a
+STRICT{
+PASS
+}
+
+-- [1]314:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

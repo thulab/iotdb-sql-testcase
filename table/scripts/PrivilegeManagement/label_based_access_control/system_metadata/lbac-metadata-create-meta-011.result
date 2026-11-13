@@ -1,0 +1,349 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]71:CREATE DATABASE lbmeta011_db
+STRICT{
+PASS
+}
+
+-- [1]74:USE lbmeta011_db
+STRICT{
+PASS
+}
+
+-- [1]77:CREATE SECURITY LABEL COMPONENT lbmeta011_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]80:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta011_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta011_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]83:CREATE SECURITY LABEL COMPONENT lbmeta011_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]86:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta011_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta011_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]89:CREATE SECURITY LABEL COMPONENT lbmeta011_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]92:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta011_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta011_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]95:CREATE SECURITY POLICY lbmeta011_p COMPONENTS lbmeta011_a,lbmeta011_s,lbmeta011_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]98:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta011_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]101:GRANT EXEMPTION ON RULE ALL FOR lbmeta011_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]104:CREATE SECURITY LABEL lbmeta011_p.top COMPONENT lbmeta011_a 'TOP', COMPONENT lbmeta011_s 'RD', COMPONENT lbmeta011_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]107:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]110:CREATE SECURITY LABEL lbmeta011_p.secret COMPONENT lbmeta011_a 'SECRET', COMPONENT lbmeta011_s 'RD', COMPONENT lbmeta011_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]113:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]116:CREATE SECURITY LABEL lbmeta011_p.internal COMPONENT lbmeta011_a 'INTERNAL', COMPONENT lbmeta011_s 'RD', COMPONENT lbmeta011_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]119:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]122:CREATE SECURITY LABEL lbmeta011_p.public COMPONENT lbmeta011_a 'PUBLIC', COMPONENT lbmeta011_s 'RD', COMPONENT lbmeta011_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]125:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]128:CREATE SECURITY LABEL lbmeta011_p.wide COMPONENT lbmeta011_a 'SECRET', COMPONENT lbmeta011_s 'RD','QA', COMPONENT lbmeta011_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]131:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta011_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]134:GRANT EXEMPTION ON RULE ALL FOR lbmeta011_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]137:CREATE USER lbmeta011_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]140:GRANT SELECT ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]143:GRANT INSERT ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]146:GRANT DELETE ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]149:GRANT ALTER ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]152:GRANT CREATE ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]155:GRANT DROP ON DATABASE lbmeta011_db TO USER lbmeta011_u
+STRICT{
+PASS
+}
+
+-- [1]158:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta011_p
+STRICT{
+PASS
+}
+
+-- [1]161:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.127
+
+-- [1]164:ALTER TABLE metrics DROP SECURITY POLICY
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]167:CREATE SECURITY LABEL COMPONENT lbmeta011_extra SET ('X')
+STRICT{
+PASS
+}
+
+-- [1]170:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta011_extra' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta011_extra'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]173:ALTER SECURITY POLICY lbmeta011_p ADD SECURITY LABEL COMPONENT lbmeta011_extra
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]176:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta011_p' AND component_count=4
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]179:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_component_rules WHERE policy_name='lbmeta011_p' AND ordinal=4 AND component_name='lbmeta011_extra'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]182:SELECT CAST(CASE WHEN COUNT(*)=5 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta011_p' AND label_value LIKE '%:()'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]185:ALTER SECURITY POLICY lbmeta011_p USE ROLE AUTHORIZATIONS
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]188:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta011_p' AND role_authorizations='USED'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]191:ALTER SECURITY POLICY lbmeta011_p IGNORE ROLE AUTHORIZATIONS
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]194:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta011_p' AND role_authorizations='IGNORED'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]197:ALTER SECURITY POLICY lbmeta011_p ADD SECURITY LABEL COMPONENT lbmeta011_extra
+STRICT{
+SQLSTATE : 2402: Component 'lbmeta011_extra' is already in policy 'lbmeta011_p'
+}
+
+-- [1]201:ALTER TABLE metrics ADD SECURITY POLICY lbmeta011_p
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]204:CREATE SECURITY LABEL COMPONENT lbmeta011_extra2 SET ('Y')
+STRICT{
+PASS
+}
+
+-- [1]207:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta011_extra2' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta011_extra2'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]210:ALTER SECURITY POLICY lbmeta011_p ADD SECURITY LABEL COMPONENT lbmeta011_extra2
+STRICT{
+SQLSTATE : 2413: Policy 'lbmeta011_p' is still bound to one or more tables
+}
+
+-- [1]214:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta011_p' AND component_count=4
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]229:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]272:DROP SECURITY LABEL COMPONENT lbmeta011_extra
+STRICT{
+PASS
+}
+
+-- [1]275:DROP SECURITY LABEL COMPONENT lbmeta011_t
+STRICT{
+PASS
+}
+
+-- [1]278:DROP SECURITY LABEL COMPONENT lbmeta011_s
+STRICT{
+PASS
+}
+
+-- [1]281:DROP SECURITY LABEL COMPONENT lbmeta011_a
+STRICT{
+PASS
+}
+
+-- [1]287:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

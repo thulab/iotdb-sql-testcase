@@ -1,0 +1,216 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbc13_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbc13_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbc13_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc13_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc13_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbc13_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc13_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc13_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbc13_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc13_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc13_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbc13_p COMPONENTS lbc13_a,lbc13_s,lbc13_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbc13_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]93:CREATE SECURITY LABEL lbc13_p.top COMPONENT lbc13_a 'TOP', COMPONENT lbc13_s 'RD', COMPONENT lbc13_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]96:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc13_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]99:CREATE SECURITY LABEL lbc13_p.secret COMPONENT lbc13_a 'SECRET', COMPONENT lbc13_s 'RD', COMPONENT lbc13_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]102:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc13_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]105:CREATE SECURITY LABEL lbc13_p.internal COMPONENT lbc13_a 'INTERNAL', COMPONENT lbc13_s 'RD', COMPONENT lbc13_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]108:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc13_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]111:CREATE SECURITY LABEL lbc13_p.public COMPONENT lbc13_a 'PUBLIC', COMPONENT lbc13_s 'RD', COMPONENT lbc13_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]114:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc13_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]117:CREATE SECURITY LABEL lbc13_p.wide COMPONENT lbc13_a 'SECRET', COMPONENT lbc13_s 'RD','QA', COMPONENT lbc13_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]120:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc13_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc13_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]123:GRANT EXEMPTION ON RULE ALL FOR lbc13_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]126:CREATE USER lbc13_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]129:GRANT SELECT ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT INSERT ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT DELETE ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT ALTER ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT CREATE ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT DROP ON DATABASE lbc13_db TO USER lbc13_u
+STRICT{
+PASS
+}
+
+-- [1]147:ALTER SECURITY LABEL COMPONENT lbc13_a ADD ELEMENT 'X' BEFORE 'MISSING'
+STRICT{
+SQLSTATE : 2407: BEFORE element 'MISSING' does not exist in ARRAY component 'lbc13_a'
+}
+
+-- [1]151:ALTER SECURITY LABEL COMPONENT lbc13_a ADD ELEMENT 'X' AFTER 'MISSING'
+STRICT{
+SQLSTATE : 2407: AFTER element 'MISSING' does not exist in ARRAY component 'lbc13_a'
+}
+
+-- [1]163:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]202:DROP SECURITY LABEL COMPONENT lbc13_t
+STRICT{
+PASS
+}
+
+-- [1]205:DROP SECURITY LABEL COMPONENT lbc13_s
+STRICT{
+PASS
+}
+
+-- [1]208:DROP SECURITY LABEL COMPONENT lbc13_a
+STRICT{
+PASS
+}
+
+-- [1]214:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

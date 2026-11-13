@@ -1,0 +1,176 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]59:CREATE DATABASE lbc04_db
+STRICT{
+PASS
+}
+
+-- [1]62:USE lbc04_db
+STRICT{
+PASS
+}
+
+-- [1]65:CREATE SECURITY LABEL COMPONENT lbc04_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]68:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc04_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc04_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]71:CREATE SECURITY LABEL COMPONENT lbc04_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]74:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc04_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc04_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]77:CREATE SECURITY LABEL COMPONENT lbc04_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]80:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc04_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc04_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]83:CREATE SECURITY POLICY lbc04_p COMPONENTS lbc04_a,lbc04_s,lbc04_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]86:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbc04_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]89:CREATE SECURITY LABEL lbc04_p.top COMPONENT lbc04_a 'TOP', COMPONENT lbc04_s 'RD', COMPONENT lbc04_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]92:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc04_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]95:CREATE SECURITY LABEL lbc04_p.secret COMPONENT lbc04_a 'SECRET', COMPONENT lbc04_s 'RD', COMPONENT lbc04_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]98:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc04_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]101:CREATE SECURITY LABEL lbc04_p.internal COMPONENT lbc04_a 'INTERNAL', COMPONENT lbc04_s 'RD', COMPONENT lbc04_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]104:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc04_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]107:CREATE SECURITY LABEL lbc04_p.public COMPONENT lbc04_a 'PUBLIC', COMPONENT lbc04_s 'RD', COMPONENT lbc04_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]110:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc04_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]113:CREATE SECURITY LABEL lbc04_p.wide COMPONENT lbc04_a 'SECRET', COMPONENT lbc04_s 'RD','QA', COMPONENT lbc04_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]116:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbc04_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbc04_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]119:GRANT EXEMPTION ON RULE ALL FOR lbc04_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]122:CREATE SECURITY LABEL COMPONENT lbc04_a SET ('X')
+STRICT{
+SQLSTATE : 2402: Component 'lbc04_a' already exists
+}
+
+-- [1]134:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]169:DROP SECURITY LABEL COMPONENT lbc04_t
+STRICT{
+PASS
+}
+
+-- [1]172:DROP SECURITY LABEL COMPONENT lbc04_s
+STRICT{
+PASS
+}
+
+-- [1]175:DROP SECURITY LABEL COMPONENT lbc04_a
+STRICT{
+PASS
+}
+
+-- [1]181:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

@@ -1,0 +1,434 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]67:CREATE DATABASE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]70:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]73:CREATE SECURITY LABEL COMPONENT lbdataview009_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]76:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview009_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview009_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]79:CREATE SECURITY LABEL COMPONENT lbdataview009_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]82:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview009_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview009_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]85:CREATE SECURITY LABEL COMPONENT lbdataview009_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]88:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview009_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview009_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]91:CREATE SECURITY POLICY lbdataview009_p COMPONENTS lbdataview009_a,lbdataview009_s,lbdataview009_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]94:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataview009_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]97:GRANT EXEMPTION ON RULE ALL FOR lbdataview009_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]100:CREATE SECURITY LABEL lbdataview009_p.top COMPONENT lbdataview009_a 'TOP', COMPONENT lbdataview009_s 'RD', COMPONENT lbdataview009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]103:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]106:CREATE SECURITY LABEL lbdataview009_p.secret COMPONENT lbdataview009_a 'SECRET', COMPONENT lbdataview009_s 'RD', COMPONENT lbdataview009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]109:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]112:CREATE SECURITY LABEL lbdataview009_p.internal COMPONENT lbdataview009_a 'INTERNAL', COMPONENT lbdataview009_s 'RD', COMPONENT lbdataview009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]115:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]118:CREATE SECURITY LABEL lbdataview009_p.public COMPONENT lbdataview009_a 'PUBLIC', COMPONENT lbdataview009_s 'RD', COMPONENT lbdataview009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]121:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]124:CREATE SECURITY LABEL lbdataview009_p.wide COMPONENT lbdataview009_a 'SECRET', COMPONENT lbdataview009_s 'RD','QA', COMPONENT lbdataview009_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]127:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]130:GRANT EXEMPTION ON RULE ALL FOR lbdataview009_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]133:CREATE USER lbdataview009_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]136:GRANT SELECT ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]139:GRANT INSERT ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]142:GRANT DELETE ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]145:GRANT ALTER ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]148:GRANT CREATE ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]151:GRANT DROP ON DATABASE lbdataview009_db TO USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]154:CREATE TABLE metrics(device STRING TAG SECURED WITH secret,owner STRING ATTRIBUTE SECURED WITH secret,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataview009_p
+STRICT{
+PASS
+}
+
+-- [1]157:INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.130
+
+-- [1]160:CREATE SECURITY LABEL lbdataview009_p.both COMPONENT lbdataview009_a 'SECRET', COMPONENT lbdataview009_s 'RD', COMPONENT lbdataview009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]163:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview009_p' AND MIN(label_name)='both' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview009_p' AND label_name='both'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]166:CREATE WRITABLE VIEW wv AS SELECT owner AS attr_alias,device AS tag_alias,high AS value_alias FROM metrics WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]169:GRANT SECURITY LABEL lbdataview009_p.secret TO USER lbdataview009_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]175:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]178:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]181:UPDATE wv SET attr_alias='changed' WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataview009_u' WRITE to label 'secret' (value: [SECRET]) under policy 'lbdataview009_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]185:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]188:SELECT CAST(CASE WHEN MIN(owner)='alice' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]193:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]194:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]195:REVOKE SECURITY LABEL lbdataview009_p.secret FROM USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]198:GRANT SECURITY LABEL lbdataview009_p.secret TO USER lbdataview009_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]201:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]202:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]205:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]208:UPDATE wv SET attr_alias='changed' WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataview009_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataview009_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]212:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]216:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]217:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]219:SELECT CAST(CASE WHEN MIN(owner)='alice' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]222:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]223:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]228:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]229:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]230:REVOKE SECURITY LABEL lbdataview009_p.secret FROM USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]233:GRANT SECURITY LABEL lbdataview009_p.secret TO USER lbdataview009_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]236:GRANT SECURITY LABEL lbdataview009_p.secret TO USER lbdataview009_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]239:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]240:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]243:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]246:UPDATE wv SET attr_alias='changed' WHERE tag_alias='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]249:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]252:SELECT CAST(CASE WHEN MIN(owner)='changed' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]257:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]258:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]259:REVOKE SECURITY LABEL lbdataview009_p.secret FROM USER lbdataview009_u
+STRICT{
+PASS
+}
+
+-- [1]266:DROP VIEW IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]276:USE lbdataview009_db
+STRICT{
+PASS
+}
+
+-- [1]281:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]324:DROP SECURITY LABEL COMPONENT lbdataview009_t
+STRICT{
+PASS
+}
+
+-- [1]327:DROP SECURITY LABEL COMPONENT lbdataview009_s
+STRICT{
+PASS
+}
+
+-- [1]330:DROP SECURITY LABEL COMPONENT lbdataview009_a
+STRICT{
+PASS
+}
+
+-- [1]336:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

@@ -1,0 +1,262 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbr23_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbr23_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbr23_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbr23_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbr23_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbr23_p COMPONENTS lbr23_a,lbr23_s,lbr23_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr23_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:CREATE SECURITY LABEL lbr23_p.top COMPONENT lbr23_a 'TOP', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]96:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]99:CREATE SECURITY LABEL lbr23_p.secret COMPONENT lbr23_a 'SECRET', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]102:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]105:CREATE SECURITY LABEL lbr23_p.internal COMPONENT lbr23_a 'INTERNAL', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]108:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]111:CREATE SECURITY LABEL lbr23_p.public COMPONENT lbr23_a 'PUBLIC', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]114:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]117:CREATE SECURITY LABEL lbr23_p.wide COMPONENT lbr23_a 'SECRET', COMPONENT lbr23_s 'RD','QA', COMPONENT lbr23_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]120:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]123:GRANT EXEMPTION ON RULE ALL FOR lbr23_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]126:CREATE USER lbr23_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]129:GRANT SELECT ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT INSERT ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT DELETE ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT ALTER ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT CREATE ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT DROP ON DATABASE lbr23_db TO USER lbr23_u
+STRICT{
+PASS
+}
+
+-- [1]147:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbr23_p
+STRICT{
+PASS
+}
+
+-- [1]150:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.189
+
+-- [1]153:GRANT SECURITY LABEL lbr23_p.top TO USER lbr23_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]156:GRANT SECURITY LABEL lbr23_p.secret TO USER lbr23_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]165:USE lbr23_db
+STRICT{
+PASS
+}
+
+-- [1]168:SELECT high FROM metrics ORDER BY time
+STRICT{
+high(INT32)      |
+-----------------
+30               |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]171:INSERT INTO metrics(time,device,high) VALUES(2,'d1',99)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]174:INSERT INTO metrics(time,device,low) VALUES(3,'d1',99)
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbr23_u' WRITE to label 'internal' (value: [INTERNAL]) under policy 'lbr23_p': user's merged grant [SECRET] does not dominate required [INTERNAL]
+}
+
+-- [1]185:USE lbr23_db
+STRICT{
+PASS
+}
+
+-- [1]190:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]229:DROP SECURITY LABEL COMPONENT lbr23_t
+STRICT{
+PASS
+}
+
+-- [1]232:DROP SECURITY LABEL COMPONENT lbr23_s
+STRICT{
+PASS
+}
+
+-- [1]235:DROP SECURITY LABEL COMPONENT lbr23_a
+STRICT{
+PASS
+}
+
+-- [1]241:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

@@ -1,0 +1,254 @@
+-- c_level 已存在，比较默认与显式规则集
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbp03_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p FROM USER root;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p2 FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp03_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp03_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp03_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp03_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp03_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbp03_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbp03_p2;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp03_a;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp03_s;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp03_t;
+<<NULL;
+
+-- 17. 创建本用例隔离的测试数据库
+CREATE DATABASE lbp03_db;
+
+-- 18. 切换当前数据库或元数据查询范围
+USE lbp03_db;
+
+-- 19. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp03_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 20. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp03_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp03_a';
+
+-- 21. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp03_s SET ('RD','QA','OPS');
+
+-- 22. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp03_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp03_s';
+
+-- 23. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp03_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 24. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp03_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp03_t';
+
+-- 25. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbp03_p COMPONENTS lbp03_a,lbp03_s,lbp03_t WITH LBACRULES;
+
+-- 26. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp03_p';
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp03_p.top COMPONENT lbp03_a 'TOP', COMPONENT lbp03_s 'RD', COMPONENT lbp03_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp03_p' AND label_name='top';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp03_p.secret COMPONENT lbp03_a 'SECRET', COMPONENT lbp03_s 'RD', COMPONENT lbp03_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp03_p' AND label_name='secret';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp03_p.internal COMPONENT lbp03_a 'INTERNAL', COMPONENT lbp03_s 'RD', COMPONENT lbp03_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp03_p' AND label_name='internal';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp03_p.public COMPONENT lbp03_a 'PUBLIC', COMPONENT lbp03_s 'RD', COMPONENT lbp03_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp03_p' AND label_name='public';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp03_p.wide COMPONENT lbp03_a 'SECRET', COMPONENT lbp03_s 'RD','QA', COMPONENT lbp03_t 'ROOT';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp03_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp03_p' AND label_name='wide';
+
+-- 37. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbp03_p TO USER root;
+
+-- 38. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbp03_p2 COMPONENTS lbp03_a,lbp03_s,lbp03_t;
+
+-- 39. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(rule_set)='LBACRULES' AND MIN(role_authorizations)='IGNORED' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp03_p2';
+
+-- 40. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbp03_db;
+<<NULL;
+
+-- 41. 清理本用例创建的数据表
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 42. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 43. 删除本用例隔离的测试数据库
+DROP DATABASE lbp03_db;
+<<NULL;
+
+-- 44. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p FROM USER root;
+<<NULL;
+
+-- 45. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p2 FROM USER root;
+<<NULL;
+
+-- 46. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp03_p.wide;
+<<NULL;
+
+-- 47. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp03_p.public;
+<<NULL;
+
+-- 48. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp03_p.internal;
+<<NULL;
+
+-- 49. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp03_p.secret;
+<<NULL;
+
+-- 50. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp03_p.top;
+<<NULL;
+
+-- 51. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbp03_p2;
+<<NULL;
+
+-- 52. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbp03_p;
+<<NULL;
+
+-- 53. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp03_t;
+
+-- 54. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp03_s;
+
+-- 55. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp03_a;
+
+-- 56. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 57. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 58. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 59. 结束清理：删除本用例对象
+DROP DATABASE lbp03_db;
+<<NULL;
+
+-- 60. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p FROM USER root;
+<<NULL;
+
+-- 61. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp03_p2 FROM USER root;
+<<NULL;
+
+-- 62. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp03_p.top;
+<<NULL;
+
+-- 63. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp03_p.secret;
+<<NULL;
+
+-- 64. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp03_p.internal;
+<<NULL;
+
+-- 65. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp03_p.public;
+<<NULL;
+
+-- 66. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp03_p.wide;
+<<NULL;
+
+-- 67. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbp03_p;
+<<NULL;
+
+-- 68. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbp03_p2;
+<<NULL;
+
+-- 69. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp03_a;
+<<NULL;
+
+-- 70. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp03_s;
+<<NULL;
+
+-- 71. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp03_t;
+<<NULL;

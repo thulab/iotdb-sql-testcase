@@ -1,0 +1,53 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]31:CREATE SECURITY LABEL COMPONENT lbc28_a_ok SET ('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+STRICT{
+PASS
+}
+
+-- [1]34:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc28_a_ok' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc28_a_ok'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]37:CREATE SECURITY LABEL COMPONENT lbc28_a_zh SET ('中中中中中中中中中中ab')
+STRICT{
+PASS
+}
+
+-- [1]40:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbc28_a_zh' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbc28_a_zh'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]43:CREATE SECURITY LABEL COMPONENT lbc28_a_bad SET ('中中中中中中中中中中中')
+STRICT{
+SQLSTATE : 701: Security label component element name exceeds 32 bytes
+}
+
+-- [1]47:CREATE SECURITY LABEL COMPONENT lbc28_a_long SET ('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+STRICT{
+SQLSTATE : 701: Security label component element name exceeds 32 bytes
+}
+
+-- [1]55:DROP SECURITY LABEL COMPONENT lbc28_a_ok
+STRICT{
+PASS
+}
+
+-- [1]61:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

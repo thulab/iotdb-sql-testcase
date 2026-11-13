@@ -1,0 +1,430 @@
+-- p_array=USED、p_mix=IGNORED，角色均有标签
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbr22_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbr22_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+DROP ROLE lbr22_r;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p FROM USER root;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p2 FROM USER root;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p.top;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p.secret;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p.internal;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p.public;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p.wide;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr22_p2.other;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr22_p;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr22_p2;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr22_a;
+<<NULL;
+
+-- 18. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr22_s;
+<<NULL;
+
+-- 19. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr22_t;
+<<NULL;
+
+-- 20. 操作步骤: 角色成员分别访问两个策略保护的对象。；预期结果: p_array 使用角色标签，p_mix 忽略角色标签；修改一个 Policy 不影响另一个。；创建本用例隔离的测试数据库
+CREATE DATABASE lbr22_db;
+
+-- 21. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr22_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr22_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr22_a';
+
+-- 24. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr22_s SET ('RD','QA','OPS');
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr22_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr22_s';
+
+-- 26. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr22_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr22_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr22_t';
+
+-- 28. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr22_p COMPONENTS lbr22_a,lbr22_s,lbr22_t WITH LBACRULES;
+
+-- 29. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr22_p';
+
+-- 30. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr22_p TO USER root;
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p.top COMPONENT lbr22_a 'TOP', COMPONENT lbr22_s 'RD', COMPONENT lbr22_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p' AND label_name='top';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p.secret COMPONENT lbr22_a 'SECRET', COMPONENT lbr22_s 'RD', COMPONENT lbr22_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p' AND label_name='secret';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p.internal COMPONENT lbr22_a 'INTERNAL', COMPONENT lbr22_s 'RD', COMPONENT lbr22_t 'A1';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p' AND label_name='internal';
+
+-- 37. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p.public COMPONENT lbr22_a 'PUBLIC', COMPONENT lbr22_s 'RD', COMPONENT lbr22_t 'A1';
+
+-- 38. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p' AND label_name='public';
+
+-- 39. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p.wide COMPONENT lbr22_a 'SECRET', COMPONENT lbr22_s 'RD','QA', COMPONENT lbr22_t 'ROOT';
+
+-- 40. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p' AND label_name='wide';
+
+-- 41. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr22_p TO USER root;
+
+-- 42. 创建用例使用的普通用户
+CREATE USER lbr22_u 'LbacTest_2026!';
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 46. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 47. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 48. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbr22_db TO USER lbr22_u;
+
+-- 49. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbr22_p;
+
+-- 50. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 51. 创建用例使用的角色
+CREATE ROLE lbr22_r;
+
+-- 52. 授予或撤销用户的角色
+GRANT ROLE lbr22_r TO lbr22_u;
+
+-- 53. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr22_p.secret TO ROLE lbr22_r FOR READ ACCESS;
+
+-- 54. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr22_p.secret TO ROLE lbr22_r FOR WRITE ACCESS;
+
+-- 55. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr22_p2 COMPONENTS lbr22_a WITH LBACRULES;
+
+-- 56. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p2' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr22_p2';
+
+-- 57. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr22_p2 TO USER root;
+
+-- 58. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr22_p2.other COMPONENT lbr22_a 'SECRET';
+
+-- 59. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr22_p2' AND MIN(label_name)='other' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr22_p2' AND label_name='other';
+
+-- 60. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr22_p2.other TO ROLE lbr22_r FOR ALL ACCESS;
+
+-- 61. 修改 LBAC 安全策略并验证策略行为
+ALTER SECURITY POLICY lbr22_p2 USE ROLE AUTHORIZATIONS;
+
+-- 62. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE other(v INT32 FIELD SECURED WITH other) SECURITY POLICY lbr22_p2;
+
+-- 63. 修改 LBAC 安全策略并验证策略行为
+ALTER SECURITY POLICY lbr22_p IGNORE ROLE AUTHORIZATIONS;
+
+-- 64. 使用当前测试账号建立数据库连接
+connect lbr22_u/LbacTest_2026!;
+
+-- 65. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 66. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 67. 读取受保护数据并验证 LBAC 读权限；本语句预期失败，需核对 SQLSTATE 及错误原因
+SELECT high FROM metrics ORDER BY time;
+<<SQLSTATE;
+
+-- 68. 读取受保护数据并验证 LBAC 读权限
+SELECT v FROM other;
+
+-- 69. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 70. 修改 LBAC 安全策略并验证策略行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr22_db;
+ALTER SECURITY POLICY lbr22_p USE ROLE AUTHORIZATIONS;
+-- 切回测试账号继续用例
+connect lbr22_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr22_db;
+
+-- 71. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 72. 读取受保护数据并验证 LBAC 读权限
+SELECT high FROM metrics ORDER BY time;
+
+-- 73. 读取受保护数据并验证 LBAC 读权限
+SELECT v FROM other;
+
+-- 74. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 75. 修改 LBAC 安全策略并验证策略行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr22_db;
+ALTER SECURITY POLICY lbr22_p IGNORE ROLE AUTHORIZATIONS;
+-- 切回测试账号继续用例
+connect lbr22_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr22_db;
+
+-- 76. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 77. 读取受保护数据并验证 LBAC 读权限；本语句预期失败，需核对 SQLSTATE 及错误原因
+SELECT high FROM metrics ORDER BY time;
+<<SQLSTATE;
+
+-- 78. 读取受保护数据并验证 LBAC 读权限
+SELECT v FROM other;
+
+-- 79. 切换当前数据库或元数据查询范围
+USE lbr22_db;
+
+-- 80. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbr22_db;
+<<NULL;
+
+-- 81. 清理本用例创建的数据表
+DROP TABLE IF EXISTS other;
+<<NULL;
+
+-- 82. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbr22_db;
+<<NULL;
+
+-- 83. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 84. 清理本用例创建的数据表
+USE lbr22_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 85. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 86. 删除本用例隔离的测试数据库
+DROP DATABASE lbr22_db;
+<<NULL;
+
+-- 87. 删除用例创建的普通用户
+DROP USER lbr22_u;
+<<NULL;
+
+-- 88. 删除用例创建的角色
+DROP ROLE lbr22_r;
+<<NULL;
+
+-- 89. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p FROM USER root;
+<<NULL;
+
+-- 90. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p2 FROM USER root;
+<<NULL;
+
+-- 91. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p2.other;
+<<NULL;
+
+-- 92. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p.wide;
+<<NULL;
+
+-- 93. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p.public;
+<<NULL;
+
+-- 94. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p.internal;
+<<NULL;
+
+-- 95. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p.secret;
+<<NULL;
+
+-- 96. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr22_p.top;
+<<NULL;
+
+-- 97. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr22_p2;
+<<NULL;
+
+-- 98. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr22_p;
+
+-- 99. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr22_t;
+
+-- 100. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr22_s;
+
+-- 101. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr22_a;
+
+-- 102. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 103. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 104. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 105. 结束清理：删除本用例对象
+DROP DATABASE lbr22_db;
+<<NULL;
+
+-- 106. 结束清理：删除本用例对象
+DROP USER lbr22_u;
+<<NULL;
+
+-- 107. 结束清理：删除本用例对象
+DROP ROLE lbr22_r;
+<<NULL;
+
+-- 108. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p FROM USER root;
+<<NULL;
+
+-- 109. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr22_p2 FROM USER root;
+<<NULL;
+
+-- 110. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p.top;
+<<NULL;
+
+-- 111. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p.secret;
+<<NULL;
+
+-- 112. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p.internal;
+<<NULL;
+
+-- 113. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p.public;
+<<NULL;
+
+-- 114. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p.wide;
+<<NULL;
+
+-- 115. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr22_p2.other;
+<<NULL;
+
+-- 116. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr22_p;
+<<NULL;
+
+-- 117. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr22_p2;
+<<NULL;
+
+-- 118. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr22_a;
+<<NULL;
+
+-- 119. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr22_s;
+<<NULL;
+
+-- 120. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr22_t;
+<<NULL;

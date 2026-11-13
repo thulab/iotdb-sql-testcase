@@ -1,0 +1,328 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbdataread016_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread016_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread016_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbdataread016_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread016_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread016_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbdataread016_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread016_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread016_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbdataread016_p COMPONENTS lbdataread016_a,lbdataread016_s,lbdataread016_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataread016_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbdataread016_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbdataread016_p.top COMPONENT lbdataread016_a 'TOP', COMPONENT lbdataread016_s 'RD', COMPONENT lbdataread016_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread016_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]102:CREATE SECURITY LABEL lbdataread016_p.secret COMPONENT lbdataread016_a 'SECRET', COMPONENT lbdataread016_s 'RD', COMPONENT lbdataread016_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread016_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]108:CREATE SECURITY LABEL lbdataread016_p.internal COMPONENT lbdataread016_a 'INTERNAL', COMPONENT lbdataread016_s 'RD', COMPONENT lbdataread016_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread016_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbdataread016_p.public COMPONENT lbdataread016_a 'PUBLIC', COMPONENT lbdataread016_s 'RD', COMPONENT lbdataread016_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread016_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]120:CREATE SECURITY LABEL lbdataread016_p.wide COMPONENT lbdataread016_a 'SECRET', COMPONENT lbdataread016_s 'RD','QA', COMPONENT lbdataread016_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread016_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread016_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbdataread016_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbdataread016_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbdataread016_db TO USER lbdataread016_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataread016_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.220
+
+-- [1]159:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]162:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]165:SELECT high,COUNT(*) FROM metrics GROUP BY high
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataread016_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataread016_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]169:SELECT plain FROM metrics ORDER BY high
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataread016_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataread016_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]173:SELECT COUNT(*) FROM metrics HAVING SUM(high)>0
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataread016_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataread016_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]177:SELECT SUM(high) FROM metrics
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataread016_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataread016_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]181:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]186:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]187:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]188:GRANT SECURITY LABEL lbdataread016_p.secret TO USER lbdataread016_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]191:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]192:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]195:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]198:SELECT high,COUNT(*) FROM metrics GROUP BY high
+STRICT{
+high(INT32)      |_col1(INT64)      |
+-----------------------------------
+30               |1                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]201:SELECT plain FROM metrics ORDER BY high
+STRICT{
+plain(INT32)      |
+------------------
+10                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]204:SELECT COUNT(*) FROM metrics HAVING SUM(high)>0
+STRICT{
+_col0(INT64)      |
+------------------
+1                 |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]207:SELECT SUM(high) FROM metrics
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+30.0               |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]221:USE lbdataread016_db
+STRICT{
+PASS
+}
+
+-- [1]226:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]265:DROP SECURITY LABEL COMPONENT lbdataread016_t
+STRICT{
+PASS
+}
+
+-- [1]268:DROP SECURITY LABEL COMPONENT lbdataread016_s
+STRICT{
+PASS
+}
+
+-- [1]271:DROP SECURITY LABEL COMPONENT lbdataread016_a
+STRICT{
+PASS
+}
+
+-- [1]277:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

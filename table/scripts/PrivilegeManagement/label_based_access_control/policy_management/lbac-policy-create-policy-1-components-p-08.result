@@ -1,0 +1,211 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]71:CREATE DATABASE lbp08_db
+STRICT{
+PASS
+}
+
+-- [1]74:USE lbp08_db
+STRICT{
+PASS
+}
+
+-- [1]77:CREATE SECURITY LABEL COMPONENT lbp08_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]80:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp08_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp08_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]83:CREATE SECURITY LABEL COMPONENT lbp08_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]86:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp08_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp08_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]89:CREATE SECURITY LABEL COMPONENT lbp08_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]92:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp08_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp08_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]95:CREATE SECURITY POLICY lbp08_p COMPONENTS lbp08_a,lbp08_s,lbp08_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]98:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp08_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]101:CREATE SECURITY LABEL lbp08_p.top COMPONENT lbp08_a 'TOP', COMPONENT lbp08_s 'RD', COMPONENT lbp08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]104:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp08_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]107:CREATE SECURITY LABEL lbp08_p.secret COMPONENT lbp08_a 'SECRET', COMPONENT lbp08_s 'RD', COMPONENT lbp08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]110:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp08_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]113:CREATE SECURITY LABEL lbp08_p.internal COMPONENT lbp08_a 'INTERNAL', COMPONENT lbp08_s 'RD', COMPONENT lbp08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]116:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp08_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]119:CREATE SECURITY LABEL lbp08_p.public COMPONENT lbp08_a 'PUBLIC', COMPONENT lbp08_s 'RD', COMPONENT lbp08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]122:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp08_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]125:CREATE SECURITY LABEL lbp08_p.wide COMPONENT lbp08_a 'SECRET', COMPONENT lbp08_s 'RD','QA', COMPONENT lbp08_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]128:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp08_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp08_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]131:GRANT EXEMPTION ON RULE ALL FOR lbp08_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]134:CREATE USER lbp08_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]137:GRANT SELECT ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]140:GRANT INSERT ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]143:GRANT DELETE ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]146:GRANT ALTER ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]149:GRANT CREATE ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]152:GRANT DROP ON DATABASE lbp08_db TO USER lbp08_u
+STRICT{
+PASS
+}
+
+-- [1]155:CREATE SECURITY POLICY lbp08_pbad COMPONENTS lbp08_a WITH UNKNOWNRULES
+STRICT{
+SQLSTATE : 700: line 1:59: mismatched input 'UNKNOWNRULES'. Expecting: 'LBACRULES'
+}
+
+-- [1]167:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]206:DROP SECURITY LABEL COMPONENT lbp08_t
+STRICT{
+PASS
+}
+
+-- [1]209:DROP SECURITY LABEL COMPONENT lbp08_s
+STRICT{
+PASS
+}
+
+-- [1]212:DROP SECURITY LABEL COMPONENT lbp08_a
+STRICT{
+PASS
+}
+
+-- [1]218:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

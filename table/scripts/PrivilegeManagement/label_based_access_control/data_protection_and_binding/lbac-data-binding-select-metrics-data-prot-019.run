@@ -1,0 +1,384 @@
+-- Label 省略组件按空值比较
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbdataprot019_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbdataprot019_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot019_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.object;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.s1;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot019_p.s2;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbdataprot019_p;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_a;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_s;
+<<NULL;
+
+-- 18. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_t;
+<<NULL;
+
+-- 19. 操作步骤: 对象 Label 仅显式设置 PUBLIC level，分别由同 level、其他组件不同的两个主体对该列读写并查看安全元数据。；预期结果: 两主体均可读写；对象未指定的 department、org 按空值处理，元数据体现 PUBLIC 与两个空组件。；创建本用例隔离的测试数据库
+CREATE DATABASE lbdataprot019_db;
+
+-- 20. 切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+
+-- 21. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot019_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 22. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot019_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot019_a';
+
+-- 23. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot019_s SET ('RD','QA','OPS');
+
+-- 24. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot019_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot019_s';
+
+-- 25. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot019_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 26. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot019_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot019_t';
+
+-- 27. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbdataprot019_p COMPONENTS lbdataprot019_a,lbdataprot019_s,lbdataprot019_t WITH LBACRULES;
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataprot019_p';
+
+-- 29. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataprot019_p TO USER root;
+
+-- 30. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.top COMPONENT lbdataprot019_a 'TOP', COMPONENT lbdataprot019_s 'RD', COMPONENT lbdataprot019_t 'A1';
+
+-- 31. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='top';
+
+-- 32. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.secret COMPONENT lbdataprot019_a 'SECRET', COMPONENT lbdataprot019_s 'RD', COMPONENT lbdataprot019_t 'A1';
+
+-- 33. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='secret';
+
+-- 34. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.internal COMPONENT lbdataprot019_a 'INTERNAL', COMPONENT lbdataprot019_s 'RD', COMPONENT lbdataprot019_t 'A1';
+
+-- 35. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='internal';
+
+-- 36. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.public COMPONENT lbdataprot019_a 'PUBLIC', COMPONENT lbdataprot019_s 'RD', COMPONENT lbdataprot019_t 'A1';
+
+-- 37. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='public';
+
+-- 38. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.wide COMPONENT lbdataprot019_a 'SECRET', COMPONENT lbdataprot019_s 'RD','QA', COMPONENT lbdataprot019_t 'ROOT';
+
+-- 39. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='wide';
+
+-- 40. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataprot019_p TO USER root;
+
+-- 41. 创建用例使用的普通用户
+CREATE USER lbdataprot019_u 'LbacTest_2026!';
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 46. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 47. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbdataprot019_db TO USER lbdataprot019_u;
+
+-- 48. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.object COMPONENT lbdataprot019_a 'PUBLIC';
+
+-- 49. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='object' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='object';
+
+-- 50. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.s1 COMPONENT lbdataprot019_a 'PUBLIC', COMPONENT lbdataprot019_s 'RD', COMPONENT lbdataprot019_t 'A';
+
+-- 51. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='s1' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='s1';
+
+-- 52. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot019_p.s2 COMPONENT lbdataprot019_a 'PUBLIC', COMPONENT lbdataprot019_s 'QA', COMPONENT lbdataprot019_t 'B';
+
+-- 53. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot019_p' AND MIN(label_name)='s2' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot019_p' AND label_name='s2';
+
+-- 54. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG,high INT32 FIELD SECURED WITH object) SECURITY POLICY lbdataprot019_p;
+
+-- 55. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot019_p.s1 TO USER lbdataprot019_u FOR READ ACCESS;
+
+-- 56. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot019_p.s1 TO USER lbdataprot019_u FOR WRITE ACCESS;
+
+-- 57. 使用当前测试账号建立数据库连接
+connect lbdataprot019_u/LbacTest_2026!;
+
+-- 58. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 59. 切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+
+-- 60. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,high) VALUES(1,'d1',99);
+
+-- 61. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(high)=1 AND MIN(high)=99 AND MAX(high)=99 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+
+-- 62. 切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+
+-- 63. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot019_db;
+REVOKE SECURITY LABEL lbdataprot019_p.s1 FROM USER lbdataprot019_u;
+
+-- 64. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot019_p.s2 TO USER lbdataprot019_u FOR READ ACCESS;
+
+-- 65. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot019_p.s2 TO USER lbdataprot019_u FOR WRITE ACCESS;
+-- 切回测试账号继续用例
+connect lbdataprot019_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot019_db;
+
+-- 66. 切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+
+-- 67. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+
+-- 68. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(high)=2 AND MIN(high)=99 AND MAX(high)=99 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+
+-- 69. 切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+
+-- 70. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot019_db;
+REVOKE SECURITY LABEL lbdataprot019_p.s2 FROM USER lbdataprot019_u;
+
+-- 71. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+<<NULL;
+
+-- 72. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbdataprot019_db;
+<<NULL;
+
+-- 73. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 74. 清理本用例创建的数据表
+USE lbdataprot019_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 75. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 76. 删除本用例隔离的测试数据库
+DROP DATABASE lbdataprot019_db;
+<<NULL;
+
+-- 77. 删除用例创建的普通用户
+DROP USER lbdataprot019_u;
+<<NULL;
+
+-- 78. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot019_p FROM USER root;
+<<NULL;
+
+-- 79. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.s2;
+<<NULL;
+
+-- 80. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.s1;
+<<NULL;
+
+-- 81. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.object;
+<<NULL;
+
+-- 82. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.wide;
+<<NULL;
+
+-- 83. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.public;
+<<NULL;
+
+-- 84. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.internal;
+<<NULL;
+
+-- 85. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.secret;
+<<NULL;
+
+-- 86. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot019_p.top;
+<<NULL;
+
+-- 87. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbdataprot019_p;
+
+-- 88. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot019_t;
+
+-- 89. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot019_s;
+
+-- 90. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot019_a;
+
+-- 91. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 92. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 93. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 94. 结束清理：删除本用例对象
+DROP DATABASE lbdataprot019_db;
+<<NULL;
+
+-- 95. 结束清理：删除本用例对象
+DROP USER lbdataprot019_u;
+<<NULL;
+
+-- 96. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot019_p FROM USER root;
+<<NULL;
+
+-- 97. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.top;
+<<NULL;
+
+-- 98. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.secret;
+<<NULL;
+
+-- 99. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.internal;
+<<NULL;
+
+-- 100. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.public;
+<<NULL;
+
+-- 101. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.wide;
+<<NULL;
+
+-- 102. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.object;
+<<NULL;
+
+-- 103. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.s1;
+<<NULL;
+
+-- 104. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot019_p.s2;
+<<NULL;
+
+-- 105. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbdataprot019_p;
+<<NULL;
+
+-- 106. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_a;
+<<NULL;
+
+-- 107. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_s;
+<<NULL;
+
+-- 108. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot019_t;
+<<NULL;

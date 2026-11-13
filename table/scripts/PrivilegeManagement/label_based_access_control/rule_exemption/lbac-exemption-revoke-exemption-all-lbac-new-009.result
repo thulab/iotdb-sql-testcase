@@ -1,0 +1,186 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]43:CREATE DATABASE lblbacnew009_db
+STRICT{
+PASS
+}
+
+-- [1]46:USE lblbacnew009_db
+STRICT{
+PASS
+}
+
+-- [1]49:CREATE SECURITY LABEL COMPONENT lblbacnew009_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]52:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacnew009_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacnew009_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]55:CREATE SECURITY LABEL COMPONENT lblbacnew009_s SET ('RD')
+STRICT{
+PASS
+}
+
+-- [1]58:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacnew009_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacnew009_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]61:CREATE SECURITY LABEL COMPONENT lblbacnew009_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A')
+STRICT{
+PASS
+}
+
+-- [1]64:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacnew009_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacnew009_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]67:CREATE SECURITY POLICY lblbacnew009_p COMPONENTS lblbacnew009_a,lblbacnew009_s,lblbacnew009_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]70:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacnew009_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbacnew009_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]73:GRANT EXEMPTION ON RULE ALL FOR lblbacnew009_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]76:CREATE USER lblbacnew009_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]79:GRANT SELECT ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]82:GRANT INSERT ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]85:GRANT DELETE ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]88:GRANT ALTER ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]91:GRANT CREATE ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]94:GRANT DROP ON DATABASE lblbacnew009_db TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]97:GRANT EXEMPTION ON RULE ALL FOR lblbacnew009_p TO USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]100:SELECT CAST(CASE WHEN COUNT(*)=7 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_exemptions WHERE policy_name='lblbacnew009_p' AND grantee='lblbacnew009_u'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]103:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_exemptions WHERE policy_name='lblbacnew009_p' AND grantee='lblbacnew009_u' AND rule_name='ALL'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]106:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_exemptions WHERE policy_name='lblbacnew009_p' AND grantee='lblbacnew009_u' AND rule_name='LBACREADSET' AND access_type='READ'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]109:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_exemptions WHERE policy_name='lblbacnew009_p' AND grantee='lblbacnew009_u' AND rule_name='LBACWRITESET' AND access_type='WRITE'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]112:REVOKE EXEMPTION ON RULE ALL FOR lblbacnew009_p FROM USER lblbacnew009_u
+STRICT{
+PASS
+}
+
+-- [1]115:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policy_exemptions WHERE policy_name='lblbacnew009_p' AND grantee='lblbacnew009_u'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]130:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]153:DROP SECURITY LABEL COMPONENT lblbacnew009_s
+STRICT{
+PASS
+}
+
+-- [1]156:DROP SECURITY LABEL COMPONENT lblbacnew009_a
+STRICT{
+PASS
+}
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

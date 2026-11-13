@@ -1,0 +1,437 @@
+-- p_mix 中仅 ARRAY 组件测试空值三态
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbr11_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbr11_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr11_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.emptyone;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr11_p.complete_label;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr11_p;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr11_a;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr11_s;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr11_t;
+<<NULL;
+
+-- 18. 操作步骤: 保持 SET/TREE 通过，比较空用户/空对象、SECRET/空对象、空用户/SECRET 对象。；预期结果: 前两种允许，第三种拒绝；空值显示 ()，空对象不阻挡，非空对象阻挡空用户。；创建本用例隔离的测试数据库
+CREATE DATABASE lbr11_db;
+
+-- 19. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr11_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr11_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr11_a';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr11_s SET ('RD','QA','OPS');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr11_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr11_s';
+
+-- 24. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr11_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr11_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr11_t';
+
+-- 26. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr11_p COMPONENTS lbr11_a,lbr11_s,lbr11_t WITH LBACRULES;
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr11_p';
+
+-- 28. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr11_p TO USER root;
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.top COMPONENT lbr11_a 'TOP', COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='top';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.secret COMPONENT lbr11_a 'SECRET', COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='secret';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.internal COMPONENT lbr11_a 'INTERNAL', COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='internal';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.public COMPONENT lbr11_a 'PUBLIC', COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='public';
+
+-- 37. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.wide COMPONENT lbr11_a 'SECRET', COMPONENT lbr11_s 'RD','QA', COMPONENT lbr11_t 'ROOT';
+
+-- 38. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='wide';
+
+-- 39. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr11_p TO USER root;
+
+-- 40. 创建用例使用的普通用户
+CREATE USER lbr11_u 'LbacTest_2026!';
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 46. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbr11_db TO USER lbr11_u;
+
+-- 47. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.emptyone COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 48. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='emptyone' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='emptyone';
+
+-- 49. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr11_p.complete_label COMPONENT lbr11_a 'SECRET', COMPONENT lbr11_s 'RD', COMPONENT lbr11_t 'A1';
+
+-- 50. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr11_p' AND MIN(label_name)='complete_label' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr11_p' AND label_name='complete_label';
+
+-- 51. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG,high INT32 FIELD SECURED WITH emptyone) SECURITY POLICY lbr11_p;
+
+-- 52. 修改数据表的 LBAC 保护配置
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH emptyone;
+
+-- 53. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr11_p.emptyone TO USER lbr11_u FOR READ ACCESS;
+
+-- 54. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr11_p.emptyone TO USER lbr11_u FOR WRITE ACCESS;
+
+-- 55. 使用当前测试账号建立数据库连接
+connect lbr11_u/LbacTest_2026!;
+
+-- 56. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 57. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 58. 读取受保护数据并验证 LBAC 读权限
+SELECT high FROM metrics ORDER BY time;
+
+-- 59. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+
+-- 60. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 61. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+REVOKE SECURITY LABEL lbr11_p.emptyone FROM USER lbr11_u;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+-- 62. 修改数据表的 LBAC 保护配置
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH emptyone;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 63. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+GRANT SECURITY LABEL lbr11_p.complete_label TO USER lbr11_u FOR READ ACCESS;
+
+-- 64. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr11_p.complete_label TO USER lbr11_u FOR WRITE ACCESS;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 65. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 66. 读取受保护数据并验证 LBAC 读权限
+SELECT high FROM metrics ORDER BY time;
+
+-- 67. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+
+-- 68. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 69. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+REVOKE SECURITY LABEL lbr11_p.complete_label FROM USER lbr11_u;
+
+-- 70. 修改数据表的 LBAC 保护配置
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH complete_label;
+
+-- 71. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr11_p.emptyone TO USER lbr11_u FOR READ ACCESS;
+
+-- 72. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr11_p.emptyone TO USER lbr11_u FOR WRITE ACCESS;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 73. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 74. 读取受保护数据并验证 LBAC 读权限；本语句预期失败，需核对 SQLSTATE 及错误原因
+SELECT high FROM metrics ORDER BY time;
+<<SQLSTATE;
+
+-- 75. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+<<SQLSTATE;
+
+-- 76. 切换当前数据库或元数据查询范围
+USE lbr11_db;
+
+-- 77. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+REVOKE SECURITY LABEL lbr11_p.emptyone FROM USER lbr11_u;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+-- 78. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(high)=99 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+-- 切回测试账号继续用例
+connect lbr11_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr11_db;
+
+-- 79. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbr11_db;
+<<NULL;
+
+-- 80. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbr11_db;
+<<NULL;
+
+-- 81. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 82. 清理本用例创建的数据表
+USE lbr11_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 83. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 84. 删除本用例隔离的测试数据库
+DROP DATABASE lbr11_db;
+<<NULL;
+
+-- 85. 删除用例创建的普通用户
+DROP USER lbr11_u;
+<<NULL;
+
+-- 86. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr11_p FROM USER root;
+<<NULL;
+
+-- 87. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.complete_label;
+<<NULL;
+
+-- 88. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.emptyone;
+<<NULL;
+
+-- 89. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.wide;
+<<NULL;
+
+-- 90. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.public;
+<<NULL;
+
+-- 91. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.internal;
+<<NULL;
+
+-- 92. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.secret;
+<<NULL;
+
+-- 93. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr11_p.top;
+<<NULL;
+
+-- 94. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr11_p;
+
+-- 95. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr11_t;
+
+-- 96. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr11_s;
+
+-- 97. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr11_a;
+
+-- 98. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 99. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 100. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 101. 结束清理：删除本用例对象
+DROP DATABASE lbr11_db;
+<<NULL;
+
+-- 102. 结束清理：删除本用例对象
+DROP USER lbr11_u;
+<<NULL;
+
+-- 103. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr11_p FROM USER root;
+<<NULL;
+
+-- 104. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.top;
+<<NULL;
+
+-- 105. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.secret;
+<<NULL;
+
+-- 106. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.internal;
+<<NULL;
+
+-- 107. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.public;
+<<NULL;
+
+-- 108. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.wide;
+<<NULL;
+
+-- 109. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.emptyone;
+<<NULL;
+
+-- 110. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr11_p.complete_label;
+<<NULL;
+
+-- 111. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr11_p;
+<<NULL;
+
+-- 112. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr11_a;
+<<NULL;
+
+-- 113. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr11_s;
+<<NULL;
+
+-- 114. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr11_t;
+<<NULL;

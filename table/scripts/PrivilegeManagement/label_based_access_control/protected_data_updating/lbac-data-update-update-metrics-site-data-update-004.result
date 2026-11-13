@@ -1,0 +1,474 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbdataupdate004_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataupdate004_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataupdate004_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbdataupdate004_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataupdate004_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataupdate004_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbdataupdate004_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataupdate004_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataupdate004_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbdataupdate004_p COMPONENTS lbdataupdate004_a,lbdataupdate004_s,lbdataupdate004_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataupdate004_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbdataupdate004_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbdataupdate004_p.top COMPONENT lbdataupdate004_a 'TOP', COMPONENT lbdataupdate004_s 'RD', COMPONENT lbdataupdate004_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataupdate004_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]102:CREATE SECURITY LABEL lbdataupdate004_p.secret COMPONENT lbdataupdate004_a 'SECRET', COMPONENT lbdataupdate004_s 'RD', COMPONENT lbdataupdate004_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataupdate004_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lbdataupdate004_p.internal COMPONENT lbdataupdate004_a 'INTERNAL', COMPONENT lbdataupdate004_s 'RD', COMPONENT lbdataupdate004_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataupdate004_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbdataupdate004_p.public COMPONENT lbdataupdate004_a 'PUBLIC', COMPONENT lbdataupdate004_s 'RD', COMPONENT lbdataupdate004_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataupdate004_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]120:CREATE SECURITY LABEL lbdataupdate004_p.wide COMPONENT lbdataupdate004_a 'SECRET', COMPONENT lbdataupdate004_s 'RD','QA', COMPONENT lbdataupdate004_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataupdate004_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataupdate004_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbdataupdate004_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbdataupdate004_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbdataupdate004_db TO USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG SECURED WITH secret,owner STRING ATTRIBUTE SECURED WITH secret,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataupdate004_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.117
+
+-- [1]156:GRANT SECURITY LABEL lbdataupdate004_p.secret TO USER lbdataupdate004_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]165:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]168:UPDATE metrics SET site='changed' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]171:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]174:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(site)='changed' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]177:UPDATE metrics SET site='west' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]182:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]183:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]184:REVOKE SECURITY LABEL lbdataupdate004_p.secret FROM USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]187:GRANT SECURITY LABEL lbdataupdate004_p.secret TO USER lbdataupdate004_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]190:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]191:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]194:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]197:UPDATE metrics SET site='changed' WHERE device='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataupdate004_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataupdate004_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]201:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]204:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(site)='west' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]207:UPDATE metrics SET owner='alice',site='west' WHERE device='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataupdate004_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataupdate004_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]213:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]214:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]215:REVOKE SECURITY LABEL lbdataupdate004_p.secret FROM USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]218:GRANT SECURITY LABEL lbdataupdate004_p.secret TO USER lbdataupdate004_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]221:GRANT SECURITY LABEL lbdataupdate004_p.secret TO USER lbdataupdate004_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]224:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]225:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]228:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]231:UPDATE metrics SET site='changed' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]234:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]237:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(site)='changed' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]240:UPDATE metrics SET owner='alice',site='west' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]245:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]246:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]247:REVOKE SECURITY LABEL lbdataupdate004_p.secret FROM USER lbdataupdate004_u
+STRICT{
+PASS
+}
+
+-- [1]250:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]251:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]254:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]257:UPDATE metrics SET site='changed' WHERE owner='alice'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdataupdate004_u' READ to label 'secret' (value: [SECRET]) under policy 'lbdataupdate004_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]261:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]266:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]267:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]268:GRANT SECURITY LABEL lbdataupdate004_p.secret TO USER lbdataupdate004_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]271:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]272:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]275:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]278:UPDATE metrics SET site='changed' WHERE owner='alice'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]281:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]295:USE lbdataupdate004_db
+STRICT{
+PASS
+}
+
+-- [1]300:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]339:DROP SECURITY LABEL COMPONENT lbdataupdate004_t
+STRICT{
+PASS
+}
+
+-- [1]342:DROP SECURITY LABEL COMPONENT lbdataupdate004_s
+STRICT{
+PASS
+}
+
+-- [1]345:DROP SECURITY LABEL COMPONENT lbdataupdate004_a
+STRICT{
+PASS
+}
+
+-- [1]351:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

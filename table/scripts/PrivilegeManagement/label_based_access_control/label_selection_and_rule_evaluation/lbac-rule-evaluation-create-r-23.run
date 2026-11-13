@@ -1,0 +1,292 @@
+-- 同主体 READ=a_top、WRITE=a_secret
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbr23_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbr23_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr23_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr23_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr23_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr23_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr23_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr23_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr23_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr23_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr23_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr23_t;
+<<NULL;
+
+-- 16. 创建本用例隔离的测试数据库
+CREATE DATABASE lbr23_db;
+
+-- 17. 切换当前数据库或元数据查询范围
+USE lbr23_db;
+
+-- 18. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr23_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 19. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_a';
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr23_s SET ('RD','QA','OPS');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_s';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr23_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr23_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr23_t';
+
+-- 24. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr23_p COMPONENTS lbr23_a,lbr23_s,lbr23_t WITH LBACRULES;
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr23_p';
+
+-- 26. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr23_p.top COMPONENT lbr23_a 'TOP', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1';
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='top';
+
+-- 28. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr23_p.secret COMPONENT lbr23_a 'SECRET', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1';
+
+-- 29. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='secret';
+
+-- 30. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr23_p.internal COMPONENT lbr23_a 'INTERNAL', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1';
+
+-- 31. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='internal';
+
+-- 32. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr23_p.public COMPONENT lbr23_a 'PUBLIC', COMPONENT lbr23_s 'RD', COMPONENT lbr23_t 'A1';
+
+-- 33. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='public';
+
+-- 34. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr23_p.wide COMPONENT lbr23_a 'SECRET', COMPONENT lbr23_s 'RD','QA', COMPONENT lbr23_t 'ROOT';
+
+-- 35. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr23_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr23_p' AND label_name='wide';
+
+-- 36. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr23_p TO USER root;
+
+-- 37. 创建用例使用的普通用户
+CREATE USER lbr23_u 'LbacTest_2026!';
+
+-- 38. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 39. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbr23_db TO USER lbr23_u;
+
+-- 44. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbr23_p;
+
+-- 45. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 46. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr23_p.top TO USER lbr23_u FOR READ ACCESS;
+
+-- 47. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr23_p.secret TO USER lbr23_u FOR WRITE ACCESS;
+
+-- 48. 使用当前测试账号建立数据库连接
+connect lbr23_u/LbacTest_2026!;
+
+-- 49. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 50. 切换当前数据库或元数据查询范围
+USE lbr23_db;
+
+-- 51. 读取受保护数据并验证 LBAC 读权限
+SELECT high FROM metrics ORDER BY time;
+
+-- 52. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+
+-- 53. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO metrics(time,device,low) VALUES(3,'d1',99);
+<<SQLSTATE;
+
+-- 54. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbr23_db;
+<<NULL;
+
+-- 55. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 56. 清理本用例创建的数据表
+USE lbr23_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 57. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 58. 删除本用例隔离的测试数据库
+DROP DATABASE lbr23_db;
+<<NULL;
+
+-- 59. 删除用例创建的普通用户
+DROP USER lbr23_u;
+<<NULL;
+
+-- 60. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr23_p FROM USER root;
+<<NULL;
+
+-- 61. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr23_p.wide;
+<<NULL;
+
+-- 62. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr23_p.public;
+<<NULL;
+
+-- 63. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr23_p.internal;
+<<NULL;
+
+-- 64. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr23_p.secret;
+<<NULL;
+
+-- 65. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr23_p.top;
+<<NULL;
+
+-- 66. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr23_p;
+<<NULL;
+
+-- 67. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr23_t;
+
+-- 68. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr23_s;
+
+-- 69. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr23_a;
+
+-- 70. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 71. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 72. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 73. 结束清理：删除本用例对象
+DROP DATABASE lbr23_db;
+<<NULL;
+
+-- 74. 结束清理：删除本用例对象
+DROP USER lbr23_u;
+<<NULL;
+
+-- 75. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr23_p FROM USER root;
+<<NULL;
+
+-- 76. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr23_p.top;
+<<NULL;
+
+-- 77. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr23_p.secret;
+<<NULL;
+
+-- 78. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr23_p.internal;
+<<NULL;
+
+-- 79. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr23_p.public;
+<<NULL;
+
+-- 80. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr23_p.wide;
+<<NULL;
+
+-- 81. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr23_p;
+<<NULL;
+
+-- 82. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr23_a;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr23_s;
+<<NULL;
+
+-- 84. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr23_t;
+<<NULL;

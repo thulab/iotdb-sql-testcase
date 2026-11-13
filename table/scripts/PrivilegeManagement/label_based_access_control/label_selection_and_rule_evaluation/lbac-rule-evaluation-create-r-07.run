@@ -1,0 +1,324 @@
+-- p_set 表可写，用户 WRITE=s_rdqa
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbr07_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbr07_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr07_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.subject;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr07_p.object;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr07_p;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr07_a;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr07_s;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr07_t;
+<<NULL;
+
+-- 18. 创建本用例隔离的测试数据库
+CREATE DATABASE lbr07_db;
+
+-- 19. 切换当前数据库或元数据查询范围
+USE lbr07_db;
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr07_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr07_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr07_a';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr07_s SET ('RD','QA','OPS');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr07_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr07_s';
+
+-- 24. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr07_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr07_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr07_t';
+
+-- 26. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr07_p COMPONENTS lbr07_a,lbr07_s,lbr07_t WITH LBACRULES;
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr07_p';
+
+-- 28. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.top COMPONENT lbr07_a 'TOP', COMPONENT lbr07_s 'RD', COMPONENT lbr07_t 'A1';
+
+-- 29. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='top';
+
+-- 30. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.secret COMPONENT lbr07_a 'SECRET', COMPONENT lbr07_s 'RD', COMPONENT lbr07_t 'A1';
+
+-- 31. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='secret';
+
+-- 32. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.internal COMPONENT lbr07_a 'INTERNAL', COMPONENT lbr07_s 'RD', COMPONENT lbr07_t 'A1';
+
+-- 33. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='internal';
+
+-- 34. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.public COMPONENT lbr07_a 'PUBLIC', COMPONENT lbr07_s 'RD', COMPONENT lbr07_t 'A1';
+
+-- 35. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='public';
+
+-- 36. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.wide COMPONENT lbr07_a 'SECRET', COMPONENT lbr07_s 'RD','QA', COMPONENT lbr07_t 'ROOT';
+
+-- 37. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='wide';
+
+-- 38. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr07_p TO USER root;
+
+-- 39. 创建用例使用的普通用户
+CREATE USER lbr07_u 'LbacTest_2026!';
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbr07_db TO USER lbr07_u;
+
+-- 46. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.subject COMPONENT lbr07_s 'RD';
+
+-- 47. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='subject' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='subject';
+
+-- 48. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr07_p.object COMPONENT lbr07_s 'RD','QA';
+
+-- 49. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr07_p' AND MIN(label_name)='object' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr07_p' AND label_name='object';
+
+-- 50. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG,v INT32 FIELD SECURED WITH object) SECURITY POLICY lbr07_p;
+
+-- 51. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,v) VALUES(1,'d1',20);
+
+-- 52. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr07_p.subject TO USER lbr07_u FOR WRITE ACCESS;
+
+-- 53. 使用当前测试账号建立数据库连接
+connect lbr07_u/LbacTest_2026!;
+
+-- 54. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 55. 切换当前数据库或元数据查询范围
+USE lbr07_db;
+
+-- 56. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO metrics(time,device,v) VALUES(2,'d1',99);
+<<SQLSTATE;
+
+-- 57. 切换当前数据库或元数据查询范围
+USE lbr07_db;
+
+-- 58. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+
+-- 59. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbr07_db;
+<<NULL;
+
+-- 60. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 61. 清理本用例创建的数据表
+USE lbr07_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 62. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 63. 删除本用例隔离的测试数据库
+DROP DATABASE lbr07_db;
+<<NULL;
+
+-- 64. 删除用例创建的普通用户
+DROP USER lbr07_u;
+<<NULL;
+
+-- 65. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr07_p FROM USER root;
+<<NULL;
+
+-- 66. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.object;
+<<NULL;
+
+-- 67. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.subject;
+<<NULL;
+
+-- 68. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.wide;
+<<NULL;
+
+-- 69. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.public;
+<<NULL;
+
+-- 70. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.internal;
+<<NULL;
+
+-- 71. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.secret;
+<<NULL;
+
+-- 72. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr07_p.top;
+<<NULL;
+
+-- 73. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr07_p;
+
+-- 74. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr07_t;
+
+-- 75. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr07_s;
+
+-- 76. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr07_a;
+
+-- 77. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 78. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 79. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 80. 结束清理：删除本用例对象
+DROP DATABASE lbr07_db;
+<<NULL;
+
+-- 81. 结束清理：删除本用例对象
+DROP USER lbr07_u;
+<<NULL;
+
+-- 82. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr07_p FROM USER root;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.top;
+<<NULL;
+
+-- 84. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.secret;
+<<NULL;
+
+-- 85. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.internal;
+<<NULL;
+
+-- 86. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.public;
+<<NULL;
+
+-- 87. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.wide;
+<<NULL;
+
+-- 88. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.subject;
+<<NULL;
+
+-- 89. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr07_p.object;
+<<NULL;
+
+-- 90. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr07_p;
+<<NULL;
+
+-- 91. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr07_a;
+<<NULL;
+
+-- 92. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr07_s;
+<<NULL;
+
+-- 93. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr07_t;
+<<NULL;

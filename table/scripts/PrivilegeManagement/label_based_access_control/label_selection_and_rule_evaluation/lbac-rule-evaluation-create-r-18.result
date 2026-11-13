@@ -1,0 +1,252 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]67:CREATE DATABASE lbr18_db
+STRICT{
+PASS
+}
+
+-- [1]70:USE lbr18_db
+STRICT{
+PASS
+}
+
+-- [1]73:CREATE SECURITY LABEL COMPONENT lbr18_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]76:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr18_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr18_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]79:CREATE SECURITY LABEL COMPONENT lbr18_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]82:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr18_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr18_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]85:CREATE SECURITY LABEL COMPONENT lbr18_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]88:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr18_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr18_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]91:CREATE SECURITY POLICY lbr18_p COMPONENTS lbr18_a,lbr18_s,lbr18_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]94:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr18_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]97:CREATE SECURITY LABEL lbr18_p.top COMPONENT lbr18_a 'TOP', COMPONENT lbr18_s 'RD', COMPONENT lbr18_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]100:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr18_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]103:CREATE SECURITY LABEL lbr18_p.secret COMPONENT lbr18_a 'SECRET', COMPONENT lbr18_s 'RD', COMPONENT lbr18_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]106:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr18_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]109:CREATE SECURITY LABEL lbr18_p.internal COMPONENT lbr18_a 'INTERNAL', COMPONENT lbr18_s 'RD', COMPONENT lbr18_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]112:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr18_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]115:CREATE SECURITY LABEL lbr18_p.public COMPONENT lbr18_a 'PUBLIC', COMPONENT lbr18_s 'RD', COMPONENT lbr18_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]118:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr18_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]121:CREATE SECURITY LABEL lbr18_p.wide COMPONENT lbr18_a 'SECRET', COMPONENT lbr18_s 'RD','QA', COMPONENT lbr18_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]124:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr18_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr18_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]127:GRANT EXEMPTION ON RULE ALL FOR lbr18_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]130:CREATE USER lbr18_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]133:GRANT SELECT ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]136:GRANT INSERT ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]139:GRANT DELETE ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]142:GRANT ALTER ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]145:GRANT CREATE ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]148:GRANT DROP ON DATABASE lbr18_db TO USER lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]151:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbr18_p
+STRICT{
+PASS
+}
+
+-- [1]154:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.138
+
+-- [1]157:CREATE ROLE lbr18_r
+STRICT{
+PASS
+}
+
+-- [1]160:GRANT ROLE lbr18_r TO lbr18_u
+STRICT{
+PASS
+}
+
+-- [1]163:GRANT SECURITY LABEL lbr18_p.secret TO ROLE lbr18_r FOR ALL ACCESS
+STRICT{
+PASS
+}
+
+-- [1]169:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]172:USE lbr18_db
+STRICT{
+PASS
+}
+
+-- [1]175:SELECT high FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbr18_u' READ to label 'secret' (value: [SECRET]) under policy 'lbr18_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]186:USE lbr18_db
+STRICT{
+PASS
+}
+
+-- [1]191:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]234:DROP SECURITY LABEL COMPONENT lbr18_t
+STRICT{
+PASS
+}
+
+-- [1]237:DROP SECURITY LABEL COMPONENT lbr18_s
+STRICT{
+PASS
+}
+
+-- [1]240:DROP SECURITY LABEL COMPONENT lbr18_a
+STRICT{
+PASS
+}
+
+-- [1]246:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

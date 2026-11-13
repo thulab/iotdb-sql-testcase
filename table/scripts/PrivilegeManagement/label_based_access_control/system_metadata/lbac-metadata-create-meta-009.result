@@ -1,0 +1,504 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]67:CREATE DATABASE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]70:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]73:CREATE SECURITY LABEL COMPONENT lbmeta009_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]76:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta009_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta009_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]79:CREATE SECURITY LABEL COMPONENT lbmeta009_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]82:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta009_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta009_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]85:CREATE SECURITY LABEL COMPONENT lbmeta009_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]88:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta009_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta009_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]91:CREATE SECURITY POLICY lbmeta009_p COMPONENTS lbmeta009_a,lbmeta009_s,lbmeta009_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]94:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta009_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]97:GRANT EXEMPTION ON RULE ALL FOR lbmeta009_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]100:CREATE SECURITY LABEL lbmeta009_p.top COMPONENT lbmeta009_a 'TOP', COMPONENT lbmeta009_s 'RD', COMPONENT lbmeta009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]103:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta009_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]106:CREATE SECURITY LABEL lbmeta009_p.secret COMPONENT lbmeta009_a 'SECRET', COMPONENT lbmeta009_s 'RD', COMPONENT lbmeta009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]109:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta009_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]112:CREATE SECURITY LABEL lbmeta009_p.internal COMPONENT lbmeta009_a 'INTERNAL', COMPONENT lbmeta009_s 'RD', COMPONENT lbmeta009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]115:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta009_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]118:CREATE SECURITY LABEL lbmeta009_p.public COMPONENT lbmeta009_a 'PUBLIC', COMPONENT lbmeta009_s 'RD', COMPONENT lbmeta009_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]121:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta009_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]124:CREATE SECURITY LABEL lbmeta009_p.wide COMPONENT lbmeta009_a 'SECRET', COMPONENT lbmeta009_s 'RD','QA', COMPONENT lbmeta009_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]127:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta009_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta009_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]130:GRANT EXEMPTION ON RULE ALL FOR lbmeta009_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]133:CREATE USER lbmeta009_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]136:GRANT SELECT ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]139:GRANT INSERT ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]142:GRANT DELETE ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]145:GRANT ALTER ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]148:GRANT CREATE ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]151:GRANT DROP ON DATABASE lbmeta009_db TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]154:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta009_p
+STRICT{
+PASS
+}
+
+-- [1]157:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.128
+
+-- [1]160:CREATE TABLE second(v INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta009_p
+STRICT{
+PASS
+}
+
+-- [1]163:CREATE USER lbmeta009_v 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]166:GRANT SELECT ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]169:GRANT INSERT ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]172:GRANT DELETE ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]175:GRANT ALTER ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]178:GRANT CREATE ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]181:GRANT DROP ON DATABASE lbmeta009_db TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]184:REVOKE SELECT ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]187:REVOKE INSERT ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]190:REVOKE DELETE ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]193:REVOKE ALTER ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]196:REVOKE CREATE ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]199:REVOKE DROP ON DATABASE lbmeta009_db FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]202:GRANT SELECT ON TABLE lbmeta009_db.metrics TO USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]208:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]211:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]214:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]217:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db' AND table_name='metrics'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]220:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbmeta009_db' AND table_name<>'metrics'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]223:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]228:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]229:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]230:REVOKE SELECT ON TABLE lbmeta009_db.metrics FROM USER lbmeta009_u
+STRICT{
+PASS
+}
+
+-- [1]233:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]236:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]243:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]244:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]245:REVOKE SELECT ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]248:REVOKE INSERT ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]251:REVOKE DELETE ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]254:REVOKE ALTER ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]257:REVOKE CREATE ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]260:REVOKE DROP ON DATABASE lbmeta009_db FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]263:GRANT SELECT ON TABLE lbmeta009_db.second TO USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]266:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]272:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]275:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]278:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]281:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db' AND table_name='second'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]284:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbmeta009_db' AND table_name<>'second'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]287:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]292:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]293:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]294:REVOKE SELECT ON TABLE lbmeta009_db.second FROM USER lbmeta009_v
+STRICT{
+PASS
+}
+
+-- [1]297:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]300:SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta009_db'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]310:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]311:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]324:USE lbmeta009_db
+STRICT{
+PASS
+}
+
+-- [1]329:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]372:DROP SECURITY LABEL COMPONENT lbmeta009_t
+STRICT{
+PASS
+}
+
+-- [1]375:DROP SECURITY LABEL COMPONENT lbmeta009_s
+STRICT{
+PASS
+}
+
+-- [1]378:DROP SECURITY LABEL COMPONENT lbmeta009_a
+STRICT{
+PASS
+}
+
+-- [1]384:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

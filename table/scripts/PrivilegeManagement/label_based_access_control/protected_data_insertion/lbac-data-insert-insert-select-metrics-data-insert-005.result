@@ -1,0 +1,261 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbdatainsert005_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbdatainsert005_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbdatainsert005_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatainsert005_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatainsert005_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbdatainsert005_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatainsert005_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatainsert005_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbdatainsert005_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatainsert005_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatainsert005_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbdatainsert005_p COMPONENTS lbdatainsert005_a,lbdatainsert005_s,lbdatainsert005_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdatainsert005_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbdatainsert005_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbdatainsert005_p.top COMPONENT lbdatainsert005_a 'TOP', COMPONENT lbdatainsert005_s 'RD', COMPONENT lbdatainsert005_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatainsert005_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]102:CREATE SECURITY LABEL lbdatainsert005_p.secret COMPONENT lbdatainsert005_a 'SECRET', COMPONENT lbdatainsert005_s 'RD', COMPONENT lbdatainsert005_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatainsert005_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lbdatainsert005_p.internal COMPONENT lbdatainsert005_a 'INTERNAL', COMPONENT lbdatainsert005_s 'RD', COMPONENT lbdatainsert005_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatainsert005_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbdatainsert005_p.public COMPONENT lbdatainsert005_a 'PUBLIC', COMPONENT lbdatainsert005_s 'RD', COMPONENT lbdatainsert005_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatainsert005_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]120:CREATE SECURITY LABEL lbdatainsert005_p.wide COMPONENT lbdatainsert005_a 'SECRET', COMPONENT lbdatainsert005_s 'RD','QA', COMPONENT lbdatainsert005_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatainsert005_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatainsert005_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbdatainsert005_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbdatainsert005_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbdatainsert005_db TO USER lbdatainsert005_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG ,owner STRING ATTRIBUTE ,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdatainsert005_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.208
+
+-- [1]156:GRANT SECURITY LABEL lbdatainsert005_p.public TO USER lbdatainsert005_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]165:USE lbdatainsert005_db
+STRICT{
+PASS
+}
+
+-- [1]168:INSERT INTO metrics(time,device,high) VALUES(2,'d1',99)
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lbdatainsert005_u' WRITE to label 'secret' (value: [SECRET]) under policy 'lbdatainsert005_p': user's merged grant [PUBLIC] does not dominate required [SECRET]
+}
+
+-- [1]172:USE lbdatainsert005_db
+STRICT{
+PASS
+}
+
+-- [1]175:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]189:USE lbdatainsert005_db
+STRICT{
+PASS
+}
+
+-- [1]194:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]233:DROP SECURITY LABEL COMPONENT lbdatainsert005_t
+STRICT{
+PASS
+}
+
+-- [1]236:DROP SECURITY LABEL COMPONENT lbdatainsert005_s
+STRICT{
+PASS
+}
+
+-- [1]239:DROP SECURITY LABEL COMPONENT lbdatainsert005_a
+STRICT{
+PASS
+}
+
+-- [1]245:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

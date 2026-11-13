@@ -1,0 +1,305 @@
+-- JOIN 只涉及未保护列
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbdataread018_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbdataread018_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataread018_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataread018_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataread018_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataread018_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataread018_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataread018_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbdataread018_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataread018_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataread018_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataread018_t;
+<<NULL;
+
+-- 16. 操作步骤: 无任何 Label、具备两表 SELECT 的用户，仅以未保护 device_id 连接并投影未保护列。；预期结果: 查询成功；未投影、未过滤、未排序的保护列不触发检查。；创建本用例隔离的测试数据库
+CREATE DATABASE lbdataread018_db;
+
+-- 17. 切换当前数据库或元数据查询范围
+USE lbdataread018_db;
+
+-- 18. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataread018_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 19. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread018_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread018_a';
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataread018_s SET ('RD','QA','OPS');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread018_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread018_s';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataread018_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataread018_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataread018_t';
+
+-- 24. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbdataread018_p COMPONENTS lbdataread018_a,lbdataread018_s,lbdataread018_t WITH LBACRULES;
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataread018_p';
+
+-- 26. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataread018_p TO USER root;
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataread018_p.top COMPONENT lbdataread018_a 'TOP', COMPONENT lbdataread018_s 'RD', COMPONENT lbdataread018_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread018_p' AND label_name='top';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataread018_p.secret COMPONENT lbdataread018_a 'SECRET', COMPONENT lbdataread018_s 'RD', COMPONENT lbdataread018_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread018_p' AND label_name='secret';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataread018_p.internal COMPONENT lbdataread018_a 'INTERNAL', COMPONENT lbdataread018_s 'RD', COMPONENT lbdataread018_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread018_p' AND label_name='internal';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataread018_p.public COMPONENT lbdataread018_a 'PUBLIC', COMPONENT lbdataread018_s 'RD', COMPONENT lbdataread018_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread018_p' AND label_name='public';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataread018_p.wide COMPONENT lbdataread018_a 'SECRET', COMPONENT lbdataread018_s 'RD','QA', COMPONENT lbdataread018_t 'ROOT';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataread018_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataread018_p' AND label_name='wide';
+
+-- 37. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataread018_p TO USER root;
+
+-- 38. 创建用例使用的普通用户
+CREATE USER lbdataread018_u 'LbacTest_2026!';
+
+-- 39. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbdataread018_db TO USER lbdataread018_u;
+
+-- 45. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataread018_p;
+
+-- 46. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 47. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE peer(device STRING TAG,threshold INT32 FIELD);
+
+-- 48. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO peer(time,device,threshold) VALUES(1,'d1',30);
+
+-- 49. 使用当前测试账号建立数据库连接
+connect lbdataread018_u/LbacTest_2026!;
+
+-- 50. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 51. 切换当前数据库或元数据查询范围
+USE lbdataread018_db;
+
+-- 52. 读取受保护数据并验证 LBAC 读权限
+SELECT m.plain,p.threshold FROM metrics m JOIN peer p ON m.device=p.device;
+
+-- 53. 读取受保护数据并验证 LBAC 读权限
+SELECT m.plain,p.threshold FROM metrics m LEFT JOIN peer p ON m.device=p.device;
+
+-- 54. 读取受保护数据并验证 LBAC 读权限
+SELECT m.plain,p.threshold FROM peer p LEFT JOIN metrics m ON m.device=p.device;
+
+-- 55. 读取受保护数据并验证 LBAC 读权限
+SELECT m.plain,p.threshold FROM peer p RIGHT JOIN metrics m ON m.device=p.device;
+
+-- 56. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbdataread018_db;
+<<NULL;
+
+-- 57. 清理本用例创建的数据表
+DROP TABLE IF EXISTS peer;
+<<NULL;
+
+-- 58. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbdataread018_db;
+<<NULL;
+
+-- 59. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 60. 清理本用例创建的数据表
+USE lbdataread018_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 61. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 62. 删除本用例隔离的测试数据库
+DROP DATABASE lbdataread018_db;
+<<NULL;
+
+-- 63. 删除用例创建的普通用户
+DROP USER lbdataread018_u;
+<<NULL;
+
+-- 64. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbdataread018_p FROM USER root;
+<<NULL;
+
+-- 65. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataread018_p.wide;
+<<NULL;
+
+-- 66. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataread018_p.public;
+<<NULL;
+
+-- 67. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataread018_p.internal;
+<<NULL;
+
+-- 68. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataread018_p.secret;
+<<NULL;
+
+-- 69. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataread018_p.top;
+<<NULL;
+
+-- 70. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbdataread018_p;
+<<NULL;
+
+-- 71. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataread018_t;
+
+-- 72. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataread018_s;
+
+-- 73. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataread018_a;
+
+-- 74. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 75. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 76. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 77. 结束清理：删除本用例对象
+DROP DATABASE lbdataread018_db;
+<<NULL;
+
+-- 78. 结束清理：删除本用例对象
+DROP USER lbdataread018_u;
+<<NULL;
+
+-- 79. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataread018_p FROM USER root;
+<<NULL;
+
+-- 80. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataread018_p.top;
+<<NULL;
+
+-- 81. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataread018_p.secret;
+<<NULL;
+
+-- 82. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataread018_p.internal;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataread018_p.public;
+<<NULL;
+
+-- 84. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataread018_p.wide;
+<<NULL;
+
+-- 85. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbdataread018_p;
+<<NULL;
+
+-- 86. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataread018_a;
+<<NULL;
+
+-- 87. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataread018_s;
+<<NULL;
+
+-- 88. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataread018_t;
+<<NULL;

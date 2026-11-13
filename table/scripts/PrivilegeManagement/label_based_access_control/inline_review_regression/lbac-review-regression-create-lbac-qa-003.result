@@ -1,0 +1,765 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lblbacqa003_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa003_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa003_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.12
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lblbacqa003_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa003_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa003_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lblbacqa003_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa003_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa003_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]87:CREATE SECURITY POLICY lblbacqa003_p COMPONENTS lblbacqa003_a,lblbacqa003_s,lblbacqa003_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbacqa003_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lblbacqa003_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lblbacqa003_p.top COMPONENT lblbacqa003_a 'TOP', COMPONENT lblbacqa003_s 'RD', COMPONENT lblbacqa003_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa003_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]102:CREATE SECURITY LABEL lblbacqa003_p.secret COMPONENT lblbacqa003_a 'SECRET', COMPONENT lblbacqa003_s 'RD', COMPONENT lblbacqa003_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa003_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]108:CREATE SECURITY LABEL lblbacqa003_p.internal COMPONENT lblbacqa003_a 'INTERNAL', COMPONENT lblbacqa003_s 'RD', COMPONENT lblbacqa003_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa003_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lblbacqa003_p.public COMPONENT lblbacqa003_a 'PUBLIC', COMPONENT lblbacqa003_s 'RD', COMPONENT lblbacqa003_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa003_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]120:CREATE SECURITY LABEL lblbacqa003_p.wide COMPONENT lblbacqa003_a 'SECRET', COMPONENT lblbacqa003_s 'RD','QA', COMPONENT lblbacqa003_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa003_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa003_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lblbacqa003_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lblbacqa003_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lblbacqa003_db TO USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG ,owner STRING ATTRIBUTE ,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lblbacqa003_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.261
+
+-- [1]156:ALTER TABLE metrics ALTER COLUMN time SECURED WITH secret
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]165:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]168:SELECT time FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]172:SELECT plain FROM metrics WHERE time=1
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]176:SELECT plain FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]180:SELECT time,COUNT(*) FROM metrics GROUP BY time ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]184:INSERT INTO metrics(time,device,owner,high) VALUES(2,'d2','bob',99)
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' WRITE to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]188:UPDATE metrics SET time=3 WHERE device='d1'
+STRICT{
+SQLSTATE : 701: Cannot update TIME column 'time'. UPDATE can only specify ATTRIBUTE columns.
+}
+
+-- [1]192:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]195:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]198:DELETE FROM metrics WHERE time=2
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]202:UPDATE metrics SET owner='alice' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]207:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]208:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]209:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]212:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]213:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]216:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]219:SELECT time FROM metrics ORDER BY time
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]222:SELECT plain FROM metrics WHERE time=1
+STRICT{
+plain(INT32)      |
+------------------
+10                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]225:SELECT plain FROM metrics ORDER BY time
+STRICT{
+plain(INT32)      |
+------------------
+10                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]228:SELECT time,COUNT(*) FROM metrics GROUP BY time ORDER BY time
+STRICT{
+time(TIMESTAMP)      |_col1(INT64)      |
+---------------------------------------
+1970-01-01T08:00:00.0|1                 |
+01+08:00             |                  |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]231:INSERT INTO metrics(time,device,owner,high) VALUES(2,'d2','bob',99)
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' WRITE to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]235:UPDATE metrics SET time=3 WHERE device='d1'
+STRICT{
+SQLSTATE : 701: Cannot update TIME column 'time'. UPDATE can only specify ATTRIBUTE columns.
+}
+
+-- [1]239:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]242:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]247:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]248:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]249:REVOKE SECURITY LABEL lblbacqa003_p.secret FROM USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]252:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]253:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]256:DELETE FROM metrics WHERE time=2
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]260:UPDATE metrics SET owner='alice' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]265:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]266:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]267:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]270:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]271:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]274:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]277:SELECT time FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]281:SELECT plain FROM metrics WHERE time=1
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]285:SELECT plain FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]289:SELECT time,COUNT(*) FROM metrics GROUP BY time ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]293:INSERT INTO metrics(time,device,owner,high) VALUES(2,'d2','bob',99)
+STRICT{
+0
+}
+Elapsed Time: 0.0.46
+
+-- [1]296:UPDATE metrics SET time=3 WHERE device='d1'
+STRICT{
+SQLSTATE : 701: Cannot update TIME column 'time'. UPDATE can only specify ATTRIBUTE columns.
+}
+
+-- [1]300:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]303:SELECT CAST(CASE WHEN COUNT(*)=2 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]308:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]309:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]310:REVOKE SECURITY LABEL lblbacqa003_p.secret FROM USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]313:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]314:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]317:DELETE FROM metrics WHERE time=2
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]321:UPDATE metrics SET owner='alice' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]326:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]327:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]328:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]331:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]334:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]335:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]338:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]341:SELECT time FROM metrics ORDER BY time
+STRICT{
+time(TIMESTAMP)      |
+---------------------
+1970-01-01T08:00:00.0|
+01+08:00             |
+---------------------
+1970-01-01T08:00:00.0|
+02+08:00             |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]344:SELECT plain FROM metrics WHERE time=1
+STRICT{
+plain(INT32)      |
+------------------
+10                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]347:SELECT plain FROM metrics ORDER BY time
+STRICT{
+plain(INT32)      |
+------------------
+10                |
+------------------
+null              |
+总数目：2
+}
+Elapsed Time: 0.0.3
+
+-- [1]350:SELECT time,COUNT(*) FROM metrics GROUP BY time ORDER BY time
+STRICT{
+time(TIMESTAMP)      |_col1(INT64)      |
+---------------------------------------
+1970-01-01T08:00:00.0|1                 |
+01+08:00             |                  |
+---------------------------------------
+1970-01-01T08:00:00.0|1                 |
+02+08:00             |                  |
+总数目：2
+}
+Elapsed Time: 0.0.3
+
+-- [1]353:INSERT INTO metrics(time,device,owner,high) VALUES(2,'d2','bob',99)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]356:UPDATE metrics SET time=3 WHERE device='d1'
+STRICT{
+SQLSTATE : 701: Cannot update TIME column 'time'. UPDATE can only specify ATTRIBUTE columns.
+}
+
+-- [1]360:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]363:SELECT CAST(CASE WHEN COUNT(*)=2 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]368:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]369:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]370:REVOKE SECURITY LABEL lblbacqa003_p.secret FROM USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]373:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]374:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]377:DELETE FROM metrics WHERE time=2
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]381:UPDATE metrics SET owner='alice' WHERE device='d1'
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]386:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]387:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]388:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]391:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]392:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]395:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]398:DELETE FROM metrics WHERE time=1
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa003_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacqa003_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]402:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]407:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]408:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]409:REVOKE SECURITY LABEL lblbacqa003_p.secret FROM USER lblbacqa003_u
+STRICT{
+PASS
+}
+
+-- [1]412:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]415:GRANT SECURITY LABEL lblbacqa003_p.secret TO USER lblbacqa003_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]418:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]419:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]422:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]425:DELETE FROM metrics WHERE time=1
+STRICT{
+0
+}
+Elapsed Time: 0.0.6
+
+-- [1]439:USE lblbacqa003_db
+STRICT{
+PASS
+}
+
+-- [1]444:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]483:DROP SECURITY LABEL COMPONENT lblbacqa003_t
+STRICT{
+PASS
+}
+
+-- [1]486:DROP SECURITY LABEL COMPONENT lblbacqa003_s
+STRICT{
+PASS
+}
+
+-- [1]489:DROP SECURITY LABEL COMPONENT lblbacqa003_a
+STRICT{
+PASS
+}
+
+-- [1]495:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

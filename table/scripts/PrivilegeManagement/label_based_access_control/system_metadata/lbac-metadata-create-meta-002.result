@@ -1,0 +1,617 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbmeta002_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbmeta002_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbmeta002_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta002_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta002_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbmeta002_p COMPONENTS lbmeta002_a,lbmeta002_s,lbmeta002_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta002_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbmeta002_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbmeta002_p.top COMPONENT lbmeta002_a 'TOP', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]102:CREATE SECURITY LABEL lbmeta002_p.secret COMPONENT lbmeta002_a 'SECRET', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lbmeta002_p.internal COMPONENT lbmeta002_a 'INTERNAL', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbmeta002_p.public COMPONENT lbmeta002_a 'PUBLIC', COMPONENT lbmeta002_s 'RD', COMPONENT lbmeta002_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]120:CREATE SECURITY LABEL lbmeta002_p.wide COMPONENT lbmeta002_a 'SECRET', COMPONENT lbmeta002_s 'RD','QA', COMPONENT lbmeta002_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta002_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta002_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbmeta002_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbmeta002_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbmeta002_db TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta002_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.238
+
+-- [1]156:GRANT SECURITY TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]162:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]165:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]168:INSERT INTO information_schema.security_policies(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]172:UPDATE information_schema.security_policies SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]176:DELETE FROM information_schema.security_policies
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]180:DROP TABLE information_schema.security_policies
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]184:INSERT INTO information_schema.security_label_components(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]188:UPDATE information_schema.security_label_components SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]192:DELETE FROM information_schema.security_label_components
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]196:DROP TABLE information_schema.security_label_components
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]200:INSERT INTO information_schema.security_label_component_elements(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]204:UPDATE information_schema.security_label_component_elements SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]208:DELETE FROM information_schema.security_label_component_elements
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]212:DROP TABLE information_schema.security_label_component_elements
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]216:INSERT INTO information_schema.security_policy_component_rules(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]220:UPDATE information_schema.security_policy_component_rules SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]224:DELETE FROM information_schema.security_policy_component_rules
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]228:DROP TABLE information_schema.security_policy_component_rules
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]232:INSERT INTO information_schema.security_labels(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]236:UPDATE information_schema.security_labels SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]240:DELETE FROM information_schema.security_labels
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]244:DROP TABLE information_schema.security_labels
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]248:INSERT INTO information_schema.security_label_access(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]252:UPDATE information_schema.security_label_access SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]256:DELETE FROM information_schema.security_label_access
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]260:DROP TABLE information_schema.security_label_access
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]264:INSERT INTO information_schema.security_policy_exemptions(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]268:UPDATE information_schema.security_policy_exemptions SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]272:DELETE FROM information_schema.security_policy_exemptions
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]276:DROP TABLE information_schema.security_policy_exemptions
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]280:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]283:REVOKE SECURITY FROM USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]288:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]289:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]290:GRANT SYSTEM TO USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]293:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]294:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]297:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]300:INSERT INTO information_schema.security_policies(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]304:UPDATE information_schema.security_policies SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]308:DELETE FROM information_schema.security_policies
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]312:DROP TABLE information_schema.security_policies
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]316:INSERT INTO information_schema.security_label_components(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]320:UPDATE information_schema.security_label_components SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]324:DELETE FROM information_schema.security_label_components
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]328:DROP TABLE information_schema.security_label_components
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]332:INSERT INTO information_schema.security_label_component_elements(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]336:UPDATE information_schema.security_label_component_elements SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]340:DELETE FROM information_schema.security_label_component_elements
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]344:DROP TABLE information_schema.security_label_component_elements
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]348:INSERT INTO information_schema.security_policy_component_rules(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]352:UPDATE information_schema.security_policy_component_rules SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]356:DELETE FROM information_schema.security_policy_component_rules
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]360:DROP TABLE information_schema.security_policy_component_rules
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]364:INSERT INTO information_schema.security_labels(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]368:UPDATE information_schema.security_labels SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]372:DELETE FROM information_schema.security_labels
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]376:DROP TABLE information_schema.security_labels
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]380:INSERT INTO information_schema.security_label_access(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]384:UPDATE information_schema.security_label_access SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]388:DELETE FROM information_schema.security_label_access
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]392:DROP TABLE information_schema.security_label_access
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]396:INSERT INTO information_schema.security_policy_exemptions(invalid_column) VALUES('invalid')
+STRICT{
+SQLSTATE : 701: the table should only have one column found with TIME category
+}
+
+-- [1]400:UPDATE information_schema.security_policy_exemptions SET invalid_column=1
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]404:DELETE FROM information_schema.security_policy_exemptions
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]408:DROP TABLE information_schema.security_policy_exemptions
+STRICT{
+SQLSTATE : 701: The database 'information_schema' can only be queried
+}
+
+-- [1]412:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]417:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]418:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]419:REVOKE SYSTEM FROM USER lbmeta002_u
+STRICT{
+PASS
+}
+
+-- [1]422:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]423:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]427:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]428:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]430:COMMENT ON SECURITY POLICY lbmeta002_p IS 'still writable through DDL'
+STRICT{
+PASS
+}
+
+-- [1]433:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]434:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]448:USE lbmeta002_db
+STRICT{
+PASS
+}
+
+-- [1]453:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]492:DROP SECURITY LABEL COMPONENT lbmeta002_t
+STRICT{
+PASS
+}
+
+-- [1]495:DROP SECURITY LABEL COMPONENT lbmeta002_s
+STRICT{
+PASS
+}
+
+-- [1]498:DROP SECURITY LABEL COMPONENT lbmeta002_a
+STRICT{
+PASS
+}
+
+-- [1]504:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

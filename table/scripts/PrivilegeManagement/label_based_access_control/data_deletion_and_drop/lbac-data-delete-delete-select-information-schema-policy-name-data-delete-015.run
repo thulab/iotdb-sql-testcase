@@ -1,0 +1,292 @@
+-- DROP DATABASE 不触发 LBAC
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbdatadelete015_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbdatadelete015_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdatadelete015_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdatadelete015_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdatadelete015_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdatadelete015_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdatadelete015_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdatadelete015_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbdatadelete015_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_t;
+<<NULL;
+
+-- 16. 操作步骤: 执行者有普通 DROP DATABASE 权限、无 Label，删除包含多个受保护表的隔离数据库。；预期结果: 数据库、表和对象保护关系删除；全局 Component、Policy、Label、授权和 exemption 保留且无孤儿业务引用。；创建本用例隔离的测试数据库
+CREATE DATABASE lbdatadelete015_db;
+
+-- 17. 切换当前数据库或元数据查询范围
+USE lbdatadelete015_db;
+
+-- 18. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdatadelete015_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 19. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatadelete015_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatadelete015_a';
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdatadelete015_s SET ('RD','QA','OPS');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatadelete015_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatadelete015_s';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdatadelete015_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdatadelete015_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdatadelete015_t';
+
+-- 24. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbdatadelete015_p COMPONENTS lbdatadelete015_a,lbdatadelete015_s,lbdatadelete015_t WITH LBACRULES;
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdatadelete015_p';
+
+-- 26. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdatadelete015_p TO USER root;
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdatadelete015_p.top COMPONENT lbdatadelete015_a 'TOP', COMPONENT lbdatadelete015_s 'RD', COMPONENT lbdatadelete015_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatadelete015_p' AND label_name='top';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdatadelete015_p.secret COMPONENT lbdatadelete015_a 'SECRET', COMPONENT lbdatadelete015_s 'RD', COMPONENT lbdatadelete015_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatadelete015_p' AND label_name='secret';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdatadelete015_p.internal COMPONENT lbdatadelete015_a 'INTERNAL', COMPONENT lbdatadelete015_s 'RD', COMPONENT lbdatadelete015_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatadelete015_p' AND label_name='internal';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdatadelete015_p.public COMPONENT lbdatadelete015_a 'PUBLIC', COMPONENT lbdatadelete015_s 'RD', COMPONENT lbdatadelete015_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatadelete015_p' AND label_name='public';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdatadelete015_p.wide COMPONENT lbdatadelete015_a 'SECRET', COMPONENT lbdatadelete015_s 'RD','QA', COMPONENT lbdatadelete015_t 'ROOT';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdatadelete015_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdatadelete015_p' AND label_name='wide';
+
+-- 37. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdatadelete015_p TO USER root;
+
+-- 38. 创建用例使用的普通用户
+CREATE USER lbdatadelete015_u 'LbacTest_2026!';
+
+-- 39. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbdatadelete015_db TO USER lbdatadelete015_u;
+
+-- 45. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG ,owner STRING ATTRIBUTE ,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdatadelete015_p;
+
+-- 46. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30);
+
+-- 47. 使用当前测试账号建立数据库连接
+connect lbdatadelete015_u/LbacTest_2026!;
+
+-- 48. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 49. 切换当前数据库或元数据查询范围
+USE lbdatadelete015_db;
+
+-- 50. 切换当前数据库或元数据查询范围
+USE lbdatadelete015_db;
+
+-- 切回管理员账号执行数据完整性断言
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdatadelete015_db;
+-- 51. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE second(high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdatadelete015_p;
+-- 切回测试账号继续用例
+connect lbdatadelete015_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdatadelete015_db;
+
+-- 52. 切换当前数据库或元数据查询范围
+USE lbdatadelete015_db;
+
+-- 53. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 54. 删除本用例隔离的测试数据库
+DROP DATABASE lbdatadelete015_db;
+
+-- 55. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=0 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbdatadelete015_db';
+
+-- 56. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdatadelete015_p';
+
+-- 57. 清理本条额外视图及表；失败路径同样执行；清理本条命名空间；无通配删除；初始化未被忽略。；使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 58. 删除用例创建的普通用户
+DROP USER lbdatadelete015_u;
+<<NULL;
+
+-- 59. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbdatadelete015_p FROM USER root;
+<<NULL;
+
+-- 60. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdatadelete015_p.wide;
+<<NULL;
+
+-- 61. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdatadelete015_p.public;
+<<NULL;
+
+-- 62. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdatadelete015_p.internal;
+<<NULL;
+
+-- 63. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdatadelete015_p.secret;
+<<NULL;
+
+-- 64. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdatadelete015_p.top;
+<<NULL;
+
+-- 65. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbdatadelete015_p;
+<<NULL;
+
+-- 66. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdatadelete015_t;
+
+-- 67. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdatadelete015_s;
+
+-- 68. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdatadelete015_a;
+
+-- 69. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 70. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 71. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 72. 结束清理：删除本用例对象
+DROP DATABASE lbdatadelete015_db;
+<<NULL;
+
+-- 73. 结束清理：删除本用例对象
+DROP USER lbdatadelete015_u;
+<<NULL;
+
+-- 74. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdatadelete015_p FROM USER root;
+<<NULL;
+
+-- 75. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdatadelete015_p.top;
+<<NULL;
+
+-- 76. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdatadelete015_p.secret;
+<<NULL;
+
+-- 77. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdatadelete015_p.internal;
+<<NULL;
+
+-- 78. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdatadelete015_p.public;
+<<NULL;
+
+-- 79. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdatadelete015_p.wide;
+<<NULL;
+
+-- 80. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbdatadelete015_p;
+<<NULL;
+
+-- 81. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_a;
+<<NULL;
+
+-- 82. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_s;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdatadelete015_t;
+<<NULL;

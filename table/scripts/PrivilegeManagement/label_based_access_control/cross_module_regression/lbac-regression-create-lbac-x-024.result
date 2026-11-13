@@ -1,0 +1,407 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lblbacx024_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacx024_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacx024_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lblbacx024_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacx024_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacx024_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lblbacx024_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacx024_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacx024_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lblbacx024_p COMPONENTS lblbacx024_a,lblbacx024_s,lblbacx024_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbacx024_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lblbacx024_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lblbacx024_p.top COMPONENT lblbacx024_a 'TOP', COMPONENT lblbacx024_s 'RD', COMPONENT lblbacx024_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacx024_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]102:CREATE SECURITY LABEL lblbacx024_p.secret COMPONENT lblbacx024_a 'SECRET', COMPONENT lblbacx024_s 'RD', COMPONENT lblbacx024_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacx024_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lblbacx024_p.internal COMPONENT lblbacx024_a 'INTERNAL', COMPONENT lblbacx024_s 'RD', COMPONENT lblbacx024_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacx024_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lblbacx024_p.public COMPONENT lblbacx024_a 'PUBLIC', COMPONENT lblbacx024_s 'RD', COMPONENT lblbacx024_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacx024_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]120:CREATE SECURITY LABEL lblbacx024_p.wide COMPONENT lblbacx024_a 'SECRET', COMPONENT lblbacx024_s 'RD','QA', COMPONENT lblbacx024_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacx024_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacx024_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lblbacx024_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lblbacx024_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lblbacx024_db TO USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG ,owner STRING ATTRIBUTE ,site STRING ATTRIBUTE,plain INT32 FIELD,low INT32 FIELD,high INT32 FIELD SECURED WITH secret) SECURITY POLICY lblbacx024_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,site,plain,low,high) VALUES(1,'d1','alice','west',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.148
+
+-- [1]156:GRANT SECURITY LABEL lblbacx024_p.secret TO USER lblbacx024_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]159:GRANT SECURITY LABEL lblbacx024_p.secret TO USER lblbacx024_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]162:COMMENT ON SECURITY LABEL COMPONENT lblbacx024_a IS '中文备注'
+STRICT{
+PASS
+}
+
+-- [1]165:COMMENT ON SECURITY LABEL COMPONENT lblbacx024_a IS 'it''s changed'
+STRICT{
+PASS
+}
+
+-- [1]168:COMMENT ON SECURITY LABEL COMPONENT lblbacx024_a IS NULL
+STRICT{
+PASS
+}
+
+-- [1]171:COMMENT ON SECURITY POLICY lblbacx024_p IS '中文备注'
+STRICT{
+PASS
+}
+
+-- [1]174:COMMENT ON SECURITY POLICY lblbacx024_p IS 'it''s changed'
+STRICT{
+PASS
+}
+
+-- [1]177:COMMENT ON SECURITY POLICY lblbacx024_p IS NULL
+STRICT{
+PASS
+}
+
+-- [1]180:COMMENT ON SECURITY LABEL lblbacx024_p.secret IS '中文备注'
+STRICT{
+PASS
+}
+
+-- [1]183:COMMENT ON SECURITY LABEL lblbacx024_p.secret IS 'it''s changed'
+STRICT{
+PASS
+}
+
+-- [1]186:COMMENT ON SECURITY LABEL lblbacx024_p.secret IS NULL
+STRICT{
+PASS
+}
+
+-- [1]192:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]195:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]198:DESCRIBE metrics
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device                |STRING              |TAG                 |
+--------------------------------------------------------------
+owner                 |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+site                  |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+plain                 |INT32               |FIELD               |
+--------------------------------------------------------------
+low                   |INT32               |FIELD               |
+--------------------------------------------------------------
+high                  |INT32               |FIELD               |
+总数目：7
+}
+Elapsed Time: 0.0.0
+
+-- [1]201:SHOW CREATE TABLE metrics
+STRICT{
+Table(TEXT)      |Create Table(TEXT)      |
+-----------------------------------------
+metrics          |CREATE TABLE "metrics" (|
+                 |"time" TIMESTAMP TIME,"|
+                 |device" STRING TAG,"own|
+                 |er" STRING ATTRIBUTE,"s|
+                 |ite" STRING ATTRIBUTE,"|
+                 |plain" INT32 FIELD,"low|
+                 |" INT32 FIELD,"high" IN|
+                 |T32 FIELD SECURED WITH |
+                 |"secret") SECURITY POLI|
+                 |CY "lblbacx024_p" WITH |
+                 |(ttl='INF', need_last_c|
+                 |ache=true)              |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]204:SELECT CAST(CASE WHEN MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]207:INSERT INTO metrics(time,device,high) VALUES(2,'d1',99)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]210:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]215:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]216:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]217:REVOKE SECURITY LABEL lblbacx024_p.secret FROM USER lblbacx024_u
+STRICT{
+PASS
+}
+
+-- [1]220:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]221:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]224:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]227:SELECT high FROM metrics ORDER BY time
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacx024_u' READ to label 'secret' (value: [SECRET]) under policy 'lblbacx024_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]231:INSERT INTO metrics(time,device,high) VALUES(3,'d1',99)
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacx024_u' WRITE to label 'secret' (value: [SECRET]) under policy 'lblbacx024_p': user's merged grant [] does not dominate required [SECRET]
+}
+
+-- [1]235:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]238:SELECT CAST(CASE WHEN COUNT(*)=2 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]252:USE lblbacx024_db
+STRICT{
+PASS
+}
+
+-- [1]257:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]296:DROP SECURITY LABEL COMPONENT lblbacx024_t
+STRICT{
+PASS
+}
+
+-- [1]299:DROP SECURITY LABEL COMPONENT lblbacx024_s
+STRICT{
+PASS
+}
+
+-- [1]302:DROP SECURITY LABEL COMPONENT lblbacx024_a
+STRICT{
+PASS
+}
+
+-- [1]308:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

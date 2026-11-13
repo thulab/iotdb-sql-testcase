@@ -1,0 +1,475 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]67:CREATE DATABASE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]70:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]73:CREATE SECURITY LABEL COMPONENT lblbacqa007_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]76:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa007_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa007_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]79:CREATE SECURITY LABEL COMPONENT lblbacqa007_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]82:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa007_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa007_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]85:CREATE SECURITY LABEL COMPONENT lblbacqa007_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]88:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbacqa007_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbacqa007_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]91:CREATE SECURITY POLICY lblbacqa007_p COMPONENTS lblbacqa007_a,lblbacqa007_s,lblbacqa007_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]94:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbacqa007_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]97:GRANT EXEMPTION ON RULE ALL FOR lblbacqa007_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]100:CREATE SECURITY LABEL lblbacqa007_p.top COMPONENT lblbacqa007_a 'TOP', COMPONENT lblbacqa007_s 'RD', COMPONENT lblbacqa007_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]103:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]106:CREATE SECURITY LABEL lblbacqa007_p.secret COMPONENT lblbacqa007_a 'SECRET', COMPONENT lblbacqa007_s 'RD', COMPONENT lblbacqa007_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]109:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]112:CREATE SECURITY LABEL lblbacqa007_p.internal COMPONENT lblbacqa007_a 'INTERNAL', COMPONENT lblbacqa007_s 'RD', COMPONENT lblbacqa007_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]115:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]118:CREATE SECURITY LABEL lblbacqa007_p.public COMPONENT lblbacqa007_a 'PUBLIC', COMPONENT lblbacqa007_s 'RD', COMPONENT lblbacqa007_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]121:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]124:CREATE SECURITY LABEL lblbacqa007_p.wide COMPONENT lblbacqa007_a 'SECRET', COMPONENT lblbacqa007_s 'RD','QA', COMPONENT lblbacqa007_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]127:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]130:GRANT EXEMPTION ON RULE ALL FOR lblbacqa007_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]133:CREATE USER lblbacqa007_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]136:GRANT SELECT ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]139:GRANT INSERT ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]142:GRANT DELETE ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]145:GRANT ALTER ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]148:GRANT CREATE ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]151:GRANT DROP ON DATABASE lblbacqa007_db TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]154:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lblbacqa007_p
+STRICT{
+PASS
+}
+
+-- [1]157:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.128
+
+-- [1]160:ALTER TABLE metrics ALTER COLUMN device SECURED WITH internal
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]163:CREATE WRITABLE VIEW wv AS SELECT device AS tag_alias,low AS public_alias FROM metrics WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]166:GRANT SECURITY LABEL lblbacqa007_p.internal TO USER lblbacqa007_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]172:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]175:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]178:DELETE FROM wv WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa007_u' READ to label 'internal' (value: [INTERNAL]) under policy 'lblbacqa007_p': user's merged grant [] does not dominate required [INTERNAL]
+}
+
+-- [1]182:DELETE DEVICES FROM wv WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa007_u' READ to label 'internal' (value: [INTERNAL]) under policy 'lblbacqa007_p': user's merged grant [] does not dominate required [INTERNAL]
+}
+
+-- [1]186:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]189:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]193:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]194:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]196:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(plain)=10 AND MIN(low)=20 AND MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]199:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]200:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]205:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]206:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]207:CREATE SECURITY LABEL lblbacqa007_p.both COMPONENT lblbacqa007_a 'SECRET', COMPONENT lblbacqa007_s 'RD', COMPONENT lblbacqa007_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]210:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]211:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]214:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbacqa007_p' AND MIN(label_name)='both' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbacqa007_p' AND label_name='both'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]219:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]220:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]221:REVOKE SECURITY LABEL lblbacqa007_p.internal FROM USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]224:GRANT SECURITY LABEL lblbacqa007_p.both TO USER lblbacqa007_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]227:GRANT EXEMPTION ON RULE LBACWRITEARRAY WRITE_DOWN FOR lblbacqa007_p TO USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]230:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]231:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]234:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]237:DELETE FROM wv WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbacqa007_u' READ to label 'internal' (value: [INTERNAL]) under policy 'lblbacqa007_p': user's merged grant [] does not dominate required [INTERNAL]
+}
+
+-- [1]241:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]246:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]247:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]248:REVOKE SECURITY LABEL lblbacqa007_p.both FROM USER lblbacqa007_u
+STRICT{
+PASS
+}
+
+-- [1]251:GRANT SECURITY LABEL lblbacqa007_p.both TO USER lblbacqa007_u FOR WRITE ACCESS
+STRICT{
+PASS
+}
+
+-- [1]254:GRANT SECURITY LABEL lblbacqa007_p.internal TO USER lblbacqa007_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]257:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]258:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]261:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]264:DELETE FROM wv WHERE tag_alias='d1'
+STRICT{
+SQLSTATE : 701: DELETE FROM writable view without column list is allowed only when every source table column is exposed by the view. Use an explicit column list.
+}
+
+-- [1]268:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]271:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]275:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]276:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]278:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(plain)=10 AND MIN(low)=20 AND MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]281:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]282:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]289:DROP VIEW IF EXISTS wv
+STRICT{
+PASS
+}
+
+-- [1]299:USE lblbacqa007_db
+STRICT{
+PASS
+}
+
+-- [1]304:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]347:DROP SECURITY LABEL COMPONENT lblbacqa007_t
+STRICT{
+PASS
+}
+
+-- [1]350:DROP SECURITY LABEL COMPONENT lblbacqa007_s
+STRICT{
+PASS
+}
+
+-- [1]353:DROP SECURITY LABEL COMPONENT lblbacqa007_a
+STRICT{
+PASS
+}
+
+-- [1]359:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

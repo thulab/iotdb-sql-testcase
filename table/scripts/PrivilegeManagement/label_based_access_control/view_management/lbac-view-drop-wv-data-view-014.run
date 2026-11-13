@@ -1,0 +1,331 @@
+-- 嵌套视图追踪最终保护源列
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbdataview014_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbdataview014_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataview014_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataview014_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataview014_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataview014_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataview014_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataview014_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbdataview014_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataview014_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataview014_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataview014_t;
+<<NULL;
+
+-- 16. 操作步骤: 通过多层逻辑视图和别名最终引用受保护 temperature，由无 READ 和有 READ 用户分别查询。；预期结果: 无 READ 拒绝，有 READ 成功；只对最终源列作一次有效判定，层数不改变结论。；创建本用例隔离的测试数据库
+CREATE DATABASE lbdataview014_db;
+
+-- 17. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 18. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataview014_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 19. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview014_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview014_a';
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataview014_s SET ('RD','QA','OPS');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview014_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview014_s';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataview014_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview014_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview014_t';
+
+-- 24. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbdataview014_p COMPONENTS lbdataview014_a,lbdataview014_s,lbdataview014_t WITH LBACRULES;
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataview014_p';
+
+-- 26. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataview014_p TO USER root;
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataview014_p.top COMPONENT lbdataview014_a 'TOP', COMPONENT lbdataview014_s 'RD', COMPONENT lbdataview014_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview014_p' AND label_name='top';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataview014_p.secret COMPONENT lbdataview014_a 'SECRET', COMPONENT lbdataview014_s 'RD', COMPONENT lbdataview014_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview014_p' AND label_name='secret';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataview014_p.internal COMPONENT lbdataview014_a 'INTERNAL', COMPONENT lbdataview014_s 'RD', COMPONENT lbdataview014_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview014_p' AND label_name='internal';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataview014_p.public COMPONENT lbdataview014_a 'PUBLIC', COMPONENT lbdataview014_s 'RD', COMPONENT lbdataview014_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview014_p' AND label_name='public';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataview014_p.wide COMPONENT lbdataview014_a 'SECRET', COMPONENT lbdataview014_s 'RD','QA', COMPONENT lbdataview014_t 'ROOT';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview014_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview014_p' AND label_name='wide';
+
+-- 37. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataview014_p TO USER root;
+
+-- 38. 创建用例使用的普通用户
+CREATE USER lbdataview014_u 'LbacTest_2026!';
+
+-- 39. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbdataview014_db TO USER lbdataview014_u;
+
+-- 45. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataview014_p;
+
+-- 46. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 47. 执行 CREATE 操作并验证用例行为
+CREATE WRITABLE VIEW wv AS SELECT device,plain,high AS protected_alias FROM metrics WITH (schema_cascade=false);
+
+-- 48. 执行 CREATE 操作并验证用例行为
+CREATE VIEW lv AS SELECT device,plain,high AS protected_alias FROM metrics;
+
+-- 49. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 50. 执行 CREATE 操作并验证用例行为
+CREATE VIEW nested AS SELECT device,protected_alias AS final_alias FROM lv;
+
+-- 51. 使用当前测试账号建立数据库连接
+connect lbdataview014_u/LbacTest_2026!;
+
+-- 52. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 53. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 54. 读取受保护数据并验证 LBAC 读权限；本语句预期失败，需核对 SQLSTATE 及错误原因
+SELECT final_alias FROM nested;
+<<SQLSTATE;
+
+-- 55. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 56. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataview014_db;
+GRANT SECURITY LABEL lbdataview014_p.secret TO USER lbdataview014_u FOR READ ACCESS;
+-- 切回测试账号继续用例
+connect lbdataview014_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataview014_db;
+
+-- 57. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 58. 读取受保护数据并验证 LBAC 读权限
+SELECT final_alias FROM nested;
+
+-- 59. 切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+
+-- 60. 执行 DROP 操作并验证用例行为
+DROP VIEW nested;
+
+-- 61. 执行 DROP 操作并验证用例行为
+DROP VIEW lv;
+
+-- 62. 执行 DROP 操作并验证用例行为
+DROP VIEW wv;
+
+-- 63. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+<<NULL;
+
+-- 64. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbdataview014_db;
+<<NULL;
+
+-- 65. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 66. 清理本用例创建的数据表
+USE lbdataview014_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 67. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 68. 删除本用例隔离的测试数据库
+DROP DATABASE lbdataview014_db;
+<<NULL;
+
+-- 69. 删除用例创建的普通用户
+DROP USER lbdataview014_u;
+<<NULL;
+
+-- 70. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbdataview014_p FROM USER root;
+<<NULL;
+
+-- 71. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataview014_p.wide;
+<<NULL;
+
+-- 72. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataview014_p.public;
+<<NULL;
+
+-- 73. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataview014_p.internal;
+<<NULL;
+
+-- 74. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataview014_p.secret;
+<<NULL;
+
+-- 75. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataview014_p.top;
+<<NULL;
+
+-- 76. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbdataview014_p;
+<<NULL;
+
+-- 77. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataview014_t;
+
+-- 78. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataview014_s;
+
+-- 79. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataview014_a;
+
+-- 80. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 81. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 82. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP DATABASE lbdataview014_db;
+<<NULL;
+
+-- 84. 结束清理：删除本用例对象
+DROP USER lbdataview014_u;
+<<NULL;
+
+-- 85. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataview014_p FROM USER root;
+<<NULL;
+
+-- 86. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataview014_p.top;
+<<NULL;
+
+-- 87. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataview014_p.secret;
+<<NULL;
+
+-- 88. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataview014_p.internal;
+<<NULL;
+
+-- 89. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataview014_p.public;
+<<NULL;
+
+-- 90. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataview014_p.wide;
+<<NULL;
+
+-- 91. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbdataview014_p;
+<<NULL;
+
+-- 92. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataview014_a;
+<<NULL;
+
+-- 93. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataview014_s;
+<<NULL;
+
+-- 94. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataview014_t;
+<<NULL;

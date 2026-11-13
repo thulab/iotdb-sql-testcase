@@ -1,0 +1,298 @@
+-- p_multi 未绑定表且所需组件存在
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbp14_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbp14_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp14_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp14_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp14_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp14_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp14_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbp14_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbp14_p;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp14_a;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp14_s;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp14_t;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp14x;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbp14y;
+<<NULL;
+
+-- 18. 创建本用例隔离的测试数据库
+CREATE DATABASE lbp14_db;
+
+-- 19. 切换当前数据库或元数据查询范围
+USE lbp14_db;
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp14_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp14_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp14_a';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp14_s SET ('RD','QA','OPS');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp14_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp14_s';
+
+-- 24. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp14_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp14_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp14_t';
+
+-- 26. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbp14_p COMPONENTS lbp14_a,lbp14_s,lbp14_t WITH LBACRULES;
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp14_p';
+
+-- 28. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp14_p.top COMPONENT lbp14_a 'TOP', COMPONENT lbp14_s 'RD', COMPONENT lbp14_t 'A1';
+
+-- 29. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp14_p' AND label_name='top';
+
+-- 30. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp14_p.secret COMPONENT lbp14_a 'SECRET', COMPONENT lbp14_s 'RD', COMPONENT lbp14_t 'A1';
+
+-- 31. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp14_p' AND label_name='secret';
+
+-- 32. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp14_p.internal COMPONENT lbp14_a 'INTERNAL', COMPONENT lbp14_s 'RD', COMPONENT lbp14_t 'A1';
+
+-- 33. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp14_p' AND label_name='internal';
+
+-- 34. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp14_p.public COMPONENT lbp14_a 'PUBLIC', COMPONENT lbp14_s 'RD', COMPONENT lbp14_t 'A1';
+
+-- 35. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp14_p' AND label_name='public';
+
+-- 36. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbp14_p.wide COMPONENT lbp14_a 'SECRET', COMPONENT lbp14_s 'RD','QA', COMPONENT lbp14_t 'ROOT';
+
+-- 37. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp14_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp14_p' AND label_name='wide';
+
+-- 38. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbp14_p TO USER root;
+
+-- 39. 创建用例使用的普通用户
+CREATE USER lbp14_u 'LbacTest_2026!';
+
+-- 40. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbp14_db TO USER lbp14_u;
+
+-- 46. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp14x SET ('X');
+
+-- 47. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp14x' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp14x';
+
+-- 48. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbp14y SET ('X');
+
+-- 49. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp14y' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp14y';
+
+-- 50. 修改 LBAC 安全策略并验证策略行为
+ALTER SECURITY POLICY lbp14_p ADD SECURITY LABEL COMPONENT lbp14x ADD SECURITY LABEL COMPONENT lbp14y;
+
+-- 51. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_count)=5 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp14_p';
+
+-- 52. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbp14_db;
+<<NULL;
+
+-- 53. 清理本用例创建的数据表
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 54. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 55. 删除本用例隔离的测试数据库
+DROP DATABASE lbp14_db;
+<<NULL;
+
+-- 56. 删除用例创建的普通用户
+DROP USER lbp14_u;
+<<NULL;
+
+-- 57. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbp14_p FROM USER root;
+<<NULL;
+
+-- 58. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp14_p.wide;
+<<NULL;
+
+-- 59. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp14_p.public;
+<<NULL;
+
+-- 60. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp14_p.internal;
+<<NULL;
+
+-- 61. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp14_p.secret;
+<<NULL;
+
+-- 62. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbp14_p.top;
+<<NULL;
+
+-- 63. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbp14_p;
+<<NULL;
+
+-- 64. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp14y;
+<<NULL;
+
+-- 65. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp14x;
+
+-- 66. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp14_t;
+
+-- 67. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp14_s;
+
+-- 68. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbp14_a;
+
+-- 69. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 70. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 71. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 72. 结束清理：删除本用例对象
+DROP DATABASE lbp14_db;
+<<NULL;
+
+-- 73. 结束清理：删除本用例对象
+DROP USER lbp14_u;
+<<NULL;
+
+-- 74. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbp14_p FROM USER root;
+<<NULL;
+
+-- 75. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp14_p.top;
+<<NULL;
+
+-- 76. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp14_p.secret;
+<<NULL;
+
+-- 77. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp14_p.internal;
+<<NULL;
+
+-- 78. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp14_p.public;
+<<NULL;
+
+-- 79. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbp14_p.wide;
+<<NULL;
+
+-- 80. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbp14_p;
+<<NULL;
+
+-- 81. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp14_a;
+<<NULL;
+
+-- 82. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp14_s;
+<<NULL;
+
+-- 83. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp14_t;
+<<NULL;
+
+-- 84. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp14x;
+<<NULL;
+
+-- 85. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbp14y;
+<<NULL;

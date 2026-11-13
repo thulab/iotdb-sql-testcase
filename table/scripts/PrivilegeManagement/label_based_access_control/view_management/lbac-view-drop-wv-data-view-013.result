@@ -1,0 +1,286 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbdataview013_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview013_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview013_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbdataview013_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview013_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview013_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbdataview013_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataview013_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataview013_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]87:CREATE SECURITY POLICY lbdataview013_p COMPONENTS lbdataview013_a,lbdataview013_s,lbdataview013_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataview013_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbdataview013_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbdataview013_p.top COMPONENT lbdataview013_a 'TOP', COMPONENT lbdataview013_s 'RD', COMPONENT lbdataview013_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview013_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]102:CREATE SECURITY LABEL lbdataview013_p.secret COMPONENT lbdataview013_a 'SECRET', COMPONENT lbdataview013_s 'RD', COMPONENT lbdataview013_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview013_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lbdataview013_p.internal COMPONENT lbdataview013_a 'INTERNAL', COMPONENT lbdataview013_s 'RD', COMPONENT lbdataview013_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview013_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbdataview013_p.public COMPONENT lbdataview013_a 'PUBLIC', COMPONENT lbdataview013_s 'RD', COMPONENT lbdataview013_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview013_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]120:CREATE SECURITY LABEL lbdataview013_p.wide COMPONENT lbdataview013_a 'SECRET', COMPONENT lbdataview013_s 'RD','QA', COMPONENT lbdataview013_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataview013_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataview013_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbdataview013_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbdataview013_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbdataview013_db TO USER lbdataview013_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataview013_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.148
+
+-- [1]156:CREATE WRITABLE VIEW wv AS SELECT device,plain,high AS protected_alias FROM metrics WITH (schema_cascade=false)
+STRICT{
+PASS
+}
+
+-- [1]159:CREATE VIEW lv AS SELECT device,plain,high AS protected_alias FROM metrics
+STRICT{
+PASS
+}
+
+-- [1]162:USE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]165:CREATE VIEW plainv AS SELECT device,plain FROM metrics
+STRICT{
+PASS
+}
+
+-- [1]171:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]174:USE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]177:SELECT * FROM plainv
+STRICT{
+device(STRING)      |plain(INT32)      |
+--------------------------------------
+d1                  |10                |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]180:USE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]183:DROP VIEW plainv
+STRICT{
+PASS
+}
+
+-- [1]186:DROP VIEW lv
+STRICT{
+PASS
+}
+
+-- [1]189:DROP VIEW wv
+STRICT{
+PASS
+}
+
+-- [1]203:USE lbdataview013_db
+STRICT{
+PASS
+}
+
+-- [1]208:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]247:DROP SECURITY LABEL COMPONENT lbdataview013_t
+STRICT{
+PASS
+}
+
+-- [1]250:DROP SECURITY LABEL COMPONENT lbdataview013_s
+STRICT{
+PASS
+}
+
+-- [1]253:DROP SECURITY LABEL COMPONENT lbdataview013_a
+STRICT{
+PASS
+}
+
+-- [1]259:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

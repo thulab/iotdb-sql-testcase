@@ -1,0 +1,358 @@
+-- 用户仅有 p_array 标签，访问 p_mix
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbr02_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbr02_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p2 FROM USER root;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p.top;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p.secret;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p.internal;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p.public;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p.wide;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbr02_p2.other;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr02_p;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbr02_p2;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr02_a;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr02_s;
+<<NULL;
+
+-- 18. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbr02_t;
+<<NULL;
+
+-- 19. 操作步骤: u_subject 查询 p_mix 的受保护列。；预期结果: p_array 标签被忽略；按 p_mix 全空默认标签比较，非空保护值拒绝。；创建本用例隔离的测试数据库
+CREATE DATABASE lbr02_db;
+
+-- 20. 切换当前数据库或元数据查询范围
+USE lbr02_db;
+
+-- 21. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr02_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 22. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr02_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr02_a';
+
+-- 23. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr02_s SET ('RD','QA','OPS');
+
+-- 24. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr02_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr02_s';
+
+-- 25. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbr02_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 26. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbr02_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbr02_t';
+
+-- 27. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr02_p COMPONENTS lbr02_a,lbr02_s,lbr02_t WITH LBACRULES;
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr02_p';
+
+-- 29. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr02_p TO USER root;
+
+-- 30. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p.top COMPONENT lbr02_a 'TOP', COMPONENT lbr02_s 'RD', COMPONENT lbr02_t 'A1';
+
+-- 31. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p' AND label_name='top';
+
+-- 32. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p.secret COMPONENT lbr02_a 'SECRET', COMPONENT lbr02_s 'RD', COMPONENT lbr02_t 'A1';
+
+-- 33. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p' AND label_name='secret';
+
+-- 34. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p.internal COMPONENT lbr02_a 'INTERNAL', COMPONENT lbr02_s 'RD', COMPONENT lbr02_t 'A1';
+
+-- 35. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p' AND label_name='internal';
+
+-- 36. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p.public COMPONENT lbr02_a 'PUBLIC', COMPONENT lbr02_s 'RD', COMPONENT lbr02_t 'A1';
+
+-- 37. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p' AND label_name='public';
+
+-- 38. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p.wide COMPONENT lbr02_a 'SECRET', COMPONENT lbr02_s 'RD','QA', COMPONENT lbr02_t 'ROOT';
+
+-- 39. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p' AND label_name='wide';
+
+-- 40. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr02_p TO USER root;
+
+-- 41. 创建用例使用的普通用户
+CREATE USER lbr02_u 'LbacTest_2026!';
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 46. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 47. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbr02_db TO USER lbr02_u;
+
+-- 48. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbr02_p;
+
+-- 49. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 50. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbr02_p2 COMPONENTS lbr02_a WITH LBACRULES;
+
+-- 51. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p2' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbr02_p2';
+
+-- 52. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbr02_p2 TO USER root;
+
+-- 53. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbr02_p2.other COMPONENT lbr02_a 'SECRET';
+
+-- 54. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbr02_p2' AND MIN(label_name)='other' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbr02_p2' AND label_name='other';
+
+-- 55. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbr02_p2.other TO USER lbr02_u FOR ALL ACCESS;
+
+-- 56. 使用当前测试账号建立数据库连接
+connect lbr02_u/LbacTest_2026!;
+
+-- 57. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 58. 切换当前数据库或元数据查询范围
+USE lbr02_db;
+
+-- 59. 读取受保护数据并验证 LBAC 读权限；本语句预期失败，需核对 SQLSTATE 及错误原因
+SELECT high FROM metrics ORDER BY time;
+<<SQLSTATE;
+
+-- 60. 写入测试数据并验证 LBAC 写入控制；本语句预期失败，需核对 SQLSTATE 及错误原因
+INSERT INTO metrics(time,device,high) VALUES(2,'d1',99);
+<<SQLSTATE;
+
+-- 61. 切换当前数据库或元数据查询范围
+USE lbr02_db;
+
+-- 切回管理员账号执行数据完整性断言
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbr02_db;
+-- 62. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(plain)=10 AND MIN(low)=20 AND MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+-- 切回测试账号继续用例
+connect lbr02_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbr02_db;
+
+-- 63. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbr02_db;
+<<NULL;
+
+-- 64. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbr02_db;
+<<NULL;
+
+-- 65. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 66. 清理本用例创建的数据表
+USE lbr02_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 67. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 68. 删除本用例隔离的测试数据库
+DROP DATABASE lbr02_db;
+<<NULL;
+
+-- 69. 删除用例创建的普通用户
+DROP USER lbr02_u;
+<<NULL;
+
+-- 70. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p FROM USER root;
+<<NULL;
+
+-- 71. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p2 FROM USER root;
+<<NULL;
+
+-- 72. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p2.other;
+<<NULL;
+
+-- 73. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p.wide;
+<<NULL;
+
+-- 74. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p.public;
+<<NULL;
+
+-- 75. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p.internal;
+<<NULL;
+
+-- 76. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p.secret;
+<<NULL;
+
+-- 77. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbr02_p.top;
+<<NULL;
+
+-- 78. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr02_p2;
+<<NULL;
+
+-- 79. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbr02_p;
+
+-- 80. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr02_t;
+
+-- 81. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr02_s;
+
+-- 82. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbr02_a;
+
+-- 83. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 84. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 85. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 86. 结束清理：删除本用例对象
+DROP DATABASE lbr02_db;
+<<NULL;
+
+-- 87. 结束清理：删除本用例对象
+DROP USER lbr02_u;
+<<NULL;
+
+-- 88. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p FROM USER root;
+<<NULL;
+
+-- 89. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbr02_p2 FROM USER root;
+<<NULL;
+
+-- 90. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p.top;
+<<NULL;
+
+-- 91. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p.secret;
+<<NULL;
+
+-- 92. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p.internal;
+<<NULL;
+
+-- 93. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p.public;
+<<NULL;
+
+-- 94. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p.wide;
+<<NULL;
+
+-- 95. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbr02_p2.other;
+<<NULL;
+
+-- 96. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr02_p;
+<<NULL;
+
+-- 97. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbr02_p2;
+<<NULL;
+
+-- 98. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr02_a;
+<<NULL;
+
+-- 99. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr02_s;
+<<NULL;
+
+-- 100. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbr02_t;
+<<NULL;

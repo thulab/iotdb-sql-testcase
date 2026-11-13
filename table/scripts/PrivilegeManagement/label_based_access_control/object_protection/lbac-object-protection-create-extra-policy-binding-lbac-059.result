@@ -1,0 +1,266 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lblbac059_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lblbac059_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lblbac059_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac059_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac059_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lblbac059_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac059_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac059_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lblbac059_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac059_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac059_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lblbac059_p COMPONENTS lblbac059_a,lblbac059_s,lblbac059_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbac059_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:CREATE SECURITY LABEL lblbac059_p.top COMPONENT lblbac059_a 'TOP', COMPONENT lblbac059_s 'RD', COMPONENT lblbac059_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]96:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac059_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]99:CREATE SECURITY LABEL lblbac059_p.secret COMPONENT lblbac059_a 'SECRET', COMPONENT lblbac059_s 'RD', COMPONENT lblbac059_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]102:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac059_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]105:CREATE SECURITY LABEL lblbac059_p.internal COMPONENT lblbac059_a 'INTERNAL', COMPONENT lblbac059_s 'RD', COMPONENT lblbac059_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]108:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac059_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]111:CREATE SECURITY LABEL lblbac059_p.public COMPONENT lblbac059_a 'PUBLIC', COMPONENT lblbac059_s 'RD', COMPONENT lblbac059_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]114:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac059_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]117:CREATE SECURITY LABEL lblbac059_p.wide COMPONENT lblbac059_a 'SECRET', COMPONENT lblbac059_s 'RD','QA', COMPONENT lblbac059_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]120:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac059_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac059_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]123:GRANT EXEMPTION ON RULE ALL FOR lblbac059_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]126:CREATE USER lblbac059_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]129:GRANT SELECT ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT INSERT ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT DELETE ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT ALTER ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT CREATE ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT DROP ON DATABASE lblbac059_db TO USER lblbac059_u
+STRICT{
+PASS
+}
+
+-- [1]147:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lblbac059_p
+STRICT{
+PASS
+}
+
+-- [1]150:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.138
+
+-- [1]153:GRANT SECURITY LABEL lblbac059_p.secret TO USER lblbac059_u FOR ALL ACCESS
+STRICT{
+PASS
+}
+
+-- [1]156:CREATE TABLE extra(v INT32 FIELD) SECURITY POLICY lblbac059_p
+STRICT{
+PASS
+}
+
+-- [1]159:USE lblbac059_db
+STRICT{
+PASS
+}
+
+-- [1]162:SELECT table_name,security_policy FROM information_schema.tables WHERE database='lblbac059_db' ORDER BY table_name
+STRICT{
+table_name(STRING)      |security_policy(STRING)      |
+-----------------------------------------------------
+extra                   |lblbac059_p                  |
+-----------------------------------------------------
+metrics                 |lblbac059_p                  |
+总数目：2
+}
+Elapsed Time: 0.0.3
+
+-- [1]165:SELECT table_name,column_name,security_label FROM information_schema.columns WHERE database='lblbac059_db' ORDER BY table_name,column_name
+STRICT{
+table_name(STRING)      |column_name(STRING)      |security_label(STRING)      |
+-----------------------------------------------------------------------------
+extra                   |time                     |null                        |
+-----------------------------------------------------------------------------
+extra                   |v                        |null                        |
+-----------------------------------------------------------------------------
+metrics                 |device                   |null                        |
+-----------------------------------------------------------------------------
+metrics                 |high                     |secret                      |
+-----------------------------------------------------------------------------
+metrics                 |low                      |internal                    |
+-----------------------------------------------------------------------------
+metrics                 |owner                    |null                        |
+-----------------------------------------------------------------------------
+metrics                 |plain                    |null                        |
+-----------------------------------------------------------------------------
+metrics                 |time                     |null                        |
+总数目：8
+}
+Elapsed Time: 0.0.2
+
+-- [1]180:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]219:DROP SECURITY LABEL COMPONENT lblbac059_t
+STRICT{
+PASS
+}
+
+-- [1]222:DROP SECURITY LABEL COMPONENT lblbac059_s
+STRICT{
+PASS
+}
+
+-- [1]225:DROP SECURITY LABEL COMPONENT lblbac059_a
+STRICT{
+PASS
+}
+
+-- [1]231:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

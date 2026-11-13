@@ -1,0 +1,186 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]59:CREATE DATABASE lbp10_db
+STRICT{
+PASS
+}
+
+-- [1]62:USE lbp10_db
+STRICT{
+PASS
+}
+
+-- [1]65:CREATE SECURITY LABEL COMPONENT lbp10_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]68:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp10_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp10_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]71:CREATE SECURITY LABEL COMPONENT lbp10_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]74:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp10_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp10_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]77:CREATE SECURITY LABEL COMPONENT lbp10_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]80:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbp10_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbp10_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]83:CREATE SECURITY POLICY lbp10_p COMPONENTS lbp10_a,lbp10_s,lbp10_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]86:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp10_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]89:CREATE SECURITY LABEL lbp10_p.top COMPONENT lbp10_a 'TOP', COMPONENT lbp10_s 'RD', COMPONENT lbp10_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]92:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp10_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]95:CREATE SECURITY LABEL lbp10_p.secret COMPONENT lbp10_a 'SECRET', COMPONENT lbp10_s 'RD', COMPONENT lbp10_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]98:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp10_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]101:CREATE SECURITY LABEL lbp10_p.internal COMPONENT lbp10_a 'INTERNAL', COMPONENT lbp10_s 'RD', COMPONENT lbp10_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]104:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp10_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]107:CREATE SECURITY LABEL lbp10_p.public COMPONENT lbp10_a 'PUBLIC', COMPONENT lbp10_s 'RD', COMPONENT lbp10_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]110:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp10_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]113:CREATE SECURITY LABEL lbp10_p.wide COMPONENT lbp10_a 'SECRET', COMPONENT lbp10_s 'RD','QA', COMPONENT lbp10_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]116:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbp10_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbp10_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]119:GRANT EXEMPTION ON RULE ALL FOR lbp10_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]122:ALTER SECURITY POLICY lbp10_p USE ROLE AUTHORIZATIONS
+STRICT{
+0
+}
+Elapsed Time: 0.0.11
+
+-- [1]125:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(role_authorizations)='USED' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbp10_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]136:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]171:DROP SECURITY LABEL COMPONENT lbp10_t
+STRICT{
+PASS
+}
+
+-- [1]174:DROP SECURITY LABEL COMPONENT lbp10_s
+STRICT{
+PASS
+}
+
+-- [1]177:DROP SECURITY LABEL COMPONENT lbp10_a
+STRICT{
+PASS
+}
+
+-- [1]183:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

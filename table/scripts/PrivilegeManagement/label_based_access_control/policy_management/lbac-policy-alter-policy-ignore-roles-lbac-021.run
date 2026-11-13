@@ -1,0 +1,233 @@
+-- 忽略角色授权
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lblbac021_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lblbac021_p FROM USER root;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lblbac021_p.top;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lblbac021_p.secret;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lblbac021_p.internal;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lblbac021_p.public;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lblbac021_p.wide;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lblbac021_p;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lblbac021_a;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lblbac021_s;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lblbac021_t;
+<<NULL;
+
+-- 15. 创建本用例隔离的测试数据库
+CREATE DATABASE lblbac021_db;
+
+-- 16. 切换当前数据库或元数据查询范围
+USE lblbac021_db;
+
+-- 17. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lblbac021_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 18. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac021_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac021_a';
+
+-- 19. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lblbac021_s SET ('RD','QA','OPS');
+
+-- 20. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac021_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac021_s';
+
+-- 21. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lblbac021_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 22. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac021_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac021_t';
+
+-- 23. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lblbac021_p COMPONENTS lblbac021_a,lblbac021_s,lblbac021_t WITH LBACRULES;
+
+-- 24. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbac021_p';
+
+-- 25. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lblbac021_p.top COMPONENT lblbac021_a 'TOP', COMPONENT lblbac021_s 'RD', COMPONENT lblbac021_t 'A1';
+
+-- 26. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac021_p' AND label_name='top';
+
+-- 27. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lblbac021_p.secret COMPONENT lblbac021_a 'SECRET', COMPONENT lblbac021_s 'RD', COMPONENT lblbac021_t 'A1';
+
+-- 28. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac021_p' AND label_name='secret';
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lblbac021_p.internal COMPONENT lblbac021_a 'INTERNAL', COMPONENT lblbac021_s 'RD', COMPONENT lblbac021_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac021_p' AND label_name='internal';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lblbac021_p.public COMPONENT lblbac021_a 'PUBLIC', COMPONENT lblbac021_s 'RD', COMPONENT lblbac021_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac021_p' AND label_name='public';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lblbac021_p.wide COMPONENT lblbac021_a 'SECRET', COMPONENT lblbac021_s 'RD','QA', COMPONENT lblbac021_t 'ROOT';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac021_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac021_p' AND label_name='wide';
+
+-- 35. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lblbac021_p TO USER root;
+
+-- 36. 修改 LBAC 安全策略并验证策略行为
+ALTER SECURITY POLICY lblbac021_p USE ROLE AUTHORIZATIONS;
+
+-- 37. 修改 LBAC 安全策略并验证策略行为
+ALTER SECURITY POLICY lblbac021_p IGNORE ROLE AUTHORIZATIONS;
+
+-- 38. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(role_authorizations)='IGNORED' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbac021_p';
+
+-- 39. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lblbac021_db;
+<<NULL;
+
+-- 40. 清理本用例创建的数据表
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 41. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 42. 删除本用例隔离的测试数据库
+DROP DATABASE lblbac021_db;
+<<NULL;
+
+-- 43. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lblbac021_p FROM USER root;
+<<NULL;
+
+-- 44. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lblbac021_p.wide;
+<<NULL;
+
+-- 45. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lblbac021_p.public;
+<<NULL;
+
+-- 46. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lblbac021_p.internal;
+<<NULL;
+
+-- 47. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lblbac021_p.secret;
+<<NULL;
+
+-- 48. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lblbac021_p.top;
+<<NULL;
+
+-- 49. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lblbac021_p;
+<<NULL;
+
+-- 50. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lblbac021_t;
+
+-- 51. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lblbac021_s;
+
+-- 52. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lblbac021_a;
+
+-- 53. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 54. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 55. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 56. 结束清理：删除本用例对象
+DROP DATABASE lblbac021_db;
+<<NULL;
+
+-- 57. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lblbac021_p FROM USER root;
+<<NULL;
+
+-- 58. 结束清理：删除本用例对象
+DROP SECURITY LABEL lblbac021_p.top;
+<<NULL;
+
+-- 59. 结束清理：删除本用例对象
+DROP SECURITY LABEL lblbac021_p.secret;
+<<NULL;
+
+-- 60. 结束清理：删除本用例对象
+DROP SECURITY LABEL lblbac021_p.internal;
+<<NULL;
+
+-- 61. 结束清理：删除本用例对象
+DROP SECURITY LABEL lblbac021_p.public;
+<<NULL;
+
+-- 62. 结束清理：删除本用例对象
+DROP SECURITY LABEL lblbac021_p.wide;
+<<NULL;
+
+-- 63. 结束清理：删除本用例对象
+DROP SECURITY POLICY lblbac021_p;
+<<NULL;
+
+-- 64. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lblbac021_a;
+<<NULL;
+
+-- 65. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lblbac021_s;
+<<NULL;
+
+-- 66. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lblbac021_t;
+<<NULL;

@@ -1,0 +1,491 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbmeta001_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbmeta001_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbmeta001_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta001_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta001_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.11
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbmeta001_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta001_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta001_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbmeta001_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbmeta001_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbmeta001_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]87:CREATE SECURITY POLICY lbmeta001_p COMPONENTS lbmeta001_a,lbmeta001_s,lbmeta001_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbmeta001_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:GRANT EXEMPTION ON RULE ALL FOR lbmeta001_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]96:CREATE SECURITY LABEL lbmeta001_p.top COMPONENT lbmeta001_a 'TOP', COMPONENT lbmeta001_s 'RD', COMPONENT lbmeta001_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]99:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]102:CREATE SECURITY LABEL lbmeta001_p.secret COMPONENT lbmeta001_a 'SECRET', COMPONENT lbmeta001_s 'RD', COMPONENT lbmeta001_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]105:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]108:CREATE SECURITY LABEL lbmeta001_p.internal COMPONENT lbmeta001_a 'INTERNAL', COMPONENT lbmeta001_s 'RD', COMPONENT lbmeta001_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]111:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]114:CREATE SECURITY LABEL lbmeta001_p.public COMPONENT lbmeta001_a 'PUBLIC', COMPONENT lbmeta001_s 'RD', COMPONENT lbmeta001_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]117:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]120:CREATE SECURITY LABEL lbmeta001_p.wide COMPONENT lbmeta001_a 'SECRET', COMPONENT lbmeta001_s 'RD','QA', COMPONENT lbmeta001_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]123:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbmeta001_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]126:GRANT EXEMPTION ON RULE ALL FOR lbmeta001_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]129:CREATE USER lbmeta001_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT SELECT ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT INSERT ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT DELETE ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT ALTER ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT CREATE ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]147:GRANT DROP ON DATABASE lbmeta001_db TO USER lbmeta001_u
+STRICT{
+PASS
+}
+
+-- [1]150:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbmeta001_p
+STRICT{
+PASS
+}
+
+-- [1]153:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.172
+
+-- [1]156:DESCRIBE information_schema.security_policies
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+policy_name           |STRING              |TAG                 |
+--------------------------------------------------------------
+component_count       |INT32               |ATTRIBUTE           |
+--------------------------------------------------------------
+rule_set              |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+role_authorizations   |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+created_time          |TIMESTAMP           |ATTRIBUTE           |
+--------------------------------------------------------------
+remarks               |STRING              |ATTRIBUTE           |
+总数目：6
+}
+Elapsed Time: 0.0.0
+
+-- [1]159:SELECT policy_name, component_count, rule_set, role_authorizations, remarks FROM information_schema.security_policies WHERE policy_name='lbmeta001_p'
+STRICT{
+policy_name(STRING)      |component_count(INT32)      |rule_set(STRING)      |role_authorizations(STRING)      |remarks(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------
+lbmeta001_p              |3                           |LBACRULES             |IGNORED                          |null                 |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]162:DESCRIBE information_schema.security_label_components
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+component_name        |STRING              |TAG                 |
+--------------------------------------------------------------
+component_type        |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+element_count         |INT32               |ATTRIBUTE           |
+--------------------------------------------------------------
+created_time          |TIMESTAMP           |ATTRIBUTE           |
+--------------------------------------------------------------
+remarks               |STRING              |ATTRIBUTE           |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]165:SELECT component_name, component_type, element_count, remarks FROM information_schema.security_label_components WHERE component_name IN ('lbmeta001_a','lbmeta001_s','lbmeta001_t') ORDER BY component_name
+STRICT{
+component_name(STRING)      |component_type(STRING)      |element_count(INT32)      |remarks(STRING)      |
+-------------------------------------------------------------------------------------------------------
+lbmeta001_a                 |ARRAY                       |4                         |null                 |
+-------------------------------------------------------------------------------------------------------
+lbmeta001_s                 |SET                         |3                         |null                 |
+-------------------------------------------------------------------------------------------------------
+lbmeta001_t                 |TREE                        |4                         |null                 |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]168:DESCRIBE information_schema.security_label_component_elements
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+component_name        |STRING              |TAG                 |
+--------------------------------------------------------------
+element_value         |STRING              |TAG                 |
+--------------------------------------------------------------
+ordinal               |INT32               |ATTRIBUTE           |
+--------------------------------------------------------------
+parent_element_value  |STRING              |ATTRIBUTE           |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]171:SELECT component_name, element_value, ordinal, parent_element_value FROM information_schema.security_label_component_elements WHERE component_name IN ('lbmeta001_a','lbmeta001_s','lbmeta001_t') ORDER BY component_name, ordinal
+STRICT{
+component_name(STRING)      |element_value(STRING)      |ordinal(INT32)      |parent_element_value(STRING)      |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_a                 |TOP                        |1                   |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_a                 |SECRET                     |2                   |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_a                 |INTERNAL                   |3                   |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_a                 |PUBLIC                     |4                   |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_s                 |QA                         |null                |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_s                 |RD                         |null                |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_s                 |OPS                        |null                |null                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_t                 |A1                         |null                |A                                 |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_t                 |A                          |null                |ROOT                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_t                 |B                          |null                |ROOT                              |
+-------------------------------------------------------------------------------------------------------------
+lbmeta001_t                 |ROOT                       |null                |null                              |
+总数目：11
+}
+Elapsed Time: 0.0.2
+
+-- [1]174:DESCRIBE information_schema.security_policy_component_rules
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+policy_name           |STRING              |TAG                 |
+--------------------------------------------------------------
+component_name        |STRING              |TAG                 |
+--------------------------------------------------------------
+component_type        |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+ordinal               |INT32               |ATTRIBUTE           |
+--------------------------------------------------------------
+read_rule_name        |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+write_rule_name       |STRING              |ATTRIBUTE           |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]177:SELECT policy_name, component_name, component_type, ordinal, read_rule_name, write_rule_name FROM information_schema.security_policy_component_rules WHERE policy_name='lbmeta001_p' ORDER BY ordinal
+STRICT{
+policy_name(STRING)      |component_name(STRING)      |component_type(STRING)      |ordinal(INT32)      |read_rule_name(STRING)      |write_rule_name(STRING)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+lbmeta001_p              |lbmeta001_a                 |ARRAY                       |1                   |LBACREADARRAY               |LBACWRITEARRAY               |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+lbmeta001_p              |lbmeta001_s                 |SET                         |2                   |LBACREADSET                 |LBACWRITESET                 |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+lbmeta001_p              |lbmeta001_t                 |TREE                        |3                   |LBACREADTREE                |LBACWRITETREE                |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]180:DESCRIBE information_schema.security_labels
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+label_name            |STRING              |TAG                 |
+--------------------------------------------------------------
+policy_name           |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+label_value           |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+created_time          |TIMESTAMP           |ATTRIBUTE           |
+--------------------------------------------------------------
+remarks               |STRING              |ATTRIBUTE           |
+总数目：5
+}
+Elapsed Time: 0.0.0
+
+-- [1]183:SELECT label_name, policy_name, label_value, remarks FROM information_schema.security_labels WHERE policy_name='lbmeta001_p' ORDER BY label_name
+STRICT{
+label_name(STRING)      |policy_name(STRING)      |label_value(STRING)      |remarks(STRING)      |
+-----------------------------------------------------------------------------------------------
+internal                |lbmeta001_p              |INTERNAL:RD:A1           |null                 |
+-----------------------------------------------------------------------------------------------
+public                  |lbmeta001_p              |PUBLIC:RD:A1             |null                 |
+-----------------------------------------------------------------------------------------------
+secret                  |lbmeta001_p              |SECRET:RD:A1             |null                 |
+-----------------------------------------------------------------------------------------------
+top                     |lbmeta001_p              |TOP:RD:A1                |null                 |
+-----------------------------------------------------------------------------------------------
+wide                    |lbmeta001_p              |SECRET:(QA,RD):ROOT      |null                 |
+总数目：5
+}
+Elapsed Time: 0.0.2
+
+-- [1]186:DESCRIBE information_schema.security_label_access
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+grantee               |STRING              |TAG                 |
+--------------------------------------------------------------
+grantee_type          |STRING              |TAG                 |
+--------------------------------------------------------------
+policy_name           |STRING              |TAG                 |
+--------------------------------------------------------------
+grantor               |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+label_name            |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+access_type           |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+grant_time            |TIMESTAMP           |ATTRIBUTE           |
+总数目：7
+}
+Elapsed Time: 0.0.0
+
+-- [1]189:SELECT grantee, grantee_type, policy_name, grantor, label_name, access_type FROM information_schema.security_label_access WHERE policy_name='lbmeta001_p' ORDER BY grantee, access_type
+STRICT{
+grantee(STRING)      |grantee_type(STRING)      |policy_name(STRING)      |grantor(STRING)      |label_name(STRING)      |access_type(STRING)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]192:DESCRIBE information_schema.security_policy_exemptions
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+grantee               |STRING              |TAG                 |
+--------------------------------------------------------------
+grantee_type          |STRING              |TAG                 |
+--------------------------------------------------------------
+policy_name           |STRING              |TAG                 |
+--------------------------------------------------------------
+grantor               |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+rule_name             |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+access_type           |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+ordinal               |INT32               |ATTRIBUTE           |
+--------------------------------------------------------------
+action_allowed        |STRING              |ATTRIBUTE           |
+--------------------------------------------------------------
+grant_time            |TIMESTAMP           |ATTRIBUTE           |
+总数目：9
+}
+Elapsed Time: 0.0.0
+
+-- [1]195:SELECT grantee, grantee_type, policy_name, grantor, rule_name, access_type, ordinal, action_allowed FROM information_schema.security_policy_exemptions WHERE policy_name='lbmeta001_p' ORDER BY rule_name, access_type, ordinal
+STRICT{
+grantee(STRING)      |grantee_type(STRING)      |policy_name(STRING)      |grantor(STRING)      |rule_name(STRING)      |access_type(STRING)      |ordinal(INT32)      |action_allowed(STRING)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACREADARRAY          |READ                     |1                   |                            |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACREADSET            |READ                     |2                   |                            |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACREADTREE           |READ                     |3                   |                            |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACWRITEARRAY         |WRITE                    |1                   |WRITE_UP                    |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACWRITEARRAY         |WRITE                    |1                   |WRITE_DOWN                  |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACWRITESET           |WRITE                    |2                   |                            |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root                 |USER                      |lbmeta001_p              |root                 |LBACWRITETREE          |WRITE                    |3                   |                            |
+总数目：7
+}
+Elapsed Time: 0.0.2
+
+-- [1]198:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbmeta001_db' AND table_name='metrics' AND column_name='high' AND security_label='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]201:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbmeta001_db' AND table_name='metrics' AND column_name='plain' AND security_label IS NULL
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]204:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.tables WHERE database='lbmeta001_db' AND table_name='metrics' AND security_policy='lbmeta001_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]219:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]258:DROP SECURITY LABEL COMPONENT lbmeta001_t
+STRICT{
+PASS
+}
+
+-- [1]261:DROP SECURITY LABEL COMPONENT lbmeta001_s
+STRICT{
+PASS
+}
+
+-- [1]264:DROP SECURITY LABEL COMPONENT lbmeta001_a
+STRICT{
+PASS
+}
+
+-- [1]270:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

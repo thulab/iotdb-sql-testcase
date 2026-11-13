@@ -1,0 +1,289 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]71:CREATE DATABASE lblbac087_db
+STRICT{
+PASS
+}
+
+-- [1]74:USE lblbac087_db
+STRICT{
+PASS
+}
+
+-- [1]77:CREATE SECURITY LABEL COMPONENT lblbac087_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]80:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac087_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac087_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]83:CREATE SECURITY LABEL COMPONENT lblbac087_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]86:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac087_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac087_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]89:CREATE SECURITY LABEL COMPONENT lblbac087_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]92:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lblbac087_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lblbac087_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]95:CREATE SECURITY POLICY lblbac087_p COMPONENTS lblbac087_a,lblbac087_s,lblbac087_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]98:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lblbac087_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]101:CREATE SECURITY LABEL lblbac087_p.top COMPONENT lblbac087_a 'TOP', COMPONENT lblbac087_s 'RD', COMPONENT lblbac087_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]104:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]107:CREATE SECURITY LABEL lblbac087_p.secret COMPONENT lblbac087_a 'SECRET', COMPONENT lblbac087_s 'RD', COMPONENT lblbac087_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]110:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]113:CREATE SECURITY LABEL lblbac087_p.internal COMPONENT lblbac087_a 'INTERNAL', COMPONENT lblbac087_s 'RD', COMPONENT lblbac087_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]116:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]119:CREATE SECURITY LABEL lblbac087_p.public COMPONENT lblbac087_a 'PUBLIC', COMPONENT lblbac087_s 'RD', COMPONENT lblbac087_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]122:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]125:CREATE SECURITY LABEL lblbac087_p.wide COMPONENT lblbac087_a 'SECRET', COMPONENT lblbac087_s 'RD','QA', COMPONENT lblbac087_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]128:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]131:GRANT EXEMPTION ON RULE ALL FOR lblbac087_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]134:CREATE USER lblbac087_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]137:GRANT SELECT ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]140:GRANT INSERT ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]143:GRANT DELETE ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]146:GRANT ALTER ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]149:GRANT CREATE ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]152:GRANT DROP ON DATABASE lblbac087_db TO USER lblbac087_u
+STRICT{
+PASS
+}
+
+-- [1]155:CREATE SECURITY LABEL lblbac087_p.subject COMPONENT lblbac087_t 'B'
+STRICT{
+PASS
+}
+
+-- [1]158:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='subject' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='subject'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]161:CREATE SECURITY LABEL lblbac087_p.object COMPONENT lblbac087_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]164:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lblbac087_p' AND MIN(label_name)='object' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lblbac087_p' AND label_name='object'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]167:CREATE TABLE metrics(device STRING TAG,v INT32 FIELD SECURED WITH object) SECURITY POLICY lblbac087_p
+STRICT{
+PASS
+}
+
+-- [1]170:INSERT INTO metrics(time,device,v) VALUES(1,'d1',20)
+STRICT{
+0
+}
+Elapsed Time: 0.0.167
+
+-- [1]173:GRANT SECURITY LABEL lblbac087_p.subject TO USER lblbac087_u FOR READ ACCESS
+STRICT{
+PASS
+}
+
+-- [1]179:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]182:USE lblbac087_db
+STRICT{
+PASS
+}
+
+-- [1]185:SELECT v FROM metrics
+STRICT{
+SQLSTATE : 2400: LBAC check failed for user 'lblbac087_u' READ to label 'object' (value: [A1]) under policy 'lblbac087_p': user's merged grant [B] does not dominate required [A1]
+}
+
+-- [1]189:USE lblbac087_db
+STRICT{
+PASS
+}
+
+-- [1]192:SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]202:USE lblbac087_db
+STRICT{
+PASS
+}
+
+-- [1]207:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]250:DROP SECURITY POLICY lblbac087_p
+STRICT{
+PASS
+}
+
+-- [1]253:DROP SECURITY LABEL COMPONENT lblbac087_t
+STRICT{
+PASS
+}
+
+-- [1]256:DROP SECURITY LABEL COMPONENT lblbac087_s
+STRICT{
+PASS
+}
+
+-- [1]259:DROP SECURITY LABEL COMPONENT lblbac087_a
+STRICT{
+PASS
+}
+
+-- [1]265:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}

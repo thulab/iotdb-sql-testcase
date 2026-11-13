@@ -1,0 +1,431 @@
+-- 更换 Label 缺少旧 READ 或 WRITE
+
+-- 1. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 2. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 3. 前置清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 4. 前置清理：删除本用例遗留对象
+DROP DATABASE lbdataprot016_db;
+<<NULL;
+
+-- 5. 前置清理：删除本用例遗留对象
+DROP USER lbdataprot016_u;
+<<NULL;
+
+-- 6. 前置清理：删除本用例遗留对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot016_p FROM USER root;
+<<NULL;
+
+-- 7. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.top;
+<<NULL;
+
+-- 8. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.secret;
+<<NULL;
+
+-- 9. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.internal;
+<<NULL;
+
+-- 10. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.public;
+<<NULL;
+
+-- 11. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.wide;
+<<NULL;
+
+-- 12. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.old;
+<<NULL;
+
+-- 13. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL lbdataprot016_p.new;
+<<NULL;
+
+-- 14. 前置清理：删除本用例遗留对象
+DROP SECURITY POLICY lbdataprot016_p;
+<<NULL;
+
+-- 15. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_a;
+<<NULL;
+
+-- 16. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_s;
+<<NULL;
+
+-- 17. 前置清理：删除本用例遗留对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_t;
+<<NULL;
+
+-- 18. 操作步骤: 固定 ALTER 和新 Label WRITE，分别仅有旧 READ、仅有旧 WRITE、两者均无时，从同一快照尝试换标。；预期结果: 三次均拒绝；旧映射、数据和索引不变，不得短暂解绑或产生新旧双映射。；创建本用例隔离的测试数据库
+CREATE DATABASE lbdataprot016_db;
+
+-- 19. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 20. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot016_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC');
+
+-- 21. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot016_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot016_a';
+
+-- 22. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot016_s SET ('RD','QA','OPS');
+
+-- 23. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot016_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot016_s';
+
+-- 24. 创建安全标签组件并验证组件定义
+CREATE SECURITY LABEL COMPONENT lbdataprot016_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT');
+
+-- 25. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbdataprot016_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbdataprot016_t';
+
+-- 26. 创建 LBAC 安全策略并验证规则配置
+CREATE SECURITY POLICY lbdataprot016_p COMPONENTS lbdataprot016_a,lbdataprot016_s,lbdataprot016_t WITH LBACRULES;
+
+-- 27. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbdataprot016_p';
+
+-- 28. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataprot016_p TO USER root;
+
+-- 29. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.top COMPONENT lbdataprot016_a 'TOP', COMPONENT lbdataprot016_s 'RD', COMPONENT lbdataprot016_t 'A1';
+
+-- 30. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='top';
+
+-- 31. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.secret COMPONENT lbdataprot016_a 'SECRET', COMPONENT lbdataprot016_s 'RD', COMPONENT lbdataprot016_t 'A1';
+
+-- 32. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='secret';
+
+-- 33. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.internal COMPONENT lbdataprot016_a 'INTERNAL', COMPONENT lbdataprot016_s 'RD', COMPONENT lbdataprot016_t 'A1';
+
+-- 34. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='internal';
+
+-- 35. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.public COMPONENT lbdataprot016_a 'PUBLIC', COMPONENT lbdataprot016_s 'RD', COMPONENT lbdataprot016_t 'A1';
+
+-- 36. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='public';
+
+-- 37. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.wide COMPONENT lbdataprot016_a 'SECRET', COMPONENT lbdataprot016_s 'RD','QA', COMPONENT lbdataprot016_t 'ROOT';
+
+-- 38. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='wide';
+
+-- 39. 授予或撤销 LBAC 规则豁免并验证豁免行为
+GRANT EXEMPTION ON RULE ALL FOR lbdataprot016_p TO USER root;
+
+-- 40. 创建用例使用的普通用户
+CREATE USER lbdataprot016_u 'LbacTest_2026!';
+
+-- 41. 授予测试用户执行目标操作所需的数据库权限
+GRANT SELECT ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 42. 授予测试用户执行目标操作所需的数据库权限
+GRANT INSERT ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 43. 授予测试用户执行目标操作所需的数据库权限
+GRANT DELETE ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 44. 授予测试用户执行目标操作所需的数据库权限
+GRANT ALTER ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 45. 授予测试用户执行目标操作所需的数据库权限
+GRANT CREATE ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 46. 授予测试用户执行目标操作所需的数据库权限
+GRANT DROP ON DATABASE lbdataprot016_db TO USER lbdataprot016_u;
+
+-- 47. 创建用于验证 LBAC 保护的数据表
+CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbdataprot016_p;
+
+-- 48. 写入测试数据并验证 LBAC 写入控制
+INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30);
+
+-- 49. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.old COMPONENT lbdataprot016_a 'SECRET', COMPONENT lbdataprot016_s 'RD';
+
+-- 50. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='old' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='old';
+
+-- 51. 创建安全标签并验证标签值和组件映射
+CREATE SECURITY LABEL lbdataprot016_p.new COMPONENT lbdataprot016_a 'SECRET', COMPONENT lbdataprot016_s 'QA';
+
+-- 52. [创建结果断言]：查询元数据并验证对象创建成功
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbdataprot016_p' AND MIN(label_name)='new' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbdataprot016_p' AND label_name='new';
+
+-- 53. 修改数据表的 LBAC 保护配置
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH old;
+
+-- 54. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.new TO USER lbdataprot016_u FOR WRITE ACCESS;
+
+-- 55. 授予或撤销安全标签访问权限并验证授权行为
+REVOKE SECURITY LABEL lbdataprot016_p.new FROM USER lbdataprot016_u;
+
+-- 56. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.new TO USER lbdataprot016_u FOR WRITE ACCESS;
+
+-- 57. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.old TO USER lbdataprot016_u FOR READ ACCESS;
+
+-- 58. 使用当前测试账号建立数据库连接
+connect lbdataprot016_u/LbacTest_2026!;
+
+-- 59. 切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 60. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 61. 修改数据表的 LBAC 保护配置；本语句预期失败，需核对 SQLSTATE 及错误原因
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH new;
+<<SQLSTATE;
+
+-- 62. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 63. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbdataprot016_db' AND table_name='metrics' AND column_name='high' AND security_label='old';
+
+-- 64. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+REVOKE SECURITY LABEL lbdataprot016_p.old FROM USER lbdataprot016_u;
+
+-- 65. 授予或撤销安全标签访问权限并验证授权行为
+REVOKE SECURITY LABEL lbdataprot016_p.new FROM USER lbdataprot016_u;
+
+-- 66. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.new TO USER lbdataprot016_u FOR WRITE ACCESS;
+
+-- 67. 授予或撤销安全标签访问权限并验证授权行为
+REVOKE SECURITY LABEL lbdataprot016_p.new FROM USER lbdataprot016_u;
+
+-- 68. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.old TO USER lbdataprot016_u FOR WRITE ACCESS;
+-- 切回测试账号继续用例
+connect lbdataprot016_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+
+-- 69. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 70. 修改数据表的 LBAC 保护配置；本语句预期失败，需核对 SQLSTATE 及错误原因
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH new;
+<<SQLSTATE;
+
+-- 71. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 72. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbdataprot016_db' AND table_name='metrics' AND column_name='high' AND security_label='old';
+
+-- 73. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+REVOKE SECURITY LABEL lbdataprot016_p.old FROM USER lbdataprot016_u;
+
+-- 74. 授予或撤销安全标签访问权限并验证授权行为
+GRANT SECURITY LABEL lbdataprot016_p.new TO USER lbdataprot016_u FOR WRITE ACCESS;
+-- 切回测试账号继续用例
+connect lbdataprot016_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+
+-- 75. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 76. 修改数据表的 LBAC 保护配置；本语句预期失败，需核对 SQLSTATE 及错误原因
+ALTER TABLE metrics ALTER COLUMN high SECURED WITH new;
+<<SQLSTATE;
+
+-- 77. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 78. 断言应返回整数1，否则 CAST 失败；查询 LBAC 元数据并核对断言条件
+SELECT CAST(CASE WHEN COUNT(*)=1 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.columns WHERE database='lbdataprot016_db' AND table_name='metrics' AND column_name='high' AND security_label='old';
+
+-- 79. 授予或撤销安全标签访问权限并验证授权行为
+-- 切回管理员账号执行权限管理
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+REVOKE SECURITY LABEL lbdataprot016_p.new FROM USER lbdataprot016_u;
+-- 切回测试账号继续用例
+connect lbdataprot016_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+
+-- 80. 切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+
+-- 切回管理员账号执行数据完整性断言
+connect root/TimechoDB@2021;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+-- 81. 断言应返回整数1，否则 CAST 失败；执行断言查询，条件不满足时使断言失败
+SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(plain)=10 AND MIN(low)=20 AND MIN(high)=30 THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM metrics;
+-- 切回测试账号继续用例
+connect lbdataprot016_u/LbacTest_2026!;
+SET SQL_DIALECT=TABLE;
+USE lbdataprot016_db;
+
+-- 82. 清理本条额外视图及表；失败路径同样执行；切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+<<NULL;
+
+-- 83. 清理本条命名空间；无通配删除；初始化未被忽略。；切换当前数据库或元数据查询范围
+USE lbdataprot016_db;
+<<NULL;
+
+-- 84. 使用当前测试账号建立数据库连接
+connect root/TimechoDB@2021;
+
+-- 85. 清理本用例创建的数据表
+USE lbdataprot016_db;
+DROP TABLE IF EXISTS metrics;
+<<NULL;
+
+-- 86. 切换当前数据库或元数据查询范围
+USE information_schema;
+
+-- 87. 删除本用例隔离的测试数据库
+DROP DATABASE lbdataprot016_db;
+<<NULL;
+
+-- 88. 删除用例创建的普通用户
+DROP USER lbdataprot016_u;
+<<NULL;
+
+-- 89. 授予或撤销 LBAC 规则豁免并验证豁免行为
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot016_p FROM USER root;
+<<NULL;
+
+-- 90. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.new;
+<<NULL;
+
+-- 91. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.old;
+<<NULL;
+
+-- 92. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.wide;
+<<NULL;
+
+-- 93. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.public;
+<<NULL;
+
+-- 94. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.internal;
+<<NULL;
+
+-- 95. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.secret;
+<<NULL;
+
+-- 96. 删除安全标签并验证依赖约束
+DROP SECURITY LABEL lbdataprot016_p.top;
+<<NULL;
+
+-- 97. 删除 LBAC 安全策略并验证依赖约束
+DROP SECURITY POLICY lbdataprot016_p;
+
+-- 98. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot016_t;
+
+-- 99. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot016_s;
+
+-- 100. 删除安全标签组件并验证引用约束
+DROP SECURITY LABEL COMPONENT lbdataprot016_a;
+
+-- 101. 结束清理：重新连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 102. 结束清理：切换到表模型 SQL 方言
+SET SQL_DIALECT=TABLE;
+
+-- 103. 结束清理：切换到元数据空间
+USE information_schema;
+<<NULL;
+
+-- 104. 结束清理：删除本用例对象
+DROP DATABASE lbdataprot016_db;
+<<NULL;
+
+-- 105. 结束清理：删除本用例对象
+DROP USER lbdataprot016_u;
+<<NULL;
+
+-- 106. 结束清理：删除本用例对象
+REVOKE EXEMPTION ON RULE ALL FOR lbdataprot016_p FROM USER root;
+<<NULL;
+
+-- 107. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.top;
+<<NULL;
+
+-- 108. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.secret;
+<<NULL;
+
+-- 109. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.internal;
+<<NULL;
+
+-- 110. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.public;
+<<NULL;
+
+-- 111. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.wide;
+<<NULL;
+
+-- 112. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.old;
+<<NULL;
+
+-- 113. 结束清理：删除本用例对象
+DROP SECURITY LABEL lbdataprot016_p.new;
+<<NULL;
+
+-- 114. 结束清理：删除本用例对象
+DROP SECURITY POLICY lbdataprot016_p;
+<<NULL;
+
+-- 115. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_a;
+<<NULL;
+
+-- 116. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_s;
+<<NULL;
+
+-- 117. 结束清理：删除本用例对象
+DROP SECURITY LABEL COMPONENT lbdataprot016_t;
+<<NULL;

@@ -1,0 +1,261 @@
+
+-- [1]8:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]63:CREATE DATABASE lbe08_db
+STRICT{
+PASS
+}
+
+-- [1]66:USE lbe08_db
+STRICT{
+PASS
+}
+
+-- [1]69:CREATE SECURITY LABEL COMPONENT lbe08_a ARRAY ('TOP','SECRET','INTERNAL','PUBLIC')
+STRICT{
+PASS
+}
+
+-- [1]72:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbe08_a' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbe08_a'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]75:CREATE SECURITY LABEL COMPONENT lbe08_s SET ('RD','QA','OPS')
+STRICT{
+PASS
+}
+
+-- [1]78:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbe08_s' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbe08_s'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]81:CREATE SECURITY LABEL COMPONENT lbe08_t TREE ('ROOT' ROOT,'A' UNDER 'ROOT','A1' UNDER 'A','B' UNDER 'ROOT')
+STRICT{
+PASS
+}
+
+-- [1]84:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(component_name)='lbe08_t' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_label_components WHERE component_name='lbe08_t'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]87:CREATE SECURITY POLICY lbe08_p COMPONENTS lbe08_a,lbe08_s,lbe08_t WITH LBACRULES
+STRICT{
+PASS
+}
+
+-- [1]90:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_policies WHERE policy_name='lbe08_p'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]93:CREATE SECURITY LABEL lbe08_p.top COMPONENT lbe08_a 'TOP', COMPONENT lbe08_s 'RD', COMPONENT lbe08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]96:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' AND MIN(label_name)='top' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbe08_p' AND label_name='top'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]99:CREATE SECURITY LABEL lbe08_p.secret COMPONENT lbe08_a 'SECRET', COMPONENT lbe08_s 'RD', COMPONENT lbe08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]102:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' AND MIN(label_name)='secret' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbe08_p' AND label_name='secret'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]105:CREATE SECURITY LABEL lbe08_p.internal COMPONENT lbe08_a 'INTERNAL', COMPONENT lbe08_s 'RD', COMPONENT lbe08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]108:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' AND MIN(label_name)='internal' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbe08_p' AND label_name='internal'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]111:CREATE SECURITY LABEL lbe08_p.public COMPONENT lbe08_a 'PUBLIC', COMPONENT lbe08_s 'RD', COMPONENT lbe08_t 'A1'
+STRICT{
+PASS
+}
+
+-- [1]114:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' AND MIN(label_name)='public' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbe08_p' AND label_name='public'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]117:CREATE SECURITY LABEL lbe08_p.wide COMPONENT lbe08_a 'SECRET', COMPONENT lbe08_s 'RD','QA', COMPONENT lbe08_t 'ROOT'
+STRICT{
+PASS
+}
+
+-- [1]120:SELECT CAST(CASE WHEN COUNT(*)=1 AND MIN(policy_name)='lbe08_p' AND MIN(label_name)='wide' THEN '1' ELSE 'LBAC_ASSERT_FAIL' END AS INT32) AS ok FROM information_schema.security_labels WHERE policy_name='lbe08_p' AND label_name='wide'
+STRICT{
+ok(INT32)      |
+---------------
+1              |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]123:GRANT EXEMPTION ON RULE ALL FOR lbe08_p TO USER root
+STRICT{
+PASS
+}
+
+-- [1]126:CREATE USER lbe08_u 'LbacTest_2026!'
+STRICT{
+PASS
+}
+
+-- [1]129:GRANT SELECT ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]132:GRANT INSERT ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]135:GRANT DELETE ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]138:GRANT ALTER ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]141:GRANT CREATE ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]144:GRANT DROP ON DATABASE lbe08_db TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]147:CREATE TABLE metrics(device STRING TAG, owner STRING ATTRIBUTE, plain INT32 FIELD, low INT32 FIELD SECURED WITH internal, high INT32 FIELD SECURED WITH secret) SECURITY POLICY lbe08_p
+STRICT{
+PASS
+}
+
+-- [1]150:INSERT INTO metrics(time,device,owner,plain,low,high) VALUES(1,'d1','alice',10,20,30)
+STRICT{
+0
+}
+Elapsed Time: 0.0.128
+
+-- [1]153:GRANT SECURITY LABEL lbe08_p.secret TO USER lbe08_u FOR ALL ACCESS
+STRICT{
+PASS
+}
+
+-- [1]156:REVOKE SECURITY LABEL lbe08_p.secret FROM USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]159:GRANT SECURITY LABEL lbe08_p.public TO USER lbe08_u FOR ALL ACCESS
+STRICT{
+PASS
+}
+
+-- [1]162:GRANT EXEMPTION ON RULE LBACREADARRAY FOR lbe08_p TO USER lbe08_u
+STRICT{
+PASS
+}
+
+-- [1]168:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
+
+-- [1]171:USE lbe08_db
+STRICT{
+PASS
+}
+
+-- [1]174:SELECT high FROM metrics ORDER BY time
+STRICT{
+high(INT32)      |
+-----------------
+30               |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]184:USE lbe08_db
+STRICT{
+PASS
+}
+
+-- [1]189:USE information_schema
+STRICT{
+PASS
+}
+
+-- [1]228:DROP SECURITY LABEL COMPONENT lbe08_t
+STRICT{
+PASS
+}
+
+-- [1]231:DROP SECURITY LABEL COMPONENT lbe08_s
+STRICT{
+PASS
+}
+
+-- [1]234:DROP SECURITY LABEL COMPONENT lbe08_a
+STRICT{
+PASS
+}
+
+-- [1]240:SET SQL_DIALECT=TABLE
+STRICT{
+PASS
+}
