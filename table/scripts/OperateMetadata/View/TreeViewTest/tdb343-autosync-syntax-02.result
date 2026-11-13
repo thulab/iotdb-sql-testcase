@@ -1,0 +1,130 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]5:create database root.db1
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.db1.dev01.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]7:create timeseries root.db1.dev01.s2 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]8:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]10:create database db1
+STRICT{
+PASS
+}
+
+-- [1]11:use db1
+STRICT{
+PASS
+}
+
+-- [1]18:create view v_false(dev string tag) with(auto_sync_schema = false) as root.db1.**
+STRICT{
+PASS
+}
+
+-- [1]19:desc v_false
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]20:show create view v_false
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v_false         |CREATE VIEW "v_false" (|
+                |"time" TIMESTAMP TIME,|
+                |"dev" STRING TAG,"s1" |
+                |DOUBLE FIELD,"s2" DOUB|
+                |LE FIELD) WITH (ttl='I|
+                |NF', auto_sync_schema=|
+                |false) AS root."db1".*|
+                |*                      |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]21:use db1
+STRICT{
+PASS
+}
+
+-- [1]22:use db1
+STRICT{
+PASS
+}
+
+-- [1]23:desc v_default
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]24:select * from v_default order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.6
+
+-- [1]25:use db1
+STRICT{
+PASS
+}
+
+-- [1]26:desc v_false
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]27:select * from v_false order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.3

@@ -1,0 +1,159 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]5:create database root.dct
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.dct.dev01.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]7:create timeseries root.dct.dev01.s2 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]8:insert into root.dct.dev01(time,s1,s2) values(1,1.0,2.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.60
+
+-- [1]9:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]11:create database dct
+STRICT{
+PASS
+}
+
+-- [1]12:use dct
+STRICT{
+PASS
+}
+
+-- [1]13:create view v1(dev string tag) with(auto_sync_schema = true) as root.dct.**
+STRICT{
+PASS
+}
+
+-- [1]14:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]31:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]32:create timeseries root.dct.dev02.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]33:insert into root.dct.dev02(time,s1) values(3,3.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.54
+
+-- [1]34:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]35:use dct
+STRICT{
+PASS
+}
+
+-- [1]36:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]37:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s2(DOUBLE)      |s1(DOUBLE)      |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |2.0             |1.0             |
+01+08:00             |                 |                |                |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |20.0            |null            |
+02+08:00             |                 |                |                |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |null            |3.0             |
+03+08:00             |                 |                |                |
+总数目：3
+}
+Elapsed Time: 0.0.10
+
+-- [1]38:use dct
+STRICT{
+PASS
+}
+
+-- [1]39:use dct
+STRICT{
+PASS
+}
+
+-- [1]40:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]41:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s2(DOUBLE)      |s1(DOUBLE)      |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |2.0             |1.0             |
+01+08:00             |                 |                |                |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |20.0            |null            |
+02+08:00             |                 |                |                |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |null            |3.0             |
+03+08:00             |                 |                |                |
+总数目：3
+}
+Elapsed Time: 0.0.9

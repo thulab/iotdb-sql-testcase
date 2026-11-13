@@ -1,0 +1,174 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]5:create database root.db7
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.db7.dev01.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]7:insert into root.db7.dev01(time,s1) values(1,1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.73
+
+-- [1]8:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]10:create database db7
+STRICT{
+PASS
+}
+
+-- [1]11:use db7
+STRICT{
+PASS
+}
+
+-- [1]12:create view v1(dev string tag) with(auto_sync_schema = true) as root.db7.**
+STRICT{
+PASS
+}
+
+-- [1]13:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]82:drop view v2
+STRICT{
+PASS
+}
+
+-- [1]83:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]84:create timeseries root.db7.dev01.g datatype=double
+STRICT{
+PASS
+}
+
+-- [1]85:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]86:use db7
+STRICT{
+PASS
+}
+
+-- [1]87:desc v2
+STRICT{
+SQLSTATE : 550: Table 'db7.v2' does not exist.
+}
+
+-- [1]88:desc v3
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+d                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+e                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+f                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+g                     |DOUBLE              |FIELD               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]89:use db7
+STRICT{
+PASS
+}
+
+-- [1]90:use db7
+STRICT{
+PASS
+}
+
+-- [1]91:desc r1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+region                |STRING              |TAG                 |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]92:select * from r1 order by time
+STRICT{
+time(TIMESTAMP)      |region(STRING)      |dev(STRING)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]93:use db7
+STRICT{
+PASS
+}
+
+-- [1]94:desc v3
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+d                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+e                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+f                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+g                     |DOUBLE              |FIELD               |
+总数目：7
+}
+Elapsed Time: 0.0.0
+
+-- [1]95:select * from v3 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |d(DOUBLE)      |e(DOUBLE)      |s1(DOUBLE)      |f(DOUBLE)      |g(DOUBLE)      |
+------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |null           |null           |1.0             |null           |null           |
+01+08:00             |                 |               |               |                |               |               |
+------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |6.0            |null           |null            |null           |null           |
+03+08:00             |                 |               |               |                |               |               |
+总数目：2
+}
+Elapsed Time: 0.0.6

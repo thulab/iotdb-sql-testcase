@@ -1,0 +1,169 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]6:create database root.db6
+STRICT{
+PASS
+}
+
+-- [1]7:create device template t_auto(a float, b double)
+STRICT{
+PASS
+}
+
+-- [1]8:set device template t_auto to root.db6.p1
+STRICT{
+PASS
+}
+
+-- [1]9:create timeseries using device template on root.db6.p1.dev01
+STRICT{
+PASS
+}
+
+-- [1]10:insert into root.db6.p1.dev01(time,a,b) values(1,1.5,2.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.52
+
+-- [1]11:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]13:create database db6
+STRICT{
+PASS
+}
+
+-- [1]14:use db6
+STRICT{
+PASS
+}
+
+-- [1]15:create view v1(dev string tag) with(auto_sync_schema = true) as root.db6.p1.**
+STRICT{
+PASS
+}
+
+-- [1]16:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+a                     |FLOAT               |FIELD               |
+--------------------------------------------------------------
+b                     |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]31:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]32:alter schema template t_auto add (c int64)
+STRICT{
+0
+}
+Elapsed Time: 0.0.30
+
+-- [1]33:insert into root.db6.p1.dev02(time,c) values(3,123)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]34:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]35:use db6
+STRICT{
+PASS
+}
+
+-- [1]36:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+a                     |FLOAT               |FIELD               |
+--------------------------------------------------------------
+b                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+c                     |INT64               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]37:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |a(FLOAT)      |b(DOUBLE)      |c(INT64)      |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.5           |2.5            |null          |
+01+08:00             |                 |              |               |              |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |3.5           |null           |null          |
+02+08:00             |                 |              |               |              |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |null          |null           |123           |
+03+08:00             |                 |              |               |              |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]38:use db6
+STRICT{
+PASS
+}
+
+-- [1]39:use db6
+STRICT{
+PASS
+}
+
+-- [1]40:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+a                     |FLOAT               |FIELD               |
+--------------------------------------------------------------
+b                     |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+c                     |INT64               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.0
+
+-- [1]41:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |a(FLOAT)      |b(DOUBLE)      |c(INT64)      |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.5           |2.5            |null          |
+01+08:00             |                 |              |               |              |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |3.5           |null           |null          |
+02+08:00             |                 |              |               |              |
+---------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |null          |null           |123           |
+03+08:00             |                 |              |               |              |
+总数目：3
+}
+Elapsed Time: 0.0.10

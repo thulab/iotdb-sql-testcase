@@ -1,0 +1,141 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]5:create database root.db4
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.db4.dev01.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]7:insert into root.db4.dev01(time,s1) values(1,1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.93
+
+-- [1]8:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]10:create database db4
+STRICT{
+PASS
+}
+
+-- [1]11:use db4
+STRICT{
+PASS
+}
+
+-- [1]12:create view v1(dev string tag) as root.db4.**
+STRICT{
+PASS
+}
+
+-- [1]13:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("time|
+                |" TIMESTAMP TIME,"dev"|
+                | STRING TAG,"s1" DOUBL|
+                |E FIELD) WITH (ttl='IN|
+                |F') AS root."db4".**   |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]14:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]27:alter view v1 set properties auto_sync_schema=true
+STRICT{
+0
+}
+Elapsed Time: 0.0.42
+
+-- [1]28:show create view v1
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v1              |CREATE VIEW "v1" ("time|
+                |" TIMESTAMP TIME,"dev"|
+                | STRING TAG,"s1" DOUBL|
+                |E FIELD,"s9" DOUBLE FI|
+                |ELD) WITH (ttl='INF', |
+                |auto_sync_schema=true)|
+                | AS root."db4".**      |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]29:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s9                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]30:use db4
+STRICT{
+PASS
+}
+
+-- [1]31:use db4
+STRICT{
+PASS
+}
+
+-- [1]32:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s9                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.1
+
+-- [1]33:select * from v1 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s9(DOUBLE)      |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.0             |null            |
+01+08:00             |                 |                |                |
+----------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |null            |9.0             |
+09+08:00             |                 |                |                |
+总数目：2
+}
+Elapsed Time: 0.0.7

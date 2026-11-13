@@ -1,0 +1,164 @@
+
+-- [1]3:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]5:create database root.db2
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.db2.dev01.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]7:insert into root.db2.dev01(time,s1) values(1,1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.63
+
+-- [1]8:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]10:create database db2
+STRICT{
+PASS
+}
+
+-- [1]11:use db2
+STRICT{
+PASS
+}
+
+-- [1]12:create view v_on(dev string tag) with(auto_sync_schema = true) as root.db2.**
+STRICT{
+PASS
+}
+
+-- [1]13:create view v_off(dev string tag) as root.db2.**
+STRICT{
+PASS
+}
+
+-- [1]14:desc v_on
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]15:desc v_off
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]28:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]29:create timeseries root.db2.dev01.s3 datatype=int32
+STRICT{
+PASS
+}
+
+-- [1]30:insert into root.db2.dev01(time,s3) values(3,3)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]31:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]32:use db2
+STRICT{
+PASS
+}
+
+-- [1]33:use db2
+STRICT{
+PASS
+}
+
+-- [1]34:desc v_on
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s3                    |INT32               |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]35:select * from v_on order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |s3(INT32)      |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.0             |null            |null           |
+01+08:00             |                 |                |                |               |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |null            |2.0             |null           |
+02+08:00             |                 |                |                |               |
+-------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |null            |null            |3              |
+03+08:00             |                 |                |                |               |
+总数目：3
+}
+Elapsed Time: 0.0.13
+
+-- [1]36:use db2
+STRICT{
+PASS
+}
+
+-- [1]37:desc v_off
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]38:select * from v_off order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
+------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.0             |
+01+08:00             |                 |                |
+总数目：1
+}
+Elapsed Time: 0.0.7
