@@ -34,59 +34,158 @@ STRICT{
 PASS
 }
 
--- [1]38:set sql_dialect=tree
+-- [1]12:create view v_default(dev string tag) as root.db1.**
 STRICT{
 PASS
 }
 
--- [1]39:create view lv1(dev string tag) with(auto_sync_schema = true) as select s1 from root.db1.dev01
+-- [1]13:desc v_default
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]14:show create view v_default
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v_default       |CREATE VIEW "v_default"|
+                | ("time" TIMESTAMP TIM|
+                |E,"dev" STRING TAG,"s1|
+                |" DOUBLE FIELD,"s2" DO|
+                |UBLE FIELD) WITH (ttl=|
+                |'INF') AS root."db1".*|
+                |*                      |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]15:create view v_false(dev string tag) with(auto_sync_schema = false) as root.db1.**
+STRICT{
+PASS
+}
+
+-- [1]16:desc v_false
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:show create view v_false
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v_false         |CREATE VIEW "v_false" (|
+                |"time" TIMESTAMP TIME,|
+                |"dev" STRING TAG,"s1" |
+                |DOUBLE FIELD,"s2" DOUB|
+                |LE FIELD) WITH (ttl='I|
+                |NF', auto_sync_schema=|
+                |false) AS root."db1".*|
+                |*                      |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]18:create view v_true(dev string tag) with(auto_sync_schema = true) as root.db1.**
+STRICT{
+PASS
+}
+
+-- [1]19:desc v_true
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]20:show create view v_true
+STRICT{
+View(TEXT)      |Create View(TEXT)      |
+---------------------------------------
+v_true          |CREATE VIEW "v_true" ("|
+                |time" TIMESTAMP TIME,"|
+                |dev" STRING TAG,"s1" D|
+                |OUBLE FIELD,"s2" DOUBL|
+                |E FIELD) WITH (ttl='IN|
+                |F', auto_sync_schema=t|
+                |rue) AS root."db1".**  |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]21:create view v_bad_long(dev string tag) with(auto_sync_schema = 1) as root.db1.**
+STRICT{
+SQLSTATE : 701: auto_sync_schema value must be a BooleanLiteral, but now is LongLiteral, value: 1
+}
+
+-- [1]22:create view v_bad_str(dev string tag) with(auto_sync_schema = 'abc') as root.db1.**
+STRICT{
+SQLSTATE : 701: auto_sync_schema value must be a BooleanLiteral, but now is StringLiteral, value: 'abc'
+}
+
+-- [1]23:create table t_base(id string tag, v double) with(auto_sync_schema = true)
+STRICT{
+SQLSTATE : 701: auto_sync_schema is only supported by tree to table views
+}
+
+-- [1]24:create table t_base2(id string tag, v double)
+STRICT{
+PASS
+}
+
+-- [1]25:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]26:create view lv1(dev string tag) with(auto_sync_schema = true) as select s1 from root.db1.dev01
 STRICT{
 SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:56 mismatched input 'true' expecting {DEFAULT, STRING_LITERAL, INTEGER_LITERAL}
 }
 
--- [1]40:set sql_dialect=table
+-- [1]27:set sql_dialect=table
 STRICT{
 PASS
 }
 
--- [1]41:use db1
+-- [1]28:use db1
 STRICT{
 PASS
 }
 
--- [1]42:use db1
+-- [1]29:use db1
 STRICT{
 PASS
 }
 
--- [1]43:desc v_default
-STRICT{
-ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
---------------------------------------------------------------
-time                  |TIMESTAMP           |TIME                |
---------------------------------------------------------------
-dev                   |STRING              |TAG                 |
---------------------------------------------------------------
-s1                    |DOUBLE              |FIELD               |
---------------------------------------------------------------
-s2                    |DOUBLE              |FIELD               |
-总数目：4
-}
-Elapsed Time: 0.0.1
-
--- [1]44:select * from v_default order by time
-STRICT{
-time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
-总数目：0
-}
-Elapsed Time: 0.0.6
-
--- [1]45:use db1
-STRICT{
-PASS
-}
-
--- [1]46:desc v_false
+-- [1]30:desc v_default
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -101,19 +200,19 @@ s2                    |DOUBLE              |FIELD               |
 }
 Elapsed Time: 0.0.0
 
--- [1]47:select * from v_false order by time
+-- [1]31:select * from v_default order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
 总数目：0
 }
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.5
 
--- [1]48:use db1
+-- [1]32:use db1
 STRICT{
 PASS
 }
 
--- [1]49:desc v_true
+-- [1]33:desc v_false
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -128,9 +227,41 @@ s2                    |DOUBLE              |FIELD               |
 }
 Elapsed Time: 0.0.0
 
--- [1]50:select * from v_true order by time
+-- [1]34:select * from v_false order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
 总数目：0
 }
-Elapsed Time: 0.0.4
+Elapsed Time: 0.0.3
+
+-- [1]35:use db1
+STRICT{
+PASS
+}
+
+-- [1]36:desc v_true
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s2                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]37:select * from v_true order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |s2(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.2
+
+-- [1]44:set sql_dialect=tree
+STRICT{
+PASS
+}

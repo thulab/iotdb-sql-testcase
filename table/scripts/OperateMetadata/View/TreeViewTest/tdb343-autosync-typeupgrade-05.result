@@ -23,13 +23,13 @@ PASS
 STRICT{
 0
 }
-Elapsed Time: 0.0.63
+Elapsed Time: 0.0.64
 
 -- [1]9:insert into root.dbp.dev02(time,s1) values(2,22)
 STRICT{
 0
 }
-Elapsed Time: 0.0.105
+Elapsed Time: 0.0.61
 
 -- [1]10:set sql_dialect=table
 STRICT{
@@ -46,120 +46,17 @@ STRICT{
 PASS
 }
 
--- [1]52:set sql_dialect=tree
+-- [1]14:create view v_infer_i(dev string tag, s1 field) with(auto_sync_schema = true) as root.dbp.**
+STRICT{
+SQLSTATE : 614: Multiple types encountered when auto detecting type of measurement 's1', please check
+}
+
+-- [1]15:create view v_i64(dev string tag, s1 int64 field) with(auto_sync_schema = true) as root.dbp.**
 STRICT{
 PASS
 }
 
--- [1]54:create database root.dbr2
-STRICT{
-PASS
-}
-
--- [1]55:create timeseries root.dbr2.dev01.s1 datatype=int32
-STRICT{
-PASS
-}
-
--- [1]56:insert into root.dbr2.dev01(time,s1) values(1,11)
-STRICT{
-0
-}
-Elapsed Time: 0.0.62
-
--- [1]57:set sql_dialect=table
-STRICT{
-PASS
-}
-
--- [1]59:create database dbr2
-STRICT{
-PASS
-}
-
--- [1]60:use dbr2
-STRICT{
-PASS
-}
-
--- [1]61:create view v_widen(dev string tag, s1 int32 field) with(auto_sync_schema = true) as root.dbr2.**
-STRICT{
-PASS
-}
-
--- [1]62:desc v_widen
-STRICT{
-ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
---------------------------------------------------------------
-time                  |TIMESTAMP           |TIME                |
---------------------------------------------------------------
-dev                   |STRING              |TAG                 |
---------------------------------------------------------------
-s1                    |INT32               |FIELD               |
-总数目：3
-}
-Elapsed Time: 0.0.0
-
--- [1]63:set sql_dialect=tree
-STRICT{
-PASS
-}
-
--- [1]64:create timeseries root.dbr2.dev02.s1 datatype=int64
-STRICT{
-PASS
-}
-
--- [1]65:insert into root.dbr2.dev02(time,s1) values(2,22)
-STRICT{
-0
-}
-Elapsed Time: 0.0.70
-
--- [1]66:set sql_dialect=table
-STRICT{
-PASS
-}
-
--- [1]67:use dbr2
-STRICT{
-PASS
-}
-
--- [1]68:desc v_widen
-STRICT{
-ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
---------------------------------------------------------------
-time                  |TIMESTAMP           |TIME                |
---------------------------------------------------------------
-dev                   |STRING              |TAG                 |
---------------------------------------------------------------
-s1                    |INT32               |FIELD               |
-总数目：3
-}
-Elapsed Time: 0.0.1
-
--- [1]69:select * from v_widen order by time
-STRICT{
-time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
------------------------------------------------------
-1970-01-01T08:00:00.0|dev01            |11             |
-01+08:00             |                 |               |
-总数目：1
-}
-Elapsed Time: 0.0.7
-
--- [1]70:use dbr2
-STRICT{
-PASS
-}
-
--- [1]71:use dbp
-STRICT{
-PASS
-}
-
--- [1]72:desc v_i64
+-- [1]16:desc v_i64
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -172,7 +69,7 @@ s1                    |INT64               |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]73:select * from v_i64 order by time
+-- [1]17:select * from v_i64 order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
 -----------------------------------------------------
@@ -183,14 +80,236 @@ time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
 02+08:00             |                 |               |
 总数目：2
 }
-Elapsed Time: 0.0.10
+Elapsed Time: 0.0.8
 
--- [1]74:use dbq2
+-- [1]18:set sql_dialect=tree
 STRICT{
 PASS
 }
 
--- [1]75:desc v_dbl
+-- [1]20:create database root.dbq2
+STRICT{
+PASS
+}
+
+-- [1]21:create timeseries root.dbq2.dev01.s1 datatype=int32
+STRICT{
+PASS
+}
+
+-- [1]22:create timeseries root.dbq2.dev02.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]23:insert into root.dbq2.dev01(time,s1) values(1,11)
+STRICT{
+0
+}
+Elapsed Time: 0.0.50
+
+-- [1]24:insert into root.dbq2.dev02(time,s1) values(2,2.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.66
+
+-- [1]25:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]27:create database dbq2
+STRICT{
+PASS
+}
+
+-- [1]28:use dbq2
+STRICT{
+PASS
+}
+
+-- [1]29:create view v_infer_d(dev string tag, s1 field) with(auto_sync_schema = true) as root.dbq2.**
+STRICT{
+SQLSTATE : 614: Multiple types encountered when auto detecting type of measurement 's1', please check
+}
+
+-- [1]30:create view v_dbl(dev string tag, s1 double field) with(auto_sync_schema = true) as root.dbq2.**
+STRICT{
+PASS
+}
+
+-- [1]31:desc v_dbl
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]32:select * from v_dbl order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
+------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |11.0            |
+01+08:00             |                 |                |
+------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |2.5             |
+02+08:00             |                 |                |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]33:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]35:create database root.dbr2
+STRICT{
+PASS
+}
+
+-- [1]36:create timeseries root.dbr2.dev01.s1 datatype=int32
+STRICT{
+PASS
+}
+
+-- [1]37:insert into root.dbr2.dev01(time,s1) values(1,11)
+STRICT{
+0
+}
+Elapsed Time: 0.0.49
+
+-- [1]38:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]40:create database dbr2
+STRICT{
+PASS
+}
+
+-- [1]41:use dbr2
+STRICT{
+PASS
+}
+
+-- [1]42:create view v_widen(dev string tag, s1 int32 field) with(auto_sync_schema = true) as root.dbr2.**
+STRICT{
+PASS
+}
+
+-- [1]43:desc v_widen
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]44:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]45:create timeseries root.dbr2.dev02.s1 datatype=int64
+STRICT{
+PASS
+}
+
+-- [1]46:insert into root.dbr2.dev02(time,s1) values(2,22)
+STRICT{
+0
+}
+Elapsed Time: 0.0.61
+
+-- [1]47:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]48:use dbr2
+STRICT{
+PASS
+}
+
+-- [1]49:desc v_widen
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]50:select * from v_widen order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |11             |
+01+08:00             |                 |               |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]51:use dbr2
+STRICT{
+PASS
+}
+
+-- [1]52:use dbp
+STRICT{
+PASS
+}
+
+-- [1]53:desc v_i64
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |INT64               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]54:select * from v_i64 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |11             |
+01+08:00             |                 |               |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |22             |
+02+08:00             |                 |               |
+总数目：2
+}
+Elapsed Time: 0.0.3
+
+-- [1]55:use dbq2
+STRICT{
+PASS
+}
+
+-- [1]56:desc v_dbl
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -203,7 +322,7 @@ s1                    |DOUBLE              |FIELD               |
 }
 Elapsed Time: 0.0.0
 
--- [1]76:select * from v_dbl order by time
+-- [1]57:select * from v_dbl order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 ------------------------------------------------------
@@ -214,14 +333,14 @@ time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 02+08:00             |                 |                |
 总数目：2
 }
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.4
 
--- [1]77:use dbr2
+-- [1]58:use dbr2
 STRICT{
 PASS
 }
 
--- [1]78:desc v_widen
+-- [1]59:desc v_widen
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -234,7 +353,7 @@ s1                    |INT32               |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]79:select * from v_widen order by time
+-- [1]60:select * from v_widen order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
 -----------------------------------------------------
@@ -242,4 +361,9 @@ time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
 01+08:00             |                 |               |
 总数目：1
 }
-Elapsed Time: 0.0.5
+Elapsed Time: 0.0.3
+
+-- [1]70:set sql_dialect=tree
+STRICT{
+PASS
+}

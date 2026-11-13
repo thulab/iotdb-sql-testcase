@@ -38,7 +38,7 @@ PASS
 STRICT{
 0
 }
-Elapsed Time: 0.0.51
+Elapsed Time: 0.0.52
 
 -- [1]12:set sql_dialect=table
 STRICT{
@@ -55,33 +55,85 @@ STRICT{
 PASS
 }
 
--- [1]28:create timeseries root.dba.dev01.`中文测点` datatype=int32
+-- [1]16:create view v1(dev string tag) with(auto_sync_schema = true) as root.dba.**
 STRICT{
 PASS
 }
 
--- [1]29:insert into root.dba.dev01(time,`中文测点`) values(3,4)
+-- [1]17:desc v1
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+温度                    |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+`s-1`                 |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s_1                   |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+`s.1`                 |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+`a b`                 |DOUBLE              |FIELD               |
+总数目：7
+}
+Elapsed Time: 0.0.1
+
+-- [1]18:select * from v1
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |温度(DOUBLE)      |`s-1`(DOUBLE)      |s_1(DOUBLE)      |`s.1`(DOUBLE)      |`a b`(DOUBLE)      |
+--------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |2.0             |1.0                |null             |null               |null               |
+01+08:00             |                 |                |                   |                 |                   |                   |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]19:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]20:create timeseries root.dba.dev01.`x-y` datatype=double
+STRICT{
+PASS
+}
+
+-- [1]21:insert into root.dba.dev01(time,`x-y`) values(2,3.0)
 STRICT{
 0
 }
-Elapsed Time: 0.0.3
+Elapsed Time: 0.0.2
 
--- [1]30:set sql_dialect=table
+-- [1]22:create timeseries root.dba.dev01.`中文测点` datatype=int32
 STRICT{
 PASS
 }
 
--- [1]31:use dba
+-- [1]23:insert into root.dba.dev01(time,`中文测点`) values(3,4)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]24:set sql_dialect=table
 STRICT{
 PASS
 }
 
--- [1]32:use dba
+-- [1]25:use dba
 STRICT{
 PASS
 }
 
--- [1]33:desc v1
+-- [1]26:use dba
+STRICT{
+PASS
+}
+
+-- [1]27:desc v1
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -106,7 +158,7 @@ s_1                   |DOUBLE              |FIELD               |
 }
 Elapsed Time: 0.0.0
 
--- [1]34:select * from v1 order by time
+-- [1]28:select * from v1 order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |温度(DOUBLE)      |`s-1`(DOUBLE)      |s_1(DOUBLE)      |`s.1`(DOUBLE)      |`a b`(DOUBLE)      |`x-y`(DOUBLE)      |中文测点(INT32)      |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -120,4 +172,9 @@ time(TIMESTAMP)      |dev(STRING)      |温度(DOUBLE)      |`s-1`(DOUBLE)      
 03+08:00             |                 |                |                   |                 |                   |                   |                   |                 |
 总数目：3
 }
-Elapsed Time: 0.0.6
+Elapsed Time: 0.0.4
+
+-- [1]32:set sql_dialect=tree
+STRICT{
+PASS
+}

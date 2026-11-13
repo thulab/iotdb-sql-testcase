@@ -23,13 +23,13 @@ PASS
 STRICT{
 0
 }
-Elapsed Time: 0.0.52
+Elapsed Time: 0.0.53
 
 -- [1]9:insert into root.db5.dev02(time,s1) values(2,77)
 STRICT{
 0
 }
-Elapsed Time: 0.0.67
+Elapsed Time: 0.0.120
 
 -- [1]10:set sql_dialect=table
 STRICT{
@@ -46,22 +46,12 @@ STRICT{
 PASS
 }
 
--- [1]38:create view f_bare(dev string tag, s1) with(auto_sync_schema = true) as root.db5.**
-STRICT{
-SQLSTATE : 700: line 1:38: mismatched input ')'. Expecting: 'FIELD', 'FROM', 'TAG', 'TIME', <type>
-}
-
--- [1]39:use db5
+-- [1]14:create view f_double(dev string tag, s1 double field) with(auto_sync_schema = true) as root.db5.**
 STRICT{
 PASS
 }
 
--- [1]40:use db5
-STRICT{
-PASS
-}
-
--- [1]41:desc f_double
+-- [1]15:desc f_double
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -72,9 +62,9 @@ dev                   |STRING              |TAG                 |
 s1                    |DOUBLE              |FIELD               |
 总数目：3
 }
-Elapsed Time: 0.0.0
+Elapsed Time: 0.0.1
 
--- [1]42:select * from f_double order by time
+-- [1]16:select * from f_double order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 ------------------------------------------------------
@@ -87,12 +77,12 @@ time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 }
 Elapsed Time: 0.0.7
 
--- [1]43:use db5
+-- [1]17:create view f_int(dev string tag, s1 int32 field) with(auto_sync_schema = true) as root.db5.**
 STRICT{
 PASS
 }
 
--- [1]44:desc f_int
+-- [1]18:desc f_int
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -105,7 +95,7 @@ s1                    |INT32               |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]45:select * from f_int order by time
+-- [1]19:select * from f_int order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
 -----------------------------------------------------
@@ -113,14 +103,14 @@ time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
 02+08:00             |                 |               |
 总数目：1
 }
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
 
--- [1]46:use db5
+-- [1]20:create view f_float(dev string tag, s1 float field) with(auto_sync_schema = true) as root.db5.**
 STRICT{
 PASS
 }
 
--- [1]47:desc f_float
+-- [1]21:desc f_float
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -133,7 +123,127 @@ s1                    |FLOAT               |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]48:select * from f_float order by time
+-- [1]22:select * from f_float order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(FLOAT)      |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |77.0           |
+02+08:00             |                 |               |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]23:create view f_notype(dev string tag, s1 field) with(auto_sync_schema = true) as root.db5.**
+STRICT{
+SQLSTATE : 614: Multiple types encountered when auto detecting type of measurement 's1', please check
+}
+
+-- [1]24:create view f_from(dev string tag, s1 double field from s1) with(auto_sync_schema = true) as root.db5.**
+STRICT{
+PASS
+}
+
+-- [1]25:desc f_from
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]26:create view f_bare(dev string tag, s1) with(auto_sync_schema = true) as root.db5.**
+STRICT{
+SQLSTATE : 700: line 1:38: mismatched input ')'. Expecting: 'FIELD', 'FROM', 'TAG', 'TIME', <type>
+}
+
+-- [1]27:use db5
+STRICT{
+PASS
+}
+
+-- [1]28:use db5
+STRICT{
+PASS
+}
+
+-- [1]29:desc f_double
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:select * from f_double order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
+------------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |1.5             |
+01+08:00             |                 |                |
+------------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |77.0            |
+02+08:00             |                 |                |
+总数目：2
+}
+Elapsed Time: 0.0.4
+
+-- [1]31:use db5
+STRICT{
+PASS
+}
+
+-- [1]32:desc f_int
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |INT32               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]33:select * from f_int order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(INT32)      |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |77             |
+02+08:00             |                 |               |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]34:use db5
+STRICT{
+PASS
+}
+
+-- [1]35:desc f_float
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |FLOAT               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]36:select * from f_float order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(FLOAT)      |
 -----------------------------------------------------
@@ -143,12 +253,12 @@ time(TIMESTAMP)      |dev(STRING)      |s1(FLOAT)      |
 }
 Elapsed Time: 0.0.7
 
--- [1]49:use db5
+-- [1]37:use db5
 STRICT{
 PASS
 }
 
--- [1]50:desc f_from
+-- [1]38:desc f_from
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -161,7 +271,7 @@ s1                    |DOUBLE              |FIELD               |
 }
 Elapsed Time: 0.0.1
 
--- [1]51:select * from f_from order by time
+-- [1]39:select * from f_from order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 ------------------------------------------------------
@@ -172,4 +282,24 @@ time(TIMESTAMP)      |dev(STRING)      |s1(DOUBLE)      |
 02+08:00             |                 |                |
 总数目：2
 }
-Elapsed Time: 0.0.7
+Elapsed Time: 0.0.4
+
+-- [1]42:set sql_dialect=tree
+STRICT{
+PASS
+}
+
+-- [1]44:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]45:use db5
+STRICT{
+PASS
+}
+
+-- [1]51:set sql_dialect=tree
+STRICT{
+PASS
+}

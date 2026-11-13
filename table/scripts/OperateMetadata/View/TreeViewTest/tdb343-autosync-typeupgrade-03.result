@@ -23,13 +23,13 @@ PASS
 STRICT{
 0
 }
-Elapsed Time: 0.0.52
+Elapsed Time: 0.0.86
 
 -- [1]9:insert into root.dbp.dev02(time,s1) values(2,22)
 STRICT{
 0
 }
-Elapsed Time: 0.0.53
+Elapsed Time: 0.0.50
 
 -- [1]10:set sql_dialect=table
 STRICT{
@@ -46,69 +46,105 @@ STRICT{
 PASS
 }
 
--- [1]22:set sql_dialect=tree
-STRICT{
-PASS
-}
-
--- [1]24:create database root.dbq2
-STRICT{
-PASS
-}
-
--- [1]25:create timeseries root.dbq2.dev01.s1 datatype=int32
-STRICT{
-PASS
-}
-
--- [1]26:create timeseries root.dbq2.dev02.s1 datatype=double
-STRICT{
-PASS
-}
-
--- [1]27:insert into root.dbq2.dev01(time,s1) values(1,11)
-STRICT{
-0
-}
-Elapsed Time: 0.0.59
-
--- [1]28:insert into root.dbq2.dev02(time,s1) values(2,2.5)
-STRICT{
-0
-}
-Elapsed Time: 0.0.74
-
--- [1]29:set sql_dialect=table
-STRICT{
-PASS
-}
-
--- [1]31:create database dbq2
-STRICT{
-PASS
-}
-
--- [1]32:use dbq2
-STRICT{
-PASS
-}
-
--- [1]33:create view v_infer_d(dev string tag, s1 field) with(auto_sync_schema = true) as root.dbq2.**
+-- [1]14:create view v_infer_i(dev string tag, s1 field) with(auto_sync_schema = true) as root.dbp.**
 STRICT{
 SQLSTATE : 614: Multiple types encountered when auto detecting type of measurement 's1', please check
 }
 
--- [1]34:use dbq2
+-- [1]15:create view v_i64(dev string tag, s1 int64 field) with(auto_sync_schema = true) as root.dbp.**
 STRICT{
 PASS
 }
 
--- [1]35:use dbp
+-- [1]16:desc v_i64
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+dev                   |STRING              |TAG                 |
+--------------------------------------------------------------
+s1                    |INT64               |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]17:select * from v_i64 order by time
+STRICT{
+time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev01            |11             |
+01+08:00             |                 |               |
+-----------------------------------------------------
+1970-01-01T08:00:00.0|dev02            |22             |
+02+08:00             |                 |               |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]18:set sql_dialect=tree
 STRICT{
 PASS
 }
 
--- [1]36:desc v_i64
+-- [1]20:create database root.dbq2
+STRICT{
+PASS
+}
+
+-- [1]21:create timeseries root.dbq2.dev01.s1 datatype=int32
+STRICT{
+PASS
+}
+
+-- [1]22:create timeseries root.dbq2.dev02.s1 datatype=double
+STRICT{
+PASS
+}
+
+-- [1]23:insert into root.dbq2.dev01(time,s1) values(1,11)
+STRICT{
+0
+}
+Elapsed Time: 0.0.138
+
+-- [1]24:insert into root.dbq2.dev02(time,s1) values(2,2.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.200
+
+-- [1]25:set sql_dialect=table
+STRICT{
+PASS
+}
+
+-- [1]27:create database dbq2
+STRICT{
+PASS
+}
+
+-- [1]28:use dbq2
+STRICT{
+PASS
+}
+
+-- [1]29:create view v_infer_d(dev string tag, s1 field) with(auto_sync_schema = true) as root.dbq2.**
+STRICT{
+SQLSTATE : 614: Multiple types encountered when auto detecting type of measurement 's1', please check
+}
+
+-- [1]30:use dbq2
+STRICT{
+PASS
+}
+
+-- [1]31:use dbp
+STRICT{
+PASS
+}
+
+-- [1]32:desc v_i64
 STRICT{
 ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
 --------------------------------------------------------------
@@ -121,7 +157,7 @@ s1                    |INT64               |FIELD               |
 }
 Elapsed Time: 0.0.0
 
--- [1]37:select * from v_i64 order by time
+-- [1]33:select * from v_i64 order by time
 STRICT{
 time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
 -----------------------------------------------------
@@ -133,3 +169,8 @@ time(TIMESTAMP)      |dev(STRING)      |s1(INT64)      |
 总数目：2
 }
 Elapsed Time: 0.0.5
+
+-- [1]43:set sql_dialect=tree
+STRICT{
+PASS
+}
