@@ -1,0 +1,24 @@
+//最新点查询：LIMIT OFFSET 与排序分页
+
+-- 环境与数据准备
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+create database root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+show databases root.ln;
+show timeseries root.ln.**;
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19);
+
+-- 查询与清理
+select last * from root.ln.** limit 2 offset 1;
+select last * from root.ln.** order by timeseries asc limit 1;
+select last * from root.ln.** order by timeseries asc limit 2 offset 1;
+select last * from root.ln.** order by timeseries asc offset 1;
+
+--7. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

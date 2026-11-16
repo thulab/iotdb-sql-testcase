@@ -1,0 +1,15 @@
+//HAVING 按设备对齐：时间分组中 LAST_VALUE 非空条件与 OR 组合
+connect root/TimechoDB@2021;
+drop database root.**; <<NULL;
+create timeseries root.db.d1.s1 double;
+create timeseries root.db.d1.s2 boolean;
+create timeseries root.db.d1.s3 int32;
+create timeseries root.db.d2.s1 double;
+create timeseries root.db.d2.s2 boolean;
+create timeseries root.db.d2.s3 int32;
+create aligned timeseries root.db.d3(s1 double, s2 boolean, s3 int32);
+insert into root.db.d1(time,s1,s2,s3) values(1,1.12,false,10),(2,3.14,null,4),(3,null,true,null),(4,1.12,false,6),(5,0.11,true,12),(8,12.2,true,18);
+insert into root.db.d2(time,s1,s2,s3) values(1,12.22,true,16),(3,5.55,false,8),(5,-0.12,null,9),(6,6.66,true,null),(7,13.3,true,8),(10,11.23,false,3);
+insert into root.db.d3(time,s1,s2,s3) values(1,1.2,false,5),(2,2.2,true,7),(3,3.3,true,4),(6,6.6,false,9),(9,4.4,null,3),(10,11.1,false,7);
+select last_value(s1), last_value(s2) from root.db.** group by ([1,10),2ms) having last_value(s1) is not null or last_value(s2) is not null align by device;
+drop database root.**; <<NULL;

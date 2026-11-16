@@ -1,0 +1,92 @@
+//七、标签聚合查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.factory1;
+create timeseries root.factory1.d1.temperature with datatype=FLOAT tags(city=Beijing, workshop=w1);
+create timeseries root.factory1.d2.temperature with datatype=FLOAT tags(city=Beijing, workshop=w1);
+create timeseries root.factory1.d3.temperature with datatype=FLOAT tags(city=Beijing, workshop=w2);
+create timeseries root.factory1.d4.temperature with datatype=FLOAT tags(city=Beijing, workshop=w2);
+create timeseries root.factory1.d5.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w1);
+create timeseries root.factory1.d6.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w1);
+create timeseries root.factory1.d7.temperature with datatype=FLOAT tags(city=Shanghai, workshop=w2);
+create timeseries root.factory1.d8.temperature with datatype=FLOAT;
+create timeseries root.factory1.d9.temperature with datatype=FLOAT;
+
+--2. 查询存储组和时间序列
+show databases root.factory1;
+show timeseries root.factory1.**;
+
+--3. 插入数据
+insert into root.factory1.d1(time, temperature) values(1000, 104.0);
+insert into root.factory1.d1(time, temperature) values(3000, 104.2);
+insert into root.factory1.d1(time, temperature) values(5000, 103.3);
+insert into root.factory1.d1(time, temperature) values(7000, 104.1);
+insert into root.factory1.d2(time, temperature) values(1000, 104.4);
+insert into root.factory1.d2(time, temperature) values(3000, 103.7);
+insert into root.factory1.d2(time, temperature) values(5000, 103.3);
+insert into root.factory1.d2(time, temperature) values(7000, 102.9);
+insert into root.factory1.d3(time, temperature) values(1000, 103.9);
+insert into root.factory1.d3(time, temperature) values(3000, 103.8);
+insert into root.factory1.d3(time, temperature) values(5000, 102.7);
+insert into root.factory1.d3(time, temperature) values(7000, 106.9);
+insert into root.factory1.d4(time, temperature) values(1000, 103.9);
+insert into root.factory1.d4(time, temperature) values(5000, 102.7);
+insert into root.factory1.d4(time, temperature) values(7000, 106.9);
+insert into root.factory1.d5(time, temperature) values(1000, 112.9);
+insert into root.factory1.d5(time, temperature) values(7000, 113.0);
+insert into root.factory1.d6(time, temperature) values(1000, 113.9);
+insert into root.factory1.d6(time, temperature) values(3000, 113.3);
+insert into root.factory1.d6(time, temperature) values(5000, 112.7);
+insert into root.factory1.d6(time, temperature) values(7000, 112.3);
+insert into root.factory1.d7(time, temperature) values(1000, 101.2);
+insert into root.factory1.d7(time, temperature) values(3000, 99.3);
+insert into root.factory1.d7(time, temperature) values(5000, 100.1);
+insert into root.factory1.d7(time, temperature) values(7000, 99.8);
+insert into root.factory1.d8(time, temperature) values(1000, 50.0);
+insert into root.factory1.d8(time, temperature) values(3000, 52.1);
+insert into root.factory1.d8(time, temperature) values(5000, 50.1);
+insert into root.factory1.d8(time, temperature) values(7000, 50.5);
+insert into root.factory1.d9(time, temperature) values(1000, 50.3);
+insert into root.factory1.d9(time, temperature) values(3000, 52.1);
+
+--4. 单标签聚合查询
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY TAGS(city);
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY TAGS(workshop);
+
+--5. 多标签聚合查询
+SELECT avg(temperature) FROM root.factory1.** GROUP BY TAGS(city, workshop);
+
+--6. 基于时间区间的标签聚合查询
+SELECT AVG(temperature) FROM root.factory1.** GROUP BY ([1000, 10000), 5s), TAGS(city, workshop);
+
+--7.暂不支持 HAVING 子句过滤查询结果
+SELECT COUNT(temperature) FROM root.** GROUP BY ([1000, 10000), 5s), TAGS(city, workshop) having count(temperature) > 5;
+<<SQLSTATE;
+
+--8. 暂不支持 LIMIT，OFFSET，SLIMIT，SOFFSET
+SELECT COUNT(temperature) FROM root.** GROUP BY TAGS(city) LIMIT 10 OFFSET 1 SLIMIT 1 SOFFSET 0;
+<<SQLSTATE;
+
+--9. 暂不支持 ALIGN BY DEVICE
+SELECT COUNT(temperature) FROM root.** GROUP BY TAGS(city) ALIGN BY DEVICE;
+<<SQLSTATE;
+
+--10. 暂不支持聚合函数内部包含表达式，例如 count(s+1)
+SELECT AVG(temperature+1) FROM root.factory1.** GROUP BY TAGS(city);
+<<SQLSTATE;
+
+--11. 不支持值过滤条件聚合，和分层聚合查询行为保持一致
+SELECT AVG(temperature) FROM root.factory1.** where temperature > 12 GROUP BY TAGS(city);
+<<SQLSTATE;
+
+--12. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

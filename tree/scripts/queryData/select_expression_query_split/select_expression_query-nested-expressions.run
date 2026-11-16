@@ -1,0 +1,97 @@
+//嵌套表达式
+//由于聚合查询和时间序列查询不能在一条查询语句中同时出现，故支持的嵌套表达式分为时间序列查询嵌套表达式和聚合查询嵌套表达式两类。
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT64,encoding=RLE;
+create aligned timeseries root.sg.d3(s1 FLOAT encoding=PLAIN compressor=SNAPPY, s2 FLOAT encoding=PLAIN compressor=SNAPPY);
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+show devices root.sg.*;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,2.5,2.2,TRUE,'error:-37229',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,2.6,3.3,FALSE,'warn:1731',23,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,2.2,TRUE,'warn:1731',12,20);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.2,3.3,FALSE,'warn:-8721',22,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.5,2.2,TRUE,'warn:1731',14,22);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,null,2.1,FALSE,'error:-37229',null,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,2.6,3.3,FALSE,'error:-37229',23,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,2.6,null,FALSE,'error:-37229',23,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(11,null,3.3,FALSE,'error:-37229',23,14);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(12,2.6,3.3,FALSE,'error:-37229',23,14);
+insert into root.sg.d2(time,s1) values(1,12);
+insert into root.sg.d2(time,s1) values(2,32);
+insert into root.sg.d2(time,s1) values(1607603775000,1531604122307244742);
+insert into root.sg.d2(time,s1) values(1607603776000,-8581625725655917595);
+insert into root.sg.d3(time,s1,s2) aligned values(1,-1.1,1.2),(2,0.0,2.3),(3,5.5,-2.6);
+
+--4. 时间序列查询嵌套表达式
+--4.1 非对齐时间序列嵌套查询
+select ** from root.sg;
+select s1,s2,((s1 + 1) * 2 - 1) % 2 + 1.5,sin(s1 + sin(s1 + sin(s2))),-(s1 + s2) * (sin(s1 + s2) * sin(s1 + s2) + cos(s1 + s2) * cos(s1 + s2)) + 1 from root.sg.d1;
+select (s1 + s2) * 2 + sin(s1) from root.sg.d1;
+select (s1 + *) / 2  from root.sg.d2;
+select (s1 + s2) * 3 from root.sg.d1, root.sg.d2;
+--4.2 V0.14.x对齐时间序列开始支持时间序列查询嵌套表达式
+select s1, s2, sin(5*(s1+s2)/2) + cos((s1+2)% s2) from root.sg.d3;
+--4.3 同一路径下的时间序列，算术查询(+和-)
+select s1, s2 , s1 + s2 from root.sg.d1;
+select s1 + * from root.sg.d2;
+--4.4 同一路径下，复杂算术查询
+select s1, s2, ((s1 + 1) * 2 - 1) % 2 + 1.5 + s2 from root.sg.d1;
+--4.5 同一路径下，内置函数查询
+select s1, s2, sin(s1 + sin(s1 + sin(s2))) from root.sg.d1;
+--4.6 不同路径的时间序列进行算术查询
+select s1 + s2 from root.sg.d1, root.sg.d2, root.sg.d3;
+--4.7 BOOLEAN和TEXT类型算术查询校验
+select s1 + s3 from root.sg.d1;
+<<SQLSTATE;
+select s2 - s4 from root.sg.d1;
+<<SQLSTATE;
+--4.8 多个* 算术查询
+select s1,s1 + * + *  from root.sg.d2;
+--4.9 多个** 相加查询
+select s1 + ** from root.sg.d2;
+--4.10 时间序列中只要有一方含有null，结果集肯定为null值 
+select s5, s6, s5 + s6 from root.sg.d1;
+
+--5. 聚合查询嵌套表达式
+--5.1 不指定GROUP BY的聚合查询
+select avg(s1),sin(avg(s2)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) from root.sg.d1;
+select avg(*), (avg(*) + 1) * 3 / 2 -1 from root.sg.d2;
+select count(s1), ((count(s2) + 1) * 2 - 1) % 2 + 1.5 from root.sg.d1;
+select last_value(s1)*first_value(s2) from root.sg.d3;
+--5.2 指定GROUP BY 聚合查询
+select avg(s1),sin(avg(s1)),avg(s1) + 1,-sum(s2),avg(s1) + sum(s2) as custom_sum from root.sg.d1 GROUP BY([1, 15), 1ms);
+--5.3 聚合函数内部有表达式查询
+select avg(s1+1) from root.sg.d1;
+select count(s1+s2+1) from root.sg.d1;
+select last_value(s1*1) % EXTREME(s2+2) from root.sg.d3;
+select avg(s1*s2) from root.sg.d1;
+--5.4 支持按层级聚合查询
+select avg(s1) + avg(s2) from root.sg.* group by level=1;
+select count(s1+s2)* first_value(s2) from root.*.* group by level=2;
+--5.5 支持空值填充查询
+SELECT avg(s1) + first_value(s6) FROM root.sg.d1 GROUP BY([0, 20), 1ms) FILL(previous);
+
+--6. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+

@@ -1,0 +1,90 @@
+//count_time 不支持的语法
+
+--0. 清理数据
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.创建数据库和时间序列
+create database root.sg;
+
+--2.插入数据
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE tags(apartment=D001);
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE tags(apartment=D002);
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT32,encoding=RLE;
+
+--3.查看数据库，设备，时间序列
+show databases root.sg;
+show devices root.sg.*;
+show timeseries root.sg.**;
+
+--4. 插入数据并查询所有数据
+insert into root.sg.d1(time,s1,s2) values(1,1,1);
+insert into root.sg.d1(time,s1,s2) values(2,null,2);
+insert into root.sg.d1(time,s1,s2) values(3,3,3);
+insert into root.sg.d1(time,s1,s2) values(4,4,null);
+insert into root.sg.d1(time,s1,s2) values(5,null,null);
+insert into root.sg.d1(time,s1,s2) values(6,6,6);
+insert into root.sg.d1(time,s1,s2) values(7,null,7);
+insert into root.sg.d1(time,s1,s2) values(8,8,8);
+insert into root.sg.d1(time,s1,s2) values(9,9,9);
+insert into root.sg.d1(time,s1,s2) values(10,10,0);
+insert into root.sg.d2(time,s1,s2) values(1,null,1);
+insert into root.sg.d2(time,s1,s2) values(2,2,null);
+insert into root.sg.d2(time,s1,s2) values(3,3,3);
+insert into root.sg.d2(time,s1,s2) values(4,null,null);
+insert into root.sg.d2(time,s1,s2) values(5,5,5);
+select * from root.sg.**;
+
+--17.having语句不支持使用count_time，使用count_time聚合函数不支持使用having
+select count_time(*) from root.sg.d1 group by ([0,10),2ms) having count_time(*) > 1;
+<<SQLSTATE;
+select count_time(*) from root.sg.* having count(*) > 1;
+<<SQLSTATE;
+select count_time(*) from root.sg.* having count_time(s1) > 1;
+<<SQLSTATE;
+
+--18.count_time表达式只能为*，不支持其他路径名称
+select count_time(s1) from root.sg.**;
+<<SQLSTATE;
+select count_time(s1) from root.sg.d1;
+<<SQLSTATE;
+select count_time(d1.s1) from root.sg.**;
+<<SQLSTATE;
+select count_time(d1.*) from root.sg.*;
+<<SQLSTATE;
+select count_time(* + *) from root.sg.*;
+<<SQLSTATE;
+
+--19.count_time不能和其他的聚合函数一起使用
+select sum(s1) / count_time(*) from root.sg.*;
+<<SQLSTATE;
+select (count_time(*)+count(*)) from root.sg.*;
+<<SQLSTATE;
+
+--20.不支持多个count_time连用
+select count_time(*),count_time(*) from root.sg.*;
+<<SQLSTATE;
+select count_time(*),count_time(*) from root.sg.d1,root.sg.d2;
+<<SQLSTATE;
+
+--21.不支持与group by level连用
+select count_time(*) from root.sg.** group by level=1;
+<<SQLSTATE;
+
+--22.不支持与group by tags连用
+select count_time(*) from root.sg.** group by tags(apartment); 
+<<SQLSTATE;
+
+--23.不支持原始查询和count_time同时查询
+select s1, count_time(*) from root.sg.**;
+<<SQLSTATE;
+
+--24.不支持last查询和count_time查询
+select last(*), count_time(*) from root.sg.**;
+<<SQLSTATE;
+
+
+delete database root.**;
+<<NULL;

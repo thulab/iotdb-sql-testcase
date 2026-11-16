@@ -1,0 +1,132 @@
+
+-- [1]5:create database root.sg
+STRICT{
+PASS
+}
+
+-- [1]6:create timeseries root.sg.d1.s1 with datatype=DOUBLE
+STRICT{
+PASS
+}
+
+-- [1]7:create timeseries root.sg.d1.s2 with datatype=INT32
+STRICT{
+PASS
+}
+
+-- [1]8:create timeseries root.sg.d1.s3 with datatype=FLOAT
+STRICT{
+PASS
+}
+
+-- [1]9:create timeseries root.sg.d1.s4 with datatype=INT64
+STRICT{
+PASS
+}
+
+-- [1]10:create timeseries root.sg.d1.s5 with datatype=BOOLEAN
+STRICT{
+PASS
+}
+
+-- [1]11:create timeseries root.sg.d1.s6 with datatype=TEXT
+STRICT{
+PASS
+}
+
+-- [1]12:create aligned timeseries root.sg.d2(s1 DOUBLE, s2 INT32, s3 FLOAT, s4 INT64, s5 BOOLEAN, s6 TEXT)
+STRICT{
+PASS
+}
+
+-- [1]15:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,100.1,1,10.1,12,false,'test01')
+STRICT{
+0
+}
+Elapsed Time: 0.0.49
+
+-- [1]16:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,60.2,36,150.5,155,true,'test02')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,255.6,2,10.1,12,false,'test03')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]18:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,0.2,333,222.2,1010,true,'test04')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]19:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,0,4.14,188,false,'test05')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]20:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,255.6,333,80.6,2500,true,'test06')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]21:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,16.6,333,null,3610,false,'test07')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]22:insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,999,111.1,16,true,'A01Db')
+STRICT{
+0
+}
+Elapsed Time: 0.0.51
+
+-- [1]23:insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,155.5,101,-1.1,66,false,'BNno10112Dnc')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]24:insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,11,55.5,360,true,'LpNY10sdhj')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]25:select max_by(s1,s2) from root.sg.d1 group by ([0,10),2ms)
+STRICT{
+Time(TIMESTAMP)      |max_by(root.sg.d1.s1, root.sg.d1.s2)(DOUBLE)      |
+-----------------------------------------------------------------------
+0                    |100.1                                             |
+-----------------------------------------------------------------------
+2                    |60.2                                              |
+-----------------------------------------------------------------------
+4                    |0.2                                               |
+-----------------------------------------------------------------------
+6                    |255.6                                             |
+-----------------------------------------------------------------------
+8                    |null                                              |
+总数目：5
+}
+Elapsed Time: 0.0.2
+
+-- [1]26:select max_by(time,s4) from root.sg.** group by ([0,10),3ms)
+STRICT{
+Time(TIMESTAMP)      |max_by(Time, root.sg.d1.s4)(INT64)      |max_by(Time, root.sg.d2.s4)(INT64)      |
+-----------------------------------------------------------------------------------------------------
+0                    |2                                       |2                                       |
+-----------------------------------------------------------------------------------------------------
+3                    |4                                       |3                                       |
+-----------------------------------------------------------------------------------------------------
+6                    |7                                       |null                                    |
+-----------------------------------------------------------------------------------------------------
+9                    |null                                    |null                                    |
+总数目：4
+}
+Elapsed Time: 0.0.2

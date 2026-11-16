@@ -1,0 +1,152 @@
+
+-- [1]9:create database root.sg
+STRICT{
+PASS
+}
+
+-- [1]10:create timeseries root.sg.d1.s1 with datatype=INT32,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]11:create timeseries root.sg.d1.s2 with datatype=INT64,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]12:create timeseries root.sg.d1.s3 with datatype=float,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]13:create timeseries root.sg.d1.s4 with datatype=double,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]14:create timeseries root.sg.d1.s5 with datatype=boolean,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]15:create timeseries root.sg.d1.s6 with datatype=text,encoding=plain
+STRICT{
+PASS
+}
+
+-- [1]18:show databases root.**
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.__audit        |1                                   |1                                 |0                               |604800000                         |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg             |1                                   |1                                 |0                               |604800000                         |
+总数目：2
+}
+Elapsed Time: 0.0.0
+
+-- [1]19:show devices root.sg.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.d1        |false                |null                |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]20:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |null             |root.sg             |FLOAT               |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s4         |null             |root.sg             |DOUBLE              |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s5         |null             |root.sg             |BOOLEAN             |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s6         |null             |root.sg             |TEXT                |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |INT32               |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |INT64               |PLAIN               |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：6
+}
+Elapsed Time: 0.0.1
+
+-- [1]23:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1,1,1.1,1.1,false,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.50
+
+-- [1]24:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2,2,2.2,2.2,true,'test002')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]25:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,3,6,null,3.3,false,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]26:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,4,0,4.4,4.0,false,'test002')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]27:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,5,5,5.5,5.5,true,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]28:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,6,6,null,6.6,false,'test002')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]29:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,7,-2,100.1,7.7,true,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,55,8,0.0,8.8,false,'test002')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]31:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,-15,9,null,9.9,false,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,0,10,10.1,-1.12,true,'test001')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]35:select avg(s1),max_value(s2),last_value(s3),min_value(s4),count(s_5),max_time(s_6) from root.sg.d1
+STRICT{
+avg(root.sg.d1.s1)(DOUBLE)      |max_value(root.sg.d1.s2)(INT64)      |last_value(root.sg.d1.s3)(FLOAT)      |min_value(root.sg.d1.s4)(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------------------------------------
+6.8                             |10                                   |10.1                                  |-1.12                                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]36:select avg(s1),max_value(s2),last_value(s3),min_value(s4),count(s_5),max_time(s_6) from root.sg.d1 order by max_value(s1) desc align by device
+STRICT{
+Device(TEXT)      |avg(s1)(DOUBLE)      |max_value(s2)(INT64)      |last_value(s3)(FLOAT)      |min_value(s4)(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------------------------
+root.sg.d1        |6.8                  |10                        |10.1                       |-1.12                      |
+总数目：1
+}
+Elapsed Time: 0.0.4

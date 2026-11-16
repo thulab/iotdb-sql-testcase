@@ -1,0 +1,88 @@
+//一、DDL-Count查询
+
+--0. 清理数据
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建元数据
+create database root.sg;
+create timeseries root.sg.d1.s1.t1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d3.s1 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d3.s2 with datatype=boolean,encoding=RLE;
+create timeseries root.sg.s1 with datatype=TEXT,encoding=PLAIN;
+create database root.ln;
+create timeseries root.ln.wf01.wt01.status with datatype=Boolean,encoding=PLAIN;
+create timeseries root.ln.wf01.wt02.status with datatype=Boolean,encoding=PLAIN;
+create timeseries root.ln.wf02.wt01.status with datatype=Boolean,encoding=PLAIN;
+create database root.test.`001.002.003`;
+create timeseries root.test.`001.002.003`.d_a21.s_12a1 with datatype=TEXT,encoding=PLAIN;
+create database root.test.g_0.s_0_b001;
+create timeseries root.test.g_0.s_0_b001.d_1221.s_0 with datatype=INT32,encoding=RLE;
+create database root.test.g_1;
+create aligned timeseries root.test.g_1.d1221(s_0 float encoding=PLAIN compressor=SNAPPY,s_1 INT32 encoding=PLAIN compressor=SNAPPY);
+create timeseries root.test.g_1.device12210.sensor_01 with datatype=FLOAT,encoding=RLE;
+create timeseries root.test.g_1.device12211.sensor_01 with datatype=FLOAT,encoding=RLE;
+create timeseries root.test.g_1.device12212.sensor_01 with datatype=FLOAT,encoding=RLE;
+create timeseries root.test.g_1.device12213.sensor_01 with datatype=FLOAT,encoding=RLE;
+create timeseries root.test.g_1.device12214.sensor_01 with datatype=FLOAT,encoding=RLE;
+
+--2. 查看存储组，设备以及时间序列
+show databases root.**;
+show databases root.test.**;
+show databases root.*.g_1;
+show databases root.sg;
+show databases root.ln;
+show devices root.**.d1;
+show devices root.test.**;
+show devices root.**.*_12*;
+show devices root.test.g_1.*12*;
+show devices root.test.g_1.*`12`*;
+<<SQLSTATE;
+show devices root.**.device* limit 3;
+show devices root.te*.g_*.device* limit 3;
+show timeseries root.sg.**;
+show timeseries root.sg.**;
+show timeseries root.*.d1.**;
+show timeseries root.sg.**.s1;
+show timeseries root.sg.*.*.t1;
+show timeseries root.*.wf01.*.status;
+show timeseries root.ln.**;
+show timeseries root.ln.wf01.*.status;
+show timeseries root.ln.*.*.status;
+
+--3. 统计时间序列总数
+count timeseries root.*;
+count timeseries root.sg;
+count timeseries root.sg.d1;
+count timeseries root.sg.s1;
+count timeseries root.sg.*;
+count timeseries root.sg.*.*;
+count timeseries root.sg.*.*.*;
+count timeseries root.sg.**;
+count timeseries root.sg.*.**;
+count timeseries root.sg.**.*;
+count timeseries root.*.s1;
+count timeseries root.**.s1;
+count timeseries root.*.**.s1;
+COUNT TIMESERIES root.ln.*.*.status;
+COUNT TIMESERIES root.ln.wf01.*.status GROUP BY LEVEL=2;
+COUNT TIMESERIES root.ln.wf01.wt01.status; 
+COUNT TIMESERIES root.* GROUP BY LEVEL=1; 
+--COUNT TIMESERIES root.** GROUP BY LEVEL=2;
+
+--4. 统计节点数
+COUNT NODES root.* LEVEL=2;
+COUNT NODES root.sg.** LEVEL=2; 
+COUNT NODES root.*.*.s1 level=2;
+COUNT NODES root.sg.*.s1 level=2;
+COUNT NODES root.sg.d3.* level=2;
+COUNT NODES root.ln.* LEVEL=2;
+COUNT NODES root.ln.wf01.* LEVEL=3;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

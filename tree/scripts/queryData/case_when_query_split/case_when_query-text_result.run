@@ -1,0 +1,41 @@
+//CASE表达式：CASE 返回 TEXT，未匹配时返回 NULL
+//来源：case_when_query.run
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d1.s5 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show devices root.sg.*;
+show timeseries root.sg.**;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,10000.00,80.00,60,1001,false,'assedfkedcc');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,9999.01,60.00,89,2500,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,20021.11,50.90,99,500,true,'hunl10test');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,3500.01,100.00,100,20,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1522.25,66.96,60,1001,false,'adddcc');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,9999.99,90.00,89,-1,true,'test002');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,20000.00,100.00,92,888,false,'V1');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,49001.01,85.00,72,20,false,'test001');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,5890.02,99.12,85,-101,true,'V2');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,11000.11,87.1,0,111,false,'V1');
+
+--4. CASE 返回 TEXT，未匹配时返回 NULL
+select s2, case s2 when 100 then "pass" when 50 then "out" end as `result` from root.sg.d1;
+
+--10. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

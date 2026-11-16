@@ -1,0 +1,53 @@
+//聚合函数：min_by(x,y)，返回y最小时对应时间戳下的x值。
+//x和y均可以为time,min_by(time,y)返回y最小时对应的时间戳
+//如果y最小时对应的时间戳下x为null，则返回null
+//如果y有多个最小值，取最小值中最小时间戳对应的x值
+//与max_value保持一致，仅支持数据类型为：INT32、INT64、FLOAT、DOUBLE最为y的输入，支持所有六种类型最为x的输入
+//x,y的输入均不允许为常数
+//min_by必须有两个输入参数x和y
+
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建数据库和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=DOUBLE;
+create timeseries root.sg.d1.s2 with datatype=INT32;
+create timeseries root.sg.d1.s3 with datatype=FLOAT;
+create timeseries root.sg.d1.s4 with datatype=INT64;
+create timeseries root.sg.d1.s5 with datatype=BOOLEAN;
+create timeseries root.sg.d1.s6 with datatype=TEXT;
+create aligned timeseries root.sg.d2(s1 DOUBLE, s2 INT32, s3 FLOAT, s4 INT64, s5 BOOLEAN, s6 TEXT);
+
+--2. 查询数据库、设备以及时间序列
+show databases root.sg;
+show devices root.sg.**;
+show timeseries root.sg.**;
+
+--3.插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,100.1,1,10.1,12,false,'test01');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,60.2,36,150.5,155,true,'test02');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,0.2,2,10.1,12,false,'test03');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,0.2,0,222.2,1010,true,'test04');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,1.1,0,4.14,188,false,'test05');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,0.2,0,80.6,2500,true,'test06');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,16.6,25,null,3610,false,'test07');
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,1.6,100,null,1,false,'test08');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,999,111.1,16,true,'A01Db');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,155.5,101,-1.1,66,false,'BNno10112Dnc');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,11,55.5,360,true,'LpNY10sdhj');
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(4,0.12,20,null,5,true,'BNdhj');
+
+--4.3 y有多个最小值，取最小值中最小时间戳对应的x值
+select * from root.sg.d1 align by device;
+select min_by(time,s1) from root.sg.d1 align by device;
+select s1, s2 from root.sg.d1 align by device;
+select min_by(s1,s2) from root.sg.d1 align by device;
+
+--5.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;

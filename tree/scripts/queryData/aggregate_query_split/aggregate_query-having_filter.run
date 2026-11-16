@@ -1,0 +1,83 @@
+//八、聚合结果查询
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.test;
+create timeseries root.test.d1.s1 with datatype=FLOAT, encoding=RLE;
+create timeseries root.test.d1.s2 with datatype=INT64, encoding=RLE;
+create aligned timeseries root.test.d2(s1 FLOAT encoding=RLE compressor=SNAPPY, s2 INT32 encoding=RLE compressor=SNAPPY );
+
+--2. 查看存储组和时间序列
+show databases root.test;
+show timeseries root.test.**;
+show devices root.test.*;
+
+--3. 插入数据
+insert into root.test.d1(time,s1,s2) values(1509321600000,18.32,11);
+insert into root.test.d1(time,s1,s2) values(1509408000000,15.99,12);
+insert into root.test.d1(time,s1,s2) values(1509465600000,25.99,13);
+insert into root.test.d1(time,s1,s2) values(1509472800000,25.99,14);
+insert into root.test.d1(time,s1,s2) values(1509476400000,25.99,15);
+insert into root.test.d1(time,s1,s2) values(1509523800000,24.13,16);
+insert into root.test.d1(time,s1,s2) values(1509525300000,21.12,17);
+insert into root.test.d1(time,s1,s2) values(1509552000000,26.92,18);
+insert into root.test.d1(time,s1,s2) values(1509559200000,26.92,19);
+insert into root.test.d1(time,s1,s2) values(1509638400000,26.0,12);
+insert into root.test.d1(time,s1,s2) values(1509724800000,23.29,13);
+insert into root.test.d1(time,s1,s2) values(1509811200000,24.19,20);
+insert into root.test.d1(time,s1,s2) values(1509897600000,25.99,25);
+insert into root.test.d1(time,s1,s2) values(1509908400000,20.19,22);
+insert into root.test.d1(time,s1,s2) values(1509984000000,21.12,27);
+insert into root.test.d1(time,s1,s2) values(1510069800000,22.12,18);
+insert into root.test.d1(time,s1,s2) values(1510069920000,26.92,18);
+insert into root.test.d1(time,s1,s2) values(1510070100000,23.99,26);
+insert into root.test.d1(time,s1,s2) values(1510070370000,26.0,28);
+insert into root.test.d1(time,s1,s2) values(1510070400000,23.29,33);
+insert into root.test.d1(time,s1,s2) values(1541433600000,20.99,20);
+insert into root.test.d1(time,s1,s2) values(1572883200000,24.19,32);
+insert into root.test.d1(time,s1,s2) values(1573056000000,20.19,22);
+insert into root.test.d2(time,s1,s2) aligned values(1509321600000,1.1,1);
+insert into root.test.d2(time,s1,s2) aligned values(1509408000000,15.99,12);
+insert into root.test.d2(time,s1,s2) aligned values(1509465600000,0.0,13);
+insert into root.test.d2(time,s1,s2) aligned values(1509472800000,25.99,14);
+insert into root.test.d2(time,s1,s2) aligned values(1509476400000,25.99,15);
+insert into root.test.d2(time,s1,s2) aligned values(1509523800000,24.13,16);
+insert into root.test.d2(time,s1,s2) aligned values(1509525300000,21.12,17);
+insert into root.test.d2(time,s1,s2) aligned values(1509559200000,15.1,10);
+insert into root.test.d2(time,s1,s2) aligned values(1509638400000,26.0,12);
+insert into root.test.d2(time,s1,s2) aligned values(1509724800000,23.29,13);
+insert into root.test.d2(time,s1,s2) aligned values(1509811200000,2.0,0);
+insert into root.test.d2(time,s1,s2) aligned values(1509897600000,-1.2,2);
+insert into root.test.d2(time,s1,s2) aligned values(1509908400000,20.19,22);
+insert into root.test.d2(time,s1,s2) aligned values(1509984000000,21.12,27);
+insert into root.test.d2(time,s1,s2) aligned values(1510069800000,-2.3,-1);
+insert into root.test.d2(time,s1,s2) aligned values(1510069920000,26.92,18);
+insert into root.test.d2(time,s1,s2) aligned values(1510070100000,-1.5,-2);
+
+--4. 聚合结果查询
+--4.1 查询所有数据
+select ** from root.test;
+--4.2 使用having聚合结果过滤
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having count(s2) > 2;
+select count(s1), count(s2) from root.** group by ([1509465600000,1509552000000),1h) having count(s2) > 1 align by device;
+--4.3 HAVING子句中的过滤条件必须由聚合值构成，原始序列不能单独出现。
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h) having sum(s1) > s1;
+<<SQLSTATE;
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h) having s1 > 1;
+<<SQLSTATE;
+--4.4 GROUP BY LEVEL结果进行过滤时，SELECT和HAVING中出现的PATH只能有一级
+select count(s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having sum(d1.s1) > 1;
+<<SQLSTATE;
+select count(d1.s1) from root.** group by ([1509465600000,1509552000000),1h), level=1 having sum(s1) > 1;
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

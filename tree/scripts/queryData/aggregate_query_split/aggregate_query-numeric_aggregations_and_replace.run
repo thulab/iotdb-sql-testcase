@@ -1,0 +1,106 @@
+//三、聚合函数查询-数据类型相同
+
+----0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d2.s3 with datatype=double,encoding=PLAIN;
+create timeseries root.sg.d2.s4 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d2.s5 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d2.s6 with datatype=boolean,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据并数据查询
+insert into root.sg.d1(time,s1,s2) values(1,1.1,0.0);
+insert into root.sg.d1(time,s1,s2) values(2,1.1,1.1);
+insert into root.sg.d1(time,s1,s2) values(3,1.1,null);
+insert into root.sg.d1(time,s1,s2) values(4,1.1,0.0);
+insert into root.sg.d1(time,s1,s2) values(5,2.2,1.1);
+insert into root.sg.d1(time,s1,s2) values(6,2.1,0.1);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(1,1.1,'\\',-1.4,1,100,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(2,10.12,'001',2.54,2,25,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(3,0.12,'abctest001',11.0,36,120,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(4,-1.15,'null',2.1,25,1,FALSE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(5,1001,'Waitamoment!',0.11,4,55,TRUE);
+insert into root.sg.d2(time,s1,s2,s3,s4,s5,s6) values(6,252.1,'!!!Please001@#',0.00,0,100,FALSE);
+
+select * from root.sg.**;
+
+--4. sum特定时间序列查询
+select sum(s1) from root.sg.d1;
+
+--5. sum特定存储组下的所有指定的sensor求和，level层级查询
+select sum(s1) from root.sg.** group by level = 2; 
+
+--6. avg特定时间序列查询
+select avg(s1) from root.sg.d1;
+
+--7. avg特定存储组下的所有指定的sensor平均值，level层级查询
+select avg(s1) from root.sg.** group by level = 1;
+
+--8. max_value特定时间序列的最大值
+select max_value(s1) from root.sg.d1;
+
+--9. max_value特定存储组下的指定的sensor的最大值，level层级查询 
+select max_value(s1) from root.sg.** group by level = 1;
+
+--10. min_value求特定时间序列的最小值查询
+select min_value(s1) from root.sg.d1;
+
+--11. min_value求特定存储组下的所有指定的sensor最小值，level层级查询
+select min_value(s1) from root.sg.** group by level = 1;
+
+--12. extreme求特定时间序列的极值
+select extreme(s1) from root.sg.d1;
+
+--13. extreme求特定存储组下的所有指定的sensor极值，level层级查询
+select extreme(s1) from root.sg.** group by level = 1; 
+
+--14. replace 字符串处理函数
+--14.1 缺少要替换的目标子串
+select s2, replace(s2,'test') from root.sg.d2;
+<<SQLSTATE; 
+--14.2 FlOAT数据类型校验
+show timeseries root.sg.d2.s1;
+select replace(s1,'1','10') from root.sg.d2;
+<<SQLSTATE;
+--14.3 DOUBLE数据类型校验
+show timeseries root.sg.d2.s3;
+select replace(s3,'0','6') from root.sg.d2;
+<<SQLSTATE;
+--14.4 INT32数据类型校验
+show timeseries root.sg.d2.s4;
+select replace(s4,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.5 INT64数据类型校验
+show timeseries root.sg.d2.s5;
+select replace(s5,'0','9') from root.sg.d2;
+<<SQLSTATE;
+--14.6 BOOLEAN数据类型校验
+show timeseries root.sg.d2.s6;
+select replace(s6,'false','true') from root.sg.d2;
+<<SQLSTATE;
+--14.7 TEXT数据类型校验
+show timeseries root.sg.d2.s2;
+select s2, replace(s2,'\\','V1') from root.sg.d2; 
+select s2, replace(s2,'Waitamoment','Wait a moment') from root.sg.d2;
+select s2, replace(s2,'!','') from root.sg.d2;
+select s2, replace(s2,'null','test') from root.sg.d2;
+select s2, replace(s2,'\\','null') from root.sg.d2;
+
+--14. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

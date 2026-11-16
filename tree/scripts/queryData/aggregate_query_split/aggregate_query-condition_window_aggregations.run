@@ -1,0 +1,55 @@
+//十、条件分段聚合
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+create timeseries root.sg.beijing.car01.soc with datatype=FLOAT;
+create timeseries root.sg.beijing.car01.charging_status with datatype=INT32;
+create timeseries root.sg.beijing.car01.vehicle_status with datatype=INT32;
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(1,14.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(2,16.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(3,16.0,0,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(4,16.0,0,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(5,18.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(6,24.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(7,36.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(8,36.0,null,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(9,45.0,1,1);
+insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(10,60.0,1,1);
+
+--2.查看设备和时间序列，执行数据查询
+show devices root.sg.beijing.*;
+show timeseries root.sg.**;
+select * from root.sg.**;
+
+--3.查询至少连续两行以上的charging_status=1的数据
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true);
+
+--4.查询两行的charging_status=0的数据
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=0,KEEP=2,ignoringNull=true);
+
+--5.ignoreNull不添加，自动默认为true
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(soc>=24.0,KEEP<=10);
+
+--6.当设置ignoreNull为false时，遇到null值为将其视为一个不满足条件的行，会结束正在计算的分组。
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=false);
+
+--7.与ALIGN BY DEVICE搭配使用
+select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true) align by device;
+
+--8.统计一段时间的时长：group by variation和group by  condition共同使用
+select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by variation(charging_status,0,ignoreNull=false) having first_value(charging_status) = 1;
+select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by condition(charging_status = 1, keep >= 2, ignoreNull=false);
+
+--9.当前暂不支持与GROUP BY LEVEL搭配使用
+select first_value(soc), last_value(soc) from root.sg.beijing.car01 group by condition(charging_status = 1, keep > = 2, ignoreNull=false ) and level = 2;
+<<SQLSTATE;
+
+--10.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

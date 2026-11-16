@@ -1,0 +1,46 @@
+//九、差值分段聚合
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.准备数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(0,4.5,9.0,0.0,45.0,9.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,null,19.0,10.0,145.0,19.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(20,24.5,29.0,null,245.0,29.0,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(30,34.5,null,30.0,345.0,null,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(40,44.5,49.0,40.0,445.0,49.0,8.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(50,null,59.0,50.0,545.0,59.0,6.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(60,64.5,69.0,60.0,645.0,69.0,null);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(70,74.5,79.0,null,null,79.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(80,84.5,89.0,80.0,845.0,89.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(90,94.5,99.0,90.0,945.0,99.0,3.25);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(150,66.5,77.0,90.0,945.0,99.0,9.25);
+
+--2.delta=0时的等值事件分段
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6);
+
+--3.指定ignoreNull为false
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6, ignoreNull=false);
+
+--4.delta!=0时的差值事件分段
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6, 4);
+
+--5.group by子句中的controlExpression同样支持列的表达式
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6+s5, 10);
+
+--6.使用通配符拼接后出现多列，进行校验
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(*);
+<<SQLSTATE;
+
+--7.当前暂不支持与GROUP BY LEVEL搭配使用
+select __endTime, avg(s1), count(s2), sum(s3) from root.sg.d1 group by variation(s6) group by level=2;
+<<SQLSTATE;
+
+--8.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

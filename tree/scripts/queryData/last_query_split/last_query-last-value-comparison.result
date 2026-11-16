@@ -1,0 +1,64 @@
+
+-- [1]10:CREATE DATABASE root.sg1
+STRICT{
+PASS
+}
+
+-- [1]11:CREATE TIMESERIES root.sg1.d1.s1 WITH DATATYPE=INT32, ENCODING=PLAIN
+STRICT{
+PASS
+}
+
+-- [1]12:CREATE TIMESERIES root.sg1.d1.s2 WITH DATATYPE=INT32, ENCODING=PLAIN
+STRICT{
+PASS
+}
+
+-- [1]14:select last * from root.sg1.d1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]17:select last_value(*) from root.sg1.d1
+STRICT{
+last_value(root.sg1.d1.s1)(INT32)      |last_value(root.sg1.d1.s2)(INT32)      |
+------------------------------------------------------------------------------
+null                                   |null                                   |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]20:insert into root.sg1.d1(time,s3) values(10000, X'cafebabe')
+STRICT{
+0
+}
+Elapsed Time: 0.0.39
+
+-- [1]23:select s3 from root.sg1.d1
+STRICT{
+Time(TIMESTAMP)      |root.sg1.d1.s3(BLOB)      |
+-----------------------------------------------
+10000                |0xcafebabe                |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]24:select last s3 from root.sg1.d1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+10000                |root.sg1.d1.s3        |0xcafebabe       |BLOB                |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]25:select last_value(s3) from root.sg1.d1
+STRICT{
+last_value(root.sg1.d1.s3)(BLOB)      |
+--------------------------------------
+0xcafebabe                            |
+总数目：1
+}
+Elapsed Time: 0.0.1

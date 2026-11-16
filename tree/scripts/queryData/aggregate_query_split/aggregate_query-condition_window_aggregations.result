@@ -1,0 +1,208 @@
+
+-- [1]8:create timeseries root.sg.beijing.car01.soc with datatype=FLOAT
+STRICT{
+PASS
+}
+
+-- [1]9:create timeseries root.sg.beijing.car01.charging_status with datatype=INT32
+STRICT{
+PASS
+}
+
+-- [1]10:create timeseries root.sg.beijing.car01.vehicle_status with datatype=INT32
+STRICT{
+PASS
+}
+
+-- [1]11:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(1,14.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.44
+
+-- [1]12:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(2,16.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]13:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(3,16.0,0,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]14:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(4,16.0,0,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]15:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(5,18.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]16:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(6,24.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(7,36.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]18:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(8,36.0,null,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]19:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(9,45.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]20:insert into root.sg.beijing.car01(time,soc,charging_status,vehicle_status) values(10,60.0,1,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]23:show devices root.sg.beijing.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.beijing.ca|false                |null                |INF                |
+r01               |                     |                    |                   |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]24:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.beijing.car01.|null             |root.sg             |FLOAT               |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+soc                   |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.beijing.car01.|null             |root.sg             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+charging_status       |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.beijing.car01.|null             |root.sg             |INT32               |TS_2DIFF            |LZ4                    |null            |null                  |null                |null                          |BASE                |
+vehicle_status        |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]25:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.beijing.car01.charging_status(INT32)      |root.sg.beijing.car01.soc(FLOAT)      |root.sg.beijing.car01.vehicle_status(INT32)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |1                                                 |14.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |1                                                 |16.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                    |0                                                 |16.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+4                    |0                                                 |16.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+5                    |1                                                 |18.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+6                    |1                                                 |24.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+7                    |1                                                 |36.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+8                    |null                                              |36.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+9                    |1                                                 |45.0                                  |1                                                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+10                   |1                                                 |60.0                                  |1                                                |
+总数目：10
+}
+Elapsed Time: 0.0.9
+
+-- [1]28:select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true)
+STRICT{
+Time(TIMESTAMP)      |__endTime(INT64)      |max_time(root.sg.beijing.car01.charging_status)(INT64)      |count(root.sg.beijing.car01.vehicle_status)(INT64)      |last_value(root.sg.beijing.car01.soc)(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |2                     |2                                                           |2                                                       |16.0                                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5                    |10                    |10                                                          |5                                                       |60.0                                              |
+总数目：2
+}
+Elapsed Time: 0.0.4
+
+-- [1]31:select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=0,KEEP=2,ignoringNull=true)
+STRICT{
+Time(TIMESTAMP)      |__endTime(INT64)      |max_time(root.sg.beijing.car01.charging_status)(INT64)      |count(root.sg.beijing.car01.vehicle_status)(INT64)      |last_value(root.sg.beijing.car01.soc)(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3                    |4                     |4                                                           |2                                                       |16.0                                              |
+总数目：1
+}
+Elapsed Time: 0.0.17
+
+-- [1]34:select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(soc>=24.0,KEEP<=10)
+STRICT{
+Time(TIMESTAMP)      |__endTime(INT64)      |max_time(root.sg.beijing.car01.charging_status)(INT64)      |count(root.sg.beijing.car01.vehicle_status)(INT64)      |last_value(root.sg.beijing.car01.soc)(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6                    |10                    |10                                                          |5                                                       |60.0                                              |
+总数目：1
+}
+Elapsed Time: 0.0.14
+
+-- [1]37:select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=false)
+STRICT{
+Time(TIMESTAMP)      |__endTime(INT64)      |max_time(root.sg.beijing.car01.charging_status)(INT64)      |count(root.sg.beijing.car01.vehicle_status)(INT64)      |last_value(root.sg.beijing.car01.soc)(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |2                     |2                                                           |2                                                       |16.0                                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5                    |10                    |10                                                          |5                                                       |60.0                                              |
+总数目：2
+}
+Elapsed Time: 0.0.10
+
+-- [1]40:select __endTime,max_time(charging_status),count(vehicle_status),last_value(soc) from root.** group by condition(charging_status=1,KEEP>=2,ignoringNull=true) align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |__endTime(INT64)      |max_time(charging_status)(INT64)      |count(vehicle_status)(INT64)      |last_value(soc)(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |root.sg.beijing.ca|2                     |2                                     |2                                 |16.0                        |
+                     |r01               |                      |                                      |                                  |                            |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+5                    |root.sg.beijing.ca|10                    |10                                    |5                                 |60.0                        |
+                     |r01               |                      |                                      |                                  |                            |
+总数目：2
+}
+Elapsed Time: 0.0.15
+
+-- [1]43:select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by variation(charging_status,0,ignoreNull=false) having first_value(charging_status) = 1
+STRICT{
+Time(TIMESTAMP)      |max_time(root.sg.beijing.car01.charging_status) - min_time(root.sg.beijing.car01.charging_status)(DOUBLE)      |
+------------------------------------------------------------------------------------------------------------------------------------
+1                    |1.0                                                                                                            |
+------------------------------------------------------------------------------------------------------------------------------------
+5                    |5.0                                                                                                            |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]44:select max_time(charging_status) - min_time(charging_status) from root.sg.beijing.car01 group by condition(charging_status = 1, keep >= 2, ignoreNull=false)
+STRICT{
+Time(TIMESTAMP)      |max_time(root.sg.beijing.car01.charging_status) - min_time(root.sg.beijing.car01.charging_status)(DOUBLE)      |
+------------------------------------------------------------------------------------------------------------------------------------
+1                    |1.0                                                                                                            |
+------------------------------------------------------------------------------------------------------------------------------------
+5                    |5.0                                                                                                            |
+总数目：2
+}
+Elapsed Time: 0.0.6
+
+-- [1]47:select first_value(soc), last_value(soc) from root.sg.beijing.car01 group by condition(charging_status = 1, keep > = 2, ignoreNull=false ) and level = 2
+STRICT{
+SQLSTATE : 700: Error occurred while parsing SQL to physical plan: line 1:115 no viable alternative at input 'select first_value(soc), last_value(soc) from root.sg.beijing.car01 group by condition(charging_status = 1, keep > ='
+}

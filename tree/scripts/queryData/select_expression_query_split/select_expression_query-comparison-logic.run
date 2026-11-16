@@ -1,0 +1,129 @@
+//比较运算符和逻辑运算符
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=TEXT,encoding=PLAIN;
+create timeseries root.sg.d1.s5 with datatype=BOOLEAN,encoding=RLE;
+create timeseries root.sg.d1.s6 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d1.s7 with datatype=INT64,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+show devices root.sg.*;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(1,1.1,2.2,TRUE,'001',false,12,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(2,2.2,3.3,FALSE,'002',true,13,30);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(3,10.1,11.2,TRUE,'102',false,1,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(4,22.2,30.3,FALSE,'4586145',true,3,30);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(5,31.1,25.2,TRUE,'303',false,22,10);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6,s7) values(6,8.82,9.3,FALSE,'aabcddf',true,-5,30);
+
+--4. 逻辑运算【!/NOT 】：输入输出均为BOOLEAN数据类型
+--4.1 非BOOLEAN数据类型执行逻辑运算
+select s1, !(s1) from root.sg.d1;
+<<SQLSTATE;
+select s2, !(s2) from root.sg.d1;
+<<SQLSTATE;
+select s4, !(s4) from root.sg.d1;
+<<SQLSTATE;
+select s7, not(s7) from root.sg.d1;
+<<SQLSTATE;
+
+--4.2 BOOLEAN数据类型执行逻辑运算
+select s3, !(s3) from root.sg.d1;
+select s5, not(s5) from root.sg.d1;
+select s3, s5, !(s3 != s5) from root.sg.d1;
+
+--5. 比较运算符【>, >=, <, <=, ==, !=】：输入类型为INT32, INT64, FLOAT, DOUBLE，输出为BOOLEAN
+--5.1 不支持的数据类型比较运算【BOOLEAN和TEXT】
+select s1, s4, s4 >=  s1 from root.sg.d1; 
+<<SQLSTATE;
+select s2, s3, s2 == s3 from root.sg.d1;
+<<SQLSTATE;
+select s3, s4, s3 != s4 from root.sg.d1;
+<<SQLSTATE;
+--5.2 INT32、INT64、FLOAT、DOUBLE运算
+select s1, s2, s6, s7, s1 > s2, s6 <= s7, s1 == s6, s2 != s7, s1 >= s7, s2 < s7 from root.sg.d1;
+--5.3 两个BOOLEAN类型运算【==和!=】
+select s3, s5, s3 == s5, s3 != s5 from root.sg.d1;
+
+--6. 逻辑运算符【AND,&,&&; OR,|,||】
+--6.1 非BOOLEAN数据类型执行逻辑运算
+select s1, s3, s1 and s3  from root.sg.d1;
+<<SQLSTATE;
+select s2, s3, s2 & s3  from root.sg.d1;
+<<SQLSTATE;
+select s3, s4, s3 && s4  from root.sg.d1;
+<<SQLSTATE;
+select s5, s6, s5 or s6  from root.sg.d1;
+<<SQLSTATE;
+select s5, s7, s5 | s7  from root.sg.d1;
+<<SQLSTATE;
+--6.2 BOOLEAN数据类型执行逻辑运算
+select s3, s5, s3 and s5, s3 or s5 from root.sg.d1;
+select s3, s5, s3 & s5, s3 | s5 from root.sg.d1;
+select s3, s5, s3 && s5, s3 || s5 from root.sg.d1;
+
+--7. IN运算符【IN,NOT IN,CONTAINS,NOT CONTAINS】
+--7.1 查询的列对应的数据类型匹配不到括号里数值对应的数据类型
+select s1 in (1,169,12.5,100.15,false,true,'V001') from root.sg.d1;
+<<SQLSTATE;
+select s2 in (1,169,12.5,100.15,false,true,'V001') from root.sg.d1;
+<<SQLSTATE;
+select s4 in (1,169,12.5,100.15) from root.sg.d1;
+select s5 in (1,169,12.5,100.15) from root.sg.d1;
+<<SQLSTATE;
+select s6 in (1,169,12.5,100.15) from root.sg.d1;
+<<SQLSTATE;
+select s7 in (1,169,12.5,100.15) from root.sg.d1;
+<<SQLSTATE;
+--7.2 查询的列对应的数据类型匹配到括号里数值对应的数据类型
+select s1 in (1,169,12.5,100.15) from root.sg.d1;
+select s2 in (3.3,169,11.2,100.15) from root.sg.d1;
+select s4 in (1,169,12.5,100.15,false,true,'V001') from root.sg.d1;
+select s6 contains (-1, 0, 22, 1) from root.sg.d1;
+
+--7.3 【NOT IN】和【NOT CONTAINS】：不是指定列表中的值
+select s1 from root.sg.d1 where s1 not in (-2, 1.1, '1.2', 10);
+select s2 from root.sg.d1 where s2 not contains (0, 9.3, '1.2', 1);
+
+--8. 字符串匹配运算符【LIKE,NOT LIKE,REGEXP,NOT REGEXP】：输入类型为所有的6种数据类型，输出为BOOLEAN类型
+--8.1 非TEXT数据类型匹配查询
+select s1 like '1%' from root.sg.d1;
+<<SQLSTATE;
+select s2 regexp '[0-100]' from root.sg.d1;
+<<SQLSTATE;
+select s3 like '%true' from root.sg.d1;
+<<SQLSTATE;
+select s6 regexp '[0-100]' from root.sg.d1;
+<<SQLSTATE;
+select s7 regexp '[0-100]' from root.sg.d1;
+<<SQLSTATE;
+--8.2 TEXT数据类型匹配查询
+select s4 regexp '[0-100]' from root.sg.d1;
+select s4 not regexp '^[A-Za-z]+$' from root.sg.d1;
+select s4 like '1%' from root.sg.d1;
+select s4 not like '_bc_' from root.sg.d1;
+
+--9.BETWEEN ... AND ... 运算符
+--9.1 BETWEEN ... AND ...【在指定范围内】
+select s1 from root.sg.d1 where s1 between 10.0 and 35;
+
+--9.2 NOT BETWEEN ... AND ...【不在指定范围内】
+select s2 from root.sg.d1 where s2 not between 1.0 and 10;
+
+--10.清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+

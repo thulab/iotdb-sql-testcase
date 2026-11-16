@@ -1,0 +1,66 @@
+//count_time 写入连续查询和视图
+
+--0. 清理数据
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.创建数据库和时间序列
+create database root.sg;
+
+--2.插入数据
+create timeseries root.sg.d1.s1 with datatype=INT32,encoding=RLE tags(apartment=D001);
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE tags(apartment=D002);
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT32,encoding=RLE;
+
+--3.查看数据库，设备，时间序列
+show databases root.sg;
+show devices root.sg.*;
+show timeseries root.sg.**;
+
+--4. 插入数据并查询所有数据
+insert into root.sg.d1(time,s1,s2) values(1,1,1);
+insert into root.sg.d1(time,s1,s2) values(2,null,2);
+insert into root.sg.d1(time,s1,s2) values(3,3,3);
+insert into root.sg.d1(time,s1,s2) values(4,4,null);
+insert into root.sg.d1(time,s1,s2) values(5,null,null);
+insert into root.sg.d1(time,s1,s2) values(6,6,6);
+insert into root.sg.d1(time,s1,s2) values(7,null,7);
+insert into root.sg.d1(time,s1,s2) values(8,8,8);
+insert into root.sg.d1(time,s1,s2) values(9,9,9);
+insert into root.sg.d1(time,s1,s2) values(10,10,0);
+insert into root.sg.d2(time,s1,s2) values(1,null,1);
+insert into root.sg.d2(time,s1,s2) values(2,2,null);
+insert into root.sg.d2(time,s1,s2) values(3,3,3);
+insert into root.sg.d2(time,s1,s2) values(4,null,null);
+insert into root.sg.d2(time,s1,s2) values(5,5,5);
+select * from root.sg.**;
+
+--14.查询写回【select into】
+select count_time(*) into root.sg.count_time(s1) from root.sg.d1 align by device;
+show timeseries root.sg.count_time.s1;
+select * from root.sg.count_time;
+
+--15.连续查询【CQ】
+CREATE CONTINUOUS QUERY cq1
+RESAMPLE EVERY 20s
+BEGIN SELECT count_time(*) INTO root.sg.cq_count_time(s1) FROM root.sg.d1 group by time(10s) align by device END;
+show cqs;
+show timeseries root.sg.cq_count_time.s1;
+insert into root.sg.d1(time,s1,s2) values(now(),1,1);
+select count(*) from root.sg.cq_count_time;
+select count_time(*) from root.sg.cq_count_time align by device;
+
+--16.视图【VIEW】
+create view root.sg.view_count_time.s1 as select s1 from root.sg.d1;
+show timeseries root.sg.view_count_time.**;
+select count_time(*) from root.sg.view_count_time;
+
+--25.清理数据
+drop cq cq1;
+<<NULL;
+delete database root.**;
+<<NULL;
+
+

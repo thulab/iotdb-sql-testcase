@@ -1,0 +1,89 @@
+
+-- [1]7:create database root.ln
+STRICT{
+PASS
+}
+
+-- [1]8:create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]9:create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]10:show databases root.ln
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]11:show timeseries root.ln.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.wt01.temp|null             |root.ln             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+erature               |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.ln.wf01.wt01.stat|null             |root.ln             |BOOLEAN             |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+us                    |                 |                    |                    |                    |                       |                |                      |                    |                              |                    |
+总数目：2
+}
+Elapsed Time: 0.0.0
+
+-- [1]12:insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99)
+STRICT{
+0
+}
+Elapsed Time: 0.0.48
+
+-- [1]13:insert into root.ln.wf01.wt01(time,status,temperature) values(1573056000000,TRUE,24.19)
+STRICT{
+0
+}
+Elapsed Time: 0.0.45
+
+-- [1]16:select last * from root.ln.** limit 2 offset 1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+1573056000000        |root.ln.wf01.wt01.stat|true             |BOOLEAN             |
+                     |us                    |                 |                    |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]17:select last * from root.ln.** order by timeseries asc limit 1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+1573056000000        |root.ln.wf01.wt01.stat|true             |BOOLEAN             |
+                     |us                    |                 |                    |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]18:select last * from root.ln.** order by timeseries asc limit 2 offset 1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+1573056000000        |root.ln.wf01.wt01.temp|24.19            |FLOAT               |
+                     |erature               |                 |                    |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]19:select last * from root.ln.** order by timeseries asc offset 1
+STRICT{
+Time(TIMESTAMP)      |Timeseries(TEXT)      |Value(TEXT)      |DataType(TEXT)      |
+--------------------------------------------------------------------------------
+1573056000000        |root.ln.wf01.wt01.temp|24.19            |FLOAT               |
+                     |erature               |                 |                    |
+总数目：1
+}
+Elapsed Time: 0.0.1

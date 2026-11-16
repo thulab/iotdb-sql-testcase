@@ -1,0 +1,24 @@
+//验证不支持 TRACING 语法时返回 SQLSTATE 异常
+--连接并清理环境
+connect root/TimechoDB@2021;
+delete DATABASE root.**;
+<<NULL;
+
+--准备数据库、时间序列和数据
+CREATE DATABASE root.ln;
+create timeseries root.ln.wf01.wt01.temperature with datatype=FLOAT ,encoding=RLE;
+create timeseries root.ln.wf01.wt01.status with datatype=BOOLEAN,encoding=RLE;
+SHOW DATABASES root.ln;
+show timeseries root.ln.**;
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509465600000,TRUE,25.99);
+insert into root.ln.wf01.wt01(time,status,temperature) values(1509472800000,TRUE,25.99);
+select * from root.ln.**;
+
+--查询性能追踪：沿用原脚本的不支持语法预期
+tracing select * from root;
+<<SQLSTATE;
+
+--清理环境
+connect root/TimechoDB@2021;
+delete DATABASE root.**;
+<<NULL;

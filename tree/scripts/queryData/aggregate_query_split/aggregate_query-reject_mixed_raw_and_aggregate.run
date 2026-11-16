@@ -1,0 +1,40 @@
+//分段分组聚合
+//一.聚合查询和原始数据查询不能混合使用
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=INT32,encoding=RLE;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2) values(1,1.1,24);
+insert into root.sg.d1(time,s1,s2) values(10,14.33,15);
+insert into root.sg.d1(time,s1,s2) values(36,22.66,75);
+insert into root.sg.d1(time,s1,s2) values(50,18.18,21);
+insert into root.sg.d1(time,s1,s2) values(80,16.18,24);
+insert into root.sg.d1(time,s1,s2) values(110,11.22,34);
+insert into root.sg.d1(time,s1,s2) values(120,14.13,15);
+
+--4. 聚合查询和原始数据查询混合使用校验
+select s1, count(s1) from root.sg.d1;
+<<SQLSTATE;
+select sin(s1), count(s2) from root.sg.d1;
+<<SQLSTATE;
+select s1, count(s2) from root.sg.d1 group by ([10,100),10ms);
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

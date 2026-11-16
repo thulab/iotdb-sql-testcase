@@ -1,0 +1,28 @@
+//count_time 刷盘前后状态
+
+--0. 清理数据
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1.创建数据库和时间序列
+create database root.sg;
+create aligned timeseries root.sg.d1(s1 FLOAT encoding=PLAIN compressor=SNAPPY, s2 FLOAT encoding=PLAIN compressor=SNAPPY);
+
+--2.插入数据并执行count_time查询
+insert into root.sg.d1(time,s1,s2) values(1,1,1);
+insert into root.sg.d1(time,s1,s2) values(2,2,2);
+insert into root.sg.d1(time,s1,s2) values(3,3,3);
+insert into root.sg.d1(time,s1,s2) values(4,4,4);
+insert into root.sg.d1(time,s1,s2) values(5,5,5);
+insert into root.sg.d1(time,s1,s2) values(6,6,6);
+select * from root.sg.d1;
+select count_time(*) from root.sg.d1;
+
+--3.flush之后执行count_time查询
+flush;
+select count_time(*) from root.sg.d1;
+
+--4.清理数据
+delete database root.**;
+<<NULL;

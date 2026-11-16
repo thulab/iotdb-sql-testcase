@@ -1,0 +1,159 @@
+//二、内置聚合函数查询-数据类型不做限制
+
+--0. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+--1. 创建存储组和时间序列
+create database root.sg;
+create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE;
+create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE;
+create timeseries root.sg.d1.s3 with datatype=int32,encoding=RLE;
+create timeseries root.sg.d1.s4 with datatype=int64,encoding=RLE;
+create timeseries root.sg.d1.s5 with datatype=text,encoding=PLAIN;
+create timeseries root.sg.d1.s6 with datatype=boolean,encoding=PLAIN;
+create timeseries root.sg.d2.s1 with datatype=INT32,encoding=RLE;
+create timeseries root.sg.d2.s2 with datatype=INT64,encoding=RLE;
+create timeseries root.sg.d2.s3 with datatype=Boolean,encoding=RLE;
+create timeseries root.sg.d2.s4 with datatype=TEXT,encoding=PLAIN;
+
+--2. 查询存储组和时间序列
+show databases root.sg;
+show timeseries root.sg.**;
+
+--3. 插入数据
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(1,1.1,NaN,0,10,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(2,2.5,1.2,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(3,1.1,NaN,5,0,'test',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(4,1.1,1.3,null,10,'AaBbC',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(5,3.2,NaN,3,0,'V1',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(6,2.5,1.2,1,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(7,2.2,NaN,1,0,'test',false);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(8,-1.0,1.2,0,5,'V2',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(9,2.3,NaN,null,0,'V1',true);
+insert into root.sg.d1(time,s1,s2,s3,s4,s5,s6) values(10,7.8,43.1,6,0,'V2',false);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(1,1,2,TRUE,'test');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(2,3,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(3,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(4,0,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(5,13,32,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(6,10,6,null,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(7,111,6,FALSE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(8,13,2,TRUE,null);
+insert into root.sg.d2(time,s1,s2,s3,s4) values(9,255,32,TRUE,'v1');
+insert into root.sg.d2(time,s1,s2,s3,s4) values(10,22,26,null,'18');
+
+--4. 统计指定时间序列下的sensor的数据点个数
+select count(s1) from root.sg.d1;
+select count(s2) from root.sg.d1;
+select count(s3) from root.sg.d1;
+select count(s4) from root.sg.d1;
+select count(s3) from root.sg.d2;
+select count(s4) from root.sg.d2;
+
+--5. 统计特定sensor下的全部数据点个数
+select count(s1) from root.sg.**;
+select count(s2) from root.sg.**;
+select count(s3) from root.sg.**;
+select count(s4) from root.sg.**;
+
+--6. 统计全部sensor的数据点个数
+select count(*) from root.sg.**;
+
+--7. 统计按level层级的时间序列
+select count(s1) from root.*.* group by level = 1;
+select count(s2) from root.*.* group by level = 1;
+select count(s3) from root.*.* group by level = 1;
+select count(s4) from root.*.* group by level = 1;
+
+--8. 统计按level层级的全部时间序列，
+select count(s1) from root.** group by level = 1;
+select count(s2) from root.** group by level = 1;
+select count(s3) from root.** group by level = 1;
+select count(s4) from root.** group by level = 1;
+
+--9. first_value特定时间序列的第一个值
+select first_value(s1) from root.sg.d1;
+select first_value(s2) from root.sg.d1;
+select first_value(s3) from root.sg.d1;
+select first_value(s4) from root.sg.d1;
+select first_value(s3) from root.sg.d2;
+select first_value(s4) from root.sg.d2;
+
+--10. first_value特定存储组下的所有的sensor第一个值，level层级查询
+select first_value(s1) from root.sg.d1 group by level = 1;  
+select first_value(s2) from root.sg.d1 group by level = 1; 
+select first_value(s3) from root.sg.d1 group by level = 1; 
+select first_value(s4) from root.sg.d1 group by level = 1; 
+
+--11. last_value特定时间序列的最后的值
+select last_value(s1) from root.sg.d1;
+select last_value(s2) from root.sg.d1;
+select last_value(s3) from root.sg.d1;
+select last_value(s4) from root.sg.d1;
+select last_value(s3) from root.sg.d2;
+select last_value(s4) from root.sg.d2;
+
+--12. last_value特定存储组的所有指定的sensor最后的值，level层级查询
+select last_value(s1) from root.sg.d1 group by level = 1; 
+select last_value(s2) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d1 group by level = 1; 
+select last_value(s4) from root.sg.d1 group by level = 1; 
+select last_value(s3) from root.sg.d2 group by level = 1; 
+select last_value(s4) from root.sg.d2 group by level = 1; 
+
+--13. min_time特定时间序列的最小时间
+select min_time(s1) from root.sg.d1;
+select min_time(s2) from root.sg.d1;
+select min_time(s3) from root.sg.d1;
+select min_time(s4) from root.sg.d1;
+select min_time(s3) from root.sg.d2;
+select min_time(s4) from root.sg.d2;
+
+--14. min_time特定存储组下的所有指定的sensor的最小时间，level层级查询
+select min_time(s1) from root.sg.** group by level = 1;
+select min_time(s2) from root.sg.** group by level = 1;
+select min_time(s3) from root.sg.** group by level = 1;
+select min_time(s4) from root.sg.** group by level = 1;
+
+--15. max_time特定时间序列的最大时间
+select max_time(s1) from root.sg.d1;
+select max_time(s2) from root.sg.d1;
+select max_time(s3) from root.sg.d1;
+select max_time(s4) from root.sg.d1;
+select max_time(s3) from root.sg.d2;
+select max_time(s4) from root.sg.d2;
+
+--16. max_time特定存储组下的所有指定的sensor的最大时间，level层级查询
+select max_time(s1) from root.sg.** group by level = 1;   
+select max_time(s2) from root.sg.** group by level = 1;
+select max_time(s3) from root.sg.** group by level = 1;
+select max_time(s4) from root.sg.** group by level = 1;
+
+--17. COUNT_IF求数据点连续满足某一给定条件，且满足条件的数据点个数（用keep表示）满足指定阈值的次数。
+--不使用ignoreNull参数(忽略null)
+select count_if(s3=0 & s4=0, 3), count_if(s3=1 & s4=0, 3) from root.sg.d1;
+--使用ignoreNull参数
+select count_if(s3=0 & s4=0, 3, 'ignoreNull'='false'), count_if(s3=1 & s4=0, 3, 'ignoreNull'='true') from root.sg.d1;
+ 
+--18.TIME_DURATION：求某一列最大一个不为NULL的值所在时间戳与最小一个不为NULL的值所在时间戳的时间戳差
+select time_duration(*) from root.sg.* where time >= 2;
+select time_duration(s1),time_duration(s2) from root.sg.d2 where time > 2 and time <= 9;
+select time_duration(*) from root.sg.** group by ([0,10),2ms);
+select time_duration(s3),time_duration(s4) from root.sg.d2 group by ((1,10],5ms);
+select time_duration(s1) from root.sg.** group by ((0,11],5ms) having count(s1) > 4;
+select time_duration(*) from root.sg.** align by device;
+select time_duration(*) from root.sg.** align by time;
+
+--19. MODE： 求众数。
+select mode(s1),mode(s2),mode(s3),mode(s4),mode(s5),mode(s6) from root.sg.d1;
+select mode(*) from root.sg.d1;
+select mode(*) from root.sg.d2;
+
+--20. 清理环境
+connect root/TimechoDB@2021;
+delete database root.**;
+<<NULL;
+
+

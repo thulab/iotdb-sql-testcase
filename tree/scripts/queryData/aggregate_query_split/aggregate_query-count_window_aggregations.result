@@ -1,0 +1,160 @@
+
+-- [1]8:insert into root.sg.d1(time,s1,s2) values(1,14,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.255
+
+-- [1]9:insert into root.sg.d1(time,s1,s2) values(2,16,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]10:insert into root.sg.d1(time,s1,s2) values(3,16,0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]11:insert into root.sg.d1(time,s1,s2) values(4,16,0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]12:insert into root.sg.d1(time,s1,s2) values(5,18,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]13:insert into root.sg.d1(time,s1,s2) values(6,24,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]14:insert into root.sg.d1(time,s1,s2) values(7,36,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]15:insert into root.sg.d1(time,s1,s2) values(8,36,null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]16:insert into root.sg.d1(time,s1,s2) values(9,45,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:insert into root.sg.d1(time,s1,s2) values(10,60,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]20:show devices root.sg.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.d1        |false                |null                |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]21:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |null            |null                  |null                |null                          |BASE                |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]22:select * from root.sg.**
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(DOUBLE)      |root.sg.d1.s2(DOUBLE)      |
+---------------------------------------------------------------------------
+1                    |14.0                       |1.0                        |
+---------------------------------------------------------------------------
+2                    |16.0                       |1.0                        |
+---------------------------------------------------------------------------
+3                    |16.0                       |0.0                        |
+---------------------------------------------------------------------------
+4                    |16.0                       |0.0                        |
+---------------------------------------------------------------------------
+5                    |18.0                       |1.0                        |
+---------------------------------------------------------------------------
+6                    |24.0                       |1.0                        |
+---------------------------------------------------------------------------
+7                    |36.0                       |1.0                        |
+---------------------------------------------------------------------------
+8                    |36.0                       |null                       |
+---------------------------------------------------------------------------
+9                    |45.0                       |1.0                        |
+---------------------------------------------------------------------------
+10                   |60.0                       |1.0                        |
+总数目：10
+}
+Elapsed Time: 0.0.3
+
+-- [1]25:select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,2)
+STRICT{
+Time(TIMESTAMP)      |__endTime(INT64)      |count(root.sg.d1.s2)(INT64)      |first_value(root.sg.d1.s1)(DOUBLE)      |
+--------------------------------------------------------------------------------------------------------------------
+1                    |2                     |2                                |14.0                                    |
+--------------------------------------------------------------------------------------------------------------------
+3                    |4                     |2                                |16.0                                    |
+--------------------------------------------------------------------------------------------------------------------
+5                    |6                     |2                                |18.0                                    |
+--------------------------------------------------------------------------------------------------------------------
+7                    |9                     |2                                |36.0                                    |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]26:select __endTime, count(s2), first_value(s1) from root.sg.d1 group by count(s2,3) align by device
+STRICT{
+Time(TIMESTAMP)      |Device(TEXT)      |__endTime(INT64)      |count(s2)(INT64)      |first_value(s1)(DOUBLE)      |
+----------------------------------------------------------------------------------------------------------------
+1                    |root.sg.d1        |3                     |3                     |14.0                         |
+----------------------------------------------------------------------------------------------------------------
+4                    |root.sg.d1        |6                     |3                     |16.0                         |
+----------------------------------------------------------------------------------------------------------------
+7                    |root.sg.d1        |10                    |3                     |36.0                         |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]29:select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=false)
+STRICT{
+Time(TIMESTAMP)      |count(root.sg.d1.s2)(INT64)      |first_value(root.sg.d1.s1)(DOUBLE)      |
+----------------------------------------------------------------------------------------------
+1                    |5                                |14.0                                    |
+----------------------------------------------------------------------------------------------
+6                    |4                                |24.0                                    |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]30:select count(s2), first_value(s1) from root.sg.d1 group by count(s2,5,ignoreNull=true)
+STRICT{
+Time(TIMESTAMP)      |count(root.sg.d1.s2)(INT64)      |first_value(root.sg.d1.s1)(DOUBLE)      |
+----------------------------------------------------------------------------------------------
+1                    |5                                |14.0                                    |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]33:select count(s2),first_value(s1) from root.sg.d1 group by count(s2,2),level=2
+STRICT{
+SQLSTATE : 701: GROUP BY CLAUSES doesn't support GROUP BY LEVEL now.
+}

@@ -1,0 +1,172 @@
+
+-- [1]9:create database root.sg
+STRICT{
+PASS
+}
+
+-- [1]10:create timeseries root.sg.d1.s1 with datatype=float,encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]11:create timeseries root.sg.d1.s2 with datatype=double,encoding=RLE
+STRICT{
+PASS
+}
+
+-- [1]12:create timeseries root.sg.d1.s3(ID) with datatype=INT32,encoding=RLE tags(tag1=V1) attributes(attr1=001)
+STRICT{
+PASS
+}
+
+-- [1]13:create aligned timeseries root.sg.d2(s1(sun) INT32 tags(tag1=v1, tag2=v2) attributes(attr1=v1, attr2=v2), s2(moon) DOUBLE tags(tag3=v3, tag4=v4) attributes(attr3=v3, attr4=v4))
+STRICT{
+PASS
+}
+
+-- [1]14:create timeseries root.db.test.m1 with datatype=BOOLEAN,encoding=PLAIN
+STRICT{
+PASS
+}
+
+-- [1]17:show databases root.db
+STRICT{
+Database(TEXT)      |SchemaReplicationFactor(INT32)      |DataReplicationFactor(INT32)      |TimePartitionOrigin(INT64)      |TimePartitionInterval(INT64)      |
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.db             |1                                   |1                                 |0                               |604800000                         |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]18:show devices root.sg.*
+STRICT{
+Device(TEXT)      |IsAligned(TEXT)      |Template(TEXT)      |TTL(ms)(TEXT)      |
+------------------------------------------------------------------------------
+root.sg.d1        |false                |null                |INF                |
+------------------------------------------------------------------------------
+root.sg.d2        |true                 |null                |INF                |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]19:show timeseries root.sg.**
+STRICT{
+Timeseries(TEXT)      |Alias(TEXT)      |Database(TEXT)      |DataType(TEXT)      |Encoding(TEXT)      |Compression(TEXT)      |Tags(TEXT)      |Attributes(TEXT)      |Deadband(TEXT)      |DeadbandParameters(TEXT)      |ViewType(TEXT)      |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s3         |ID               |root.sg             |INT32               |RLE                 |LZ4                    |{"tag1":"V1"}   |{"attr1":"001"}       |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s1         |null             |root.sg             |FLOAT               |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d1.s2         |null             |root.sg             |DOUBLE              |RLE                 |LZ4                    |null            |null                  |null                |null                          |BASE                |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s1         |sun              |root.sg             |INT32               |TS_2DIFF            |LZ4                    |{"tag1":"v1","ta|{"attr2":"v2","attr1":|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |g2":"v2"}       |"v1"}                 |                    |                              |                    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+root.sg.d2.s2         |moon             |root.sg             |DOUBLE              |GORILLA             |LZ4                    |{"tag4":"v4","ta|{"attr4":"v4","attr3":|null                |null                          |BASE                |
+                      |                 |                    |                    |                    |                       |g3":"v3"}       |"v3"}                 |                    |                              |                    |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]22:insert into root.sg.d1(time,s1,s2,s3) values(1,20.12,50.32,1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.53
+
+-- [1]23:insert into root.sg.d1(time,s1,s2,s3) values(20,21.44,65.33,2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]24:insert into root.sg.d2(time,s1,s2) aligned values(1,10,1.1),(2,5,-1.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.50
+
+-- [1]25:insert into root.db.test(time,m1) values(1,true),(2,true),(20,false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.59
+
+-- [1]28:select ** from root.sg
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s3(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |root.sg.d2.s1(INT32)      |root.sg.d2.s2(DOUBLE)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+1                    |1                         |20.12                     |50.32                      |10                        |1.1                        |
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+2                    |null                      |null                      |null                       |5                         |-1.2                       |
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+20                   |2                         |21.44                     |65.33                      |null                      |null                       |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]29:select s1 as temperature,s1 as ID from root.sg.d1, root.sg.d2 align by time
+STRICT{
+SQLSTATE : 701: alias 'temperature' can only be matched with one time series
+}
+
+-- [1]31:select s1 as temperature,m1 as status from root.sg.d1, root.db.test align by time
+STRICT{
+Time(TIMESTAMP)      |temperature(FLOAT)      |status(BOOLEAN)      |
+------------------------------------------------------------------
+1                    |20.12                   |true                 |
+------------------------------------------------------------------
+2                    |null                    |true                 |
+------------------------------------------------------------------
+20                   |21.44                   |false                |
+总数目：3
+}
+Elapsed Time: 0.0.3
+
+-- [1]32:select s1, s2 from root.sg.d1, root.sg.d2 align by time
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.s1(FLOAT)      |root.sg.d2.s1(INT32)      |root.sg.d1.s2(DOUBLE)      |root.sg.d2.s2(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------------------
+1                    |20.12                     |10                        |50.32                      |1.1                        |
+-------------------------------------------------------------------------------------------------------------------------------
+2                    |null                      |5                         |null                       |-1.2                       |
+-------------------------------------------------------------------------------------------------------------------------------
+20                   |21.44                     |null                      |65.33                      |null                       |
+总数目：3
+}
+Elapsed Time: 0.0.2
+
+-- [1]33:select s1 as temperature, s2 as speed from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |temperature(FLOAT)      |speed(DOUBLE)      |
+----------------------------------------------------------------
+1                    |20.12                   |50.32              |
+----------------------------------------------------------------
+20                   |21.44                   |65.33              |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]34:select ID, s1, s2 from root.sg.d1
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.ID(INT32)      |root.sg.d1.s1(FLOAT)      |root.sg.d1.s2(DOUBLE)      |
+----------------------------------------------------------------------------------------------------
+1                    |1                         |20.12                     |50.32                      |
+----------------------------------------------------------------------------------------------------
+20                   |2                         |21.44                     |65.33                      |
+总数目：2
+}
+Elapsed Time: 0.0.2
+
+-- [1]35:select ID, sun, moon from root.sg.*
+STRICT{
+Time(TIMESTAMP)      |root.sg.d1.ID(INT32)      |root.sg.d2.sun(INT32)      |root.sg.d2.moon(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------
+1                    |1                         |10                         |1.1                          |
+-------------------------------------------------------------------------------------------------------
+2                    |null                      |5                          |-1.2                         |
+-------------------------------------------------------------------------------------------------------
+20                   |2                         |null                       |null                         |
+总数目：3
+}
+Elapsed Time: 0.0.1
