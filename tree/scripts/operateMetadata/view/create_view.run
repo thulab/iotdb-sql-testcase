@@ -1,7 +1,9 @@
 connect root/TimechoDB@2021;
 //tc1 developer doc
 drop database root.view;<<null;
+sleep 5000;
 drop database root.db;<<null;
+sleep 5000;
 delete from root.__system.**.`database=root.db`.**;<<null;
 create database root.view;
 create database root.db;
@@ -19,7 +21,9 @@ create view root.view.v2.c1 as select count(password) from root.__audit.password
 show timeseries root.view.v2.c1;
 select c1 from root.view.v2;
 drop database root.view;
+sleep 5000;
 drop database root.db;
+sleep 5000;
 show databases root.view;
 show databases root.db;
 //tc3 view name same as ts
@@ -31,6 +35,7 @@ create view root.db.t1.col1 as select col1 from root.db.t1;
 <<sqlstate;
 show timeseries root.db.t1.**;
 drop database root.db;
+sleep 5000;
 //tc4 view name same as view 
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
@@ -43,6 +48,7 @@ create view root.db.t1.v1 as select col2 from root.db.t1;
 <<sqlstate;
 show timeseries root.db.t1.**;
 drop database root.db;
+sleep 5000;
 //tc5 view name and ts have same dev name ; normal dev 
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
@@ -59,6 +65,7 @@ create aligned timeseries root.db.t1(v2 FLOAT encoding=PLAIN compressor=SNAPPY);
 select v1,col1,col2 from root.db.t1;
 show timeseries root.db.t1.**;
 drop database root.db;
+sleep 5000;
 
 //tc6 view name and ts have same dev name ; aligned dev
 create database root.db;
@@ -75,6 +82,7 @@ insert into root.db.t1(time,v1) values(3,3);
 insert into root.db.t1(time,v1) aligned values(4,4);
 select v1 from root.db.t1;
 drop database root.db;
+sleep 5000;
 
 //tc7 view name and ts have same dev name; set template to this dev
 create database root.db;
@@ -94,6 +102,7 @@ show view;
 insert into root.db.t2(time,s_1)aligned values (1,1.1);
 show devices root.db.*;
 drop database root.db;
+sleep 5000;
 drop schema template t1;
 show schema templates;
 
@@ -117,6 +126,7 @@ select v0 from root.db.t1 order by time desc;
 create view root.db.t1.v0 as select s_1 from root.db.t1;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 drop schema template t1;
 show schema templates;
 show databases root.db;
@@ -141,6 +151,7 @@ select col0 from root.db.dev_of_view2;
 select col0 from root.db.dev_of_view1;
 select s_0 from root.db.t1;
 drop database root.db;
+sleep 5000;
 drop schema template t1;
 
 //tc10 ts dev and view des is not same ,normal
@@ -164,9 +175,11 @@ insert into root.db.view1(time,col0,col1) values(5,5.1,5.1);
 insert into root.db.view1(time,col0,col1)aligned values(5,5.1,5.1);
 select col0,col1 from root.db.view1;
 drop database root.db;
+sleep 5000;
 // tc12 developer doc create sql
 create database root.db;
 drop database root.view;<<null;
+sleep 5000;
 create database root.view;
 CREATE VIEW root.view.device.status AS SELECT s01 FROM root.db.device;<<sqlstate;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -179,7 +192,9 @@ select s01 into root.view.device(status) from root.db.device;
 select s01 from root.db.device;
 select status from root.view.device;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 //tc13 developer doc create sql ,same dev
 create database root.db;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -189,6 +204,7 @@ select s01,status from root.db.device;
 insert into root.db.device(time,status,s01) values(1,1,2);<<sqlstate;
 select s01,status from root.db.device;
 drop database root.db;
+sleep 5000;
 //tc14 developer doc create sql , no select from
 create database root.db;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -198,6 +214,7 @@ select s01,status from root.db.device;
 delete from root.db.device.**;
 select s01,status from root.db.device;
 drop database root.db;
+sleep 5000;
 //tc15 expand no select from , use path pattern
 create database root.db;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -209,6 +226,7 @@ CREATE VIEW root.db.device.status AS root.**;
 <<sqlstate;
 show view;
 drop database root.db;
+sleep 5000;
 //tc16 developer doc create sql, expression
 create database root.db;
 create timeseries root.db.d01.temperature01 with datatype=float; 
@@ -225,6 +243,7 @@ select temperature01,temperature02,cast(avg_temperature as INT32) from root.db.d
 CREATE VIEW root.view.device.avg_temp_copy AS root.db.d01.avg_temperature;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 
 //tc17 developer doc 3.1.4 ,multiple view columns
 create database root.db;
@@ -236,9 +255,11 @@ insert into root.db.device.sub(time,hardware) values(2,22);
 select hardware,status,s01,s02 from root.db.**;
 show view root.db.**;
 delete timeseries root.db.**;
+sleep 5000;
 show view root.db.**;
 show timeseries root.db.**;
 drop database root.db;
+sleep 5000;
 //tc18 delete timeseries view_name can also delete the view 
 create database root.db;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -250,6 +271,7 @@ show timeseries root.db.device.sub.hardware;
 show view root.db.device.sub.hardware;
 count timeseries root.db.**;
 delete timeseries root.db.device.sub.hardware;
+sleep 5000;
 show timeseries root.db.device.sub.hardware;
 show view root.db.device.sub.hardware;
 count timeseries root.db.**;
@@ -260,6 +282,7 @@ show view root.db.device.status;
 show timeseries root.db.device.status;
 count timeseries root.db.**;
 drop database root.db;
+sleep 5000;
 //tc19 developer doc 3.1.4 ,multiple view columns
 create database root.db;
 create timeseries root.db.device.s01 with datatype=INT32;
@@ -271,6 +294,7 @@ show timeseries root.db.device.sub.hardware;
 show view root.db.device.sub.hardware;
 count timeseries root.db.**;
 delete timeseries root.db.device.sub.hardware;
+sleep 5000;
 show timeseries root.db.device.sub.hardware;
 show view root.db.device.sub.hardware;
 count timeseries root.db.**;
@@ -281,6 +305,7 @@ show view root.db.device.status;
 show timeseries root.db.device.status;
 count timeseries root.db.**;
 drop database root.db;
+sleep 5000;
 
 //tc20 developer doc 3.1.4 ,multiple view columns
 create database root.db;
@@ -319,8 +344,10 @@ show timeseries root.db.device.`sub.hardware`;
 drop view root.db.device.is_not_exist;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 // tc24 same name s01,s02 from root.db.d01,root.db.d02
 drop database root.view;<<null;
+sleep 5000;
 create database root.db;
 create database root.view;
 create timeseries root.db.d01.s01 with datatype=INT32;
@@ -336,6 +363,7 @@ insert into root.db.d02(time,s01,s02) values(2,true,"hello");
 select alpha, beta, gamma,delta from root.view.d;
 show view root.view.d.delta;
 delete timeseries root.db.d02.s02;
+sleep 5000;
 show view root.view.d.delta;
 drop view root.view.d.delta;
 show view root.view.d.delta;
@@ -343,12 +371,15 @@ create timeseries root.db.d02.s02 with datatype=TEXT;
 show view root.view.d.*;
 show view root.view.d.gamma;
 delete timeseries root.db.d01.s02;
+sleep 5000;
 show view root.view.d.gamma;
 show view;
 drop view root.view.d.gamma;
 show view;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 // tc25 developer doc 3.1.5
 create database root.db;
 create database root.view;
@@ -383,10 +414,13 @@ select * from root.db.view2;
 create timeseries root.db.d07.temperature with datatype=double;
 show view;
 delete timeseries root.db.d04.temperature;
+sleep 5000;
 show view;
 select * from root.db.view;<<sqlstate;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 // tc26 select Constant string from ts
 create database root.db;
 create timeseries root.db.d01.speed with datatype=INT64;
@@ -402,6 +436,7 @@ create view root.db.d01(v_speed) as select * from root.db.d01;
 count timeseries root.db.**;
 select * from root.db.d01;
 drop database root.db;
+sleep 5000;
 // tc27 dev name same as aligned dev
 create database root.db;
 create aligned timeseries root.db.d_aligned(s01 INT32 encoding=TS_2DIFF compressor=ZSTD ,s01 INT32 encoding=GORILLA compressor=GZIP );
@@ -425,6 +460,7 @@ select v1,v2,s01,s02 from root.db.d_aligned;
 select * from root.db.d_normal;
 show timeseries root.db.**;
 drop database root.db;
+sleep 5000;
 // tc28 view from diff db
 create database root.db1;
 create database root.db2;
@@ -456,7 +492,9 @@ select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.view.**,
 select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.db*.** align by device;
 show devices root.view.*;
 drop database root.db*;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 
 // tc29 view from diff db aligned
 create database root.db1;
@@ -489,12 +527,15 @@ select col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,s01 from root.db*.** a
 show devices root.view.*;
 show devices root.db*.*;
 drop database root.db*;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 show devices root.db*.*;
 show devices root.view.*;
 // tc30 view same db placehold
 
 drop database root.db;<<null;
+sleep 5000;
 
 create database root.db;
 create aligned timeseries root.db.d1(s01 INT32,s02 INT64,s03 boolean,s04 float,s05 double,s06 text);
@@ -527,3 +568,4 @@ insert into root.db.d1(time,c1,c2,c3,c4,c5,c6) values(2000,"str c1","str c2","st
 select * from root.db.d1;
 select s01,s02,s03,s04,s05,s06,c1,c2,c3,c4,c5,c6 from root.db.d1;
 drop database root.db;
+sleep 5000;

@@ -1,6 +1,7 @@
 connect root/TimechoDB@2021;
 //tc1 embed view from view
 drop database root.db;<<null;
+sleep 5000;
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
 create timeseries root.db.t1.col2 with datatype=INT64;
@@ -35,9 +36,11 @@ create view root.db.v1_of_view1(col1,col3) as root.db.t1.col1,root.db.t1.col1,ro
 create view root.db.v1_of_view1(col1,col3) as root.db.t1.col1,root.db.t1.col1;
 select col1,col3 from root.db.v1_of_view1;
 drop database root.db;
+sleep 5000;
 
 //tc6 insert into  expression
 drop database root.db;<<null;
+sleep 5000;
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
 create timeseries root.db.t1.col2 with datatype=INT64;
@@ -66,6 +69,7 @@ insert into root.db.view1(time,col1) values(3,7);
 alter view root.db.view1.col1 as select col1 from root.db.t1 where col1>10;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 
 //tc10 create view ,count  group by level
 create database root.db;
@@ -82,6 +86,7 @@ create view root.db.t1.view_col_1 as select count(col1) from root.db.t1 group by
 create view root.db.t1.view_col_1 as select col2/col1 from root.db.t1;
 select view_col_1,col2,col1 from root.db.t1;
 delete timeseries root.db.t1.col1;
+sleep 5000;
 show view;
 
 select view_col_1,col2,col1 from root.db.t1;
@@ -94,10 +99,12 @@ show view root.db.t1.view_col_2;
 show view;
 
 delete timeseries root.db.t1.col1;
+sleep 5000;
 create timeseries root.db.t1.col1 with datatype=INT32;
 show view;
 select view_col_1,view_col_2,col2,col1 from root.db.t1;
 drop database root.db;
+sleep 5000;
 show view root.db.**;
 
 //tc 13 limit 
@@ -115,6 +122,7 @@ create view root.db.t1.view_col_1 as select col1 from root.db.t1 order by col1 d
 create aligned view root.db.t1.view_col_1 as select col1 from root.db.t1;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 //tc16 create view Specify the encoding
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
@@ -124,6 +132,7 @@ insert into root.db.t1(time,col1,col2) values(2,2,2);
 create view root.db.t1.view_col_1 with datatype=DOUBLE ,ENCODING=RLE as select col1 from root.db.t1;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 // tc17 name same as ts
 create database root.db;
 create timeseries root.db.t1.col1 with datatype=INT32;
@@ -138,10 +147,13 @@ create view root.db.v1(col1,col2) as select col1 from root.db.t1,root.db.t_not_e
 insert into root.db.v1(time,col1) values(100,1000);
 select * from root.db.v1,root.db.t1;
 drop database root.db;
+sleep 5000;
 
 // tc 18 insert into alias series wrong datatype
 drop database root.db;<<null;
+sleep 5000;
 drop database root.view;<<null;
+sleep 5000;
 create database root.db;
 create database root.view;
 create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
@@ -161,10 +173,14 @@ flush;
 select col1,col2 from root.view.v1;
 select count(col1),count(col2) from root.view.v1;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 // tc19 select int32+text
 drop database root.db;<<null;
+sleep 5000;
 drop database root.view;<<null;
+sleep 5000;
 create database root.db;
 create database root.view;
 create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
@@ -174,11 +190,15 @@ create view root.view.v1(col1,col2) as select s01+s02 from root.db.**;
 <<sqlstate;
 show view root.view.v1;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 
 // tc20 insert into non-alias series
 drop database root.db;<<null;
+sleep 5000;
 drop database root.view;<<null;
+sleep 5000;
 create database root.db;
 create database root.view;
 create aligned timeseries root.db.d1(s01 INT32,s02 INT64);
@@ -195,7 +215,9 @@ insert into root.db.d1(time,s01,s02)aligned values(100,200,300);
 insert into root.db.d1(time,s01,s02)aligned values(200,300,400);
 select * from root.view.v1;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 // tc21 use template
 drop schema template t1;<<null;
 create schema template t1 (temperature FLOAT encoding=RLE, status BOOLEAN encoding=PLAIN compression=SNAPPY);
@@ -225,12 +247,15 @@ select * from root.view.v1;
 set schema template t1 to root.view.v1;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 drop database root.view;
+sleep 5000;
 drop schema template t1;
 
 // tc22 drop source series; insert into 自动创建
 
 drop database root.db;<<null;
+sleep 5000;
 
 create database root.db;
 create aligned timeseries root.db.d1(s01 INT32,s02 INT64,s03 boolean,s04 float,s05 double,s06 text);
@@ -250,7 +275,9 @@ insert into root.db.d2(time,s01,s02,s03,s04,s05,s06) values(3,3,3,true,3,3,"norm
 create view root.db.${2}(${2}_${3}) as select s01,s02,s03,s04,s05,s06 from root.db.*;
 select d1_s04,d1_s01,d1_s03,d2_s02,d2_s05,d2_s06 from root.db.**;
 delete timeseries root.db.d1.s01;
+sleep 5000;
 delete timeseries root.db.d2.s01;
+sleep 5000;
 show timeseries root.db.d1.*;
 show timeseries root.db.d2.*;
 insert into root.db.d1(time,d1_s01,s02,s03,s04,s05,s06) aligned values(4,4,4,true,4,4,"aligned s01 will be created auto or not");
@@ -267,4 +294,5 @@ select s01,s02,s03,s04,s05,s06,d1_s01,d1_s02,d1_s03,d1_s04,d1_s05,d1_s06 from ro
 select s01,s02,s03,s04,s05,s06,d2_s01,d2_s02,d2_s03,d2_s04,d2_s05,d2_s06 from root.db.d2;
 <<sqlstate;
 drop database root.db;
+sleep 5000;
 
