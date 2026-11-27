@@ -1,0 +1,336 @@
+-- BASE32：Base32 编码与解码、异常输入及权限校验
+-- 覆盖：正常/边界/空值 7 项；异常输入 4 项；权限 8 项；共 19 项。
+-- 原场景编号：45、46、47、50、51、52、54、48、49、53、55、215、216、217、218、219、220、221、222
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- TO_BASE32：STRING 列编码 (P1)
+-- 来源：binary_functions.run，用例 45
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：BLOB 列编码 (P1)
+-- 来源：binary_functions.run，用例 46
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'68656C6C6F');
+SELECT to_base32(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 47
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT to_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：解码大写 (P1)
+-- 来源：binary_functions.run，用例 50
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NBSWY3DP');
+SELECT from_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：解码小写 (P1)
+-- 来源：binary_functions.run，用例 51
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'nbswy3dp');
+SELECT from_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：解码混合大小写 (P1)
+-- 来源：binary_functions.run，用例 52
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NbSwY3Dp');
+SELECT from_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 54
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT from_base32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- TO_BASE32：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 48
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_base32() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 49
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_base32(col_string, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：无效字符时报错 (P1)
+-- 来源：binary_functions.run，用例 53
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello123');
+SELECT from_base32(col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：传入 0 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 55
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT from_base32() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- TO_BASE32：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 215
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 216
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 217
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE32：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 218
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT to_base32(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 219
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NBSWY3DP');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 220
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NBSWY3DP');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 221
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NBSWY3DP');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE32：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 222
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'NBSWY3DP');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT from_base32(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

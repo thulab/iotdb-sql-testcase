@@ -1,0 +1,75 @@
+
+-- [1]11:create database covar_samp_stability_test
+STRICT{
+PASS
+}
+
+-- [1]14:use covar_samp_stability_test
+STRICT{
+PASS
+}
+
+-- [1]17:create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]20:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'large_offset',1000000000001,3000000000010,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.285
+
+-- [1]23:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'large_offset',1000000000002,3000000000013,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]26:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'large_offset',1000000000003,3000000000016,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]29:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'large_offset',1000000000004,3000000000019,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'large_offset',1000000000005,3000000000022,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]35:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'extreme',-1e+150,1e+150,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]38:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'extreme',0,0,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]41:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'extreme',1e+150,-1e+150,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]44:select case_id, covar_samp(x,y) from pair_cases where case_id in ('large_offset','extreme') group by case_id order by case_id
+STRICT{
+case_id(STRING)      |_col1(DOUBLE)      |
+----------------------------------------
+extreme              |-9.999999999999999E|
+                     |299                |
+----------------------------------------
+large_offset         |7.5                |
+总数目：2
+}
+Elapsed Time: 0.0.5

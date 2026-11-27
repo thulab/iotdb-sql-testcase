@@ -1,0 +1,53 @@
+// ASOF LEFT JOIN 时间条件等于和不等于校验
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table quotes(id TAG, sys ATTRIBUTE, price DOUBLE);
+create table trades(id TAG, sys ATTRIBUTE, quanty INT64);
+
+--4.查看表
+show tables;
+
+--5.展示表结构信息
+desc quotes;
+desc trades;
+
+--6. 数据写入
+insert into quotes(time,id,sys,price) values(1000,'1001','AAPL',10.6);
+insert into quotes(time,id,sys,price) values(10000,'1001','AAPL',10.7);
+insert into quotes(time,id,sys,price) values(50000,'1001','AAPL',10.9);
+insert into quotes(time,id,sys,price) values(10000,'2021','MSFT',20.6);
+insert into quotes(time,id,sys,price) values(20000,'2021','MSFT',20.8);
+insert into quotes(time,id,sys,price) values(86400000,'2021','MSFT',21.2);
+insert into quotes(time,id,sys,price) values(604800000,'2021','MSFT',22.2);
+insert into quotes(time,id,sys,price) values(1209600000,'2021','MSFT',23.2);
+
+insert into trades(time,id,sys,quanty) values(2000,'1001','AAPL',10);
+insert into trades(time,id,sys,quanty) values(15000,'1001','AAPL',5);
+insert into trades(time,id,sys,quanty) values(55000,'1001','AAPL',9);
+insert into trades(time,id,sys,quanty) values(11000,'2021','MSFT',20);
+insert into trades(time,id,sys,quanty) values(21000,'2021','MSFT',25);
+
+-- ASOF LEFT JOIN 时间条件不支持等于和不等于
+select t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+       t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from quotes t1 ASOF LEFT JOIN trades t2 ON t1.sys=t2.sys AND t1.time=t2.time;
+<<SQLSTATE;
+select t1.time as time1, t1.id as id1, t1.sys as sys1, t1.price as price1,
+       t2.time as time2, t2.id as id2, t2.sys as sys2, t2.quanty as quanty1
+from quotes t1 ASOF LEFT JOIN trades t2 ON t1.sys=t2.sys AND t1.time<>t2.time;
+<<SQLSTATE;
+--清理环境
+drop database test_db;
+<<NULL;

@@ -1,0 +1,61 @@
+//数据查询：LIMIT 与 OFFSET 组合查询
+
+connect root/TimechoDB@2021;
+--0.清理残留测试数据
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库
+create database test_db;
+
+--2. 切换到测试数据库
+use test_db;
+
+--3. 创建包含标签、属性和数值字段的测试表
+create table device_type_0
+(
+    "地区" STRING TAG,
+    "厂号" STRING TAG,
+    "设备号" STRING TAG,
+    "型号" STRING ATTRIBUTE,
+    "维修周期" STRING ATTRIBUTE,
+	"温度" FLOAT FIELD,
+    "排量" DOUBLE FIELD 
+);
+
+--4. 校验测试表已创建
+show tables;
+
+--5. 查看测试表结构
+desc device_type_0;
+
+--6. 写入多地区、多时间点的测试数据
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(1, 'beijing', '1000', '1', '1', '1', 80, 1000);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量" ) values(1, 'hebei', '2000', '7', '2', '5', 80.5, 1200);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(1, 'shanghai', '3000','3','1','15', 90, 1200);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(2, 'beijing', '1001','1','2','3',87.5, 1300);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(2, 'hebei', '2000','7','2','5', 88, 1200);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(2, 'shanghai', '3010', '3', '1', '15', 92, 1000);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(3, 'beijing', '1001','1','2','3',79.5, 2300);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(3, 'hebei', '2000','7','2','5', 80, 2200);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(3, 'shanghai', '3010', '3', '1', '15', 91, 1800);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(5, 'beijing', '1001','1','2','3',75, 1100);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(7, 'hebei', '2000','7','2','5', 86, 1800);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(8, 'shanghai', '3010', '3', '1', '15', 85, 1300);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(10, 'beijing', '1001','1','2','3',72, 1500);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(10, 'hebei', '2000','7','2','5', 89, 1800);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(15, 'shanghai', '3010', '3', '1', '15', 88, 1700);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(16, 'beijing', '1001','1','2','3',79, 1700);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(18, 'hebei', '2000','7','2','5', 86, 1900);
+INSERT INTO device_type_0(time, "地区", "厂号","设备号", "型号", "维修周期", "温度", "排量") values(20, 'shanghai', '3010', '3', '1', '15', 88, 1990);
+
+
+--7. LIMIT 与 OFFSET 组合
+--按时间和地区排序后，从偏移位置开始返回指定行数
+select * from device_type_0  order by time,"地区" asc offset 2 limit 10;
+select time, "型号", "温度" from device_type_0 order by time,"地区" asc offset 3 limit 5;
+
+
+--8. 清理测试数据库
+drop database test_db;
+<<NULL;

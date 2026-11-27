@@ -1,0 +1,61 @@
+
+-- [1]15:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]18:use test_db
+STRICT{
+PASS
+}
+
+-- [1]21:create table table1 (time TIMESTAMP TIME, region STRING TAG, device_id STRING TAG, model_id STRING ATTRIBUTE, maintenance STRING ATTRIBUTE, temperature FLOAT FIELD, humidity FLOAT FIELD, status Boolean FIELD, arrival_time TIMESTAMP FIELD)
+STRICT{
+PASS
+}
+
+-- [1]25:INSERT INTO table1(time, region, device_id, model_id, maintenance, temperature, humidity, status, arrival_time) VALUES (1000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:37:34),(2000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-01 13:38:25),(3000, '北京', 'd2', 'B', '181', NULL, 35.1, true, 2024-10-27 16:37:01),(4000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:03),(6000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-29 16:00:04),(7000, '北京', 'd3', 'C', '155', NULL, 35.2, false, Null),(8000, '北京', 'd3', 'C', '155', NULL, Null, false, Null),(9000, '北京', 'd3', 'C', '155', NULL, Null, false, 2024-10-31 16:37:08),(10000, '上海', 'd4', 'D', '94', 85.0, Null, NULL, 2024-11-28 08:00:09),(11000, '上海', 'd4', 'D', '94', NULL, 40.9, true, NULL),(12000, '上海', 'd4', 'D', '94', 85.0, 35.2, NULL, 2024-12-01 10:00:11),(13000, '上海', 'd5', 'E', '90', 88.0, 45.1, true, 2024-11-30 11:00:12),(14000, '上海', 'd5', 'E', '362', 85.0, NULL, NULL, 2024-11-29 10:00:13),(15000, '上海', 'd5', 'E', '362', NULL, 45.1, true, NULL),(16000, '上海', 'd5', 'E', '362', 90.0, 35.4, true, 2024-11-20 18:30:15),(17000, '上海', 'd5', 'F', '362', 90.0, 35.2, true, NULL),(18000, '上海', 'd5', 'F', '362', 90.0, 34.8, true, 2024-11-30 23:30:17)
+STRICT{
+0
+}
+Elapsed Time: 0.0.297
+
+-- [1]27:select device_id, CASE WHEN temperature IS NULL OR humidity IS NULL THEN '数据不完整' WHEN temperature > 85 AND humidity > 40 THEN '高温高湿' WHEN temperature > 85 AND humidity <= 40 THEN '高温低湿' WHEN temperature <= 85 AND humidity > 40 THEN '低温高湿' ELSE '低温低湿' END AS climate_condition, COUNT(*) AS record_count from table1 group by device_id, CASE WHEN temperature IS NULL OR humidity IS NULL THEN '数据不完整' WHEN temperature > 85 AND humidity > 40 THEN '高温高湿' WHEN temperature > 85 AND humidity <= 40 THEN '高温低湿' WHEN temperature <= 85 AND humidity > 40 THEN '低温高湿' ELSE '低温低湿' END order by 1,2,3
+STRICT{
+device_id(STRING)      |climate_condition(STRING)      |record_count(INT64)      |
+-------------------------------------------------------------------------------
+d1                     |高温低湿                           |2                        |
+-------------------------------------------------------------------------------
+d2                     |数据不完整                          |3                        |
+-------------------------------------------------------------------------------
+d3                     |数据不完整                          |3                        |
+-------------------------------------------------------------------------------
+d4                     |低温低湿                           |1                        |
+-------------------------------------------------------------------------------
+d4                     |数据不完整                          |2                        |
+-------------------------------------------------------------------------------
+d5                     |数据不完整                          |2                        |
+-------------------------------------------------------------------------------
+d5                     |高温低湿                           |3                        |
+-------------------------------------------------------------------------------
+d5                     |高温高湿                           |1                        |
+总数目：8
+}
+Elapsed Time: 0.0.8
+
+-- [1]30:select model_id, COUNT(CASE WHEN status = true THEN 1 END) AS operational_count, COUNT(CASE WHEN status = false THEN 1 END) AS faulty_count, COUNT(CASE WHEN maintenance < '100' THEN 1 END) AS needing_maintenance from table1 GROUP BY model_id order by 1,2,3,4
+STRICT{
+model_id(STRING)      |operational_count(INT64)      |faulty_count(INT64)      |needing_maintenance(INT64)      |
+-------------------------------------------------------------------------------------------------------------
+A                     |2                             |0                        |0                               |
+-------------------------------------------------------------------------------------------------------------
+B                     |1                             |0                        |0                               |
+-------------------------------------------------------------------------------------------------------------
+C                     |0                             |3                        |0                               |
+-------------------------------------------------------------------------------------------------------------
+D                     |1                             |0                        |0                               |
+-------------------------------------------------------------------------------------------------------------
+F                     |5                             |0                        |0                               |
+总数目：5
+}
+Elapsed Time: 0.0.5

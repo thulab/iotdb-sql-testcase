@@ -1,0 +1,142 @@
+
+-- [1]12:create database capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]13:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]17:create table bid (     stock_id STRING TAG,     price DOUBLE FIELD,     s1 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]23:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+bid                  |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]24:desc bid
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+stock_id              |STRING              |TAG                 |
+--------------------------------------------------------------
+price                 |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]27:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.211
+
+-- [1]28:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]31:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]32:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]43:select * from CAPACITY(     DATA => (select time, stock_id, price, s1 from bid where stock_id = 'AAPL' and price = 100.0)             PARTITION BY stock_id ORDER BY time,     SIZE => 5,     SLIDE => 2 ) order by stock_id, window_index, time
+STRICT{
+window_index(INT64)      |time(TIMESTAMP)      |stock_id(STRING)      |price(DOUBLE)      |s1(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------
+0                        |2021-01-01T09:05:00.0|AAPL                  |100.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]53:select window_index, count(*) as row_count from CAPACITY(     DATA => (         select time, stock_id, price, s1         from bid         where stock_id = 'AAPL'            or (stock_id = 'TESL' and price = 200.0)     ) ORDER BY time,     SIZE => 2,     SLIDE => 2 ) group by window_index order by window_index
+STRICT{
+window_index(INT64)      |row_count(INT64)      |
+-----------------------------------------------
+0                        |2                     |
+-----------------------------------------------
+1                        |2                     |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]68:select * from CAPACITY(     DATA => (select time, stock_id, price, s1 from bid where 1 = 0)             PARTITION BY stock_id ORDER BY time,     SIZE => 2,     SLIDE => 1 )
+STRICT{
+window_index(INT64)      |time(TIMESTAMP)      |stock_id(STRING)      |price(DOUBLE)      |s1(DOUBLE)      |
+总数目：0
+}
+Elapsed Time: 0.0.4
+
+-- [1]76:select stock_id, window_index, time, price from CAPACITY(     DATA => bid PARTITION BY stock_id ORDER BY time,     SIZE => 1,     SLIDE => 1 ) order by stock_id, window_index, time
+STRICT{
+stock_id(STRING)      |window_index(INT64)      |time(TIMESTAMP)      |price(DOUBLE)      |
+---------------------------------------------------------------------------------------
+AAPL                  |0                        |2021-01-01T09:05:00.0|100.0              |
+                      |                         |00+08:00             |                   |
+---------------------------------------------------------------------------------------
+AAPL                  |1                        |2021-01-01T09:07:00.0|103.0              |
+                      |                         |00+08:00             |                   |
+---------------------------------------------------------------------------------------
+AAPL                  |2                        |2021-01-01T09:09:00.0|102.0              |
+                      |                         |00+08:00             |                   |
+---------------------------------------------------------------------------------------
+TESL                  |0                        |2021-01-01T09:06:00.0|200.0              |
+                      |                         |00+08:00             |                   |
+---------------------------------------------------------------------------------------
+TESL                  |1                        |2021-01-01T09:07:00.0|202.0              |
+                      |                         |00+08:00             |                   |
+---------------------------------------------------------------------------------------
+TESL                  |2                        |2021-01-01T09:15:00.0|195.0              |
+                      |                         |00+08:00             |                   |
+总数目：6
+}
+Elapsed Time: 0.0.4
+
+-- [1]85:select count(*) as row_count from CAPACITY(     DATA => bid ORDER BY time,     SIZE => 1,     SLIDE => 9223372036854775807 )
+STRICT{
+row_count(INT64)      |
+----------------------
+1                     |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]93:select * from CAPACITY(     DATA => bid ORDER BY time,     SIZE => 1,     SLIDE => 9223372036854775808 )
+STRICT{
+SQLSTATE : 700: line 1:84: Invalid numeric literal: 9223372036854775808
+}

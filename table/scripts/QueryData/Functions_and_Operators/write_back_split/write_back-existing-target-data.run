@@ -1,0 +1,58 @@
+-- 查询写回 INSERT INTO QUERY：目标表已有数据时写回
+-- 来源章节：3
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 2. 清理并创建独立测试数据库
+drop database if exists db1;
+<<NULL;
+-- 3. 创建测试数据库
+create database db1;
+-- 4. 切换到测试数据库
+use db1;
+
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+
+-- 5. 创建源表或目标表
+create table t3(id string tag, s1 float,s2 int32,s3 text);
+-- 6. 创建源表或目标表
+create table t4(id string tag, s1 float,s2 int32,s3 text);
+
+-- 7. 写入测试数据
+insert into t3(time,id,s1,s2) values (1, 'a', 1.1, 11);
+-- 8. 写入测试数据
+insert into t4(time,id,s3) values (1, 'a', 'text');
+
+-- 9. 查询数据并核对写入结果
+select * from t4 order by time;
+-- 10. 使用 TABLE 语法从源表写入目标表
+insert into t4 table t3;
+-- 11. 查询数据并核对写入结果
+select * from t4 order by time;
+
+-- 12. 创建源表或目标表
+create table t5(id string tag, s1 float,s2 int32,s3 text);
+-- 13. 创建源表或目标表
+create table t6(id string tag, s1 float,s2 int32,s3 text);
+
+-- 14. 写入测试数据
+insert into t5(time,id,s1,s2) values (1, 'a', 1.1, 11);
+-- 15. 写入测试数据
+insert into t6(time,id,s1, s3) values (1, 'a', 2.2, 'text');
+
+-- 16. 查询数据并核对写入结果
+select * from t5 order by time;
+-- 17. 查询数据并核对写入结果
+select * from t6 order by time;
+-- 18. 使用 TABLE 语法从源表写入目标表
+insert into t6 table t5;
+-- 19. 查询数据并核对写入结果
+select * from t6 order by time;
+
+-- 20. 清理测试数据库
+drop database db1;
+<<NULL;

@@ -1,0 +1,27 @@
+-- if_built-in_function：条件表达式本身报错
+-- 目的：验证 IF 条件表达式本身报错时的预期行为。
+
+-- 1. 连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 2. 清理上次运行遗留的 test 数据库
+drop database test;
+<<NULL;
+
+-- 3. 创建 test 测试数据库
+create database test;
+-- 4. 切换到 test 数据库
+use test;
+
+-- 5. 创建本用例所需的测试表
+CREATE TABLE test.if_test(ts TIMESTAMP);
+-- 6. 插入一条测试数据
+INSERT INTO test.if_test(ts) VALUES (now());
+
+-- 7. 执行 IF 查询，验证预期错误
+SELECT if(1/0=1, 'yes', 'no') FROM test.if_test LIMIT 1;
+<<SQLSTATE;
+
+-- 8. 删除本用例创建的 test 数据库
+drop database test;
+<<NULL;

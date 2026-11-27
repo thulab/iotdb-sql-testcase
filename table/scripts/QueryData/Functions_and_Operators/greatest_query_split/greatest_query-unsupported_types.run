@@ -1,0 +1,23 @@
+// greatest 标量函数类型校验：BLOB 参数不受支持。
+// 执行 BLOB 参数查询时应返回 SQLSTATE 错误。
+
+connect root/TimechoDB@2021;
+
+--0. 清理残留测试数据库
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库和表结构
+create database test_db;
+use test_db;
+create table table9(blob_1 BLOB, blob_2 BLOB);
+
+--2. 写入一行 BLOB 测试数据
+insert into table9 values(1, X'11F8d7', X'FFD8FFE0');
+
+--3. BLOB 类型不受 GREATEST 支持，应返回 SQLSTATE 错误
+select blob_1, blob_2, greatest(blob_1,blob_2) from table9;
+<<SQLSTATE;
+--4. 清理测试数据库
+drop database test_db;
+<<NULL;

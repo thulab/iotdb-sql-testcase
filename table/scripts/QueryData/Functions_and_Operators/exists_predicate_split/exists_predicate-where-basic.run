@@ -1,0 +1,100 @@
+// EXISTS 谓词：WHERE 关联 EXISTS、条件过滤与类型转换
+// 来源：exists_predicate.run；独立准备数据并清理 test_db。
+// 各脚本删除并重建 test_db，须串行执行。
+
+connect root/TimechoDB@2021;
+-- 0. 清理残留 test_db；<<NULL 保留原脚本的空结果标记。
+drop database test_db;
+<<NULL;
+
+-- 1. 创建独立测试数据库。
+create database test_db;
+
+-- 2. 切换数据库，后续表名均在 test_db 下解析。
+use test_db;
+
+-- 3. 创建员工、部门、薪资记录表；按部门编号作为 TAG，员工编号和薪资为 FIELD。
+create table employees
+(
+    department_id STRING TAG,
+    name TEXT FIELD,
+	employee_id STRING FIELD,
+    Gender TEXT FIELD,
+	salary DOUBLE FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    department_name TEXT FIELD,
+	department_location STRING FIELD,
+	dep_member INT32 FIELD
+);
+
+
+create table salarys 
+(
+    department_id STRING TAG,
+	employee_id STRING FIELD,
+	salary DOUBLE FIELD
+);
+
+-- 4. 检查三张表是否创建成功。
+show tables;
+
+-- 5. 检查字段名称、类型及 TAG/FIELD 分类。
+desc employees;
+desc departments;
+desc salarys;
+
+-- 6. 写入 7 条员工、5 条部门及 6 条薪资记录。
+-- 部门表同一部门有多条时间记录；员工表 Jack、Linda 各有两条记录，供验证重复行语义。
+-- 员工与薪资表中相同薪资为 5600、8600，相同员工编号为 231102121、243102121。
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1704874210000, 'D001', 'Mary', '100011223', 'Female',6500.22);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1706698230000, 'D001', 'John', '100230012', 'Male', 8822);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1708868070000, 'D002', 'Nancy','120010112', 'Female', 10002);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1711437332000, 'D002', 'Jack', '102320120', 'Male', 7610);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1719754343000, 'D001', 'Linda','231102121', 'Female', 5600);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748736000000, 'D002', 'Jack', '242320120', 'Male', 7880);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748822400000, 'D001', 'Linda','243102121', 'Female', 8600);
+
+
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1704874210000, 'D001', '销售部', 'Beijing', 10223);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1706698230000, 'D002', '行政人事部', 'Shanghai', 1012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1708868070000, 'D002', '行政人事部', 'Beijing', 1112);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1711437332000, 'D001', '销售部', 'Hebei', 12012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1719754343000, 'D001', '销售部', 'Tianjin', 5511);
+
+
+insert into salarys(time, department_id, employee_id, salary) values(1748822400000, 'D001', '110011223', 6782);
+insert into salarys(time, department_id, employee_id, salary) values(1749036000000, 'D002', '243102121', 8600);
+insert into salarys(time, department_id, employee_id, salary) values(1759036000000, 'D001', '231102121', 5600);
+insert into salarys(time, department_id, employee_id, salary) values(1759122400000, 'D001', '230122121', 9910);
+insert into salarys(time, department_id, employee_id, salary) values(1759236000000, 'D002', '201102121', 5400);
+insert into salarys(time, department_id, employee_id, salary) values(1759536000000, 'D001', '221102121', 3600);
+
+-- 7. 检查完整测试数据；各表当前时间戳均唯一，按 time 升序稳定输出。
+select * from employees order by time;
+select * from departments order by time;
+select * from salarys order by time;
+
+-- 8. 场景查询（原文件第 1 条）。
+-- 按薪资等值关联，验证子查询至少有一行时保留外层记录；按 salary 升序输出。
+-- 预期薪资：5600、8600；EXISTS 不按子查询匹配数复制外层行。
+select salary from employees e where exists(select salary from salarys s where e.salary = s.salary) order by salary;
+
+-- 8. 场景查询（原文件第 2 条）。
+-- 外层和子查询分别限制 D001，再按薪资等值关联；按 salary 升序输出。
+-- 预期仅返回 5600；8600 对应的薪资记录属于 D002，不满足子查询部门条件。
+select salary from employees e where department_id = 'D001' and
+	exists(select salary from salarys s where department_id = 'D001' and  e.salary = s.salary) order by salary;
+
+-- 8. 场景查询（原文件第 3 条）。
+-- 按员工编号关联 D001 薪资记录，将外层编号转为 INT32 并去重；按 emp_id 升序输出。
+-- 预期仅返回 231102121；子查询中的 department_id 解析为薪资表字段。
+select distinct cast(employee_id AS INT32) as emp_id from employees e 
+	where exists(select employee_id from salarys s where department_id = 'D001' and e.employee_id = s.employee_id) order by emp_id;
+
+-- 9. 删除测试数据库，清理本用例创建的全部表和数据。
+drop database test_db;
+<<NULL;

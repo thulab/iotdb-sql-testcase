@@ -1,0 +1,169 @@
+-- RPAD：BLOB 右侧填充及截断、异常输入及权限校验
+-- 覆盖：正常/边界/空值 3 项；异常输入 2 项；权限 4 项；共 9 项。
+-- 原场景编号：104、105、106、107、108、255、256、257、258
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- RPAD：BLOB 右侧填充至指定长度 (P1)
+-- 来源：binary_functions.run，用例 104
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+SELECT rpad(col_blob, 5, X'FF') FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- RPAD：目标长度较小时截断 BLOB (P1)
+-- 来源：binary_functions.run，用例 105
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102030405');
+SELECT rpad(col_blob, 3, X'FF') FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- RPAD：BLOB 输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 106
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT rpad(col_blob, 5, X'FF') FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- RPAD：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 107
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT rpad() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- RPAD：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 108
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+SELECT rpad(col_blob, 5) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- RPAD：授予 ANY 范围 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 255
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT rpad(col, 5, X'FF') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- RPAD：授予数据库级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 256
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT rpad(col, 5, X'FF') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- RPAD：授予表级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 257
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT rpad(col, 5, X'FF') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- RPAD：未授予 SELECT 权限时访问数据库及查询 BLOB 列均报错 (P1)
+-- 来源：binary_functions.run，用例 258
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0102');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT rpad(col, 5, X'FF') FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

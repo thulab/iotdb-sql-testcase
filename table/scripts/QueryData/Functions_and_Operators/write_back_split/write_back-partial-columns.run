@@ -1,0 +1,99 @@
+-- 查询写回 INSERT INTO QUERY：部分列写回
+-- 来源章节：6
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+
+-- 2. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 3. 创建本场景数据库
+create database db1;
+-- 4. 创建源表或目标表
+create table db1.t1(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD);
+-- 5. 写入测试数据
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(1, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+-- 6. 写入测试数据
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(2, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+-- 7. 写入测试数据
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6) values(3, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false);
+
+-- 8. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+
+-- 9. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG,  s1 INT32 FIELD, s2 INT64 FIELD);
+-- 10. 将 SELECT 查询结果写入目标表
+insert into db1.t2(s1,s2) select s1,s2 from db1.t1;
+<<SQLSTATE;
+-- 11. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 12. 将 SELECT 查询结果写入目标表
+insert into db1.t2(s1,s2) select time,s1,s2 from db1.t1;
+<<SQLSTATE;
+-- 13. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 14. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,s1,s2) select s1,s2 from db1.t1;
+<<SQLSTATE;
+-- 15. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 16. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 17. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+-- 18. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,s1,s2) select time,s1,s2 from db1.t1;
+-- 19. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 20. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 21. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+-- 22. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,attr1, s1,s2) select time,attr1, s1,s2 from db1.t1;
+-- 23. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 24. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 25. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD);
+-- 26. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,attr1, s1,s2) select time,attr1,attr2, s1,s2 from db1.t1;
+<<SQLSTATE;
+
+-- 27. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 28. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, s1 INT32 FIELD, s2 INT64 FIELD);
+-- 29. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,tag1, s1,s2) select time,tag1, s1,s2 from db1.t1;
+-- 30. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 31. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 32. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, s1 INT32 FIELD, s2 INT64 FIELD);
+-- 33. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,tag1) select time,tag1 from db1.t1;
+<<SQLSTATE;
+
+-- 34. 删除目标表，为后续结构测试做准备
+drop table db1.t2;
+-- 35. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD);
+-- 36. 将 SELECT 查询结果写入目标表
+insert into db1.t2(time,attr1,attr2, s1,s2) select time,attr1,attr2, s1,s2 from db1.t1;
+-- 37. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 38. 清理测试数据库
+drop database db1;
+<<NULL;

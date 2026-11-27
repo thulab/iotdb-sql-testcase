@@ -1,0 +1,58 @@
+// ASOF INNER JOIN 子查询
+
+// ASOF INNER JOIN:非精确点连接方式，允许用户按照指定的规则以时间戳最接近的方式进行匹配
+
+connect root/TimechoDB@2021;
+
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table quotes(id TAG, sys ATTRIBUTE, price DOUBLE);
+create table trades(id TAG, sys ATTRIBUTE, quanty INT64);
+
+--4.查看表
+show tables;
+
+--5.展示表结构信息
+desc quotes;
+desc trades;
+
+--6. 数据写入
+insert into quotes(time,id,sys,price) values(1000,'1001','AAPL',10.6);
+insert into quotes(time,id,sys,price) values(10000,'1001','AAPL',10.7);
+insert into quotes(time,id,sys,price) values(50000,'1001','AAPL',10.9);
+insert into quotes(time,id,sys,price) values(10000,'2021','MSFT',20.6);
+insert into quotes(time,id,sys,price) values(20000,'2021','MSFT',20.8);
+insert into quotes(time,id,sys,price) values(86400000,'2021','MSFT',21.2);
+insert into quotes(time,id,sys,price) values(604800000,'2021','MSFT',22.2);
+insert into quotes(time,id,sys,price) values(1209600000,'2021','MSFT',23.2);
+
+insert into trades(time,id,sys,quanty) values(2000,'1001','AAPL',10);
+insert into trades(time,id,sys,quanty) values(15000,'1001','AAPL',5);
+insert into trades(time,id,sys,quanty) values(55000,'1001','AAPL',9);
+insert into trades(time,id,sys,quanty) values(11000,'2021','MSFT',20);
+insert into trades(time,id,sys,quanty) values(21000,'2021','MSFT',25);
+
+--7.6 子查询
+select
+    t1.time AS time1, t1.id AS id1, t1.sys AS sys1, t1.price AS price1,
+    t2.time AS time2, t2.id AS id2, t2.sys AS sys2, t2.quanty AS quanty1
+from
+    (SELECT * FROM quotes WHERE price > 20) t1
+    ASOF(tolerance 10s) INNER JOIN
+    (SELECT * FROM trades WHERE quanty > 10) t2
+ON
+    t1.id = t2.id AND t1.sys = t2.sys AND t1.time < t2.time
+ORDER BY time1;
+
+--清理环境
+drop database test_db;
+<<NULL;

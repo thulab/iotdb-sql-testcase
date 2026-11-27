@@ -1,0 +1,116 @@
+
+-- [1]7:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]8:use test_db
+STRICT{
+PASS
+}
+
+-- [1]9:create table t1(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE)
+STRICT{
+PASS
+}
+
+-- [1]10:create table t2(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE)
+STRICT{
+PASS
+}
+
+-- [1]11:create table t3(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE)
+STRICT{
+PASS
+}
+
+-- [1]12:insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,100.0,200.0,false,'test1','test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-08'),(2,'d1',100,200,200.0,200.0,false,'test1','test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-08'),(3,'d2',200,200,300.0,300.0,false,NULL,'test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-09'),(4,'d2',200,200,300.0,300.0,true,'test2','test1',X'426C6F62',to_object(false,0,X'7464'),1704067200000,'2026-04-10'),(5,'d3',300,300,400.0,300.0,true,NULL,NULL,X'426C6F62',to_object(false,0,X'62'),1704067200000,'2026-04-10'),(6,'d4',NULL,400,400.0,300.0,true,'test3','stest3',X'576F726C64',to_object(false,0,X'62'),1718409600000,'2026-04-11')
+STRICT{
+0
+}
+Elapsed Time: 0.0.283
+
+-- [1]13:insert into t2(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,100.0,100.0,true,'test1','test1',X'426C6F62',to_object(false,0,X'696F'),200,'2026-04-09'),(2,'d2',200,100,100.0,200.0,false,'test1','test1',X'426C6F62',to_object(false,0,X'696F'),200,'2026-04-09'),(3,'d2',200,200,300.0,300.0,false,NULL,'test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-09'),(4,'d2',200,200,200.0,300.0,false,'test2','test2',X'426C6F62',to_object(false,0,X'7464'),1718409600000,'2026-04-10'),(5,'d5',500,300,300.0,400.0,true,NULL,NULL,X'426C6F62',to_object(false,0,X'62'),1718409600000,'2026-04-11'),(6,'d4',NULL,300,400.0,500.0,true,'test3','test4',X'576F726C64',to_object(false,0,X'62'),1718409600000,'2026-04-11')
+STRICT{
+0
+}
+Elapsed Time: 0.0.7
+
+-- [1]14:insert into t3(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,200.0,300.0,true,'test1','test1',X'48454C4C4F',to_object(false,0,X'62'),1704067200000,'2026-04-08'),(2,'d2',200,200,200.0,300.0,false,'test1','test1',X'426C6F62',to_object(false,0,X'7464'),1708409620000,'2026-04-09'),(3,'d3',600,200,300.0,400.0,true,'test2','test2',X'576F726C64',to_object(false,0,X'7464'),1708409620000,'2026-04-10')
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]16:with cte1 as(select device_id,double_1,string_1 from t1 where double_1<=300),cte2 as(select device_id,double_1,string_1 from t2 where double_1<=300) select * from cte1 intersect select * from cte2 order by 1,2,3
+STRICT{
+PASS
+}
+
+-- [1]18:select device_id,int32_1,float_1 from t1 intersect select device_id,int32_1 from t2
+STRICT{
+SQLSTATE : 701: INTERSECT query has different number of fields: 3, 2
+}
+
+-- [1]20:select device_id,int32_1 from t1 intersect select device_id,int32_1,float_1 from t2
+STRICT{
+SQLSTATE : 701: INTERSECT query has different number of fields: 2, 3
+}
+
+-- [1]22:select device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,date_1,timestamp_1,blob_1 from t1 intersect select device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,date_1,timestamp_1,blob_1 from t2 order by 1,2,3,4
+STRICT{
+device_id(STRING)      |int32_1(INT32)      |int64_1(INT64)      |double_1(DOUBLE)      |float_1(FLOAT)      |boolean_1(BOOLEAN)      |text_1(TEXT)      |string_1(STRING)      |date_1(DATE)      |timestamp_1(TIMESTAMP)      |blob_1(BLOB)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+d2                     |200                 |200                 |300.0                 |300.0               |false                   |null              |test1                 |2026-04-09        |2024-01-01T08:00:00.000+08:0|0x48454c4c4f      |
+                       |                    |                    |                      |                    |                        |                  |                      |                  |0                           |                  |
+总数目：1
+}
+Elapsed Time: 0.0.7
+
+-- [1]24:select * from (select device_id,int32_1 from t1 where int32_1<300) result_1 intersect select * from (select device_id,int32_1 from t1 where int32_1<300) result_2 order by 1,2
+STRICT{
+device_id(STRING)      |int32_1(INT32)      |
+-------------------------------------------
+d1                     |100                 |
+-------------------------------------------
+d2                     |200                 |
+总数目：2
+}
+Elapsed Time: 0.0.7
+
+-- [1]26:select device_id,count(*) as count_result1 from t1 group by device_id intersect select device_id,count(*) as count_result2 from t2 group by device_id order by device_id
+STRICT{
+device_id(STRING)      |count_result1(INT64)      |
+-------------------------------------------------
+d4                     |1                         |
+总数目：1
+}
+Elapsed Time: 0.0.9
+
+-- [1]28:select text_1,string_1 from t1 intersect select text_1,string_1 from t2 order by 1,2
+STRICT{
+text_1(TEXT)      |string_1(STRING)      |
+----------------------------------------
+test1             |test1                 |
+----------------------------------------
+null              |test1                 |
+----------------------------------------
+null              |null                  |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]30:select device_id from t1 intersect select device_id from t1 intersect select device_id from t1 order by device_id
+STRICT{
+device_id(STRING)      |
+-----------------------
+d1                     |
+-----------------------
+d2                     |
+-----------------------
+d3                     |
+-----------------------
+d4                     |
+总数目：4
+}
+Elapsed Time: 0.0.8

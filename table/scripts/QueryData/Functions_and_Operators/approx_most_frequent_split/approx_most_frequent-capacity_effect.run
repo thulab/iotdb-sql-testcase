@@ -1,0 +1,42 @@
+// APPROX_MOST_FREQUENT：不同 capacity 下的候选数限制与频次统计
+// 新增功能覆盖。所有 *_ok 列预期为 true，需录制并审核 .result 后运行回归。
+
+connect root/TimechoDB@2021;
+drop database amf_capacity_effect;
+<<NULL;
+create database amf_capacity_effect;
+use amf_capacity_effect;
+create table t1(device STRING TAG, value STRING FIELD, marker INT32 FIELD);
+
+insert into t1(time, device, value, marker) values
+(1, 'g1', 'a', 1),
+(2, 'g1', 'a', 1),
+(3, 'g1', 'a', 1),
+(4, 'g1', 'a', 1),
+(5, 'g1', 'a', 1),
+(6, 'g1', 'a', 1),
+(7, 'g1', 'a', 1),
+(8, 'g1', 'a', 1),
+(9, 'g1', 'b', 1),
+(10, 'g1', 'b', 1),
+(11, 'g1', 'b', 1),
+(12, 'g1', 'b', 1),
+(13, 'g1', 'c', 1),
+(14, 'g1', 'c', 1),
+(15, 'g1', 'd', 1);
+
+-- NDV=4，总行数15。固定 k=3，改变 capacity=1/2/4/100。
+-- 小容量不固定入选键及近似频次；仅检查候选数上限和候选键/计数的有效范围。
+-- 正整数频次上限为15，候选只能来自 a/b/c/d。所有 *_ok 预期 true。
+select length(f1)-length(replace(f1, ':', ''))=1 as capacity1_size_ok,
+       regexp_like(f1, '^[{][ ]*"[abcd]"[ ]*:[ ]*([1-9]|1[0-5])[ ]*[}]$') as capacity1_values_ok,
+       length(f2)-length(replace(f2, ':', '')) between 1 and 2 as capacity2_size_ok,
+       regexp_like(f2, '^[{][ ]*"[abcd]"[ ]*:[ ]*([1-9]|1[0-5])([ ]*,[ ]*"[abcd]"[ ]*:[ ]*([1-9]|1[0-5])){0,1}[ ]*[}]$') as capacity2_values_ok,
+       length(f4)-length(replace(f4, ':', ''))=3 and regexp_like(f4, '"a"[ ]*:[ ]*8[ ]*[,}]') and regexp_like(f4, '"b"[ ]*:[ ]*4[ ]*[,}]') and regexp_like(f4, '"c"[ ]*:[ ]*2[ ]*[,}]') as capacity_equals_ndv_ok,
+       length(f100)-length(replace(f100, ':', ''))=3 and regexp_like(f100, '"a"[ ]*:[ ]*8[ ]*[,}]') and regexp_like(f100, '"b"[ ]*:[ ]*4[ ]*[,}]') and regexp_like(f100, '"c"[ ]*:[ ]*2[ ]*[,}]') as capacity_exceeds_ndv_ok
+from (select approx_most_frequent(value,3,1) as f1, approx_most_frequent(value,3,2) as f2,
+             approx_most_frequent(value,3,4) as f4, approx_most_frequent(value,3,100) as f100 from t1);
+
+connect root/TimechoDB@2021;
+drop database amf_capacity_effect;
+<<NULL;

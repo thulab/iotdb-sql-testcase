@@ -1,0 +1,39 @@
+// XCORR：lag 顺序与交换输入列
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xc_reference(device_id STRING TAG, s1 DOUBLE FIELD, s2 DOUBLE FIELD);
+
+-- 3. 写入测试数据
+insert into xc_reference(time, device_id, s1, s2) values
+(1,'d_ref',1.0,4.0),(2,'d_ref',2.0,5.0),(3,'d_ref',3.0,6.0);
+
+-- 4. 核对表结构与原始数据
+desc xc_reference;
+select * from xc_reference order by device_id, time;
+
+-- 5. Xcorr_交换输入列后互相关lag方向反转验证
+-- 5.1 各分区输出行数及隐式lag顺序校验，查询结果依次为 6、8.5、32/3、11.5、12。
+select * from xcorr(
+    DATA => xc_reference partition by device_id order by time,
+    TIMECOL => 'time'
+);
+-- 5.2 交换输入列后，依次为12、11.5、32/3、8.5、6；即 R21(k)=R12(-k)。
+select * from xcorr(
+    DATA => (select time, device_id, s2, s1 from xc_reference)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+);
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

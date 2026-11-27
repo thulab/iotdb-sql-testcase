@@ -1,0 +1,89 @@
+// 单列 DISTINCT：验证各数据类型的去重结果。
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop database test_db;
+<<NULl;
+
+-- 1. 创建数据库
+create database test_db;
+
+-- 2. 指定使用数据库
+use test_db;
+
+-- 3. 创建表
+create table t1(
+ID TAG,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+text TEXT,
+boolean BOOLEAN,
+string STRING,
+blob BLOB,
+timestamp TIMESTAMP,
+date DATE);
+
+-- 4. 查看表
+show tables;
+
+-- 5. 列出表信息
+desc t1;
+
+-- 6. 插入数据
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(1,'D001',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(2,'D002',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(3,'D003',2,10,1.1,22.2,'RC2',false,'cat',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(4,'D004',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(5,'D005',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(6,'D006',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+-- 7. 测试查询与预期
+-- 按时间列去重，确认每个不同时间值只保留一行。
+select distinct time from t1 order by time;
+-- 按 TAG 列去重，确认设备标识的唯一值。
+select distinct id from t1 order by id;
+-- 按 INT32 列去重，覆盖重复整数值。
+select distinct int32 from t1 order by int32;
+-- 按 INT64 列去重，覆盖重复长整数值。
+select distinct int64 from t1 order by int64;
+-- 按 FLOAT 列去重，覆盖重复单精度值。
+select distinct float from t1 order by float;
+-- 按 DOUBLE 列去重，覆盖重复双精度值。
+select distinct double from t1 order by double;
+-- 按 TEXT 列去重，覆盖重复文本值。
+select distinct text from t1 order by text;
+-- 按 BOOLEAN 列去重，覆盖 true/false 值。
+select distinct boolean from t1 order by boolean;
+-- 按 STRING 列去重，覆盖重复字符串值。
+select distinct string from t1 order by string;
+-- 按 BLOB 列去重，覆盖重复二进制值。
+select distinct blob from t1 order by blob;
+-- 按 TIMESTAMP 列去重，覆盖重复时间戳值。
+select distinct timestamp from t1 order by timestamp;
+-- 按 DATE 列去重，覆盖重复日期值。
+select distinct date from t1 order by date;
+
+-- 8. 清理测试数据库
+drop database test_db;
+<<NULL;

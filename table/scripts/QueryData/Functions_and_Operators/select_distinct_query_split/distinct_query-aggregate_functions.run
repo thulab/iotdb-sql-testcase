@@ -1,0 +1,161 @@
+// 聚合函数 DISTINCT：验证聚合函数对不同类型数据去重。
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop database test_db;
+<<NULl;
+
+-- 1. 创建数据库
+create database test_db;
+
+-- 2. 指定使用数据库
+use test_db;
+
+-- 3. 创建表
+create table t1(
+ID TAG,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+text TEXT,
+boolean BOOLEAN,
+string STRING,
+blob BLOB,
+timestamp TIMESTAMP,
+date DATE);
+
+-- 4. 查看表
+show tables;
+
+-- 5. 列出表信息
+desc t1;
+
+-- 6. 插入数据
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(1,'D001',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(2,'D002',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(3,'D003',2,10,1.1,22.2,'RC2',false,'cat',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(4,'D004',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(5,'D005',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(6,'D006',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+-- 7. 测试查询与预期
+-- DISTINCT 聚合类别：count。
+select id, count(distinct int32) as count_distin_result from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：count、avg。
+select time,id,date,count(distinct float), avg(distinct float) from t1 group by 1,2,3 order by 1,2,3;
+
+-- DISTINCT 聚合类别：count。
+select time, count(distinct time), count(distinct id), count(distinct int32), count(distinct int64), count(distinct float), count(distinct double), count(distinct text), count(distinct boolean), count(distinct string), count(distinct blob), count(distinct timestamp), count(distinct date) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：count_if。
+select id, count_if(distinct int32 < 0), count_if(distinct int64 is not null), count_if(distinct float is not null), count_if(distinct double is not null), count_if(distinct boolean is not null), count_if(distinct text is not null), count_if(distinct string is not null), count_if(distinct blob is not null), count_if(distinct timestamp is not null), count_if(distinct date is not null) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：sum。
+select id, sum(distinct int32), sum(distinct int64), sum(distinct float), sum(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：avg。
+select id, avg(distinct int32), avg(distinct int64), avg(distinct float), avg(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：min。
+select time, min(distinct time),min(distinct id), min(distinct int32), min(distinct int64), min(distinct float), min(distinct double), min(distinct text), min(distinct boolean), min(distinct string), min(distinct blob), min(distinct timestamp), min(distinct date) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：max。
+select time, max(distinct time),max(distinct id), max(distinct int32), max(distinct int64), max(distinct float), max(distinct double), max(distinct text), max(distinct boolean), max(distinct string), max(distinct blob), max(distinct timestamp), max(distinct date) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：first。
+select time,first(distinct time), first(distinct id), first(distinct int32), first(distinct int64), first(distinct float), first(distinct double), first(distinct text), first(distinct boolean), first(distinct string), first(distinct blob), first(distinct timestamp), first(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+-- DISTINCT 聚合类别：last。
+select time,last(distinct time), last(distinct id), last(distinct int32), last(distinct int64), last(distinct float), last(distinct double), last(distinct text), last(distinct boolean), last(distinct string), last(distinct blob), last(distinct timestamp), last(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+-- DISTINCT 聚合类别：last。
+select id, last(distinct int32), last(distinct int64), last(distinct float), last(distinct double), last(distinct text), last(distinct string), last(distinct timestamp) from t1 where id='D002' or id='D003' group by 1 order by 1;
+
+-- DISTINCT 聚合类别：mode。
+select time, mode(distinct time), mode(distinct id), mode(distinct int32), mode(distinct int64), mode(distinct float), mode(distinct double), mode(distinct text), mode(distinct boolean), mode(distinct string), mode(distinct blob), mode(distinct timestamp), mode(distinct date) from t1 group by 1 order by 1, 2, 3;
+
+-- DISTINCT 聚合类别：stddev。
+select id, stddev(distinct int32), stddev(distinct int64), stddev(distinct float), stddev(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：stddev_pop。
+select id, stddev_pop(distinct int32), stddev_pop(distinct int64), stddev_pop(distinct float), stddev_pop(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：stddev_samp。
+select id, stddev_samp(distinct int32), stddev_samp(distinct int64), stddev_samp(distinct float), stddev_samp(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：variance。
+select id, variance(distinct int32), variance(distinct int64), variance(distinct float), variance(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：var_pop。
+select id, int64, double, timestamp, round(VAR_POP(distinct int64),1), round(VAR_POP(distinct double),1), round(VAR_POP(distinct int32),1), round(VAR_POP(distinct float),1) from t1 group by 1,2,3,4 order by 1,2,3,4;
+
+-- DISTINCT 聚合类别：var_pop。
+select id, var_pop(distinct int32), var_pop(distinct int64), var_pop(distinct float), var_pop(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：var_pop。
+select round(VAR_POP(distinct int32),1), round(VAR_POP(distinct int64),1), round(VAR_POP(distinct float),1), round(VAR_POP(distinct double),1) from t1;
+
+-- DISTINCT 聚合类别：var_pop。
+select id, round(VAR_POP(distinct int32),1), round(VAR_POP(distinct int64),1), round(VAR_POP(distinct float),1), round(VAR_POP(distinct double),1) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：var_samp。
+select id, var_samp(distinct int32), var_samp(distinct int64), var_samp(distinct float), var_samp(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：extreme。
+select id, extreme(distinct int32), extreme(distinct int64), extreme(distinct float), extreme(distinct double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：min_by。
+select id, min_by(distinct id, int32), min_by(distinct id, int64), min_by(distinct id, float), min_by(distinct id, double), min_by(distinct id, text), min_by(distinct id, boolean), min_by(distinct id, string), min_by(distinct id, blob), min_by(distinct id, timestamp), min_by(distinct id, date) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：min_by。
+select min_by(distinct time, int32), min_by(distinct time, int64), min_by(distinct time, float), min_by(distinct time, double) from t1 where id='D001';
+
+-- DISTINCT 聚合类别：min_by。
+select id, min_by(distinct time, int32), min_by(distinct time, int64), min_by(distinct time, float), min_by(distinct time, double), min_by(distinct time, timestamp) from t1 where id='D001' or id='D002' group by 1 order by 1;
+
+-- DISTINCT 聚合类别：max_by。
+select id, max_by(distinct time, int32), max_by(distinct time, int64), max_by(distinct time, float), max_by(distinct time, double) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：max_by。
+select max_by(distinct int32, int64), max_by(distinct time, int32), max_by(distinct time, float), max_by(distinct float, double), max_by(distinct time, timestamp) from t1 where id='D002';
+
+-- DISTINCT 聚合类别：max_by。
+select id, max_by(distinct time, int32), max_by(distinct time, int64), max_by(distinct time, double), max_by(distinct time, float) from t1 where id='D001' or id='D002' group by 1 order by 1;
+
+-- DISTINCT 聚合类别：first_by。
+select id, first_by(distinct id, int32), first_by(distinct id, int64), first_by(distinct id, float), first_by(distinct id, double), first_by(distinct id, text), first_by(distinct id, boolean), first_by(distinct id, string), first_by(distinct id, blob), first_by(distinct id, timestamp), first_by(distinct id, date) from t1 group by 1 order by 1;
+
+-- DISTINCT 聚合类别：first_by。
+select id, first_by(distinct time, int32), first_by(distinct time, int64), first_by(distinct time, float), first_by(distinct time, double), first_by(distinct time, timestamp), first_by(distinct time, string) from t1 where id='D001' or id='D003' group by 1 order by 1;
+
+-- DISTINCT 聚合类别：last_by、first_by。
+select id, last_by(distinct time, text), last_by(distinct time, string), last_by(distinct time, blob), last_by(distinct time, double), first_by(distinct time, int32) from t1 where id='D001' or id='D002' group by 1 order by 1;
+
+-- DISTINCT 聚合类别：last_by。
+select id, last_by(distinct time, int32), last_by(distinct time, int64), last_by(distinct time, float), last_by(distinct time, double), last_by(distinct time, timestamp) from t1 group by 1 order by 1;
+
+
+-- 8. 清理测试数据库
+drop database test_db;
+<<NULL;

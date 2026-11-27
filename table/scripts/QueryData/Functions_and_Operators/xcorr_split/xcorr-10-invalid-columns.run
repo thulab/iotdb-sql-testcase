@@ -1,0 +1,122 @@
+// XCORR：计算列数量与不支持的数据类型
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_data
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+create table xcorr_types
+(
+    device_id STRING TAG,
+    s_int32 INT32 FIELD,
+    s_int64 INT64 FIELD,
+    s_float FLOAT FIELD,
+    s_double DOUBLE FIELD
+);
+create table xcorr_bad_type
+(
+    device_id STRING TAG,
+    s_double DOUBLE FIELD,
+    s_boolean BOOLEAN FIELD,
+    s_text TEXT FIELD,
+    s_string STRING FIELD,
+    s_date DATE FIELD,
+    s_timestamp TIMESTAMP FIELD,
+    s_blob BLOB FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_data(time, device_id, site, s1, s2) values(1, 'd1', 's1', 1.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(2, 'd1', 's1', 2.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(3, 'd1', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(4, 'd1', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(5, 'd1', 's1', 5.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(11, 'd1', 's2', 1.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(12, 'd1', 's2', 2.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(13, 'd1', 's2', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(14, 'd1', 's2', 4.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(15, 'd1', 's2', 5.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(21, 'd2', 's1', 1.0, null);
+insert into xcorr_data(time, device_id, site, s1, s2) values(22, 'd2', 's1', null, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(23, 'd2', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(24, 'd2', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(25, 'd2', 's1', 5.0, 5.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(1, 'd1', 1, 10, 1.0, 10.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(2, 'd1', 2, 20, 2.0, 20.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(3, 'd1', 3, 30, 3.0, 30.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(4, 'd1', 4, 40, 4.0, 40.0);
+insert into xcorr_bad_type(time, device_id, s_double, s_boolean, s_text, s_string, s_date, s_timestamp, s_blob)
+values(1, 'd1', 1.0, true, 'text1', 'string1', '2026-01-01', 1, X'01');
+insert into xcorr_bad_type(time, device_id, s_double, s_boolean, s_text, s_string, s_date, s_timestamp, s_blob)
+values(2, 'd1', 2.0, false, 'text2', 'string2', '2026-01-02', 2, X'02');
+
+-- 4. 核对表结构与原始数据
+desc xcorr_data;
+select * from xcorr_data order by device_id, site, time;
+desc xcorr_types;
+select * from xcorr_types order by device_id, time;
+desc xcorr_bad_type;
+select * from xcorr_bad_type order by device_id, time;
+
+-- 5.1 Xcorr_计算列少于两列时报错
+-- 5.1.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(
+    DATA => (select time, device_id, s1 from xcorr_data)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+);
+<<SQLSTATE;
+
+
+-- 5.2 Xcorr_计算列多于两列时报错
+-- 5.2.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(
+    DATA => (select time, device_id, s_int32, s_int64, s_float from xcorr_types)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+);
+<<SQLSTATE;
+
+
+-- 5.3 Xcorr_计算列包含不支持的数据类型时报错
+-- 5.3.1 不支持的计算列类型：s_boolean；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_boolean from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.3.2 不支持的计算列类型：s_text；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_text from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.3.3 不支持的计算列类型：s_string；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_string from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.3.4 不支持的计算列类型：s_date；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_date from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.3.5 不支持的计算列类型：s_timestamp；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_timestamp from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.3.6 不支持的计算列类型：s_blob；预期返回 SQLSTATE。
+select * from xcorr(DATA => (select time, device_id, s_double, s_blob from xcorr_bad_type) partition by device_id order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

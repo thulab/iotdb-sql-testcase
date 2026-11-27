@@ -1,0 +1,121 @@
+-- CRC32：CRC32 校验和计算及权限校验
+-- 覆盖：正常/边界/空值 2 项；异常输入 0 项；权限 4 项；共 6 项。
+-- 原场景编号：180、181、323、324、325、326
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- CRC32：STRING 列计算哈希值 (P1)
+-- 来源：binary_functions.run，用例 180
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT crc32(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- CRC32：BLOB 列计算哈希值 (P1)
+-- 来源：binary_functions.run，用例 181
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'68656C6C6F');
+SELECT crc32(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- CRC32：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 323
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT crc32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- CRC32：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 324
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT crc32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- CRC32：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 325
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT crc32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- CRC32：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 326
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT crc32(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

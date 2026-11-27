@@ -1,0 +1,36 @@
+// 表 TTL：修改 TTL 并检查表信息变化
+connect root/TimechoDB@2021;
+
+-- 0. 清理测试环境
+drop database set_ttl_alter_db;
+<<NULL;
+
+-- 1. 创建测试数据库及不同初始 TTL 的表
+create database set_ttl_alter_db;
+use set_ttl_alter_db;
+create table table_1(device_id STRING TAG, value INT32 FIELD);
+create table table_2(device_id STRING TAG, value DOUBLE FIELD);
+create table table_6(device_id STRING TAG, value INT32 FIELD) with (ttl=9999999999);
+
+-- 2. 修改 table_1 的 TTL 并检查表信息
+alter table if exists table_1 set properties ttl=3600000;
+show tables;
+alter table table_1 set properties ttl=9223372036854775807;
+show tables;
+alter table table_1 set properties ttl='INF';
+show tables;
+
+-- 3. 将其他表的 TTL 修改为 INF 并检查表信息
+alter table table_2 set properties ttl='INF';
+show tables;
+alter table table_6 set properties ttl='INF';
+show tables;
+
+-- 4. 删除列并检查表结构和 TTL 信息
+alter table table_2 drop column value;
+desc table_2;
+show tables;
+
+-- 5. 清理测试数据库
+drop database set_ttl_alter_db;
+<<NULL;

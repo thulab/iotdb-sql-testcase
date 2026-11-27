@@ -1,0 +1,28 @@
+-- if_built-in_function：类型转换失败 + IF
+-- 目的：验证 IF 分支中的类型转换失败及预期错误。
+
+-- 1. 连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 2. 清理上次运行遗留的 test 数据库
+drop database test;
+<<NULL;
+
+-- 3. 创建 test 测试数据库
+create database test;
+-- 4. 切换到 test 数据库
+use test;
+
+-- 5. 创建本用例所需的测试表
+CREATE TABLE test.if_test(ts TIMESTAMP, col_text TEXT);
+-- 6. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_text) VALUES (now(), '123');
+-- 7. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_text) VALUES (now()+1s, 'abc');
+
+-- 8. 执行本用例的 IF 验证查询
+SELECT if(regexp_like(col_text, '^[0-9]+$'), CAST(col_text AS INT32), 0) FROM test.if_test;
+
+-- 9. 删除本用例创建的 test 数据库
+drop database test;
+<<NULL;

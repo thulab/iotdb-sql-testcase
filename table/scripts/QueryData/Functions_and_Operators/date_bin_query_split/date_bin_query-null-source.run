@@ -1,0 +1,78 @@
+// DATE_BIN：TIMESTAMP 列中 NULL 值传播
+// 各文件独立执行：使用相同测试库，按顺序运行，避免并发相互清理。
+
+connect root/TimechoDB@2021;
+// 一、初始化：连接后清理残留数据库，保留原容错标记。
+drop database test_db;
+<<NULL;
+
+// 二、准备数据库：创建本用例使用的 test_db。
+create database test_db;
+
+// 切换到测试数据库。
+use test_db;
+
+// 三、准备表结构：包含标签、属性及多种 FIELD 类型。
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+// 查看建表结果。
+show tables;
+
+// 检查列类型，为 TIMESTAMP 支持及类型错误场景提供依据。
+desc table_1;
+
+// 四、准备数据：先写入两条包含各字段类型的记录。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 1704874210000, X'11F8d7', 1, 1000, 1.1, 111.11
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 1706698230000, X'3b', 2, 453, 11.1, 102.2
+);
+// 补充纪元前、零、正数和 NULL 时间值，覆盖跨月、跨年及空值场景。
+insert into table_1(time, timestamp) values(-132340800000, -132340800000);
+insert into table_1(time,timestamp) values(-6953400000,-6953400000);
+insert into table_1(time, timestamp) values(1000, 1719754343000);
+insert into table_1(time,timestamp) values(300000,1719844882000);
+insert into table_1(time,timestamp) values(1704874210000,1727276981000);
+insert into table_1(time,timestamp) values(1706698230000, null);
+insert into table_1(time,timestamp) values(1708868070000, 1000000);
+insert into table_1(time,timestamp) values(1711437332000, 358923922);
+insert into table_1(time,timestamp) values(1719754343000, 5000);
+insert into table_1(time,timestamp) values(1719844882000, 2500);
+insert into table_1(time,timestamp) values(1727276981000, null);
+insert into table_1(time,timestamp) values(1727283600000, 12494500);
+insert into table_1(time,timestamp) values(1727285125000, 1238993233);
+insert into table_1(time,timestamp) values(1729344210000, -1000);
+insert into table_1(time,timestamp) values(1729345200000, -30000);
+insert into table_1(time,timestamp) values(1729382400000, 0);
+
+
+// 五、检查原始数据：按 time、region_id、device_id 排序，TAG 的 NULL 值放末尾。
+select * from table_1 order by table_1.time ASC, table_1.region_id ASC NULLS LAST, table_1.device_id ASC NULLS LAST;
+
+// 六、执行 DATE_BIN 场景验证。
+// 场景 1：TIMESTAMP 列内含 NULL：检查对应行分桶结果为 NULL，并覆盖其他非空时间值。
+select time, timestamp, date_bin(5ms,timestamp,1970-01-01T08:00:00.002) as date_bin_result from table_1 order by table_1.time ASC, table_1.region_id ASC NULLS LAST, table_1.device_id ASC NULLS LAST;
+
+// 七、清理数据：删除测试数据库，保留原容错标记。 
+drop database test_db;
+<<NULL;

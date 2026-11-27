@@ -1,0 +1,118 @@
+
+-- [1]10:create database test_pattern_match
+STRICT{
+PASS
+}
+
+-- [1]13:use test_pattern_match
+STRICT{
+PASS
+}
+
+-- [1]18:create table pm_base (     device_id STRING TAG,     site STRING TAG,     value DOUBLE FIELD,     aux INT32 FIELD,     note STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]27:create table pm_custom_time (     device_id STRING TAG,     event_time TIMESTAMP TIME,     fake_time INT64 FIELD,     value DOUBLE FIELD,     text_value STRING FIELD,     bool_value BOOLEAN FIELD )
+STRICT{
+PASS
+}
+
+-- [1]37:create table pm_unsupported (     device_id STRING TAG,     text_value STRING FIELD,     blob_value BLOB FIELD,     object_value OBJECT FIELD,     timestamp_value TIMESTAMP FIELD,     date_value DATE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]56:insert into pm_base(time,device_id,site,value,aux,note) values     (1,'d1','s1',1.0,11,'d1-a'),     (2,'d1','s1',2.0,12,'d1-b'),     (3,'d1','s1',3.0,13,'d1-c'),     (4,'d1','s1',2.0,14,'d1-d'),     (5,'d1','s1',1.0,15,'d1-e'),     (1,'d2','s2',10.0,21,'d2-a'),     (2,'d2','s2',20.0,22,'d2-b'),     (3,'d2','s2',30.0,23,'d2-c'),     (4,'d2','s2',20.0,24,'d2-d'),     (5,'d2','s2',10.0,25,'d2-e')
+STRICT{
+0
+}
+Elapsed Time: 0.0.336
+
+-- [1]63:insert into pm_custom_time(event_time,device_id,fake_time,value,text_value,bool_value) values     (1,'c1',1,1.0,'1',true),     (2,'c1',2,2.0,'2',false),     (3,'c1',3,3.0,'3',true),     (4,'c1',4,2.0,'2',false),     (5,'c1',5,1.0,'1',true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]66:insert into pm_unsupported(time,device_id,text_value,blob_value,object_value,timestamp_value,date_value) values     (1,'u1','text',X'00',to_object(false,0,X'00'),100,'2026-03-20')
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]69:select * from pattern_match(data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: Missing required argument: DATA
+}
+
+-- [1]72:select * from pattern_match(data => t2, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 550: Table 'test_pattern_match.t2' does not exist.
+}
+
+-- [1]75:select * from pattern_match(data => pm_base, pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: Missing required argument: DATA_COL
+}
+
+-- [1]78:select * from pattern_match(data => pm_base, data_col => 'value', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: Missing required argument: PATTERN
+}
+
+-- [1]81:select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', threshold => 100.0)
+STRICT{
+SQLSTATE : 701: Missing required argument: SMOOTH
+}
+
+-- [1]84:select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0)
+STRICT{
+SQLSTATE : 701: Missing required argument: THRESHOLD
+}
+
+-- [1]88:select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'fake_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [fake_time] is not as expected.
+}
+
+-- [1]91:select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [text_value] is not as expected.
+}
+
+-- [1]94:select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'bool_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [bool_value] is not as expected.
+}
+
+-- [1]97:select * from pattern_match(data => pm_unsupported order by time, data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [text_value] is not as expected.
+}
+
+-- [1]100:select * from pattern_match(data => pm_unsupported order by time, data_col => 'blob_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [blob_value] is not as expected.
+}
+
+-- [1]103:select * from pattern_match(data => pm_unsupported order by time, data_col => 'object_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [object_value] is not as expected.
+}
+
+-- [1]106:select * from pattern_match(data => pm_unsupported order by time, data_col => 'timestamp_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [timestamp_value] is not as expected.
+}
+
+-- [1]109:select * from pattern_match(data => pm_unsupported order by time, data_col => 'date_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: The type of the column [date_value] is not as expected.
+}
+
+-- [1]112:select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'missing_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0)
+STRICT{
+SQLSTATE : 701: Required column [missing_time] not found in the source table argument.
+}

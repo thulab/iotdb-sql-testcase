@@ -1,0 +1,171 @@
+
+-- [1]13:create database test_fft
+STRICT{
+PASS
+}
+
+-- [1]14:use test_fft
+STRICT{
+PASS
+}
+
+-- [1]19:create table signal (     device_id STRING TAG,     temperature DOUBLE FIELD,     speed INT32 FIELD,     note STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]27:create table impulse (     value DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]31:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+impulse              |INF                |
+----------------------------------------
+signal               |INF                |
+总数目：2
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:desc signal
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+speed                 |INT32               |FIELD               |
+--------------------------------------------------------------
+note                  |STRING              |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.0
+
+-- [1]33:desc impulse
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+value                 |DOUBLE              |FIELD               |
+总数目：2
+}
+Elapsed Time: 0.0.0
+
+-- [1]36:insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.245
+
+-- [1]37:insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]38:insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]39:insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]40:insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.18
+
+-- [1]41:insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]42:insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]43:insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]45:insert into impulse(time, value) values(0, 1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]46:insert into impulse(time, value) values(1000, 0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]47:insert into impulse(time, value) values(2000, 0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]48:insert into impulse(time, value) values(3000, 0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]54:select * from FFT(     DATA => signal PARTITION BY device_id,     SAMPLE_INTERVAL => 1s )
+STRICT{
+SQLSTATE : 701: Table argument with set semantics requires an ORDER BY clause.
+}
+
+-- [1]62:select * from FFT(     DATA => signal PARTITION BY device_id ORDER BY speed,     SAMPLE_INTERVAL => 1s )
+STRICT{
+SQLSTATE : 701: The ORDER BY clause of the DATA argument must contain exactly the time column specified by the TIMECOL argument.
+}
+
+-- [1]70:select * from FFT(     DATA => signal ORDER BY time DESC,     SAMPLE_INTERVAL => 1s )
+STRICT{
+SQLSTATE : 701: The ORDER BY clause of the DATA argument must sort the time column in ascending order.
+}
+
+-- [1]74:select * from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 1)
+STRICT{
+SQLSTATE : 701: The SAMPLE_INTERVAL argument of FFT must be a duration literal.
+}
+
+-- [1]79:select * from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 0ms)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument SAMPLE_INTERVAL, should be a positive value
+}
+
+-- [1]84:select * from FFT(DATA => impulse ORDER BY time, N => 0)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument N, should be a positive value
+}
+
+-- [1]89:select * from FFT(DATA => impulse ORDER BY time, N => 65537)
+STRICT{
+SQLSTATE : 701: FFT transform length N must not exceed 65536.
+}
+
+-- [1]94:select * from FFT(DATA => impulse ORDER BY time, NORM => 'bad')
+STRICT{
+SQLSTATE : 701: Invalid NORM value for FFT. Supported values are backward, forward and ortho.
+}

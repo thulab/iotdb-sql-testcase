@@ -1,0 +1,25 @@
+// 参考飞书issue：https://timechor.feishu.cn/docx/DJshdCq5eoX8Ttxzox2csS3pnVd
+// 参考飞书issue：https://timechor.feishu.cn/docx/UyJAd5GDgoX1rbxiIWwcF1ACnEh
+
+connect root/TimechoDB@2021;
+
+-- 1 清理可能残留的测试数据库
+drop database test_db;
+<<NULL;
+
+-- 2 创建测试数据库
+create database test_db;
+
+-- 3 选择测试数据库
+use test_db;
+
+-- 4 创建表并写入数据
+create table table1(device string tag, value int32 field);
+insert into table1(time,device,value) values(1577808001000,'d1',1);
+
+-- 5 验证连续 FULL JOIN USING(time) 查询可执行，避免生成无意义的 SortNode
+select * from table1 t1 full join table1 using (time) full join table1 using (time);
+
+-- 6 清理测试数据库
+drop database test_db;
+<<NULL;

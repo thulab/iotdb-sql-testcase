@@ -1,0 +1,88 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理环境
+drop database test_pattern_match;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_pattern_match;
+
+-- 3. 指定数据库
+use test_pattern_match;
+
+-- 4. 创建表
+
+create table pm_regex
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_limits
+(
+    value DOUBLE FIELD
+);
+
+-- 5. 插入数据
+
+insert into pm_regex(time,shape,value) values
+    (1,'plus_zero',1.0),(2,'plus_zero',1.0),
+    (1,'plus_one',1.0),(2,'plus_one',2.0),(3,'plus_one',3.0),(4,'plus_one',2.0),(5,'plus_one',1.0),
+    (1,'plus_two',1.0),(2,'plus_two',2.0),(3,'plus_two',3.0),(4,'plus_two',2.0),
+    (5,'plus_two',2.0),(6,'plus_two',3.0),(7,'plus_two',2.0),(8,'plus_two',1.0),
+    (1,'star_zero',1.0),(2,'star_zero',1.0),(3,'star_zero',1.0),(4,'star_zero',1.0),
+    (1,'star_one',1.0),(2,'star_one',1.0),(3,'star_one',1.0),(4,'star_one',2.0),
+    (5,'star_one',3.0),(6,'star_one',2.0),(7,'star_one',1.0),(8,'star_one',1.0),
+    (1,'star_two',1.0),(2,'star_two',1.0),(3,'star_two',1.0),(4,'star_two',2.0),
+    (5,'star_two',3.0),(6,'star_two',2.0),(7,'star_two',1.0),(8,'star_two',2.0),
+    (9,'star_two',3.0),(10,'star_two',2.0),(11,'star_two',1.0),(12,'star_two',1.0);
+
+insert into pm_limits(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0);
+
+-- 6. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_regex partition by shape order by time,
+    data_col => 'value', pattern => '1,{,2,3,2,}+,1',
+    smooth => 0.0, threshold => 100.0
+) order by shape,match_index,time;
+
+-- 7. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,shape,value from pm_regex where shape like 'star_%')
+            partition by shape order by time,
+    data_col => 'value', pattern => '1,1,{,1,2,3,2,}*,1,1',
+    smooth => 0.0, threshold => 100.0
+) order by shape,match_index,time;
+
+-- 8. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,{,}+,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 9. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 10. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 11. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,{,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 12. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,+,2', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 13. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,*,2', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 14. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2', smooth => 0.0, threshold => 100.0);
+-- 15. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3', smooth => 0.0, threshold => 100.0);
+-- 16. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1,1,1,1,1', smooth => 0.0, threshold => 100.0);
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop database test_pattern_match;
+<<NULL;

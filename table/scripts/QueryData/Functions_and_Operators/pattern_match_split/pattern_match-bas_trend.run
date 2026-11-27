@@ -1,0 +1,92 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理环境
+drop database test_pattern_match;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_pattern_match;
+
+-- 3. 指定数据库
+use test_pattern_match;
+
+-- 4. 创建表
+
+create table pm_scale
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_horizontal
+(
+    value DOUBLE FIELD
+);
+
+create table pm_overlap
+(
+    value DOUBLE FIELD
+);
+
+create table pm_stream
+(
+    value DOUBLE FIELD
+);
+
+-- 5. 插入数据
+
+insert into pm_scale(time,shape,value) values
+    (1,'base',1.0),(2,'base',2.0),(3,'base',3.0),(4,'base',2.0),(5,'base',1.0),
+    (1,'height_scale',10.0),(2,'height_scale',20.0),(3,'height_scale',30.0),(4,'height_scale',20.0),(5,'height_scale',10.0),
+    (10,'width_scale',1.0),(20,'width_scale',2.0),(30,'width_scale',3.0),(40,'width_scale',2.0),(50,'width_scale',1.0);
+
+insert into pm_horizontal(time,value) values
+    (1,1.0),(2,2.0),(3,2.0),(4,2.0),(5,1.0);
+
+insert into pm_overlap(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0),
+    (6,2.1),(7,3.1),(8,2.1),(9,1.0);
+
+insert into pm_stream(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0),
+    (6,1.0),(7,2.0),(8,3.0),(9,2.0),(10,1.0),
+    (11,1.0),(12,2.0),(13,3.0),(14,2.0),(15,1.0),
+    (16,1.0),(17,2.0),(18,3.0),(19,2.0),(20,1.0),
+    (21,1.0),(22,2.0),(23,3.0),(24,2.0),(25,1.0);
+
+-- 6. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_stream order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0,
+    width => 1000.0, height => 1000.0
+) order by match_index,time;
+
+-- 7. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_scale partition by shape order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0,
+    width => 1000.0, height => 1000.0
+) order by shape,match_index,time;
+
+-- 8. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_horizontal order by time,
+    data_col => 'value', pattern => '1,2,2,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 9. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_overlap order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop database test_pattern_match;
+<<NULL;

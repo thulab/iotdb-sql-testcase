@@ -1,0 +1,88 @@
+
+-- [1]13:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+
+-- [1]18:create table t1(   device_id STRING TAG,   s7 FLOAT FIELD )
+STRICT{
+PASS
+}
+
+-- [1]24:insert into t1(time, device_id, s7) values (1000, 'd1', 1.10)
+STRICT{
+0
+}
+Elapsed Time: 0.0.311
+
+-- [1]26:insert into t1(time, device_id, s7) values (1060, 'd1', null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]28:insert into t1(time, device_id, s7) values (1120, 'd1', 1.25)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:insert into t1(time, device_id, s7) values (1180, 'd1', null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]35:insert into t1(time, device_id, s7) values (1000, 'base', 21.93), (1060, 'base', null), (1120, 'base', 22.23), (1180, 'base', 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.25
+
+-- [1]39:insert into t1(time, device_id, s7) values (1000, 'chain', null), (1060, 'chain', null), (1120, 'chain', 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]43:insert into t1(time, device_id, s7) values (1000, 'multi', null), (1060, 'multi', 22.23), (1120, 'multi', null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.23
+
+-- [1]46:insert into t1(time, device_id, s7) values (1000, 'full', 21.93), (1060, 'full', 22.23)
+STRICT{
+0
+}
+Elapsed Time: 0.0.14
+
+-- [1]49:insert into t1(time, device_id, s7) values (1000, 'bound_ok', null), (1020, 'bound_ok', 22.88)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]52:select time, s7 AS v_float from t1 where device_id='d1' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |v_float(FLOAT)      |
+-----------------------------------------
+1970-01-01T08:00:01.0|1.1                 |
+00+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.0|1.25                |
+60+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|1.25                |
+20+08:00             |                    |
+-----------------------------------------
+1970-01-01T08:00:01.1|null                |
+80+08:00             |                    |
+总数目：4
+}
+Elapsed Time: 0.0.4

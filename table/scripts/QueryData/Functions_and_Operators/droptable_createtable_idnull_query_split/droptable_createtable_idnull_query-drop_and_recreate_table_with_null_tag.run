@@ -1,0 +1,30 @@
+// 删除并重建表：包含空 TAG 值时查询结果正常
+
+connect root/TimechoDB@2021;
+-- 0. 清理数据
+drop database test_db;
+<<NULL;
+
+-- 1. 创建数据库、表并写入普通 TAG 与空 TAG 数据
+create database test_db;
+use test_db;
+create table table_1(device_id string TAG, model_id string TAG, int32 INT32 FIELD);
+insert into table_1(time, device_id, int32) values(1, 'd1', 1);
+insert into table_1(time, model_id, int32) values(2, '', 2);
+flush;
+select * from table_1 order by time;
+
+-- 2. 删除表后重建同名表，再次写入并查询
+drop table table_1;
+// DROP TABLE 异步删除，等待 1000 毫秒后检查表列表。
+sleep 1000;
+show tables;
+create table table_1(device_id string TAG, model_id string TAG, int32 INT32 FIELD);
+insert into table_1(time, device_id, int32) values(1, 'd1', 1);
+insert into table_1(time, model_id, int32) values(2, '', 2);
+flush;
+select * from table_1 order by time;
+
+-- 3. 清理数据
+drop database test_db;
+<<NULL;

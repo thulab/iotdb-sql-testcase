@@ -1,0 +1,25 @@
+// CORR：不支持的数据类型及参数数量错误
+// 来源：corr.run
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database corr_test;
+<<NULL;
+
+-- 1. 创建数据库并准备参数校验数据
+create database corr_test;
+use corr_test;
+create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD);
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(1,'d1',1,10,1.0,10.0,'bad',true);
+
+-- 2. 验证不支持的数据类型及错误参数数量
+select corr(i32,txt) from numeric_types;
+<<SQLSTATE;
+select corr(i32) from numeric_types;
+<<SQLSTATE;
+select corr(i32,i64,f64) from numeric_types;
+<<SQLSTATE;
+
+-- 3. 清理环境
+drop database corr_test;
+<<NULL;

@@ -1,0 +1,185 @@
+// 除法运算及特殊值
+// 部分数据类型进行数学运行，溢出校验
+
+connect root/TimechoDB@2021;
+--1. 清理同名数据库
+drop database test_db;
+<<NULL;
+
+
+--2. 创建测试数据库
+create database test_db;
+
+--3. 切换到测试数据库
+use test_db;
+
+--4. 创建运算测试表
+create table table_add
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_sub
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_mul
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_div
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_negation
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+	"timestamp" TIMESTAMP
+);
+
+--5. 写入边界测试数据
+INSERT INTO table_add
+(
+time,device,type,int32,int64,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'),
+(2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26');
+
+INSERT INTO table_sub
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31');
+
+INSERT INTO table_mul
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000);
+
+INSERT INTO table_div
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0),
+(2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0),
+(3,'d3','t13',0,-0,-0,0,-0.0,0.0);
+
+INSERT INTO table_negation
+(
+time,device,type,int32,int64,double,float,timestamp) values
+(1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807),
+(2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808),
+(3,'d3','t13',0,-0,-0.0,0.0,0);
+
+
+
+--6. 检查边界值初始化数据
+select * from table_div order by time;
+
+--7. 验证 INT32 最小值除以负一时溢出
+select int32_1 / int32 from table_div where time = 2;
+<<SQLSTATE;
+--8. 验证 INT32 负一除以最小值的边界结果
+select int32 / int32_1 from table_div where time = 2;
+--9. 验证 INT64 最小值除以 INT32 负一时溢出
+select int64 / int32 from table_div where time=2 order by time;
+<<SQLSTATE;
+--10. 验证 INT32 负一与 INT64 最小值的除法结果
+select int32 / int64 from table_div where time=2 order by time;
+
+--11. 验证 INT64 最小值除以负一时溢出
+select int64 / int64_1 from table_div where time =2;
+<<SQLSTATE;
+--12. 验证 INT64 负一除以最小值的边界结果
+select int64_1 / int64 from table_div where time =2;
+
+--13. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select float / int32 from table_div where time=1 order by time;
+--14. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select float / int32 from table_div where time=3 order by time;
+--15. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select double / int32 from table_div where time=1 order by time;
+--16. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select double / int32 from table_div where time=3 order by time;
+--17. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select float / int64 from table_div where time=1 order by time;
+--18. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select float / int64 from table_div where time=3 order by time;
+--19. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select double / int64 from table_div where time=1 order by time;
+--20. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select double / int64 from table_div where time=3 order by time;
+--21. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int32 / float from table_div where time=1 order by time;
+--22. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int32 / float from table_div where time=3 order by time;
+--23. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int32 / double from table_div where time =1;
+--24. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int32 / double from table_div where time =3;
+--25. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int64 / float from table_div where time =1;
+--26. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int64 / float from table_div where time =3;
+--27. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int64 / double from table_div where time =1;
+--28. 验证浮点数除法产生的 Infinity、正负零或 NaN
+select int64 / double from table_div where time =3;
+
+--29. 验证整数除数为零时返回 SQLSTATE
+select int32_1 / int32 from table_div where time=3 order by time;
+<<SQLSTATE;
+--30. 验证整数除数为零时返回 SQLSTATE
+select int64 / int32 from table_div where time=3 order by time;
+<<SQLSTATE;
+--31. 验证整数除数为零时返回 SQLSTATE
+select int64 / int64_1 from table_div where time =3;
+<<SQLSTATE;
+
+
+
+--32. 删除测试数据库
+drop database test_db;
+<<NULL;

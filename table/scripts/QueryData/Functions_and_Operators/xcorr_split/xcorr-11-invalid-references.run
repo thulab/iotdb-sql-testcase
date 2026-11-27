@@ -1,0 +1,57 @@
+// XCORR：不存在的表与错误参数名
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_data
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_data(time, device_id, site, s1, s2) values(1, 'd1', 's1', 1.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(2, 'd1', 's1', 2.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(3, 'd1', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(4, 'd1', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(5, 'd1', 's1', 5.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(11, 'd1', 's2', 1.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(12, 'd1', 's2', 2.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(13, 'd1', 's2', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(14, 'd1', 's2', 4.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(15, 'd1', 's2', 5.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(21, 'd2', 's1', 1.0, null);
+insert into xcorr_data(time, device_id, site, s1, s2) values(22, 'd2', 's1', null, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(23, 'd2', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(24, 'd2', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(25, 'd2', 's1', 5.0, 5.0);
+
+-- 4. 核对表结构与原始数据
+desc xcorr_data;
+select * from xcorr_data order by device_id, site, time;
+
+-- 5.1 不存在的表
+-- 5.1.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(DATA => not_exists order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 5.2 错误参数名
+-- 5.2.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(DAT => xcorr_data order by time, TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

@@ -1,0 +1,101 @@
+// CAPACITY窗口函数测试：独立场景
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop user capacity_slide_reader;
+<<NULL;
+drop database capacity_slide_test_db;
+<<NULL;
+
+-- 1. 创建测试数据库，并准备表和数据
+create database capacity_slide_test_db;
+use capacity_slide_test_db;
+
+create table bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+-- 2. 查看表及其结构
+show tables;
+desc bid;
+
+-- 3. 写入相同的六行基线数据；各分区按晚、早、中时间写入，验证分区内乱序
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0);
+
+
+-- 6. 边界窗口场景
+
+-- 6.1 CAPACITY_单行分区不足SIZE时输出一个非完整窗口
+select *
+from CAPACITY(
+    DATA => (select time, stock_id, price, s1 from bid where stock_id = 'AAPL' and price = 100.0)
+            PARTITION BY stock_id ORDER BY time,
+    SIZE => 5,
+    SLIDE => 2
+)
+order by stock_id, window_index, time;
+
+-- 6.2 CAPACITY_SLIDE等于SIZE且行数整除SIZE时不生成空尾窗口
+select window_index, count(*) as row_count
+from CAPACITY(
+    DATA => (
+        select time, stock_id, price, s1
+        from bid
+        where stock_id = 'AAPL'
+           or (stock_id = 'TESL' and price = 200.0)
+    ) ORDER BY time,
+    SIZE => 2,
+    SLIDE => 2
+)
+group by window_index
+order by window_index;
+
+-- 6.3 CAPACITY_空输入返回零行并保留结果列结构
+select *
+from CAPACITY(
+    DATA => (select time, stock_id, price, s1 from bid where 1 = 0)
+            PARTITION BY stock_id ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+
+-- 6.4 SIZE=1、SLIDE=1，每个窗口仅包含一行
+select stock_id, window_index, time, price
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id ORDER BY time,
+    SIZE => 1,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 6.5 CAPACITY_SLIDE取INT64最大值及超上限值的边界校验
+select count(*) as row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 1,
+    SLIDE => 9223372036854775807
+);
+
+-- 超出 INT64 最大值 1 的参数必须被拒绝，不能发生溢出或回绕
+select *
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 1,
+    SLIDE => 9223372036854775808
+);
+<<SQLSTATE;
+
+
+
+-- 清理测试数据
+drop database capacity_slide_test_db;
+<<NULL;

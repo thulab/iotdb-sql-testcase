@@ -1,0 +1,36 @@
+
+-- [1]10:create database corr_test
+STRICT{
+PASS
+}
+
+-- [1]11:use corr_test
+STRICT{
+PASS
+}
+
+-- [1]12:create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD)
+STRICT{
+PASS
+}
+
+-- [1]13:insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(1,'d1',1,10,1.0,10.0,'bad',true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.244
+
+-- [1]16:select corr(i32,txt) from numeric_types
+STRICT{
+SQLSTATE : 701: Aggregate functions [CORR] only support numeric data types [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}
+
+-- [1]18:select corr(i32) from numeric_types
+STRICT{
+SQLSTATE : 701: Error size of input expressions. expression: CORR, actual size: 1, expected size: [2].
+}
+
+-- [1]20:select corr(i32,i64,f64) from numeric_types
+STRICT{
+SQLSTATE : 701: Error size of input expressions. expression: CORR, actual size: 3, expected size: [2].
+}

@@ -1,0 +1,54 @@
+// FFT 输出顺序：检查分区列、频率列、实部和虚部的列次序
+// 来源：fft_query.run
+
+// 表模型内置表值函数 FFT：对每个分区的实值数值序列执行一维快速傅里叶变换。
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理可能残留的测试对象
+drop database test_fft;
+<<NULL;
+
+-- 2. 准备测试数据库
+create database test_fft;
+use test_fft;
+
+-- 3. 准备 FFT 测试表结构
+
+-- 3.1 创建 FFT-040 测试表：分区列含不同类型并保留两个数值列
+create table typed_partition
+(
+    region_id STRING TAG,
+    rack_no INT32 FIELD,
+    temperature FLOAT FIELD,
+    amplitude DOUBLE FIELD
+);
+
+-- 4. 检查测试表结构
+show tables;
+desc typed_partition;
+
+-- 5. 准备测试数据
+
+-- 5.1 准备 FFT-040 数据：两个分区各有 4 行
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(0,    'east', 1, 1.0, 10.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(1000, 'east', 1, 2.0, 20.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(2000, 'east', 1, 3.0, 30.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(3000, 'east', 1, 4.0, 40.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(0,    'west', 2, 4.0, 40.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(1000, 'west', 2, 3.0, 30.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(2000, 'west', 2, 2.0, 20.0);
+insert into typed_partition(time, region_id, rack_no, temperature, amplitude) values(3000, 'west', 2, 1.0, 10.0);
+
+-- 6. FFT-040：验证分区列、固定频率列及 real/imag 列的输出顺序
+select *
+from FFT(
+    DATA => typed_partition PARTITION BY (region_id, rack_no) ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by region_id, rack_no, frequency_index;
+
+-- 7. 清理测试数据库
+drop database test_fft;
+<<NULL;

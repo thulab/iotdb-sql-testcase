@@ -1,0 +1,38 @@
+
+-- [1]12:create database test
+STRICT{
+PASS
+}
+
+-- [1]14:use test
+STRICT{
+PASS
+}
+
+-- [1]18:CREATE TABLE test.if_test(ts TIMESTAMP, col_int32 INT32)
+STRICT{
+PASS
+}
+
+-- [1]20:INSERT INTO test.if_test(ts, col_int32) VALUES (now(), 1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.208
+
+-- [1]22:INSERT INTO test.if_test(ts, col_int32) VALUES (now()+1s, 0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]25:SELECT COALESCE(if(col_int32=0, CAST(NULL AS INT32), 100/col_int32), 0) FROM test.if_test
+STRICT{
+_col0(INT32)      |
+------------------
+100               |
+------------------
+0                 |
+总数目：2
+}
+Elapsed Time: 0.0.3

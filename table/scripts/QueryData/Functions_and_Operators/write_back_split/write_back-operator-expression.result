@@ -1,0 +1,64 @@
+
+-- [1]12:drop database if exists db1
+STRICT{
+PASS
+}
+
+-- [1]14:create database db1
+STRICT{
+PASS
+}
+
+-- [1]16:create table db1.t1(tag1 STRING TAG, s1 INT32,s2 int32, s3 int32)
+STRICT{
+PASS
+}
+
+-- [1]18:insert into db1.t1(time, tag1,s1, s2,s3) values(1, 'tag1', 1,2,3)
+STRICT{
+0
+}
+Elapsed Time: 0.0.342
+
+-- [1]20:insert into db1.t1(time, tag1,s1, s2,s3) values(2, 'tag1', 4,5,6)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]22:create table db1.t2(tag1 STRING TAG, s1 INT32,s2 int32, s3 int32)
+STRICT{
+PASS
+}
+
+-- [1]24:select * from db1.t1 order by time
+STRICT{
+time(TIMESTAMP)      |tag1(STRING)      |s1(INT32)      |s2(INT32)      |s3(INT32)      |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|tag1              |1              |2              |3              |
+01+08:00             |                  |               |               |               |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|tag1              |4              |5              |6              |
+02+08:00             |                  |               |               |               |
+总数目：2
+}
+Elapsed Time: 0.0.3
+
+-- [1]26:insert into db1.t2(time, tag1,s1) select time,tag1, s1+s2 from db1.t1
+STRICT{
+0
+}
+Elapsed Time: 0.0.24
+
+-- [1]28:select * from db1.t2 order by time
+STRICT{
+time(TIMESTAMP)      |tag1(STRING)      |s1(INT32)      |s2(INT32)      |s3(INT32)      |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|tag1              |3              |null           |null           |
+01+08:00             |                  |               |               |               |
+------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|tag1              |9              |null           |null           |
+02+08:00             |                  |               |               |               |
+总数目：2
+}
+Elapsed Time: 0.0.2

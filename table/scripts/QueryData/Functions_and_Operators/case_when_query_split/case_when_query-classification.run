@@ -1,0 +1,44 @@
+//CASE WHEN：字段分类条件
+//来源：case_when_query.run
+//本文件重建 test_db 并写入共用测试数据，覆盖温度、状态、维护等级、时间和湿度分类，末尾清理数据库。
+-- 连接测试数据库实例。
+connect root/TimechoDB@2021;
+
+-- 清理可能残留的测试数据库。
+drop database test_db;
+
+-- 标记清库语句预期返回空结果。
+<<NULL;
+
+-- 创建测试数据库。
+create database test_db;
+
+-- 切换到测试数据库。
+use test_db;
+
+-- 创建包含分类、状态及测量字段的测试表。
+create table table1 (time TIMESTAMP TIME, region STRING TAG, device_id STRING TAG, model_id STRING ATTRIBUTE, maintenance STRING ATTRIBUTE, temperature FLOAT FIELD, humidity FLOAT FIELD, status Boolean FIELD, arrival_time TIMESTAMP FIELD);
+
+-- 插入覆盖空值、边界值和多种设备状态的测试数据。
+INSERT INTO table1(time, region, device_id, model_id, maintenance, temperature, humidity, status, arrival_time) VALUES (1000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:37:34),(2000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-01 13:38:25),(3000, '北京', 'd2', 'B', '181', NULL, 35.1, true, 2024-10-27 16:37:01),(4000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:03),(6000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-29 16:00:04),(7000, '北京', 'd3', 'C', '155', NULL, 35.2, false, Null),(8000, '北京', 'd3', 'C', '155', NULL, Null, false, Null),(9000, '北京', 'd3', 'C', '155', NULL, Null, false, 2024-10-31 16:37:08),(10000, '上海', 'd4', 'D', '94', 85.0, Null, NULL, 2024-11-28 08:00:09),(11000, '上海', 'd4', 'D', '94', NULL, 40.9, true, NULL),(12000, '上海', 'd4', 'D', '94', 85.0, 35.2, NULL, 2024-12-01 10:00:11),(13000, '上海', 'd5', 'E', '90', 88.0, 45.1, true, 2024-11-30 11:00:12),(14000, '上海', 'd5', 'E', '362', 85.0, NULL, NULL, 2024-11-29 10:00:13),(15000, '上海', 'd5', 'E', '362', NULL, 45.1, true, NULL),(16000, '上海', 'd5', 'E', '362', 90.0, 35.4, true, 2024-11-20 18:30:15),(17000, '上海', 'd5', 'F', '362', 90.0, 35.2, true, NULL),(18000, '上海', 'd5', 'F', '362', 90.0, 34.8, true, 2024-11-30 23:30:17);
+
+-- 按温度空值及温度区间生成温度类别。
+select device_id, temperature, CASE WHEN temperature IS NULL THEN '未知' WHEN temperature > 85 THEN '高' WHEN temperature BETWEEN 70 AND 85 THEN '中' ELSE '低' END AS temperature_category from table1 order by 1,2,3;
+
+-- 按状态空值、正常状态和其他状态生成状态描述。
+select device_id, status, CASE WHEN status IS NULL THEN '状态未知' WHEN status = true THEN '正常' ELSE '故障' END AS status_description from table1 order by 1,2,3;
+
+-- 按维护等级字符串范围生成维护状态。
+select device_id, maintenance, CASE WHEN maintenance < '100' THEN '需要维护' WHEN maintenance BETWEEN '100' AND '200' THEN '维护良好' ELSE '维护完好' END AS maintenance_status from table1 order by 1,2,3;
+
+-- 按到达时间所在区间生成时间类别。
+select device_id, arrival_time, CASE WHEN arrival_time < 2024-11-01T00:00:00 THEN 'Before November 2024' WHEN arrival_time >= 2024-11-01 AND arrival_time < 2024-12-01 THEN 'The November of 2024' WHEN arrival_time >= 2024-12-01 THEN 'AFTER November 2024' ELSE 'Unknown' END AS time_category from table1 order by 1,2,3;
+
+-- 按湿度空值和湿度范围生成湿度类别。
+select device_id, humidity, CASE WHEN humidity IS NULL THEN '未知' WHEN humidity > 40 THEN '高湿' WHEN humidity BETWEEN 30 AND 40 THEN '适中湿度' ELSE '干燥' END AS humidity_category from table1 order by 1,2,3;
+
+-- 删除测试数据库。
+drop database test_db;
+
+-- 标记清理语句预期返回空结果。
+<<NULL;

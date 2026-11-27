@@ -1,0 +1,103 @@
+// EXCEPT：两个查询结果集中共同出现的行返回（不保证结果集顺序），支持加上all或者distinct
+connect root/TimechoDB@2021;
+
+-- 0. 清理旧数据库
+drop database test_db;
+<<NULL;
+
+
+-- 1. 创建数据库和测试表
+create database test_db;
+
+use test_db;
+
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t2(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t3(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+show tables;
+desc t1;
+desc t2;
+desc t3;
+
+-- 2. 插入测试数据
+insert into t1(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 100.0, 200.0, false, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-08'),
+	(2, 'd1', 100, 200, 200.0, 200.0, false, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-08'),
+	(3, 'd2', 200, 200, 300.0, 300.0, false, NULL, 'test1', X'48454C4C4F', to_object(false, 0, X'7464'), 1704067200000, '2026-04-09'),
+	(4, 'd2', 200, 200, 300.0, 300.0, true, 'test2', 'test1', X'426C6F62', to_object(false, 0, X'7464'), 1704067200000,'2026-04-10'),
+	(5, 'd3', 300, 300, 400.0, 300.0, true, NULL, NULL, X'426C6F62', to_object(false, 0, X'62'), 1704067200000, '2026-04-10'),
+	(6, 'd4', NULL, 400, 400.0, 300.0, true, 'test3', 'stest3', X'576F726C64', to_object(false, 0, X'62'), 1718409600000,'2026-04-11');
+
+insert into t2(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 100.0, 100.0, true, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'696F'), 200, '2026-04-09'),
+	(2, 'd2', 200, 100, 100.0, 200.0, false, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'696F'),200, '2026-04-09'),
+	(3, 'd2', 200, 200, 300.0, 300.0, false, NULL, 'test1', X'48454C4C4F', to_object(false, 0, X'7464'),1704067200000, '2026-04-09'),
+	(4, 'd2', 200, 200, 200.0, 300.0, false, 'test2', 'test2', X'426C6F62', to_object(false, 0, X'7464'),1718409600000, '2026-04-10'),
+	(5, 'd5', 500, 300, 300.0, 400.0, true, NULL, NULL, X'426C6F62', to_object(false, 0, X'62'),1718409600000, '2026-04-11'),
+	(6, 'd4', NULL, 300, 400.0, 500.0, true, 'test3', 'test4', X'576F726C64',to_object(false, 0, X'62'),1718409600000, '2026-04-11');
+	
+insert into t3(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1)
+values
+	(1, 'd1', 100, 100, 200.0, 300.0, true, 'test1', 'test1', X'48454C4C4F', to_object(false, 0, X'62'), 1704067200000, '2026-04-08' ),
+	(2, 'd2', 200, 200, 200.0, 300.0, false, 'test1', 'test1', X'426C6F62', to_object(false, 0, X'7464'), 1708409620000, '2026-04-09'),
+	(3, 'd3', 600, 200, 300.0, 400.0, true, 'test2', 'test2', X'576F726C64', to_object(false, 0, X'7464'),1708409620000, '2026-04-10'),
+	(4, 'd4', 600, 200, 300.0, 400.0, true, 'test2', 'test2', X'576F726C64', to_object(false, 0, X'7464'),1708409620000, '2026-04-10');
+	
+
+-- 3. 多表EXCEPT交集
+select device_id, int32_1, int64_1 from t1 
+except
+select device_id, int32_1, int64_1 from t2
+except
+select device_id, int32_1, int64_1 from t3
+order by 1,2,3;
+
+
+-- 4. 清理测试数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

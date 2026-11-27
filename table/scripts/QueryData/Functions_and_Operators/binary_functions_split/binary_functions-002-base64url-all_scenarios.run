@@ -1,0 +1,322 @@
+-- BASE64URL：Base64URL 编码与解码、异常输入及权限校验
+-- 覆盖：正常/边界/空值 6 项；异常输入 4 项；权限 8 项；共 18 项。
+-- 原场景编号：35、36、37、40、41、43、38、39、42、44、207、208、209、210、211、212、213、214
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- TO_BASE64URL：STRING 列编码 (P1)
+-- 来源：binary_functions.run，用例 35
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello?world');
+SELECT to_base64url(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：BLOB 列编码 (P1)
+-- 来源：binary_functions.run，用例 36
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'68656C6C6F');
+SELECT to_base64url(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 37
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT to_base64url(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：解码 Base64URL (P1)
+-- 来源：binary_functions.run，用例 40
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8td29ybGQ');
+SELECT from_base64url(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：解码标准 Base64 (P1)
+-- 来源：binary_functions.run，用例 41
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8=');
+SELECT from_base64url(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 43
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT from_base64url(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- TO_BASE64URL：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 38
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_base64url() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 39
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_base64url(col_string, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：无效字符时报错 (P1)
+-- 来源：binary_functions.run，用例 42
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello+world');
+SELECT from_base64url(col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：传入 0 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 44
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT from_base64url() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- TO_BASE64URL：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 207
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello-world');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 208
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello-world');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 209
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello-world');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BASE64URL：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 210
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello-world');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT to_base64url(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 211
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8td29ybGQ');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 212
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8td29ybGQ');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 213
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8td29ybGQ');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_base64url(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_BASE64URL：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 214
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'aGVsbG8td29ybGQ');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT from_base64url(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

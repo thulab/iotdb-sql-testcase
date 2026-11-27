@@ -1,0 +1,57 @@
+// XCORR：数值类型与混合类型
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_types
+(
+    device_id STRING TAG,
+    s_int32 INT32 FIELD,
+    s_int64 INT64 FIELD,
+    s_float FLOAT FIELD,
+    s_double DOUBLE FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(1, 'd1', 1, 10, 1.0, 10.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(2, 'd1', 2, 20, 2.0, 20.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(3, 'd1', 3, 30, 3.0, 30.0);
+insert into xcorr_types(time, device_id, s_int32, s_int64, s_float, s_double) values(4, 'd1', 4, 40, 4.0, 40.0);
+
+-- 4. 核对表结构与原始数据
+desc xcorr_types;
+select * from xcorr_types order by device_id, time;
+
+-- 5. Xcorr查询
+-- 5.1 Xcorr_支持INT32与INT64类型互相关计算
+select * from xcorr(
+    DATA => (select time, device_id, s_int32, s_int64 from xcorr_types)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by device_id;
+
+-- 5.2 Xcorr_支持FLOAT与DOUBLE类型互相关计算
+select * from xcorr(
+    DATA => (select time, device_id, s_float, s_double from xcorr_types)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by device_id;
+
+-- 5.3 Xcorr_支持INT32与FLOAT混合类型互相关计算
+select * from xcorr(
+    DATA => (select time, device_id, s_int32, s_float from xcorr_types)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by device_id;
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

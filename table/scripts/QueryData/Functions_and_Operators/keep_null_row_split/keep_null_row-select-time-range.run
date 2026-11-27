@@ -1,0 +1,34 @@
+// 测试目标：时间范围查询结果保留字段值为 NULL 的行
+// 参考设计文档：https://timechor.feishu.cn/docx/TQqad3E23oMsWoxcwibcHldfn8b
+
+connect root/TimechoDB@2021;
+-- 0. 清理旧测试数据
+drop database test_db;
+<<NULL;
+
+-- 1. 创建数据库、选择数据库并创建测试表
+create database test_db;
+use test_db;
+create table Table_A1
+(
+   device_id STRING TAG,
+   color STRING ATTRIBUTE,
+   s1 INT32 FIELD,
+   s2 FLOAT FIELD,
+   s3 BOOLEAN FIELD
+);
+
+-- 2. 写入完整行和部分字段缺省的测试数据
+insert into table_a1(time,device_id,color,s1,s2,s3) values(1,'d1','red',1,1.1,false);
+insert into table_a1(time,device_id,color,s1) values(2,'d1','red',2);
+insert into table_a1(time,device_id,color,s1) values(3,'d1','red',3);
+insert into table_a1(time,device_id,color,s1,s2,s3) values(10,'d2','blue',10,10.1,false);
+insert into table_a1(time,device_id,color,s1,s2) values(11,'d2','blue',11,11.1);
+insert into table_a1(time,device_id,color,s1) values(20,'d3','green',21);
+
+-- 3. 查询时间范围 10 到 20，检查 FLOAT 与 BOOLEAN 字段的 NULL 行仍然保留
+select time, s1, s2, s3 from table_a1 where  time >= 10 and time <= 20 order by time;
+
+-- 4. 删除测试数据库并清理数据
+drop database test_db;
+<<NULL;

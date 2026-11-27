@@ -1,0 +1,43 @@
+// INSERT ... SELECT：验证 OFFSET 与 LIMIT 正确选取源数据
+
+--1. 连接并初始化测试数据库
+connect root/TimechoDB@2021;
+drop database db_issue_v2_378;<<null;
+create database db_issue_v2_378;
+use db_issue_v2_378;
+
+--2. 清理并创建源表
+drop table t1;<<null;
+drop table t2;<<null;
+create table t1(device_id string tag ,sensor_id string tag,value float field );
+
+--3. 准备源表数据
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d1','s1',9.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d2','s2',2.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d3','s3',3.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d4','s4',4.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d5','s5',9.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d6','s6',2.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d7','s7',3.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d8','s8',4.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d11','s11',19.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d12','s12',12.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d13','s13',13.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d14','s14',14.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d15','s15',19.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d16','s16',12.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d17','s17',13.8);
+insert into t1(time ,device_id,sensor_id,value) values(now(),'d18','s18',14.8);
+
+--4. 创建目标表并确认初始状态
+create table t2(device_id string tag ,sensor_id string tag,value float field );
+select count(device_id),count(sensor_id),count(value) from t2;
+
+--5. 使用 OFFSET 和 LIMIT 从源表插入指定范围的数据
+insert into t2(time,sensor_id,value) select time,sensor_id,cast (1.1 as float) from t1 offset 4 limit 10;
+
+--6. 核对目标表插入结果
+select count(device_id),count(sensor_id),count(value) from t2;
+
+--7. 清理测试数据库
+drop database db_issue_v2_378;

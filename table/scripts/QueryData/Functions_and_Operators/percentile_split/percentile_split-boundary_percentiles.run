@@ -1,0 +1,87 @@
+-- PERCENTILE：p=0 返回最小值，p=1 返回最大值：分别为 10.0 和 50.0。
+-- 来源：percentile.run
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database percentile_test;
+<<NULL;
+
+-- 1. 创建数据库并选择数据库
+create database percentile_test;
+use percentile_test;
+
+-- 2. 创建表结构
+create table table1 (case_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD, marker INT32 FIELD);
+
+-- 3. 检查表及表结构
+show tables;
+desc table1;
+
+-- 4. 插入完整测试数据
+-- base：按时间插入 DOUBLE 值 10、20、30、40、50，用于边界百分位和四分位数。
+-- odd_with_null：6 行中 1 行为 NULL，剩余 5 个有效值为 10、20、30、40、50。
+-- even：4 个有效值为 10、20、30、40，用于验证偶数样本线性插值。
+-- ordered：按时间插入 1、2、3、4、5；shuffled：按时间插入 5、1、4、2、3。
+-- duplicates：包含 1、1、1、9、9，用于确认重复值参与百分位计算。
+-- all_null：4 行数据的 i32、i64、f32、f64 均为 NULL。
+-- one：仅有一个有效 DOUBLE 值 7。
+-- types：i32、i64、f32、f64 与 time 分别取 1、2、4、8。
+-- window：时间 0–2 无有效值、3–5 仅有值 7、6–8 有值 10、20、30；按 3ms 分窗。
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'base',10.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'base',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'base',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'base',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'base',50.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'odd_with_null',10.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'odd_with_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'odd_with_null',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'odd_with_null',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'odd_with_null',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(6,'odd_with_null',50.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'even',10.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'even',20.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'even',30.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'even',40.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'ordered',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'ordered',2.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'ordered',3.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'ordered',4.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'ordered',5.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'shuffled',5.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'shuffled',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'shuffled',4.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'shuffled',2.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'shuffled',3.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'duplicates',1.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'duplicates',9.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'duplicates',9.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(1,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(3,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(4,'all_null',null,null,null,null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'one',7.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(1,'types',1,1,1.0,1.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(2,'types',2,2,2.0,2.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(4,'types',4,4,4.0,4.0,'bad',true,1);
+insert into table1(time,case_id,i32,i64,f32,f64,txt,flag,marker) values(8,'types',8,8,8.0,8.0,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(0,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(1,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(2,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(3,'window',7,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(4,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(5,'window',null,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(6,'window',10,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(7,'window',20,'bad',true,1);
+insert into table1(time,case_id,f64,txt,flag,marker) values(8,'window',30,'bad',true,1);
+
+-- 5. 查询场景（源脚本 5.3）：p=0 返回最小值，p=1 返回最大值：分别为 10.0 和 50.0。
+select time, f64 from table1 where case_id='base' order by time;
+select percentile(f64,0.0),percentile(f64,1.0) from table1 where case_id='base';
+
+
+-- 6. 清理环境
+drop database percentile_test;
+<<NULL;

@@ -1,0 +1,25 @@
+// CORR：大基数小增量的数值稳定性
+// 来源：corr.run
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database corr_test;
+<<NULL;
+
+-- 1. 创建数据库并准备大基数、小增量数据
+create database corr_test;
+use corr_test;
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+-- 两列值具有较大偏移量，增量保持线性关系。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'large_offset',1000000000001,3000000000010,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'large_offset',1000000000002,3000000000013,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'large_offset',1000000000003,3000000000016,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'large_offset',1000000000004,3000000000019,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'large_offset',1000000000005,3000000000022,'bad',1);
+
+-- 2. 验证数值稳定性
+select corr(x,y) as corr_result from pair_cases where case_id='large_offset';
+
+-- 3. 清理环境
+drop database corr_test;
+<<NULL;

@@ -1,0 +1,54 @@
+//窗口函数：ROWS、GROUPS 与 RANGE frame
+connect root/TimechoDB@2021;
+-- 1. 清理测试数据库
+drop database window_function_test;
+<<NULL;
+
+-- 2. 创建测试数据库
+create database window_function_test;
+-- 3. 切换到测试数据库
+use window_function_test;
+-- 4. 创建测试表
+create table t1 (Device string tag, "没问题1" string tag, " 123!@// " string tag, " abc没问题123!@// " string attribute, Flow int64 field, "没问题2" int32 field, " 098!@// " double field, " abc没问题098!@// " float field, date date field, timestamp timestamp field, string string field);
+-- 5. 插入测试数据
+insert into t1 values (1970-01-01T08:00:00.000+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3');
+insert into t1 values (1970-01-01T08:00:00.001+08:00, 'd0', 'd0', 'd0', 'd0', 5, 5, 5.0, 5.0, '1970-01-01', 5, '5');
+insert into t1 values (1970-01-01T08:00:00.002+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3');
+insert into t1 values (1970-01-01T08:00:00.003+08:00, 'd0', 'd0', 'd0', 'd0', 1, 1, 1.0, 1.0, '1970-01-01', 1, '1');
+insert into t1 values (1970-01-01T08:00:00.004+08:00, 'd0', 'd0', 'd0', 'd0', null, null, null, null, null, null, null);
+insert into t1 values (1970-01-01T08:00:00.005+08:00, 'd1', 'd1', 'd1', 'd1', 2, 2, 2.0, 2.0, '1970-01-01', 2, '2');
+insert into t1 values (1970-01-01T08:00:00.006+08:00, 'd1', 'd1', 'd1', 'd1', null, null, null, null, null, null, null);
+insert into t1 values (1970-01-01T08:00:00.007+08:00, 'd1', 'd1', 'd1', 'd1', 4, 4, 4.0, 4.0, '1970-01-01', 4, '4');
+insert into t1 values (1970-01-01T08:00:00.008+08:00,  null, null, null, null, null, null, null, null, null, null, null);
+
+
+-- 6. 窗口函数查询验证
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow ROWS flow PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device GROUPS BETWEEN 1 PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device GROUPS BETWEEN CURRENT ROW AND CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE 2 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(flow) OVER(ORDER BY flow RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device RANGE CURRENT ROW)FROM t1 ORDER BY time;
+SELECT time, device, flow, count(device) OVER(ORDER BY device RANGE UNBOUNDED PRECEDING)FROM t1 ORDER BY time;
+
+
+-- 7. 清理测试数据库
+drop database window_function_test;

@@ -1,0 +1,135 @@
+// date_bin_gapfill 函数：普通查询、分组补齐与聚合
+// 验证未按时间分组时的查询行为，以及按 GROUP BY 使用时的补齐和聚合场景。
+
+// 1. 连接并清理可能残留的测试数据库。
+connect root/TimechoDB@2021;
+--清理可能残留的数据。
+drop database test_db;
+<<NULL;
+
+// 2. 创建并切换到测试数据库。
+create database test_db;
+use test_db;
+
+// 3. 创建包含时间、标签和多种字段类型的测试表。
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+// 4. 检查表及其结构。
+show tables;
+desc table_1;
+
+// 5. 按 time 升序写入测试数据，覆盖多维标签、空值及多种字段类型。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 1, 1000, 1.1, 111.11
+);
+// time=2：提供第二个时间点及 timestamp 分桶数据。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 1727740800000, X'3b', 10, 453, 11.1, 102.2
+);
+// time=3：提供后续时间点和分组标签数据。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+3, '003', 'd3', 'V3', true, 'text2', 'string2', '2021-12-20', 1727746200000, X'6728', 1, 123, 5.2, 333.3
+);
+// time=4：覆盖 FLOAT 空值。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+4, '004', 'd4', 'V4', false, 'text3', 'string3', '2022-06-11', 1727751600000, X'4b98', 2, 239, null, 666.66
+);
+// time=5：补充 d1 分组及负数值。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+5, '005', 'd1', 'V3', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 653, -1.1, 1111.2
+);
+// time=6：覆盖 TAG 与 DATE 空值。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+6, null, 'd1', 'V2', true, 'text3', 'string3', null, 1378230000000, X'34', 1, 653, 0.1, 1111.2
+);
+// time=7：覆盖 INT64 空值。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+7, '005', 'd2', 'V3', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'34', 2, null, 555.5, 1111.2
+);
+// time=8：覆盖 DOUBLE 空值。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+8, '002', 'd3', 'V1', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 653, 13.13, null
+);
+// time=9：覆盖 STRING 与 INT64 空值，并提供目标分组数据。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+9, '003', 'd3', 'V1', true, 'text4', null, '2023-12-15', 1727758800000, X'34', 10, null, 2.1, 155.5
+);
+// time=10：覆盖 BLOB 与 INT64 空值，提供查询上界数据。
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+10, '004', 'd4', 'V2', false, 'text5', 'string3', '2023-12-15', 1727768700000, null, 1, null, -1.1, 11.2
+);
+
+// 6. 先按时间升序查看原始数据，确认测试数据已写入。
+select * from table_1 order by time;
+
+// 7. 不与 GROUP BY 结合使用：验证 date_bin_gapfill 可参与普通查询，且不报错。
+// 7.1 验证降序、OFFSET 和 LIMIT 组合。
+select date_bin_gapfill(2ms,time) as fill_result,date from table_1 where time > 1 and time < 10 order by time desc offset 2 limit 5;
+// 7.2 同时返回原始 time 与 date_bin_gapfill 计算结果。
+select time,date_bin_gapfill(2ms,time) as result from table_1 where time > 1 and time < 10 order by time;
+
+// 8. 与 GROUP BY 搭配：验证 date_bin_gapfill 的时间区间补齐功能。
+// 8.1 在子查询数据源上按 time 分桶。
+select date_bin_gapfill(2ms,time) as result from (select * from table_1 order by time) where time > 1 and time < 10 group by 1;
+// 8.2 使用 timestamp 列按小时分桶。
+select date_bin_gapfill(2h,timestamp) as result from table_1 where timestamp between 1727740800000 and 1727769600000 group by 1;
+
+// 9. 结合聚合函数与过滤条件，验证单一分组的聚合结果。
+select date_bin_gapfill(3ms, time) AS ms_time, avg(int32) AS avg_int32
+  from table_1
+  where (time >= 1 AND time <10 )
+         AND device_id = 'd1'
+  GROUP BY 1;
+
+// 10. 按多个维度分组，并验证 HAVING 可与 gapfill 查询组合使用。
+select time, region_id, device_id, date_bin_gapfill(2h, timestamp) AS hour_time, (max(double) + min(float)) AS total_result
+  from table_1
+  where (timestamp >= 1727740800000 AND timestamp < 1727769600000)
+         AND device_id = 'd3' and region_id='003'
+  GROUP BY 1,2,3,4
+  HAVING avg(int32) IS NOT NULL;
+
+// 11. 按时间桶和 region_id 分组，验证表达式聚合及布尔过滤。
+select date_bin_gapfill(3h, timestamp) AS hour_time, region_id, avg(int64-int32+2) AS avg_result
+  from table_1
+  where timestamp >= 1727740800000 AND timestamp < 1727769600000 and boolean=false
+  group by 1, region_id;
+
+// 12. 清理测试数据库。
+drop database test_db;
+<<NULL;

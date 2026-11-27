@@ -1,0 +1,47 @@
+// CORR：分组过滤、HAVING 与时间窗口
+// 来源：corr.run
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database corr_test;
+<<NULL;
+
+-- 1. 创建数据库并准备分组、过滤和窗口数据
+create database corr_test;
+use corr_test;
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+-- positive、negative、zero、empty 用于分组过滤；window 用于构造三个 3ms 窗口。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'negative',1,8,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'negative',2,6,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'negative',3,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'negative',4,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'zero',1,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'zero',2,-1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'zero',3,-1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'zero',4,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(0,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'window',1,7,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'window',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(6,'window',1,7,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(7,'window',2,9,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(8,'window',3,11,'bad',1);
+
+-- 2. 验证 WHERE、GROUP BY、HAVING 组合语义
+select time, case_id, x, y from pair_cases where case_id in ('positive','negative','zero','empty') order by time, case_id;
+select case_id,corr(x,y) as r from pair_cases where case_id in ('positive','negative','zero','empty') group by case_id having corr(x,y) is not null order by case_id;
+
+-- 3. 验证按 3ms 分窗后的 CORR 结果
+select date_bin(3ms,time) as win,corr(x,y) as corr_result from pair_cases where case_id='window' group by 1 order by 1;
+
+-- 4. 清理环境
+drop database corr_test;
+<<NULL;

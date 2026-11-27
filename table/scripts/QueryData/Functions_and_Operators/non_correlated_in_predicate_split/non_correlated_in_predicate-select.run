@@ -1,0 +1,130 @@
+// 非关联 IN 谓词：SELECT 子句
+// 来源：non_correlated_in_predicate.run；独立准备数据并清理 test_db。
+// 各脚本删除并重建 test_db，须串行执行。
+
+// 测试目的：验证 SELECT 投影表达式中的非关联 IN 子查询返回布尔结果。
+// 查询覆盖：原脚本 8.3，共 1 条目标查询；投影按 employee_id 升序排列。
+
+-- 0. 连接数据库。
+connect root/TimechoDB@2021;
+-- 1. 清理残留测试数据库。
+drop database test_db;
+<<NULL;
+-- 2. 创建测试数据库。
+create database test_db;
+-- 3. 切换到测试数据库。
+use test_db;
+
+-- 4. 创建测试表：员工、部门、客户和订单。
+create table employees
+(
+    department_id STRING TAG,
+    remark STRING ATTRIBUTE,
+    name TEXT FIELD,
+	Gender TEXT FIELD,
+	Status BOOLEAN FIELD,
+	employee_id INT32 FIELD,
+	salary DOUBLE FIELD,
+	date_of_birth DATE FIELD,
+	Contac_info string FIELD
+);
+
+create table departments
+(
+    department_id STRING TAG,
+    dep_description STRING ATTRIBUTE,
+    dep_name TEXT FIELD,
+	dep_phone TEXT FIELD,
+	dep_status BOOLEAN FIELD,
+	dep_member INT32 FIELD,
+	employee_id INT32 FIELD
+);
+
+create table customers
+(
+	customer_id STRING TAG,
+	remark STRING ATTRIBUTE,
+	customer_name TEXT,
+	region TEXT,
+	order_id INT64
+);
+
+create table orders
+(
+	customer_id STRING TAG,
+	employee_id INT32,
+	project_id STRING TAG,
+	project_name STRING ATTRIBUTE,
+	order_id INT64,
+	order_amount FLOAT
+);
+
+-- 5. 检查测试表及表结构。
+show tables;
+desc employees;
+desc departments;
+desc orders;
+desc customers;
+
+-- 6. 写入员工测试数据。
+insert into employees(time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(1, 'D001', 'good', 'Mary','Female', false, 1223, 5500.22, '1988-10-12', '133-1212-1234');
+insert into employees(time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(2, 'D001', 'great', 'John', 'Male', true, 40012, 8822, '1985-06-15', '130-1002-1334');
+insert into employees(time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(3, 'D002', 'excellent', 'Nancy', 'Female', true, 30112, 10002, '1983-08-15', '135-1302-1354');
+insert into employees(time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(4, 'D002', 'good', 'Jack', 'Male', false, 12212, 7000, '1990-03-26', '138-1012-1353');
+insert into employees(time, department_id, remark, name, gender, status, employee_id, salary, date_of_birth, contac_info) values
+(5, 'D003', 'great', 'Linda', 'Female', false, 10212, 5600, '1995-06-15', '150-2003-1355');
+
+insert into departments(time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(1, 'D001', 'goods','销售部', '010-2271-2120', false, 1223,1223);
+insert into departments(time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(2, 'D001', 'goods','销售部', '010-2271-2120', false, 102, 40012);
+insert into departments(time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(3, 'D002', 'service','客服部', '010-2077-2520', true, 220, 30112);
+insert into departments(time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(4, 'D002', 'service','客服部', '010-2077-2520', true, 2012, 12212);
+insert into departments(time, department_id, dep_description, dep_name, dep_phone, dep_status, dep_member,employee_id) values
+(5, 'D003', 'IT','研发部', '010-3272-2310', true, 300, 10212);
+
+insert into orders(time, customer_id, employee_id, project_id, project_name, order_id, order_amount) values
+(1, 'C111000111', 12212, 'P1001001', 'chair', 111122223333, 5000.89),
+(2, 'C332113221', 40012, 'P2002021', 'table', 222333445881,1860.5),
+(3, 'C113344421', 10212, 'P3893001', 'mirror', 66788843922,3699.88),
+(4, 'C223321123', 1223, 'P0010100', 'clothes', 7263722222,8888.88),
+(5, 'C123532982', 30112, 'P3983819', 'shoes',22238472992, 9999.9),
+(6, null,1002293,'P22633332','cars',3729837293838,350102.9),
+(7, 'C566378432', 10212, 'P22633332', 'cars',null, null);
+
+insert into customers(time,customer_id, remark, customer_name, region, order_id) values
+(1, 'C111000111', 'A', 'Helen', 'Beijing', 22238472992),
+(2, 'C332113221', 'A', 'Mike', 'Shanghai', 111122223333),
+(3, 'C113344421', 'B', 'John', 'Hebei', 66788843922),
+(4, 'C223321123', 'A', 'Jack', 'Guangzhou', 7263722222),
+(5, 'C123532982', 'B', 'Amy', 'Tianjin', 222333445881),
+(6, null, 'C', 'CoCO', 'Beijing', 3729837293838),
+(7, 'C092938273', 'A', 'Nancy', 'Shanghai',null);
+
+-- 7. 检查初始化数据，各表按 time 排序。
+-- 7.1 数据检查：按 time 顺序展示初始化后的员工记录。
+select * from employees order by time;
+-- 7.2 数据检查：按 time 顺序展示初始化后的部门记录。
+select * from departments order by time;
+-- 7.3 数据检查：按 time 顺序展示初始化后的订单记录。
+select * from orders order by time;
+-- 7.4 数据检查：按 time 顺序展示初始化后的客户记录。
+select * from customers order by time;
+
+-- 8. 执行本文件的功能测试，以下子项按执行顺序编号。
+-- 8.1 在 SELECT 投影中判断员工 ID 是否出现在订单金额大于 6500 的订单中。（来源：原脚本 8.3）
+-- 预期：每名员工返回一行，in_result 表示子查询是否包含该员工 ID；按 employee_id 升序。
+select employee_id,
+	       employee_id in (select employee_id from orders where order_amount > 6500) as in_result
+from employees
+order by employee_id;
+
+-- 9. 清理本用例创建的测试数据库。
+drop database test_db;
+<<NULL;

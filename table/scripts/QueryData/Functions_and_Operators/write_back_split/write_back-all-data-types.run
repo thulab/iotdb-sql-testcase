@@ -1,0 +1,38 @@
+-- 查询写回 INSERT INTO QUERY：多数据类型写回
+-- 来源章节：5
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+
+-- 2. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 3. 创建本场景数据库
+create database db1;
+-- 4. 创建源表或目标表
+create table db1.t1(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+-- 5. 写入测试数据
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(1, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false, '2025-06-05', 1749052800000, 'string', X'abcd');
+-- 6. 写入测试数据
+insert into db1.t1(time, tag1, tag2, attr1, attr2, s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(2, 'tag1', 'tag2', 'attr1', 'attr2', 123, 12345678, 3.14, 3.1415926535, 'text', false, '2025-06-05', 1749052800000, 'string', X'abcd');
+
+-- 7. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, tag2 STRING TAG, attr1 STRING ATTRIBUTE, attr2 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD, s4 DOUBLE FIELD, s5 TEXT FIELD, s6 BOOLEAN FIELD, s7 DATE FIELD, s8 TIMESTAMP FIELD, s9 STRING FIELD, s10 BLOB FIELD);
+
+-- 8. 将 SELECT 查询结果写入目标表
+insert into db1.t2 (select * from db1.t1);
+
+-- 9. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+-- 10. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 11. 清理旧数据库并检查预期状态
+drop database if exists db1;
+
+-- 12. 清理测试数据库
+drop database db1;
+<<NULL;

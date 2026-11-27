@@ -1,0 +1,241 @@
+
+-- [1]13:create database test_fft
+STRICT{
+PASS
+}
+
+-- [1]14:use test_fft
+STRICT{
+PASS
+}
+
+-- [1]19:create table signal (     device_id STRING TAG,     temperature DOUBLE FIELD,     speed INT32 FIELD,     note STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]27:create table single_row (     device_id STRING TAG,     value DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]33:create table no_numeric (     device_id STRING TAG,     note STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]39:create table with_null (     device_id STRING TAG,     value DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]45:create table duplicate_time (     device_id STRING TAG,     value DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]50:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+duplicate_time       |INF                |
+----------------------------------------
+no_numeric           |INF                |
+----------------------------------------
+signal               |INF                |
+----------------------------------------
+single_row           |INF                |
+----------------------------------------
+with_null            |INF                |
+总数目：5
+}
+Elapsed Time: 0.0.0
+
+-- [1]51:desc signal
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+speed                 |INT32               |FIELD               |
+--------------------------------------------------------------
+note                  |STRING              |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.1
+
+-- [1]52:desc single_row
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+value                 |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]53:desc no_numeric
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+note                  |STRING              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]54:desc with_null
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+value                 |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.1
+
+-- [1]55:desc duplicate_time
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+value                 |DOUBLE              |FIELD               |
+总数目：3
+}
+Elapsed Time: 0.0.0
+
+-- [1]58:insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.411
+
+-- [1]59:insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]60:insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]61:insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]62:insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.27
+
+-- [1]63:insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]64:insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]65:insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]67:insert into single_row(time, device_id, value) values(0, 'd1', 2.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]69:insert into no_numeric(time, device_id, note) values(0, 'd1', 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]71:insert into with_null(time, device_id, value) values(0,    'd1', 1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]72:insert into with_null(time, device_id, value) values(1000, 'd1', 2.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]73:insert into with_null(time, device_id, value) values(2000, 'd1', null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]76:insert into duplicate_time(time, device_id, value) values(0, 'd1', 1.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]77:insert into duplicate_time(time, device_id, value) values(0, 'd2', 2.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]83:select * from FFT(     DATA => (select time, value from duplicate_time) ORDER BY time,     SAMPLE_INTERVAL => 1s )
+STRICT{
+SQLSTATE : 701: The time column of FFT input must be strictly ascending within each partition.
+}
+
+-- [1]90:select * from FFT(     DATA => no_numeric PARTITION BY device_id ORDER BY time,     SAMPLE_INTERVAL => 1s )
+STRICT{
+SQLSTATE : 701: No numeric columns found for FFT calculation.
+}
+
+-- [1]99:select * from FFT(     DATA => with_null PARTITION BY device_id ORDER BY time,     SAMPLE_INTERVAL => 1s,     N => 2 )
+STRICT{
+SQLSTATE : 701: FFT does not support null values in column [value].
+}
+
+-- [1]104:select * from FFT(DATA => single_row PARTITION BY device_id ORDER BY time)
+STRICT{
+SQLSTATE : 701: FFT requires at least two rows to infer SAMPLE_INTERVAL.
+}
+
+-- [1]113:select * from FFT(     DATA => signal ORDER BY time,     SAMPLE_INTERVAL => 1s,     TIMECOL => 'event_time' )
+STRICT{
+SQLSTATE : 701: Required column [event_time] not found in the source table argument.
+}
+
+-- [1]122:select * from FFT(     DATA => signal ORDER BY device_id,     SAMPLE_INTERVAL => 1s,     TIMECOL => 'device_id' )
+STRICT{
+SQLSTATE : 701: The type of the column [device_id] is not as expected.
+}

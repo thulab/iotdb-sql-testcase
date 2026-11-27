@@ -1,0 +1,28 @@
+// APPROX_MOST_FREQUENT：空表与过滤后空集的全局及分组聚合
+// 新增功能覆盖。所有 *_ok 列预期为 true，需录制并审核 .result 后运行回归。
+
+connect root/TimechoDB@2021;
+drop database amf_empty_input;
+<<NULL;
+create database amf_empty_input;
+use amf_empty_input;
+create table t1(device STRING TAG, value STRING FIELD, marker INT32 FIELD);
+
+
+-- 物理空表：全局聚合应为一行，count(*)=0；保留函数原始结果供目标版本审核空集语义。
+select n=0 as empty_table_ok, f as empty_table_result
+from (select count(*) as n, approx_most_frequent(value,2,10) as f from t1);
+-- 空表分组聚合无分组，预期0行。
+select device, approx_most_frequent(value,2,10) as frequent from t1 group by device order by device;
+
+insert into t1(time, device, value, marker) values (1,'g1','a',1), (2,'g2','b',1);
+select count(*)=2 as populated_input_ok from t1;
+-- 表有数据但 WHERE 排除全部行，验证聚合器不接收任何输入的路径。
+select n=0 as filtered_empty_ok, f as filtered_empty_result
+from (select count(*) as n, approx_most_frequent(value,2,10) as f from t1 where time<0);
+-- 过滤后的分组聚合也应为0行。
+select device, approx_most_frequent(value,2,10) as frequent from t1 where time<0 group by device order by device;
+
+connect root/TimechoDB@2021;
+drop database amf_empty_input;
+<<NULL;

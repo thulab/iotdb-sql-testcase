@@ -1,0 +1,189 @@
+// 行模式识别：异常场景
+connect root/TimechoDB@2021;
+-- 0. 清理环境
+drop database test_db;
+<<NULL;
+
+-- 1.创建数据库
+create database test_db;
+
+-- 2. 指定数据库
+use test_db;
+
+-- 3. 创建表
+create table orders(
+customer_id TAG,
+region ATTRIBUTE,
+order_date DATE,
+product TEXT,
+status BOOLEAN,
+number INT64,
+totalprice DOUBLE);
+
+-- 4. 查看表
+show tables;
+
+-- 5.展示表结构信息
+desc orders;
+
+-- 6. 插入数据
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736000000, '100', 'beijing', '2025-06-01', 'table', true, 100, 55000.5
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736600000, '100', 'beijing', '2025-06-01', 'table', true, 255, 13200.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737200000, '100', 'beijing', '2025-06-01', 'table', true, 888, 12400
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737800000, '100', 'beijing', '2025-06-01', 'table', true, 55, 9998.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748739600000, '100', 'beijing', '2025-06-01', 'table', true, 666, 9998.3
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748822400000, '101', 'shanghai', '2025-06-02', 'door', false, 608, 12350.5
+					);			
+
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748826000000, '101', 'shanghai', '2025-06-02', 'door', true, 1000, 667849.9
+					);					
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748831400000, '101', 'shanghai', '2025-06-02', 'door', true, 360, 33920.5
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748835000000, '101', 'shanghai', '2025-06-02', 'door', true, 150, 33920.5
+					);	
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923200000, '100', 'beijing', '2025-06-03', 'table', true, 150, 11230.4
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923300000, '101', 'beijing', '2025-06-04', 'table', true, 50, 55000.00
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748924300000, '102', 'beijing', '2025-06-05', 'table', true, 50, 65000.00
+					);
+
+
+-- 7. 原始数据查询
+select * from orders order by time;		
+
+
+-- 8. 异常场景：验证不支持的 FIRST 写法及其替代函数 RPR_FIRST
+select m.time, m.region, m.product, m.lower_or_higher, m.label from orders
+	MATCH_RECOGNIZE (
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RUNNING FIRST(totalprice) AS price,
+			CLASSIFIER(U) AS lower_or_higher,
+			CLASSIFIER(W) AS label
+		ALL ROWS PER MATCH
+		PATTERN ((L | H) A)
+		SUBSET 
+			U = (L, H),
+			W = (A, L, H)
+		DEFINE 
+			A AS A.number = 666,
+			L AS L.number < 666,
+			H AS H.number > 666
+	) AS m;
+
+-- 9. 异常场景：验证不支持的 LAST 写法及其替代函数 RPR_LAST
+select * from orders 
+	MATCH_RECOGNIZE(
+		partition by region
+		order by order_date
+		measures
+              A.totalprice AS starting_price,
+              LAST(B.totalprice) AS bottom_price,
+              LAST(D.totalprice) AS top_price
+     ONE ROW PER MATCH
+     AFTER MATCH SKIP PAST LAST ROW
+     PATTERN (A B+ C+ D+)
+     DEFINE
+              B AS totalprice < PREV(totalprice),
+              C AS totalprice > PREV(totalprice) AND totalprice <= A.totalprice,
+              D AS totalprice > PREV(totalprice)
+);
+
+
+
+-- 10. 量词边界异常：{0,0}? 的上下界均为零，验证该边界写法返回 SQLSTATE
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{0,0}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+<<SQLSTATE;
+
+-- 11. 量词边界异常：{1.1,1}? 的下界为小数，预期返回 SQLSTATE
+select m.time, m.match, m.price, m.label from orders
+	MATCH_RECOGNIZE(
+        MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(totalprice) AS price,
+            CLASSIFIER() AS label
+        ALL ROWS PER MATCH
+        AFTER MATCH SKIP PAST LAST ROW
+        PATTERN (B{1.1,1}?)
+        DEFINE
+			B AS B.totalprice <= PREV(B.totalprice)
+    ) AS m
+order by time, match, price;
+<<SQLSTATE;
+
+	
+
+-- 12. 清理环境
+drop database test_db;
+<<NULL;

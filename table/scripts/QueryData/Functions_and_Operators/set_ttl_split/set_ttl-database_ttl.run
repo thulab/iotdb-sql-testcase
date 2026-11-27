@@ -1,0 +1,66 @@
+// 数据库 TTL：默认值、表 TTL 与历史数据写入检查
+connect root/TimechoDB@2021;
+
+-- 0. 清理测试环境
+drop database set_ttl_database_db;
+<<NULL;
+drop database set_ttl_database_with_ttl_db;
+<<NULL;
+
+-- 1. 创建数据库并查看数据库 TTL
+create database set_ttl_database_db;
+create database set_ttl_database_with_ttl_db with (ttl=86400000);
+show databases details;
+
+-- 2. 指定带 TTL 的数据库，创建表并查看继承的 TTL
+use set_ttl_database_with_ttl_db;
+create table inherited_ttl_table(device_id STRING TAG, value INT32 FIELD);
+show tables;
+
+-- 3. 清理数据库 TTL 展示场景
+drop database set_ttl_database_db;
+<<NULL;
+drop database set_ttl_database_with_ttl_db;
+<<NULL;
+
+-- 4. 准备默认 TTL、60000ms TTL 和 3600000ms TTL 的表
+drop database set_ttl_multi_table_db;
+<<NULL;
+create database set_ttl_multi_table_db;
+use set_ttl_multi_table_db;
+create table t1(device_id string TAG, int32 INT32 FIELD);
+create table t2(device_id string TAG, int32 INT32 FIELD) with (ttl=60000);
+create table t3(device_id string TAG, int32 INT32 FIELD) with (ttl=3600000);
+show tables;
+
+-- 5. 向 t1 写入当前数据及超出默认保留范围的历史数据，检查写入与查询结果
+insert into t1(time, device_id, int32) values(now(),'d1',1);
+sleep 1000;
+insert into t1(time, device_id, int32) values(now()-1d,'d1',2);
+select count(*) as count_result from t1;
+
+-- 6. 向 t2 写入当前数据及超过 60000ms TTL 的历史数据
+insert into t2(time, device_id, int32) values(now(),'d1',1);
+sleep 1000;
+insert into t2(time, device_id, int32) values(now()-61000ms,'d1',2);
+<<ERRORCODE;
+select count(*) as count_result from t2;
+
+-- 7. 向 t3 写入当前数据及超过 3600000ms TTL 的历史数据
+insert into t3(time, device_id, int32) values(now(),'d1',1);
+sleep 1000;
+insert into t3(time, device_id, int32) values(now()-3660000ms,'d1',2);
+<<ERRORCODE;
+select count(*) as count_result from t3;
+
+-- 8. 取消表 TTL 和数据库 TTL，并检查设置
+alter table t2 set properties TTL='INF';
+show tables;
+alter table t3 set properties TTL='INF';
+show tables;
+alter database set_ttl_multi_table_db set properties TTL='INF';
+show databases;
+
+-- 9. 清理测试数据库
+drop database set_ttl_multi_table_db;
+<<NULL;

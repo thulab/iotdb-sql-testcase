@@ -1,0 +1,92 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理环境
+drop database test_pattern_match;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_pattern_match;
+
+-- 3. 指定数据库
+use test_pattern_match;
+
+-- 4. 创建表
+
+create table pm_smooth
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_gap
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_edge
+(
+    shape STRING TAG,
+    value DOUBLE FIELD
+);
+
+create table pm_empty
+(
+    value DOUBLE FIELD
+);
+
+-- 5. 插入数据
+
+insert into pm_smooth(time,shape,value) values
+    (1,'self',1.0),(2,'self',1.2),(3,'self',1.0),
+    (1,'small_noise',1.0),(2,'small_noise',2.0),(3,'small_noise',2.1),
+    (4,'small_noise',3.0),(5,'small_noise',2.0),(6,'small_noise',1.0),
+    (1,'spike',1.0),(2,'spike',1.0),(3,'spike',3.0),(4,'spike',1.0),(5,'spike',1.0);
+
+insert into pm_gap(time,shape,value) values
+    (1,'gap',1.0),(2,'gap',2.0),(100,'gap',3.0),(101,'gap',2.0),(102,'gap',1.0),
+    (1,'continuous',1.0),(2,'continuous',2.0),(3,'continuous',3.0),(4,'continuous',2.0),(5,'continuous',1.0);
+
+insert into pm_edge(time,shape,value) values
+    (1,'single',1.0),
+    (1,'short',1.0),(2,'short',2.0),
+    (1,'with_null',1.0),(2,'with_null',2.0),(3,'with_null',null),(4,'with_null',2.0),(5,'with_null',1.0);
+
+-- 6. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,value from pm_gap where shape='gap') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+-- 7. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,value from pm_gap where shape='continuous') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by match_index,time;
+
+-- 8. pattern_match 查询场景
+select * from pattern_match(data => pm_empty order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+-- 9. pattern_match 查询场景
+select * from pattern_match(data => (select time,value from pm_edge where shape='single') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+-- 10. pattern_match 查询场景
+select * from pattern_match(data => (select time,value from pm_edge where shape='short') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+-- 11. pattern_match 查询场景
+select * from pattern_match(data => (select time,value from pm_edge where shape='with_null') order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+
+-- 12. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='small_noise') order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.5, threshold => 10.0
+) order by match_index,time;
+
+-- 13. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,value from pm_smooth where shape='spike') order by time,
+    data_col => 'value', pattern => '1,1,1,1,1', smooth => 0.5, threshold => 10.0
+) order by match_index,time;
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop database test_pattern_match;
+<<NULL;

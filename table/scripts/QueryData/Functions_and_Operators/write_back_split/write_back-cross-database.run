@@ -1,0 +1,121 @@
+-- 查询写回 INSERT INTO QUERY：跨数据库写回
+-- 来源章节：4.1 至 4.5
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+-- 场景：4.1 全限定源表与目标表
+-- 2. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 3. 创建本场景数据库
+create database db1;
+-- 4. 创建源表或目标表
+create table db1.t1(id string tag, voltage float field);
+-- 5. 创建源表或目标表
+create table db1.t2(id string tag, voltage float field);
+
+-- 6. 写入测试数据
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+-- 7. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select * from db1.t1;
+-- 8. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 9. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+
+-- 场景：4.2 切换当前库后使用全限定表名
+
+-- 10. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 11. 创建本场景数据库
+create database db1;
+-- 12. 创建源表或目标表
+create table db1.t1(id string tag, voltage float field);
+-- 13. 创建源表或目标表
+create table db1.t2(id string tag, voltage float field);
+
+-- 14. 写入测试数据
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+-- 15. 切换当前数据库
+use db1;
+-- 16. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select * from db1.t1;
+-- 17. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 场景：4.3 当前库源表写入另一数据库
+-- 18. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+
+-- 19. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 20. 清理旧数据库并检查预期状态
+drop database if exists db2;
+-- 21. 创建本场景数据库
+create database db1;
+-- 22. 创建本场景数据库
+create database db2;
+
+-- 23. 创建源表或目标表
+create table db1.t1(id string tag, voltage float field);
+-- 24. 创建源表或目标表
+create table db2.t1(id string tag, voltage float field);
+
+-- 25. 写入测试数据
+insert into db1.t1(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+
+-- 场景：4.4 当前库目标表读取外部源表
+-- 26. 切换当前数据库
+use db1;
+-- 27. 将 SELECT 查询结果写入目标表
+insert into db2.t1 select * from db1.t1;
+-- 28. 查询数据并核对写入结果
+select * from t1 order by time;
+-- 29. 查询数据并核对写入结果
+select * from db2.t1 order by time;
+
+-- 30. 创建源表或目标表
+create table db1.t3(id string tag, voltage float field);
+-- 31. 创建源表或目标表
+create table db2.t3(id string tag, voltage float field);
+
+-- 32. 写入测试数据
+insert into db1.t3(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+-- 33. 切换当前数据库
+use db2;
+-- 34. 将 SELECT 查询结果写入目标表
+insert into t3 select * from db1.t3;
+
+-- 场景：4.5 全限定目标表写回
+-- 35. 查询数据并核对写入结果
+select * from db1.t3 order by time, id, voltage;
+-- 36. 查询数据并核对写入结果
+select * from t3 order by time;
+
+-- 37. 创建源表或目标表
+create table db1.t4(id string tag, voltage float field);
+-- 38. 创建源表或目标表
+create table db2.t4(id string tag, voltage float field);
+
+-- 39. 写入测试数据
+insert into db1.t4(time,id,voltage) values(11000, '1', 11.1), (12000, '2', 12.1);
+-- 40. 将 SELECT 查询结果写入目标表
+insert into db2.t4 select * from db1.t4;
+-- 41. 查询数据并核对写入结果
+select * from db1.t4 order by time;
+-- 42. 查询数据并核对写入结果
+select * from db2.t4 order by time;
+
+-- 43. 清理旧数据库并检查预期状态
+drop database if exists db1;
+
+-- 44. 清理测试数据库
+drop database db1;
+<<NULL;
+-- 清理项：数据库 db2
+-- 45. 清理测试数据库
+drop database db2;
+<<NULL;

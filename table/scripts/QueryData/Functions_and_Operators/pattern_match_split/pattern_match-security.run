@@ -1,0 +1,77 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理环境
+drop user pattern_match_reader;
+<<NULL;
+drop database test_pattern_match;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_pattern_match;
+
+-- 3. 指定数据库
+use test_pattern_match;
+
+-- 4. 创建表
+create table pm_base
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    value DOUBLE FIELD,
+    aux INT32 FIELD,
+    note STRING FIELD
+);
+
+-- 5. 插入数据
+insert into pm_base(time,device_id,site,value,aux,note) values
+    (1,'d1','s1',1.0,11,'d1-a'),
+    (2,'d1','s1',2.0,12,'d1-b'),
+    (3,'d1','s1',3.0,13,'d1-c'),
+    (4,'d1','s1',2.0,14,'d1-d'),
+    (5,'d1','s1',1.0,15,'d1-e'),
+    (1,'d2','s2',10.0,21,'d2-a'),
+    (2,'d2','s2',20.0,22,'d2-b'),
+    (3,'d2','s2',30.0,23,'d2-c'),
+    (4,'d2','s2',20.0,24,'d2-d'),
+    (5,'d2','s2',10.0,25,'d2-e');
+
+create user pattern_match_reader 'Pass@123456789';
+grant insert, select on test_pattern_match.pm_base to user pattern_match_reader;
+list privileges of user pattern_match_reader;
+
+-- 有权限时可执行
+connect pattern_match_reader/Pass@123456789;
+show current_user;
+use test_pattern_match;
+
+-- 6. 具有 SELECT 权限时执行
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+) order by device_id,match_index,time;
+
+-- 撤销权限后，相同查询应被 ACL 拒绝
+connect root/TimechoDB@2021;
+use test_pattern_match;
+revoke select on test_pattern_match.pm_base from user pattern_match_reader;
+list privileges of user pattern_match_reader;
+
+connect pattern_match_reader/Pass@123456789;
+show current_user;
+use test_pattern_match;
+
+-- 7. 撤销 SELECT 权限后 ACL 拒绝
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+<<SQLSTATE;
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop user pattern_match_reader;
+<<NULL;
+drop database test_pattern_match;
+<<NULL;

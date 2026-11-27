@@ -1,0 +1,165 @@
+
+-- [1]16:create database test_fft
+STRICT{
+PASS
+}
+
+-- [1]17:use test_fft
+STRICT{
+PASS
+}
+
+-- [1]22:create table signal (     device_id STRING TAG,     temperature DOUBLE FIELD,     speed INT32 FIELD,     note STRING FIELD )
+STRICT{
+PASS
+}
+
+-- [1]29:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+signal               |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:desc signal
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+device_id             |STRING              |TAG                 |
+--------------------------------------------------------------
+temperature           |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+speed                 |INT32               |FIELD               |
+--------------------------------------------------------------
+note                  |STRING              |FIELD               |
+总数目：5
+}
+Elapsed Time: 0.0.0
+
+-- [1]33:insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.262
+
+-- [1]34:insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]35:insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]36:insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]37:insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]38:insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]39:insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]40:insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]43:create user fft_reader 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]44:grant select on test_fft.signal to user fft_reader
+STRICT{
+PASS
+}
+
+-- [1]45:list privileges of user fft_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |test_fft.signal  |SELECT                |false                     |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]49:use test_fft
+STRICT{
+PASS
+}
+
+-- [1]54:select count(*) as bin_count from FFT(     DATA => signal ORDER BY time,     SAMPLE_INTERVAL => 1s,     N => 4 )
+STRICT{
+bin_count(INT64)      |
+----------------------
+4                     |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]59:use test_fft
+STRICT{
+PASS
+}
+
+-- [1]60:revoke select on test_fft.signal from user fft_reader
+STRICT{
+PASS
+}
+
+-- [1]61:list privileges of user fft_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]64:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+fft_reader               |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]65:list privileges of user fft_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+总数目：0
+}
+Elapsed Time: 0.0.1
+
+-- [1]70:select * from FFT(     DATA => test_fft.signal ORDER BY time,     SAMPLE_INTERVAL => 1s,     N => 4 )
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SELECT ON test_fft.signal
+}
+
+-- [1]76:use test_fft
+STRICT{
+PASS
+}

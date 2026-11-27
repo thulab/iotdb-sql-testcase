@@ -1,0 +1,34 @@
+// CORR：有效样本不足或变量为常量时返回 NULL
+// 来源：corr.run
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database corr_test;
+<<NULL;
+
+-- 1. 创建数据库并准备空数据对、单数据对及常量变量数据
+create database corr_test;
+use corr_test;
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+-- empty 组无有效数据对，one 组只有一个有效数据对。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'empty',null,null,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'one',2,9,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'x_const',10,1,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'x_const',10,2,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'x_const',10,3,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'x_const',10,4,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'y_const',1,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'y_const',2,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'y_const',3,10,'bad',1);
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'y_const',4,10,'bad',1);
+
+-- 2. 验证样本不足及任一变量为常量时返回 NULL
+select time, case_id, x, y from pair_cases where case_id in ('empty','one') order by time, case_id;
+select case_id, corr(x,y) as corr_result from pair_cases where case_id in ('empty','one') group by case_id order by case_id;
+select time, case_id, x, y from pair_cases where case_id in ('x_const','y_const') order by time, case_id;
+select case_id,corr(x,y) as corr_result from pair_cases where case_id in ('x_const','y_const') group by case_id order by case_id;
+
+-- 3. 清理环境
+drop database corr_test;
+<<NULL;

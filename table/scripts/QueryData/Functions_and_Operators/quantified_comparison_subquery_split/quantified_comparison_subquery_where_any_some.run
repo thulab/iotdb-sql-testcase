@@ -1,0 +1,115 @@
+-- Quantified Comparison ：WHERE 中的 ANY 与 SOME 子查询比较
+-- 每条查询前的注释说明该语句覆盖的量词、子句与验证重点。
+
+// Quantified Comparison 允许将一个值与一组值进行比较，而不仅仅是与单个值
+// Comparison Operator: <, >, =, <=, >=, !=
+// ALL: 所有元素
+// ANY | SOME ：任意元素
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database test_db;
+<<NULL;
+
+-- 1.创建数据库
+create database test_db;
+
+-- 2. 指定数据库
+use test_db;
+
+-- 3. 创建表
+create table employees
+(
+    department_id STRING TAG,
+    name TEXT FIELD,
+	employee_id STRING FIELD,
+    Gender TEXT FIELD,
+	salary DOUBLE FIELD
+);
+
+create table departments 
+(
+    department_id STRING TAG,
+    department_name TEXT FIELD,
+	department_location STRING FIELD,
+	dep_member INT32 FIELD
+);
+
+
+create table salarys 
+(
+    department_id STRING TAG,
+	employee_id STRING FIELD,
+	salary DOUBLE FIELD
+);
+
+-- 4. 查看表
+show tables;
+
+-- 5. 展示表结构信息
+desc employees;
+desc departments;
+desc salarys;
+
+-- 6. 数据写入
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1704874210000, 'D001', 'Mary', '100011223', 'Female',6500.22);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1706698230000, 'D001', 'John', '100230012', 'Male', 8822);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1708868070000, 'D002', 'Nancy','120010112', 'Female', 10002);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1711437332000, 'D002', 'Jack', '102320120', 'Male', 7610);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1719754343000, 'D001', 'Linda','231102121', 'Female', 5600);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748736000000, 'D002', 'Jack', '242320120', 'Male', 7880);
+insert into employees(time, department_id, name, employee_id, gender, salary) values(1748822400000, 'D001', 'Linda','243102121', 'Female', 8600);
+
+
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1704874210000, 'D001', '销售部', 'Beijing', 10223);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1706698230000, 'D002', '行政人事部', 'Shanghai', 1012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1708868070000, 'D002', '行政人事部', 'Beijing', 1112);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1711437332000, 'D001', '销售部', 'Hebei', 12012);
+insert into departments(time, department_id, department_name, department_location, dep_member) values(1719754343000, 'D001', '销售部', 'Tianjin', 5511);
+
+
+insert into salarys(time, department_id, employee_id, salary) values(1748822400000, 'D001', '110011223', 6782);
+insert into salarys(time, department_id, employee_id, salary) values(1749036000000, 'D002', '243102121', 8600);
+insert into salarys(time, department_id, employee_id, salary) values(1759036000000, 'D001', '231102121', 5600);
+insert into salarys(time, department_id, employee_id, salary) values(1759122400000, 'D001', '230122121', 9910);
+insert into salarys(time, department_id, employee_id, salary) values(1759236000000, 'D002', '201102121', 5400);
+insert into salarys(time, department_id, employee_id, salary) values(1759536000000, 'D001', '221102121', 3600);
+
+-- 7. 覆盖：WHERE 子句中的 ANY；比较对象：薪资。
+-- 预期：验证 WHERE 中以 ANY 比较，并检查排序输出。
+select salary from employees e where department_id = 'D001' and
+	salary >= any(select salary from salarys s where e.salary = s.salary)
+order by salary;
+
+-- 8. 覆盖：WHERE 子句中的 ANY；比较对象：employee_id。
+-- 预期：验证 WHERE 中以 ANY 比较，并检查排序输出。
+select employee_id as emp_id from employees e where department_id = 'D001' and
+	employee_id >= any(select employee_id from salarys s where e.employee_id = s.employee_id)
+order by emp_id;
+
+-- 9. 覆盖：WHERE 子句中的 SOME；比较对象：employee_id。
+-- 预期：验证 WHERE 中以 SOME 比较，并检查排序输出。
+select employee_id as emp_id from employees where department_id = 'D002' and
+	employee_id > some(select employee_id from salarys)
+order by emp_id;
+
+-- 10. 覆盖：WHERE 子句中的 ANY；比较对象：薪资。
+-- 预期：验证 WHERE 中以 ANY 比较，并检查排序输出。
+select e.name, e.salary from employees e
+	where e.salary > any(
+		select s.salary from salarys s
+) order by name, salary;
+
+-- 11. 覆盖：WHERE 子句中的 ANY；比较对象：薪资。
+-- 预期：验证 WHERE 中以 ANY 比较，并检查排序输出。
+select e.name, e.salary from employees e
+	where e.salary > ANY (
+		select s.salary from salarys s
+			where s.department_id = e.department_id
+) order by name,salary;
+
+-- 12. 清理环境
+drop database test_db;
+<<NULL;

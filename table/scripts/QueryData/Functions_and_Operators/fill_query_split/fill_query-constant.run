@@ -1,0 +1,130 @@
+// FILL 空值填充
+
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(time, device_id, int32) values(-1000, 'd1', 120);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+0, null, 'd1', null, null, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 1, null, 1.1, null
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+100, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 1, 1000, 1.1, 111.11
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+200, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 16839200, X'3b', null, 453, 11.1, 102.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+500, '003', 'd2', 'V3', true, 'text3', 'string3', '2021-12-20', 116839200000, X'6728', 3, 123, 5.2, 333.3
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1000, '004', 'd1', 'V4', false, 'text4', 'string4', '2022-06-11', 86700000, X'4b98', 100, null, null, 666.66
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2000, '005', 'd2', 'V3', false, 'text5', 'string5', '2023-12-15', 1378230000000, X'34', 250, 653, -1.1, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+5000, null, 'd3', 'V2', true, 'text6', 'string6', null, 1378230000000, X'34', 6, null, 12.12, 22.21
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+10000, '005', 'd2', 'V3', true, 'text7', 'string6', '2023-12-15', 1378230000000, X'34', 7, null, -1.1, 12.3
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+20000, '002', 'd3', 'V1', true, 'text8', 'string6', null, 1378230000000, X'34', 8, 653, 5.1, null
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+25000, '003', 'd3', 'V1', true, 'text9', null, '2023-12-15', null, X'34', 9, null, -1.1, 155.5
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+26000, '004', 'd2', 'V2', false, 'text10', 'string10', '2023-12-15', 18392378000, null, 10, null, 0.2, 11.2
+);
+insert into table_1(time, double) values(30000, 55.2);
+
+--7. CONSTANT 常量填充
+
+--7.1 当前数据类型均支持
+select time, boolean, int32, float from table_1 order by time;
+select time, boolean, int32, float from table_1 FILL METHOD CONSTANT 0 order by time;
+select time, boolean, int32, float from table_1 FILL METHOD CONSTANT 0.1 order by time;
+select time, boolean, int32, float from table_1 FILL METHOD CONSTANT '2024-12-12' order by time;
+
+select time, int32, int64, float,double from table_1 order by time;
+select time, int32, int64, float,double from table_1 FILL METHOD CONSTANT true order by time;
+select time, int32, int64, float,double from table_1 FILL METHOD CONSTANT false order by time;
+
+select time, timestamp, text, string from table_1 order by time;
+select time, timestamp, text, string from table_1 FILL METHOD CONSTANT 1783923234000 order by time;
+
+select time, timestamp, date, string, text, int64, double from table_1 order by time offset 3 limit 9;
+select time, timestamp, date, string, text, int64, double from table_1 
+  FILL METHOD CONSTANT 1882340034 order by time offset 3 limit 9;
+
+select time, device_id, region_id, string, date from table_1 where time > 10000 and time <=30000 order by time;
+select time, device_id, region_id, string, date from table_1 
+  where time > 10000 and time <=30000
+    FILL METHOD CONSTANT 'TESTAAA' order by time;
+
+--7.2 数据类型与输入常量不同，不会填充空值，保持原有数据
+select time, blob from table_1 order by time;
+select time, blob from (select * from table_1 order by time) FILL METHOD CONSTANT false ;
+select time, date from table_1 order by time;
+select time, date from (select * from table_1 order by time) FILL METHOD CONSTANT true;
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

@@ -1,0 +1,22 @@
+// 场景：数据库 TTL 改为 INF 后，旧表仍保留并执行原 TTL。
+connect root/TimechoDB@2021;
+
+drop database ttl_existing_db;
+<<NULL;
+create database ttl_existing_db with (TTL=5000);
+use ttl_existing_db;
+create table t1(ID TAG,int32 INT32);
+alter database ttl_existing_db set properties ttl='INF';
+
+// 预期：数据库 TTL 为 INF；t1 的 TTL 仍为 5000。
+show databases details;
+show tables;
+insert into t1(time,ID,int32) values(now(),'d1',2);
+// 预期：count_result 为 1。
+select count(*) as count_result from t1;
+sleep 5000;
+// 预期：count_result 为 0。
+select count(*) as count_result from t1;
+
+drop database ttl_existing_db;
+<<NULL;

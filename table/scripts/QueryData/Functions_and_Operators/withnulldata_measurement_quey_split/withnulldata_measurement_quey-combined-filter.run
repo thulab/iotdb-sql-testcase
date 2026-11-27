@@ -1,0 +1,56 @@
+// 测试主题：表模型空值场景下的查询结果
+// 查询功能：组合条件：时间范围与标识列或属性列共同筛选
+
+connect root/TimechoDB@2021;
+--1. 清理残留数据库
+drop database test_db;
+<<NULL;
+
+--2. 创建数据库
+create database test_db;
+
+--3. 切换到测试数据库
+use test_db;
+
+--4. 创建测试表
+create table table_withnull_data
+(
+	region_id STRING TAG,
+	device_id STRING TAG,
+	color STRING ATTRIBUTE,
+	type STRING ATTRIBUTE,
+	s1 BOOLEAN FIELD,
+	s2 FLOAT FIELD
+);
+
+--5. 查看已创建的表
+show tables;
+
+
+--6. 查看表结构
+desc table_withnull_data;
+
+--7. 写入包含空值的数据
+insert into table_withnull_data(time,region_id, device_id, color, type, s1, s2) values(1, '1111', 'D1', 'Red', 'T-1111', false, 11.1);
+insert into table_withnull_data(time,region_id, device_id, color, type, s1) values(2, '2222', 'D2', 'White', 'T-2222', true);
+insert into table_withnull_data(time,region_id, device_id, color, type, s2) values(3, '3333', 'D3', 'Green', 'T-3333', 12.2);
+insert into table_withnull_data(time,region_id, device_id, color, type, s1) values(4, null, 'D4', 'Blue', 'T-4444',false);
+insert into table_withnull_data(time,region_id, device_id, color, type, s2) values(5, '5555', 'D5', 'Yellow', 'T-5555',18.9);
+insert into table_withnull_data(time,region_id, device_id, color, type, s1, s2) values(6, '6666', 'D1', 'Purple', 'T-6666', false, 22.2);
+insert into table_withnull_data(time,region_id, device_id, color, type, s1) values(7, '7777', null, 'Grey', 'T-4444', true);
+insert into table_withnull_data(time,region_id, device_id, color, type, s2) values(8, '8888', 'D4', 'Black', 'T-5555', 3.3);
+insert into table_withnull_data(time,region_id, device_id, color, type, s2) values(9, '9999', 'D1', 'Brown', null, 0.0);
+insert into table_withnull_data(time,region_id, device_id, color, type, s1) values(10, '10000', 'D3', 'Orange', 'T-6666',false);
+
+--8. 查看属性列和标识列信息
+show devices from table_withnull_data;
+
+--9. 组合条件：时间范围与标识列或属性列共同筛选
+select time, device_id from table_withnull_data where time >=3 and time < 6 and device_id='D3' order by time;
+select time, region_id from table_withnull_data where time >=3 and time < 7 and color = 'Green' order by time;
+
+
+
+--10. 清理测试数据库
+drop database test_db;
+<<NULL

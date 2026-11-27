@@ -1,0 +1,51 @@
+-- if_built-in_function：无权限的用户+IF [预期报错]
+-- 目的：验证未获 SELECT 权限的用户执行 IF 查询时被拒绝。
+
+-- 1. 连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 2. 清理上次运行遗留的 test 数据库
+drop database test;
+<<NULL;
+-- 3. 清理上次运行遗留的测试用户
+drop user user1;
+<<NULL;
+
+-- 4. 创建 test 测试数据库
+create database test;
+-- 5. 切换到 test 数据库
+use test;
+
+-- 6. 创建本用例所需的测试表
+CREATE TABLE test.if_test(
+    ts TIMESTAMP,
+    col_boolean BOOLEAN,
+    col_int32 INT32
+);
+-- 7. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_boolean, col_int32) VALUES (now(), true, 1);
+-- 8. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_boolean, col_int32) VALUES (now()+1s, false, 0);
+
+-- 9. 创建权限测试用户
+create user user1 '@Pass1234567';
+
+-- 10. 连接权限测试用户
+connect user1/@Pass1234567;
+-- 11. 切换到 test 数据库
+use test;
+<<SQLSTATE;
+
+-- 12. 执行 IF 查询，验证预期错误
+SELECT if(col_boolean = true, 'YES') FROM test.if_test WHERE col_boolean = true;
+<<SQLSTATE;
+
+-- 13. 连接管理员账号
+connect root/TimechoDB@2021;
+-- 14. 删除本用例创建的测试用户
+drop user user1;
+<<NULL;
+
+-- 15. 删除本用例创建的 test 数据库
+drop database test;
+<<NULL;

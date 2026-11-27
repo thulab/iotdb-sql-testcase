@@ -1,0 +1,36 @@
+// 表 TTL：检查过期时间范围内外的数据写入与查询
+connect root/TimechoDB@2021;
+
+-- 0. 清理测试环境
+drop database set_ttl_expiration_db;
+<<NULL;
+
+-- 1. 创建 TTL 为 10000ms 的表
+create database set_ttl_expiration_db;
+use set_ttl_expiration_db;
+create table table_2(device_id STRING TAG, model_id STRING ATTRIBUTE, boolean BOOLEAN FIELD, int64 INT64 FIELD, double DOUBLE FIELD) with (TTL=10000);
+
+-- 2. 验证超出 TTL 范围的历史时间写入被拒绝
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(1, 'd1', 'm1', false, 1, 1.1);
+<<ERRORCODE;
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now()-10000ms, 'd1', 'm1', false, 1, 1.1);
+<<ERRORCODE;
+
+-- 3. 分批写入当前时间数据，检查 TTL 到期前后的数据数量
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 1, 1.1);
+sleep 1000;
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 2, 2.1);
+sleep 1000;
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 3, 3.1);
+sleep 1000;
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 4, 2.1);
+sleep 1000;
+insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 5, 3.1);
+sleep 1000;
+select count(*) as count_result from table_2;
+sleep 6000;
+select count(*) as count_result from table_2;
+
+-- 4. 清理测试数据库
+drop database set_ttl_expiration_db;
+<<NULL;

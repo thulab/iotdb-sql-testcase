@@ -1,0 +1,110 @@
+
+-- [1]11:create database covar_samp_types_test
+STRICT{
+PASS
+}
+
+-- [1]14:use covar_samp_types_test
+STRICT{
+PASS
+}
+
+-- [1]17:create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD)
+STRICT{
+PASS
+}
+
+-- [1]20:create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]23:insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(1,'d1',1,10,1.0,10.0,'bad',true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.362
+
+-- [1]26:insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(2,'d1',2,20,2.0,20.0,'bad',false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(3,'d1',3,30,3.0,30.0,'bad',true)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(4,'d1',4,40,4.0,40.0,'bad',false)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]35:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.8
+
+-- [1]38:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]41:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]44:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]47:select time, i32, i64, f32, f64 from numeric_types order by time
+STRICT{
+time(TIMESTAMP)      |i32(INT32)      |i64(INT64)      |f32(FLOAT)      |f64(DOUBLE)      |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|1               |10              |1.0             |10.0             |
+01+08:00             |                |                |                |                 |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|2               |20              |2.0             |20.0             |
+02+08:00             |                |                |                |                 |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|3               |30              |3.0             |30.0             |
+03+08:00             |                |                |                |                 |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|4               |40              |4.0             |40.0             |
+04+08:00             |                |                |                |                 |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]50:select covar_samp(i32,i64), covar_samp(f32,f64), covar_samp(time,i32) from numeric_types
+STRICT{
+_col0(DOUBLE)      |_col1(DOUBLE)      |_col2(DOUBLE)      |
+---------------------------------------------------------
+16.666666666666668 |16.666666666666668 |1.6666666666666667 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]53:select covar_samp(x*10+1,y/2-3) from pair_cases where case_id='positive'
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+16.666666666666668 |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]56:select covar_samp(i32,txt) from numeric_types
+STRICT{
+SQLSTATE : 701: Aggregate functions [COVAR_SAMP] only support numeric data types [INT32, INT64, FLOAT, DOUBLE, TIMESTAMP]
+}

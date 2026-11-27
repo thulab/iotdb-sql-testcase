@@ -1,0 +1,38 @@
+
+-- [1]12:create database test
+STRICT{
+PASS
+}
+
+-- [1]14:use test
+STRICT{
+PASS
+}
+
+-- [1]18:CREATE TABLE test.if_test(ts TIMESTAMP, col_int32 INT32, col_int64 INT64)
+STRICT{
+PASS
+}
+
+-- [1]20:INSERT INTO test.if_test(ts, col_int32, col_int64) VALUES (now(), 100, 1000)
+STRICT{
+0
+}
+Elapsed Time: 0.0.267
+
+-- [1]22:INSERT INTO test.if_test(ts, col_int32, col_int64) VALUES (now()+1s, -1, -100)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]25:SELECT if(col_int32>0, if(col_int32>0, if(col_int64>0, if(col_int64>0, '4', '3'), '2'), '1'), '0') FROM test.if_test
+STRICT{
+_col0(STRING)      |
+-------------------
+4                  |
+-------------------
+0                  |
+总数目：2
+}
+Elapsed Time: 0.0.4

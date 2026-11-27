@@ -1,0 +1,168 @@
+
+-- [1]11:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+
+-- [1]28:create table table_add (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]42:create table table_sub (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]54:create table table_mul (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]66:create table table_div (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]77:create table table_negation (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT, 	"timestamp" TIMESTAMP )
+STRICT{
+PASS
+}
+
+-- [1]85:INSERT INTO table_add ( time,device,type,int32,int64,double,float,timestamp,date )  values (1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'), (2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26')
+STRICT{
+0
+}
+Elapsed Time: 0.0.227
+
+-- [1]93:INSERT INTO table_sub ( time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date )  values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31')
+STRICT{
+0
+}
+Elapsed Time: 0.0.7
+
+-- [1]100:INSERT INTO table_mul ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]107:INSERT INTO table_div ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0), (2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0), (3,'d3','t13',0,-0,-0,0,-0.0,0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]114:INSERT INTO table_negation ( time,device,type,int32,int64,double,float,timestamp) values (1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807), (2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808), (3,'d3','t13',0,-0,-0.0,0.0,0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]119:select * from table_mul order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |type(STRING)      |int32(INT32)      |int32_1(INT32)      |int64(INT64)      |int64_1(INT64)      |double(DOUBLE)      |float(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                  |t11               |2147483647        |-2147483648         |922337203685477580|-9223372036854775808|1.79769313486231578E|3.40282356E18     |
+01+08:00             |                    |                  |                  |                    |7                 |                    |18                  |                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2                  |t12               |-2147483648       |2147483647          |-92233720368547758|9223372036854775807 |-1.79769313486231578|1.17549434E18     |
+02+08:00             |                    |                  |                  |                    |08                |                    |E18                 |                  |
+总数目：2
+}
+Elapsed Time: 0.0.5
+
+-- [1]122:select int32 * int32 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: 2147483647 * 2147483647
+}
+
+-- [1]124:select int32 * int32 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: -2147483648 * -2147483648
+}
+
+-- [1]126:select int32_1 * int32 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: -2147483648 * 2147483647
+}
+
+-- [1]128:select int32_1 * int32 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: 2147483647 * -2147483648
+}
+
+-- [1]130:select int32 * int32_1 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: 2147483647 * -2147483648
+}
+
+-- [1]132:select int32 * int32_1 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: int Multiplication overflow: -2147483648 * 2147483647
+}
+
+-- [1]134:select int64 * int32 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 9223372036854775807 * 2147483647
+}
+
+-- [1]136:select int64 * int32 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -9223372036854775808 * -2147483648
+}
+
+-- [1]138:select int32 * int64 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 2147483647 * 9223372036854775807
+}
+
+-- [1]140:select int32 * int64 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -2147483648 * -9223372036854775808
+}
+
+-- [1]142:select int64_1 * int32 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -9223372036854775808 * 2147483647
+}
+
+-- [1]144:select int64_1 * int32 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 9223372036854775807 * -2147483648
+}
+
+-- [1]148:select int32_1 * int64 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -2147483648 * 9223372036854775807
+}
+
+-- [1]150:select int32_1 * int64 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 2147483647 * -9223372036854775808
+}
+
+-- [1]152:select int64 * int64 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 9223372036854775807 * 9223372036854775807
+}
+
+-- [1]154:select int64 * int64 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -9223372036854775808 * -9223372036854775808
+}
+
+-- [1]156:select int64_1 * int64 from table_mul where time =1
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: -9223372036854775808 * 9223372036854775807
+}
+
+-- [1]158:select int64_1 * int64 from table_mul where time =2
+STRICT{
+SQLSTATE : 750: long Multiplication overflow: 9223372036854775807 * -9223372036854775808
+}

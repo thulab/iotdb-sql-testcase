@@ -1,0 +1,61 @@
+// COVAR_SAMP 输入类型和表达式：数值类型、TIMESTAMP、数值表达式及不支持的类型。
+
+// 1. 连接到测试数据库。
+connect root/TimechoDB@2021;
+
+// 2. 清理测试数据库。
+drop database covar_samp_types_test;
+<<NULL;
+
+// 3. 创建测试数据库。
+create database covar_samp_types_test;
+
+// 4. 切换到测试数据库。
+use covar_samp_types_test;
+
+// 5. 创建测试所需的数据表。
+create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f32 FLOAT FIELD, f64 DOUBLE FIELD, txt TEXT FIELD, flag BOOLEAN FIELD);
+
+// 6. 创建测试所需的数据表。
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+// 7. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(1,'d1',1,10,1.0,10.0,'bad',true);
+
+// 8. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(2,'d1',2,20,2.0,20.0,'bad',false);
+
+// 9. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(3,'d1',3,30,3.0,30.0,'bad',true);
+
+// 10. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f32,f64,txt,flag) values(4,'d1',4,40,4.0,40.0,'bad',false);
+
+// 11. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1);
+
+// 12. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1);
+
+// 13. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1);
+
+// 14. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1);
+
+// 15. 执行查询并检查样本协方差结果。
+select time, i32, i64, f32, f64 from numeric_types order by time;
+
+// 16. 验证整数、浮点数及时间戳类型组合。
+select covar_samp(i32,i64), covar_samp(f32,f64), covar_samp(time,i32) from numeric_types;
+
+// 17. 验证样本协方差支持数值表达式。
+select covar_samp(x*10+1,y/2-3) from pair_cases where case_id='positive';
+
+// 18. 执行异常输入测试，预期返回 SQLSTATE 错误。
+select covar_samp(i32,txt) from numeric_types;
+<<SQLSTATE;
+
+// 19. 清理测试数据库。
+drop database covar_samp_types_test;
+<<NULL;

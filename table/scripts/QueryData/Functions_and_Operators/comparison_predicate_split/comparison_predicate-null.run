@@ -1,0 +1,83 @@
+// 比较谓词：IS NULL 与 IS NOT NULL 的多类型查询及组合过滤
+
+connect root/TimechoDB@2021;
+--1. 清理数据: 删除数据库 
+drop database test_db;
+<<NULL;
+
+
+--2. 创建数据库
+create database test_db;
+
+
+--3. 指定数据库
+use test_db;
+
+
+--4. 创建表 t1
+create table t1
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "boolean" BOOLEAN,
+    "text" TEXT,
+    "string" STRING,
+    "blob" BLOB,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+
+--5. 写入数据
+INSERT INTO t1(time,device,type,int32,int64,double,float,boolean,text,string,blob,timestamp,date) values
+(1,'d1','t1',null,111111111111,1.1111111,1.11,0,'1.11','1.11',X'10F447',1,'1970-01-01'),
+(2,'d2','t2',222,null,2.2222222,2.22,1,'2.22','2.22',X'21E88E',2,'1970-01-02'),
+(3,'d3','t3',333,333333333333,null,3.33,0,'3.33','3.33',X'32DCD5',3,'1970-01-03'),
+(4,'d4','t4',444,444444444444,4.4444444,null,1,'4.44','4.44',X'42DCD5',4,'1970-01-04'),
+(5,'d5','t5',555,555555555555,5.5555555,5.55,null,'5.55','5.55',X'52DCD5',5,'1970-01-05'),
+(6,'d6','t6',666,666666666666,6.6666666,6.66,1,null,'6.66',X'62DCD5',6,'1970-01-06'),
+(7,'d7','t7',777,777777777777,7.7777777,7.77,0,'7.77',null,X'72DCD5',7,'1970-01-07'),
+(8,'d8','t8',888,888888888888,8.8888888,8.88,1,'8.88','8.88',null,8,'1970-01-08'),
+(9,'d9','t9',999,999999999999,9.9999999,9.99,0,'9.99','9.99',X'92DCD5',null,'1970-01-09'),
+(10,'d10','t10',1000,1000000000000,10.0000001,10.01,1,'10.01','10.01',X'102DCD62',11,null);
+
+
+--6. 查询 -> 比较谓词: is [not] null
+-- null
+select * from t1 where int32 is null order by time;
+select * from t1 where int64 is null order by time;
+select * from t1 where double is null order by time;
+select * from t1 where float is null order by time;
+select * from t1 where boolean is null order by time;
+select * from t1 where text is null order by time;
+select * from t1 where string is null order by time;
+select * from t1 where blob is null order by time;
+select * from t1 where timestamp is null order by time;
+select * from t1 where date is null order by time;
+-- not null
+select * from t1 where int32 is not null order by time;
+select * from t1 where int64 is not null order by time;
+select * from t1 where double is not null order by time;
+select * from t1 where float is not null order by time;
+select * from t1 where boolean is not null order by time;
+select * from t1 where text is not null order by time;
+select * from t1 where string is not null order by time;
+select * from t1 where blob is not null order by time;
+select * from t1 where timestamp is not null order by time;
+select * from t1 where date is not null order by time;
+-- offset + limit
+select * from t1 where int32 is null order by time limit 3;
+select * from t1 where int32 is not null order by time limit 3;
+select * from t1 where int32 is null order by time offset 2 limit 3;
+select * from t1 where int32 is not null order by time offset 2 limit 3;
+select * from t1 where int32 is null and int64 = 555555555555 order by time;
+select * from t1 where int32 is not null and int64 = 555555555555 order by time;
+
+
+--7. 清理数据: 删除数据库 
+drop database test_db;
+<<NULL;

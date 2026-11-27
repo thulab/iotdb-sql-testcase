@@ -1,0 +1,52 @@
+// CAPACITY窗口函数测试：独立场景
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop user capacity_slide_reader;
+<<NULL;
+drop database capacity_slide_test_db;
+<<NULL;
+
+-- 1. 创建测试数据库，并准备表和数据
+create database capacity_slide_test_db;
+use capacity_slide_test_db;
+
+create table bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+-- 2. 查看表及其结构
+show tables;
+desc bid;
+
+-- 3. 写入相同的六行基线数据；各分区按晚、早、中时间写入，验证分区内乱序
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0);
+
+
+-- 8. CAPACITY_关键字大小写兼容及普通SELECT查询回归
+-- 仅验证 PARTITION BY / ORDER BY 大小写；与 5.3 比较，不宣称覆盖参数位置或函数名大小写
+select *
+from CAPACITY(
+    DATA => bid partition by stock_id order by time,
+    SIZE => 2,
+    SLIDE => 1
+)
+order by stock_id, window_index, time;
+
+-- 普通 SELECT 查询不受影响
+select count(*) as source_row_count from bid;
+
+
+
+-- 清理测试数据
+drop database capacity_slide_test_db;
+<<NULL;

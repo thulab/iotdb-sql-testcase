@@ -1,0 +1,73 @@
+
+-- [1]9:create database set_ttl_expiration_db
+STRICT{
+PASS
+}
+
+-- [1]10:use set_ttl_expiration_db
+STRICT{
+PASS
+}
+
+-- [1]11:create table table_2(device_id STRING TAG, model_id STRING ATTRIBUTE, boolean BOOLEAN FIELD, int64 INT64 FIELD, double DOUBLE FIELD) with (TTL=10000)
+STRICT{
+PASS
+}
+
+-- [1]14:insert into table_2(time, device_id, model_id, boolean, int64, double) values(1, 'd1', 'm1', false, 1, 1.1)
+STRICT{
+SQLSTATE : 607
+}
+
+-- [1]16:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now()-10000ms, 'd1', 'm1', false, 1, 1.1)
+STRICT{
+SQLSTATE : 607
+}
+
+-- [1]20:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 1, 1.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.7
+
+-- [1]22:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 2, 2.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.42
+
+-- [1]24:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 3, 3.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.18
+
+-- [1]26:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 4, 2.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.13
+
+-- [1]28:insert into table_2(time, device_id, model_id, boolean, int64, double) values(now(), 'd1', 'm1', false, 5, 3.1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]30:select count(*) as count_result from table_2
+STRICT{
+count_result(INT64)      |
+-------------------------
+5                        |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]32:select count(*) as count_result from table_2
+STRICT{
+count_result(INT64)      |
+-------------------------
+3                        |
+总数目：1
+}
+Elapsed Time: 0.0.3

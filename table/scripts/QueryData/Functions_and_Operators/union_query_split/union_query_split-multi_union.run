@@ -1,0 +1,91 @@
+// UNION：多段查询
+
+connect root/TimechoDB@2021;
+
+--1. 清理残留数据库
+drop database test_db;
+<<NULL;
+
+--2. 创建数据库和表结构
+create database test_db;
+
+use test_db;
+
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+create table t2(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+
+show tables;
+desc t1;
+desc t2;
+
+--3. 写入测试数据
+insert into t1
+	(time,device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1) 
+values
+	(1, 'device_001', 123, 123456789012345, 123.45, 67.89, TRUE, '这是文本数据1', '这是字符串数据1', X'48656C6C6F', to_object(false, 0, X'696F746462'), '2023-01-01 10:30:00', '2023-01-01'),
+	(2, 'device_002', 456, 987654321098765, 456.78, 12.34, FALSE, '这是文本数据2', '这是字符串数据2', X'576F726C64', to_object(false, 0, X'696F'), '2023-02-01 11:45:00', '2023-02-01'),
+	(3, 'device_003', 789, 456123789012345, 789.01, 45.67, TRUE, '这是文本数据3', '这是字符串数据3', X'54657374', to_object(false, 0, X'7464'), '2023-03-01 12:15:00', '2023-03-01'),
+	(4, 'device_004', 321, 789456123098765, 321.65, 89.01, FALSE, '这是文本数据4', '这是字符串数据4', X'44617461', to_object(false, 0, X'62'), '2023-04-01 13:20:00', '2023-04-01'),
+	(5, 'device_005', 654, 321654987012345, 654.32, 23.45, TRUE, '这是文本数据5', '这是字符串数据5', X'426C6F62', to_object(false, 0, X'7862'), '2023-05-01 14:10:00', '2023-05-01');
+	
+insert into t2 
+	(time, device_id, int32_1, int64_1, double_1, float_1, boolean_1, text_1, string_1, blob_1, object_1, timestamp_1, date_1) 
+values
+	(1, 'device_006', 987, 654987321054321, 987.65, 56.78, TRUE, '这是t2表文本数据1', '这是t2表字符串数据1', X'4E657754657374', to_object(false, 0, X'696F746462'), '2023-06-01 15:30:00', '2023-06-01'),
+	(2, 'device_007', 147, 753159852046802, 147.89, 34.56, FALSE, '这是t2表文本数据2', '这是t2表字符串数据2', X'4D6F726554657374', to_object(false, 0, X'696F'), '2023-07-01 16:45:00', '2023-07-01'),
+	(3, 'device_008', 258, 852963741014725, 258.12, 67.89, TRUE, '这是t2表文本数据3', '这是t2表字符串数据3', X'4461746154657374',  to_object(false, 0, X'7464'), '2023-08-01 17:20:00', '2023-08-01'),
+	(4, 'device_009', 369, 963852741025836, 369.45, 90.12, FALSE, '这是t2表文本数据4', '这是t2表字符串数据4', X'424C4F4254657374', to_object(false, 0, X'7862'), '2023-09-01 18:35:00', '2023-09-01'),
+	(5, 'device_010', 159, 159357284065498, 159.78, 12.34, TRUE, '这是t2表文本数据5', '这是t2表字符串数据5', X'4F626A65637454657374', to_object(false, 0, X'62'), '2023-10-01 19:40:00', '2023-10-01');
+select * from t1 order by time;
+select * from t2 order by time;
+
+--4. UNION：多段查询
+--4.1 合并 t1 中高、中、低三个 int32_1 区间的记录。
+select device_id, int32_1, 'High_Value' as category from t1 where int32_1 > 500
+union
+select device_id, int32_1, 'Medium_Value' as category from t1 where int32_1 BETWEEN 300 AND 500
+union
+select device_id, int32_1, 'Low_Value' as category from t1 where int32_1 < 300
+order by 1,2,3;
+
+--4.2 合并 t1 与 t2 中高、中两个 int32_1 区间的记录。
+select device_id, int32_1, 't1_High' as category from t1 where int32_1 > 500
+union
+select device_id, int32_1, 't1_Medium' as category from t1 where int32_1 BETWEEN 300 AND 500
+union
+select device_id, int32_1, 't2_High' as category from t2 where int32_1 > 500
+union
+select device_id, int32_1, 't2_Medium' as category from t2 where int32_1 BETWEEN 300 AND 500
+order by 1,2;
+
+--5. 清理测试数据库
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

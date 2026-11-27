@@ -1,0 +1,35 @@
+// COVAR_SAMP 参数数量错误：传入一个或三个参数时应受控报错。
+
+// 1. 连接到测试数据库。
+connect root/TimechoDB@2021;
+
+// 2. 清理测试数据库。
+drop database covar_samp_args_test;
+<<NULL;
+
+// 3. 创建测试数据库。
+create database covar_samp_args_test;
+
+// 4. 切换到测试数据库。
+use covar_samp_args_test;
+
+// 5. 创建测试所需的数据表。
+create table numeric_types (device_id STRING TAG, i32 INT32 FIELD, i64 INT64 FIELD, f64 DOUBLE FIELD);
+
+// 6. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f64) values(1,'d1',1,10,10.0);
+
+// 7. 插入测试数据。
+insert into numeric_types(time,device_id,i32,i64,f64) values(2,'d1',2,20,20.0);
+
+// 8. 执行异常输入测试，预期返回 SQLSTATE 错误。
+select covar_samp(i32) from numeric_types;
+<<SQLSTATE;
+
+// 9. 执行异常输入测试，预期返回 SQLSTATE 错误。
+select covar_samp(i32,i64,f64) from numeric_types;
+<<SQLSTATE;
+
+// 10. 清理测试数据库。
+drop database covar_samp_args_test;
+<<NULL;

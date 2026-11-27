@@ -1,0 +1,35 @@
+
+-- [1]9:create database set_ttl_validation_db
+STRICT{
+PASS
+}
+
+-- [1]10:use set_ttl_validation_db
+STRICT{
+PASS
+}
+
+-- [1]11:create table table_1(device_id STRING TAG, value INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]14:alter table table_1 set properties ttl=0.001
+STRICT{
+SQLSTATE : 701: ttl value must be a LongLiteral, but now is DoubleLiteral, value: 1E-3
+}
+
+-- [1]16:alter table table_1 set properties ttl=0.000001
+STRICT{
+SQLSTATE : 701: ttl value must be a LongLiteral, but now is DoubleLiteral, value: 1E-6
+}
+
+-- [1]18:alter table table_1 set properties ttl=-1000
+STRICT{
+SQLSTATE : 701: ttl value must be equal to or greater than 0, but now is: -1000
+}
+
+-- [1]20:alter table table_1 set properties ttl=9223372036854775808
+STRICT{
+SQLSTATE : 700: line 1:40: Invalid numeric literal: 9223372036854775808
+}

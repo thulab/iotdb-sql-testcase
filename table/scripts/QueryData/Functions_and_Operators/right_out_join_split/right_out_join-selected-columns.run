@@ -1,0 +1,48 @@
+// 右外连接：按状态连接并选择指定列。
+connect root/TimechoDB@2021;
+
+-- 1. 清理可能残留的测试数据库
+drop database test_db;
+<<NULL;
+
+-- 2. 创建测试数据库
+create database test_db;
+use test_db;
+
+-- 3. 创建连接测试表
+create table t1(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t2(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t3(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+
+-- 4. 写入数据
+insert into t1(time, id, temperature, status, duration) values(1000, 'd1', 22.2, false, 3600000);
+insert into t1(time, id, temperature, status, duration) values(2000, 'd2', 20.1, true, 86400000);
+insert into t1(time, id, temperature, status, duration) values(3000, 'd1', 19.2, false, 43200000);
+insert into t1(time, id, temperature, status, duration) values(4000, 'd2', 23.11, true, 604800000);
+insert into t1(time, id, temperature, status, duration) values(5000, 'd1', 25.13, false, 432000000);
+insert into t1(time, id, temperature, status, duration) values(6000, 'd2', 24.4, true, 2592000000);
+
+insert into t2(time, id, temperature, status, duration) values(1000, 'd1', 32.1, false, 3600000);
+insert into t2(time, id, temperature, status, duration) values(3000, 'd2', 20.1, true, 86400000);
+insert into t2(time, id, temperature, status, duration) values(4000, 'd1', 19.9, true, 43200000);
+insert into t2(time, id, temperature, status, duration) values(6000, 'd2', 22.3, true, 604800000);
+insert into t2(time, id, temperature, status, duration) values(8000, 'd1', 26.3, false, 432000000);
+insert into t2(time, id, temperature, status, duration) values(9000, 'd2', 24.5, true, 2592000000);
+
+insert into t3(time, id, temperature, status, duration) values(1000, 'd1', 26.2, false, 3600000);
+insert into t3(time, id, temperature, status, duration) values(5000, 'd2', 20.1, true, 86400000);
+insert into t3(time, id, temperature, status, duration) values(8000, 'd1', 19.9, false, 43200000);
+insert into t3(time, id, temperature, status, duration) values(9000, 'd2', 24.4, true, 604800000);
+insert into t3(time, id, temperature, status, duration) values(10000, 'd1', 25.5, false, 259200000);
+insert into t3(time, id, temperature, status, duration) values(20000, 'd2', 26.4, false, 432000000);
+
+-- 5. 按状态连接并投影三张表的时间、温度和时长列
+select t1.time as time1, t1.temperature as temper1, t1.duration as duration1,
+       t2.time as time2, t2.temperature as temper2, t2.duration as duration2,
+       t3.time as time3, t3.temperature as temper3, t3.duration as duration3
+from t1 RIGHT JOIN t2 ON t1.status = t2.status RIGHT JOIN t3 ON t2.status = t3.status
+order by t1.time, t2.time, t3.time;
+
+-- 6. 清理测试数据库
+drop database test_db;
+<<NULL;

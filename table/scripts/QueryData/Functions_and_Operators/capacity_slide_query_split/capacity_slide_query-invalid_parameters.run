@@ -1,0 +1,93 @@
+// CAPACITY窗口函数测试：独立场景
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop user capacity_slide_reader;
+<<NULL;
+drop database capacity_slide_test_db;
+<<NULL;
+
+-- 1. 创建测试数据库，并准备表和数据
+create database capacity_slide_test_db;
+use capacity_slide_test_db;
+
+create table bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+-- 2. 查看表及其结构
+show tables;
+desc bid;
+
+-- 3. 写入相同的六行基线数据；各分区按晚、早、中时间写入，验证分区内乱序
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0);
+
+
+-- 7. 参数及语法异常场景
+
+-- 7.1 缺少必填参数 SIZE
+select * from CAPACITY(DATA => bid ORDER BY time, SLIDE => 1);
+<<SQLSTATE;
+
+-- 7.2 SIZE 必须为正数
+-- CAPACITY_SIZE=0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 0);
+<<SQLSTATE;
+
+-- CAPACITY_SIZE<0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => -1);
+<<SQLSTATE;
+
+-- 7.3 SLIDE 必须为正数
+-- CAPACITY_SLIDE=0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => 0);
+<<SQLSTATE;
+
+-- CAPACITY_SLIDE<0 被拒绝
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => -1);
+<<SQLSTATE;
+
+-- 7.4 CAPACITY_SIZE为小数或SLIDE为字符串时拒绝执行
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2.5, SLIDE => 1);
+<<SQLSTATE;
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => '1');
+<<SQLSTATE;
+
+-- 7.5 CAPACITY_NULL SLIDE 被拒绝
+select * from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => NULL
+);
+<<SQLSTATE;
+
+-- 7.6 CAPACITY 内的 ORDER BY 可省略；外层排序保证结果比对顺序稳定
+select *
+from CAPACITY(
+    DATA => bid PARTITION BY stock_id,
+    SIZE => 2,
+    SLIDE => 1
+) order by stock_id, window_index, time;
+
+-- 7.7 非法参数名称
+select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, STEPS => 1);
+<<SQLSTATE;
+
+-- 7.8 输入表不存在
+select * from CAPACITY(DATA => not_exists ORDER BY time, SIZE => 2, SLIDE => 1);
+<<SQLSTATE;
+
+
+
+-- 清理测试数据
+drop database capacity_slide_test_db;
+<<NULL;

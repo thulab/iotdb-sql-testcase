@@ -1,0 +1,366 @@
+// HIGHPASS 参数和输入异常用例
+// 来源：../highpass.run，覆盖原用例 7.1-7.8 及 WPASS 非法边界值验证
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop database highpass_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database highpass_test_db;
+use highpass_test_db;
+
+-- 2. 创建基础数据表
+create table filter_data
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    s_int32 INT32 FIELD,
+    s_int64 INT64 FIELD,
+    s_float FLOAT FIELD,
+    s_double DOUBLE FIELD
+);
+
+create table filter_bad_type
+(
+    device_id STRING TAG,
+    s_double DOUBLE FIELD,
+    s_boolean BOOLEAN FIELD,
+    s_text TEXT FIELD,
+    s_string STRING FIELD,
+    s_date DATE FIELD,
+    s_timestamp TIMESTAMP FIELD,
+    s_blob BLOB FIELD
+);
+
+create table filter_no_value
+(
+    device_id STRING TAG,
+    site STRING ATTRIBUTE,
+    label STRING FIELD
+);
+
+create table hp_wpass_boundary
+(
+    device_id STRING TAG,
+    v DOUBLE FIELD
+);
+
+create table hp_irregular
+(
+    device_id STRING TAG,
+    v DOUBLE FIELD
+);
+
+create table hp_bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+create table hp_null_data
+(
+    device_id STRING TAG,
+    s2 DOUBLE FIELD
+);
+
+create table hp_signed_constant
+(
+    device_id STRING TAG,
+    signed_value DOUBLE FIELD,
+    constant_value DOUBLE FIELD
+);
+
+create table hp_cm_m4
+(
+    device_id STRING TAG,
+    v DOUBLE FIELD
+);
+
+create table hp_cm_change
+(
+    device_id STRING TAG,
+    v DOUBLE FIELD
+);
+
+-- 3. 查看表及表结构
+show tables;
+desc filter_data;
+desc filter_bad_type;
+desc filter_no_value;
+desc hp_wpass_boundary;
+desc hp_irregular;
+desc hp_bid;
+desc hp_null_data;
+desc hp_signed_constant;
+desc hp_cm_m4;
+desc hp_cm_change;
+
+-- 4. 写入基础数据
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(1, 'd1', 's1', 1, 10, 1.0, 1.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(2, 'd1', 's1', 3, 30, 3.0, 3.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(3, 'd1', 's1', 2, 20, 2.0, 2.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(4, 'd1', 's1', 4, 40, 4.0, 4.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(5, 'd1', 's1', 3, 30, 3.0, 3.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(6, 'd1', 's1', 5, 50, 5.0, 5.0);
+
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(11, 'd1', 's2', 10, 100, 10.0, 10.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(12, 'd1', 's2', 12, 120, 12.0, 12.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(13, 'd1', 's2', 11, 110, 11.0, 11.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(14, 'd1', 's2', 13, 130, 13.0, 13.0);
+
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(21, 'd2', 's1', 20, 200, 20.0, 20.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(22, 'd2', 's1', 22, 220, 22.0, 22.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(23, 'd2', 's1', null, 210, 21.0, null);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(24, 'd2', 's1', 23, null, null, 23.0);
+insert into filter_data(time, device_id, site, s_int32, s_int64, s_float, s_double)
+values(25, 'd2', 's1', 24, 240, 24.0, 24.0);
+
+insert into filter_bad_type(time, device_id, s_double, s_boolean, s_text, s_string, s_date, s_timestamp, s_blob)
+values(1, 'd1', 1.0, true, 'text1', 'string1', '2026-01-01', 1, X'01');
+insert into filter_bad_type(time, device_id, s_double, s_boolean, s_text, s_string, s_date, s_timestamp, s_blob)
+values(2, 'd1', 2.0, false, 'text2', 'string2', '2026-01-02', 2, X'02');
+
+-- 表模型写入至少需要一个 FIELD；用 STRING FIELD 准备合法数据，查询时投影掉该列。
+insert into filter_no_value(time, device_id, site, label) values(1, 'd1', 's1', 'a');
+insert into filter_no_value(time, device_id, site, label) values(2, 'd1', 's1', 'b');
+
+-- 时间戳严格升序，间隔不均匀
+insert into hp_irregular(time, device_id, v) values(1, 'd1', 1.0);
+insert into hp_irregular(time, device_id, v) values(3, 'd1', 3.0);
+insert into hp_irregular(time, device_id, v) values(10, 'd1', 2.0);
+
+-- 精确数值回归，多分区隔离
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:05:00', 'AAPL', 100.0, 101.0);
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:07:00', 'AAPL', 103.0, 101.0);
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:09:00', 'AAPL', 102.0, 101.0);
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:06:00', 'TESL', 200.0, 102.0);
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:07:00', 'TESL', 202.0, 202.0);
+insert into hp_bid(time, stock_id, price, s1) values('2021-01-01T09:15:00', 'TESL', 195.0, 332.0);
+
+
+-- 连续NULL原位回填以及精确数值
+insert into hp_null_data(time, device_id, s2) values(1, 'device_1', 12.0);
+insert into hp_null_data(time, device_id, s2) values(3, 'device_1', null);
+insert into hp_null_data(time, device_id, s2) values(6, 'device_1', null);
+insert into hp_null_data(time, device_id, s2) values(9, 'device_1', null);
+insert into hp_null_data(time, device_id, s2) values(20, 'device_1', 35.0);
+
+-- highPass_负数零值及常量列计算
+insert into hp_signed_constant(time, device_id, signed_value, constant_value) values
+(1, 'd1', -4.0, 5.0),
+(2, 'd1', 0.0, 5.0),
+(3, 'd1', 4.0, 5.0),
+(4, 'd1', 8.0, 5.0);
+
+-- 专用 4 行有限值数据，避免 NULL、重复时间和其他类型干扰边界验证。
+insert into hp_wpass_boundary(time, device_id, v) values
+(1, 'd_boundary', 1.0),
+(2, 'd_boundary', 3.0),
+(3, 'd_boundary', 2.0),
+(4, 'd_boundary', 4.0);
+
+-- 嵌套查询，插入数据
+insert into hp_cm_m4(time, device_id, v) values
+(1, 'd_cm', 3.0),
+(2, 'd_cm', 1.0),
+(3, 'd_cm', 8.0),
+(4, 'd_cm', 2.0),
+(5, 'd_cm', 5.0);
+
+-- 数据更新/删除后再次查询，插入原始数据
+insert into hp_cm_change(time, device_id, v) values
+(1, 'd1', 1.0), (2, 'd1', 3.0), (3, 'd1', 5.0), (4, 'd1', 7.0),
+(1, 'd2', 10.0), (2, 'd2', 20.0), (3, 'd2', 30.0), (4, 'd2', 40.0);
+
+-- 5. 原始数据查询
+select * from filter_data order by device_id, site, time;
+select * from filter_bad_type order by time;
+select * from filter_no_value order by time;
+select * from hp_wpass_boundary order by time;
+select * from hp_irregular order by time;
+select * from hp_bid order by stock_id, time;
+select * from hp_null_data order by time;
+select * from hp_signed_constant order by device_id, time;
+select * from hp_cm_m4 order by time;
+select * from hp_cm_change order by device_id, time;
+
+
+
+
+-- 6. HIGHPASS 参数和输入异常
+-- 6.1 缺少必填参数：分别缺 DATA、TIMECOL 和 WPASS
+-- 6.1.1 缺少 DATA
+select * from highpass(TIMECOL => 'time', WPASS => 0.3);
+<<SQLSTATE;
+-- 6.1.2 缺少 TIMECOL
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time,
+    WPASS => 0.3
+);
+<<SQLSTATE;
+-- 6.1.3 缺少 WPASS
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time,
+    TIMECOL => 'time'
+);
+<<SQLSTATE;
+
+-- 6.2 DATA 缺少 ORDER BY 或 ORDER BY 中包含多列
+-- 6.2.1 缺少 ORDER BY
+select * from highpass(DATA => filter_data, TIMECOL => 'time', WPASS => 0.3);
+<<SQLSTATE;
+-- 6.2.2 ORDER BY 指定多列
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time, s_double,
+    TIMECOL => 'time', WPASS => 0.3
+);
+<<SQLSTATE;
+
+-- 6.3 TIMECOL 不存在、类型不是 TIMESTAMP 或指定多个列
+-- 6.3.1 TIMECOL 指向不存在的列
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time,
+    TIMECOL => 'not_exists', WPASS => 0.3
+);
+<<SQLSTATE;
+-- 6.3.2 TIMECOL 指向非时间戳数值列
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time,
+    TIMECOL => 's_double', WPASS => 0.3
+);
+<<SQLSTATE;
+-- 6.3.3 TIMECOL 同时指定多个列
+select * from highpass(
+    DATA => (select time, s_int32, s_int64, s_float, s_double from filter_data) order by time,
+    TIMECOL => 'time,s_double', WPASS => 0.3
+);
+<<SQLSTATE;
+
+-- 6.4 WPASS 类型错误、非法端点和越界值
+-- 6.4.1 WPASS 为字符串
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => '0.3'
+);
+<<SQLSTATE;
+
+-- 6.4.2 WPASS 为 NULL
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => null
+);
+<<SQLSTATE;
+
+-- 6.4.3 WPASS 小于 0
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => -0.1
+);
+<<SQLSTATE;
+
+-- 6.4.4 WPASS 大于 1
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => 1.1
+);
+<<SQLSTATE;
+
+-- 6.4.5 WPASS 等于下界 0
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => 0
+);
+<<SQLSTATE;
+
+-- 6.4.6 WPASS 等于上界 1
+select * from highpass(
+	DATA => (select time, s_double from filter_data) order by time, 
+	TIMECOL => 'time', 
+	WPASS => 1
+);
+<<SQLSTATE;
+
+-- 6.4.7 WPASS 略低于下界
+select * from highpass(
+    DATA => hp_wpass_boundary partition by device_id order by time,
+    TIMECOL => 'time', 
+	WPASS => -0.000001
+);
+<<SQLSTATE;
+
+-- 6.4.8 WPASS 采用 0.0 表示下界
+select * from highpass(
+    DATA => hp_wpass_boundary partition by device_id order by time,
+    TIMECOL => 'time', 
+	WPASS => 0.0
+);
+<<SQLSTATE;
+
+-- 6.4.9 WPASS 采用 1.0 表示上界
+select * from highpass(
+    DATA => hp_wpass_boundary partition by device_id order by time,
+    TIMECOL => 'time', WPASS => 1.0
+);
+<<SQLSTATE;
+
+-- 6.4.10 WPASS 略高于上界
+select * from highpass(
+    DATA => hp_wpass_boundary partition by device_id order by time,
+    TIMECOL => 'time', 
+	WPASS => 1.000001
+);
+<<SQLSTATE;
+
+-- 6.5 无可计算列
+select * from highpass(
+    DATA => (select time, device_id from filter_no_value)
+            partition by device_id order by time,
+    TIMECOL => 'time', WPASS => 0.3
+);
+<<SQLSTATE;
+
+-- 6.6 输入包含 BOOLEAN、文本、时间类型或 BLOB 等不支持列
+select * from highpass(
+    DATA => filter_bad_type partition by device_id order by time,
+    TIMECOL => 'time', WPASS => 0.3
+);
+<<SQLSTATE;
+
+-- 6.7 同一调用混用按名和按位传参
+select * from highpass(filter_data order by time, TIMECOL => 'time', 0.3);
+<<SQLSTATE;
+
+-- 6.8 DATA 引用不存在的表
+select * from highpass(DATA => not_exists order by time, TIMECOL => 'time', WPASS => 0.3);
+<<SQLSTATE;
+
+
+
+-- 7. 清理测试数据
+drop database highpass_test_db;
+<<NULL;
+
+
+

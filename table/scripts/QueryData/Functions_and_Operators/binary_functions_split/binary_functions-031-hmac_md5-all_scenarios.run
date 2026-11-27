@@ -1,0 +1,184 @@
+-- HMAC_MD5：HMAC-MD5 消息认证码计算、异常输入及权限校验
+-- 覆盖：正常/边界/空值 3 项；异常输入 3 项；权限 4 项；共 10 项。
+-- 原场景编号：186、187、188、189、190、191、343、344、345、346
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- HMAC_MD5：STRING 数据与 TEXT 密钥计算消息认证码 (P0)
+-- 来源：binary_functions.run，用例 186
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING, col_text TEXT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello', 'secret');
+SELECT hmac_md5(col_string, col_text) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：BLOB 数据与 TEXT 密钥计算消息认证码 (P1)
+-- 来源：binary_functions.run，用例 187
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB, col_text TEXT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'68656C6C6F', 'secret');
+SELECT hmac_md5(col_blob, col_text) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：数据为 NULL 且密钥为字符串字面量时的处理 (P1)
+-- 来源：binary_functions.run，用例 188
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING, col_text TEXT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL, 'secret');
+SELECT hmac_md5(col_string, 'secret') FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- HMAC_MD5：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 189
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT hmac_md5() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：传入 1 个参数时报错
+-- 来源：binary_functions.run，用例 190
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT hmac_md5(col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：传入 3 个参数时报错
+-- 来源：binary_functions.run，用例 191
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING, col_text TEXT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello', 'secret');
+SELECT hmac_md5(col_string, col_text, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- HMAC_MD5：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 343
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT hmac_md5(col, 'secret') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：授予数据库级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 344
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT hmac_md5(col, 'secret') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：授予表级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 345
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT hmac_md5(col, 'secret') FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- HMAC_MD5：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P0)
+-- 来源：binary_functions.run，用例 346
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT hmac_md5(col, 'secret') FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

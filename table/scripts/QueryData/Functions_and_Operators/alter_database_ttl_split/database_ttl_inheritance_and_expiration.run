@@ -1,0 +1,20 @@
+// 场景：新表继承数据库 TTL，数据到期后不可查询。
+connect root/TimechoDB@2021;
+
+drop database ttl_inherit_db;
+<<NULL;
+create database ttl_inherit_db with (TTL=5000);
+use ttl_inherit_db;
+create table t1(ID TAG,int32 INT32);
+
+// 预期：t1 的 TTL 为 5000。
+show tables;
+insert into t1(time,ID,int32) values(now(),'d1',1);
+// 预期：count_result 为 1。
+select count(*) as count_result from t1;
+sleep 5000;
+// 预期：count_result 为 0。
+select count(*) as count_result from t1;
+
+drop database ttl_inherit_db;
+<<NULL;

@@ -1,0 +1,87 @@
+// COLUMNS函数基础列选择查询
+
+// 连接数据库并开始测试
+
+connect root/TimechoDB@2021;
+
+// 删除旧测试数据库，保证环境干净
+
+drop database test_db;
+
+<<NULL;
+
+// 创建测试数据库
+
+create database test_db;
+
+// 切换到测试数据库
+
+use test_db;
+
+// 创建包含标签、属性和字段列的测试表
+
+create table table1 (
+  time TIMESTAMP TIME,
+  region STRING TAG,
+  device_id STRING TAG,
+  model_id STRING ATTRIBUTE,
+  maintenance STRING ATTRIBUTE,
+  temperature FLOAT FIELD,
+  humidity FLOAT FIELD,
+  status Boolean FIELD,
+  arrival_time TIMESTAMP FIELD
+);
+
+// 查看当前数据库中的表
+
+show tables;
+
+// 查看测试表的列定义
+
+desc table1;
+
+// 写入覆盖普通值与NULL值的测试数据
+
+INSERT INTO table1(time, region, device_id, model_id, maintenance, temperature, humidity, status, arrival_time) VALUES
+  (1000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:37:34),
+  (2000, '北京', 'd1', 'A', '190', 90.0, 35.1, true, 2024-11-26 13:38:25),
+  (3000, '北京', 'd2', 'B', '181', NULL, 35.1, true, 2024-11-27 16:37:01),
+  (4000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:03),
+  (6000, '北京', 'd2', 'B', '181', 85.0, NULL, NULL, 2024-11-27 16:37:04),
+  (7000, '北京', 'd3', 'C', '155', NULL, 35.2, false, Null),
+  (8000, '北京', 'd3', 'C', '155', NULL, Null, false, Null),
+  (9000, '北京', 'd3', 'C', '155', NULL, Null, false, 2024-11-27 16:37:08),
+  (10000, '上海', 'd4', 'D', '94', 85.0, Null, NULL, 2024-11-28 08:00:09),
+  (11000, '上海', 'd4', 'D', '94', NULL, 40.9, true, NULL),
+  (12000, '上海', 'd4', 'D', '94', 85.0, 35.2, NULL, 2024-11-28 10:00:11),
+  (13000, '上海', 'd5', 'E', '90', 88.0, 45.1, true, 2024-11-28 11:00:12),
+  (14000, '上海', 'd5', 'E', '362', 85.0, NULL, NULL, 2024-11-29 10:00:13),
+  (15000, '上海', 'd5', 'E', '362', NULL, 45.1, true, NULL),
+  (16000, '上海', 'd5', 'E', '362', 90.0, 35.4, true, 2024-11-29 18:30:15),
+  (17000, '上海', 'd5', 'F', '362', 90.0, 35.2, true, NULL),
+  (18000, '上海', 'd5', 'F', '362', 90.0, 34.8, true, 2024-11-30 14:30:17);
+
+// 按时间顺序查询全部原始数据
+
+select * from table1 order by time;
+
+// 查询列名以m开头的列
+
+select columns('^m.*') from table1 order by 1,2;
+
+// 查询列名以o开头的列，未匹配时预期报错
+
+select columns('^o.*') from table1;
+
+<<SQLSTATE;
+
+// 查询列名以t开头的列并重命名结果列
+
+select columns('^t(.*)') AS "series_$0" from table1 order by 1,2;
+
+// 删除旧测试数据库，保证环境干净
+
+drop database test_db;
+
+<<NULL;
+

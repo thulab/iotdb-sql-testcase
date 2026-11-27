@@ -1,0 +1,182 @@
+// FFT 基础查询：覆盖分区、参数形式、数据类型、归一化及显式采样间隔
+// 来源：fft_query.run
+
+// 表模型内置表值函数 FFT：对每个分区的实值数值序列执行一维快速傅里叶变换。
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理可能残留的测试对象
+drop database test_fft;
+<<NULL;
+
+-- 2. 准备测试数据库
+create database test_fft;
+use test_fft;
+
+-- 3. 准备 FFT 测试表结构
+create table signal
+(
+    device_id STRING TAG,
+    temperature DOUBLE FIELD,
+    speed INT32 FIELD,
+    note STRING FIELD
+);
+
+create table impulse
+(
+    value DOUBLE FIELD
+);
+
+create table custom_signal
+(
+    event_time TIMESTAMP TIME,
+    value DOUBLE FIELD
+);
+
+create table numeric_types
+(
+    i32 INT32 FIELD,
+    i64 INT64 FIELD,
+    f32 FLOAT FIELD,
+    f64 DOUBLE FIELD
+);
+
+-- 4. 检查测试表结构
+show tables;
+desc signal;
+desc impulse;
+desc custom_signal;
+desc numeric_types;
+
+-- 5. 准备测试数据
+insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok');
+
+insert into impulse(time, value) values(0, 1.0);
+insert into impulse(time, value) values(1000, 0.0);
+insert into impulse(time, value) values(2000, 0.0);
+insert into impulse(time, value) values(3000, 0.0);
+
+insert into custom_signal(event_time, value) values(0, 1.0);
+insert into custom_signal(event_time, value) values(1000, 0.0);
+insert into custom_signal(event_time, value) values(2000, 0.0);
+insert into custom_signal(event_time, value) values(3000, 0.0);
+
+insert into numeric_types(time, i32, i64, f32, f64) values(0,    1, 10, 1.0, 10.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(1000, 2, 20, 2.0, 20.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(2000, 3, 30, 3.0, 30.0);
+insert into numeric_types(time, i32, i64, f32, f64) values(3000, 4, 40, 4.0, 40.0);
+
+-- 6. 按设备分区，同时转换 DOUBLE 和 INT32；STRING 列 note 应被忽略
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by device_id, frequency_index;
+
+-- 7. 无分区、单列 FFT，输出完整双边频谱
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 8. 函数名大小写不敏感
+select frequency_index, frequency, value_real, value_imag
+from fft(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 9. DATA 子查询投影：只转换 speed
+select *
+from FFT(
+    DATA => (
+        select time, device_id, speed
+        from signal
+    ) PARTITION BY device_id ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by device_id, frequency_index;
+
+-- 10. 默认 N，并根据首尾时间推断 SAMPLE_INTERVAL
+select frequency_index, frequency, value_real, value_imag
+from FFT(DATA => impulse ORDER BY time)
+order by frequency_index;
+
+-- 11. 自定义 TIME 列
+select frequency_index, frequency, value_real, value_imag
+from FFT(
+    DATA => custom_signal ORDER BY event_time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    TIMECOL => 'event_time'
+)
+order by frequency_index;
+
+-- 12. 支持 INT32、INT64、FLOAT、DOUBLE，输出实部和虚部均为 DOUBLE
+select *
+from FFT(
+    DATA => numeric_types ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4
+)
+order by frequency_index;
+
+-- 13. backward、forward、ortho 三种归一化方式
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'backward'
+)
+order by frequency_index;
+
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'FORWARD'
+)
+order by frequency_index;
+
+select frequency_index, value_real, value_imag
+from FFT(
+    DATA => impulse ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 4,
+    NORM => 'OrThO'
+)
+order by frequency_index;
+
+-- 14. 位置参数调用，参数顺序为 DATA、SAMPLE_INTERVAL、N、NORM
+select frequency_index, frequency, value_real, value_imag
+from TABLE(
+    FFT(TABLE(impulse) ORDER BY time, 1s, 4, 'ortho')
+)
+order by frequency_index;
+
+-- 15. 显式 duration 采样间隔
+select frequency_index, frequency
+from FFT(DATA => signal ORDER BY time, SAMPLE_INTERVAL => 100ms, N => 4);
+
+select frequency_index, frequency from FFT(DATA => signal ORDER BY time, SAMPLE_INTERVAL => 1s, N => 4);
+
+-- 16. 清理测试数据库
+drop database test_fft;
+<<NULL;

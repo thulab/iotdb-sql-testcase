@@ -1,0 +1,302 @@
+
+-- [1]11:create database covar_samp_basic_test
+STRICT{
+PASS
+}
+
+-- [1]14:use covar_samp_basic_test
+STRICT{
+PASS
+}
+
+-- [1]17:create table table1 (device_id STRING TAG, s1 INT32 FIELD, s2 DOUBLE FIELD, s3 DOUBLE FIELD, txt TEXT FIELD)
+STRICT{
+PASS
+}
+
+-- [1]20:create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]23:insert into table1(time,device_id,s1,s2,s3,txt) values(1,'d1',10,50.0,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.197
+
+-- [1]26:insert into table1(time,device_id,s1,s2,s3,txt) values(2,'d1',20,40.0,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]29:insert into table1(time,device_id,s1,s2,s3,txt) values(3,'d1',30,30.0,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:insert into table1(time,device_id,s1,s2,s3,txt) values(4,'d1',null,20.0,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]35:insert into table1(time,device_id,s1,s2,s3,txt) values(5,'d1',50,null,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]38:insert into table1(time,device_id,s1,s2,s3,txt) values(6,'d1',40,20.0,100,'test')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]41:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]44:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]47:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]50:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]53:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'negative',1,8,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]56:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'negative',2,6,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]59:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'negative',3,4,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]62:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'negative',4,2,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]65:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'zero',1,1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]68:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'zero',2,-1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]71:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'zero',3,-1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]74:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'zero',4,1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]77:select time, s1, s2 from table1 where device_id='d1' order by time
+STRICT{
+time(TIMESTAMP)      |s1(INT32)      |s2(DOUBLE)      |
+----------------------------------------------------
+1970-01-01T08:00:00.0|10             |50.0            |
+01+08:00             |               |                |
+----------------------------------------------------
+1970-01-01T08:00:00.0|20             |40.0            |
+02+08:00             |               |                |
+----------------------------------------------------
+1970-01-01T08:00:00.0|30             |30.0            |
+03+08:00             |               |                |
+----------------------------------------------------
+1970-01-01T08:00:00.0|null           |20.0            |
+04+08:00             |               |                |
+----------------------------------------------------
+1970-01-01T08:00:00.0|50             |null            |
+05+08:00             |               |                |
+----------------------------------------------------
+1970-01-01T08:00:00.0|40             |20.0            |
+06+08:00             |               |                |
+总数目：6
+}
+Elapsed Time: 0.0.3
+
+-- [1]80:select covar_samp(s1,s2) as covar_samp_result from table1 where device_id='d1'
+STRICT{
+covar_samp_result(DOUBLE)      |
+-------------------------------
+-166.66666666666666            |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]83:select time, case_id, x, y from pair_cases where case_id in ('positive','negative','zero') order by time, case_id
+STRICT{
+time(TIMESTAMP)      |case_id(STRING)      |x(DOUBLE)      |y(DOUBLE)      |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|negative             |1.0            |8.0            |
+01+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|positive             |1.0            |2.0            |
+01+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|zero                 |1.0            |1.0            |
+01+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|negative             |2.0            |6.0            |
+02+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|positive             |2.0            |4.0            |
+02+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|zero                 |2.0            |-1.0           |
+02+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|negative             |3.0            |4.0            |
+03+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|positive             |3.0            |6.0            |
+03+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|zero                 |3.0            |-1.0           |
+03+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|negative             |4.0            |2.0            |
+04+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|positive             |4.0            |8.0            |
+04+08:00             |                     |               |               |
+------------------------------------------------------------------------
+1970-01-01T08:00:00.0|zero                 |4.0            |1.0            |
+04+08:00             |                     |               |               |
+总数目：12
+}
+Elapsed Time: 0.0.3
+
+-- [1]86:select case_id, covar_samp(x,y) as covar_samp_result from pair_cases where case_id in ('positive','negative','zero') group by case_id order by case_id
+STRICT{
+case_id(STRING)      |covar_samp_result(DOUBLE)      |
+----------------------------------------------------
+negative             |-3.3333333333333335            |
+----------------------------------------------------
+positive             |3.3333333333333335             |
+----------------------------------------------------
+zero                 |0.0                            |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]89:select time, x, y from pair_cases where case_id='negative' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |y(DOUBLE)      |
+---------------------------------------------------
+1970-01-01T08:00:00.0|1.0            |8.0            |
+01+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|2.0            |6.0            |
+02+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|3.0            |4.0            |
+03+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|4.0            |2.0            |
+04+08:00             |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]92:select covar_samp(x,y) as covar_samp_result1, covar_samp(y,x) as covar_samp_result2 from pair_cases where case_id='negative'
+STRICT{
+covar_samp_result1(DOUBLE)      |covar_samp_result2(DOUBLE)      |
+----------------------------------------------------------------
+-3.3333333333333335             |-3.3333333333333335             |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]95:select time, x from pair_cases where case_id='positive' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |
+------------------------------------
+1970-01-01T08:00:00.0|1.0            |
+01+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|2.0            |
+02+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|3.0            |
+03+08:00             |               |
+------------------------------------
+1970-01-01T08:00:00.0|4.0            |
+04+08:00             |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]98:select covar_samp(x,x) as covar_samp_result, var_samp(x) as var_samp_result from pair_cases where case_id='positive'
+STRICT{
+covar_samp_result(DOUBLE)      |var_samp_result(DOUBLE)      |
+------------------------------------------------------------
+1.6666666666666667             |1.6666666666666667           |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]101:select time, x, y from pair_cases where case_id='positive' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |y(DOUBLE)      |
+---------------------------------------------------
+1970-01-01T08:00:00.0|1.0            |2.0            |
+01+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|2.0            |4.0            |
+02+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|3.0            |6.0            |
+03+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|4.0            |8.0            |
+04+08:00             |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]104:select covar_samp(x,y), covar_pop(x,y)*count(x)/(count(x)-1) from pair_cases where case_id='positive'
+STRICT{
+_col0(DOUBLE)      |_col1(DOUBLE)      |
+--------------------------------------
+3.3333333333333335 |3.3333333333333335 |
+总数目：1
+}
+Elapsed Time: 0.0.4

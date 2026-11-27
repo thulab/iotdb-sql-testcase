@@ -1,0 +1,44 @@
+
+-- [1]12:create database test
+STRICT{
+PASS
+}
+
+-- [1]14:use test
+STRICT{
+PASS
+}
+
+-- [1]19:CREATE TABLE test.if_test(     ts TIMESTAMP,     col_boolean BOOLEAN,     col_int32 INT32,     col_int64 INT64,     col_float FLOAT,     col_double DOUBLE,     col_text TEXT,     col_string STRING,     col_blob BLOB,     col_timestamp TIMESTAMP,     col_date DATE )
+STRICT{
+PASS
+}
+
+-- [1]34:INSERT INTO test.if_test(ts, col_boolean, col_int32, col_int64, col_float, col_double, col_text, col_string) VALUES (now(), true, 1, 100, 1.5, 2.5, 'text1', 'string1')
+STRICT{
+0
+}
+Elapsed Time: 0.0.313
+
+-- [1]38:INSERT INTO test.if_test(ts, col_boolean, col_int32, col_int64, col_float, col_double, col_text, col_string) VALUES (now()+1s, false, 0, 0, 0.0, 0.0, '', '')
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]42:INSERT INTO test.if_test(ts, col_boolean, col_int32, col_int64, col_float, col_double, col_text, col_string) VALUES (now()+2s, true, -1, -100, -1.5, -2.5, 'text3', 'string3')
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]48:SELECT if(col_int32>0, 'pos', 'neg'), count(*) FROM test.if_test GROUP BY if(col_int32>0, 'pos', 'neg')
+STRICT{
+_col0(STRING)      |_col1(INT64)      |
+-------------------------------------
+pos                |1                 |
+-------------------------------------
+neg                |2                 |
+总数目：2
+}
+Elapsed Time: 0.0.4

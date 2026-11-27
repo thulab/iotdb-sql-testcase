@@ -1,0 +1,67 @@
+-- 查询写回 INSERT INTO QUERY：时间过滤与 LIMIT 写回
+-- 来源章节：7
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+
+-- 2. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 3. 创建本场景数据库
+create database db1;
+-- 4. 创建源表或目标表
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+-- 5. 写入测试数据
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(1, 'tag1', 'attr1', 123, 12345678, 3.14);
+-- 6. 写入测试数据
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(2, 'tag1', 'attr1', 123, 12345678, 3.14);
+-- 7. 写入测试数据
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(3, 'tag1', 'attr1', 123, 12345678, 3.14);
+-- 8. 写入测试数据
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(4, 'tag1', 'attr1', 123, 12345678, 3.14);
+-- 9. 写入测试数据
+insert into db1.t1(time, tag1, attr1, s1,s2,s3) values(5, 'tag1', 'attr1', 123, 12345678, 3.14);
+
+-- 10. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+-- 11. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, s1 INT32 FIELD, s2 INT64 FIELD, s3 FLOAT FIELD);
+-- 12. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time=1;
+-- 13. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 14. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time>3;
+-- 15. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 16. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<3;
+-- 17. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 18. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time>=3;
+-- 19. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 20. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<=3;
+-- 21. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 22. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<=3 and time >=2;
+-- 23. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 24. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 where time<5 and time>2;
+-- 25. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+-- 26. 将 SELECT 查询结果写入目标表
+insert into db1.t2 select time,tag1,attr1,s1,s2,s3 from db1.t1 limit 3;
+-- 27. 查询数据并核对写入结果
+select * from db1.t2 order by time;
+
+-- 28. 清理测试数据库
+drop database db1;
+<<NULL;

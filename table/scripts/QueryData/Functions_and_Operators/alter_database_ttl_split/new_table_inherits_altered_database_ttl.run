@@ -1,0 +1,16 @@
+// 场景：修改数据库默认 TTL 只影响后续创建的表。
+connect root/TimechoDB@2021;
+
+drop database ttl_new_table_db;
+<<NULL;
+create database ttl_new_table_db with (TTL=5000);
+use ttl_new_table_db;
+create table t1(ID TAG,int32 INT32);
+alter database ttl_new_table_db set properties ttl='INF';
+create table t2(ID TAG,boolean BOOLEAN);
+
+// 预期：t1 的 TTL 为 5000，t2 的 TTL 为 INF。
+show tables;
+
+drop database ttl_new_table_db;
+<<NULL;

@@ -1,0 +1,257 @@
+// 行模式识别：聚合与组合查询
+connect root/TimechoDB@2021;
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table orders(
+customer_id TAG,
+region ATTRIBUTE,
+order_date DATE,
+product TEXT,
+status BOOLEAN,
+number INT64,
+totalprice DOUBLE);
+
+--4. 查看表
+show tables;
+
+--5.展示表结构信息
+desc orders;
+
+--6. 插入数据
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736000000, '100', 'beijing', '2025-06-01', 'table', true, 100, 55000.5
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736600000, '100', 'beijing', '2025-06-01', 'table', true, 255, 13200.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737200000, '100', 'beijing', '2025-06-01', 'table', true, 888, 12400
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737800000, '100', 'beijing', '2025-06-01', 'table', true, 55, 9998.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748739600000, '100', 'beijing', '2025-06-01', 'table', true, 666, 9998.3
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748822400000, '101', 'shanghai', '2025-06-02', 'door', false, 608, 12350.5
+					);			
+
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748826000000, '101', 'shanghai', '2025-06-02', 'door', true, 1000, 667849.9
+					);					
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748831400000, '101', 'shanghai', '2025-06-02', 'door', true, 360, 33920.5
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748835000000, '101', 'shanghai', '2025-06-02', 'door', true, 150, 33920.5
+					);	
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923200000, '100', 'beijing', '2025-06-03', 'table', true, 150, 11230.4
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923300000, '101', 'beijing', '2025-06-04', 'table', true, 50, 55000.00
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748924300000, '102', 'beijing', '2025-06-05', 'table', true, 50, 65000.00
+					);
+
+
+--7. 原始数据查询
+select * from orders order by time;		
+
+
+-- 8. 组合查询：按分区、DEFINE 条件及输出粒度依次验证聚合行为
+
+-- 8.1 COUNT：按 customer_id 分区，统计每个匹配的行数
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m
+order by m.match, m.customer_id, m.count_total;
+
+-- 8.2 COUNT：限制 number < 500，验证 DEFINE 条件过滤
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number < 500
+	) AS m
+order by m.match, m.customer_id, m.count_total;
+
+-- 8.3 COUNT：条件 number > 88888888 不命中，验证空结果
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number > 88888888
+	) AS m;
+
+-- 8.4 COUNT：使用 ALL ROWS PER MATCH 输出匹配行
+SELECT m.match, m.customer_id, m.count_total from orders
+	MATCH_RECOGNIZE (
+		PARTITION BY customer_id
+		ORDER BY totalprice
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE A AS A.number < 500
+	) AS m
+order by m.match, m.customer_id, m.count_total;
+
+
+
+-- 8.5 COUNT 与 SUBSET：验证该 PATTERN、SUBSET、DEFINE 组合（关联 TIMECHODB-0529）
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+ B)
+		SUBSET U = (A, B)
+		DEFINE 
+			A AS A.product = 'door',
+			B AS B.customer_id = '101'
+	) AS m;
+
+-- 8.6 COUNT 与 SUBSET：使用有效 DEFINE 条件验证组合模式聚合
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+ B)
+		SUBSET U = (A, B)
+		DEFINE 
+			A AS A.number < 666,
+			B AS B.totalprice > 10000
+	) AS m;
+
+-- 8.7 RUNNING 与 FINAL：逐行累计值和匹配最终值并列输出
+SELECT m.match, m.running_count, m.final_count FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			RUNNING COUNT(number) AS running_count,
+			FINAL COUNT(number) AS final_count
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.8 预期错误：DEFINE 表达式类型与布尔条件不一致
+SELECT m.match, m.count_total FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A*)
+		DEFINE 
+			A AS A.product = true
+	) AS m;
+<<SQLSTATE;
+
+-- 8.9 预期错误：聚合函数中嵌套 PREV 导航函数
+SELECT m.match, m.count_total, m.invalid_measure FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			AVG(PREV(totalprice)) AS invalid_measure
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+<<SQLSTATE;
+
+-- 8.10 预期错误：PREV 导航函数中嵌套 AVG 聚合函数
+SELECT m.match, m.count_total, m.invalid_measure FROM orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			PREV(AVG(totalprice)) AS invalid_measure
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+<<SQLSTATE;
+
+-- 9.清理环境
+drop database test_db;
+<<NULL;

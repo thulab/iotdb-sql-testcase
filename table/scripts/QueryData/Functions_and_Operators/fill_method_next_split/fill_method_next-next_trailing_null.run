@@ -1,0 +1,57 @@
+// NEXT尾部空值保持不变
+// 功能：FILL METHOD NEXT 后值填充验证
+// 来源：fill_method_next.run
+// 环境：仅在专用测试实例执行；每个文件独立清理并准备所需数据。
+
+connect root/TimechoDB@2021;
+
+--0. 清理同名测试数据库
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库
+create database test_db;
+use test_db;
+
+--2. 创建本用例所需表和字段
+create table t1(
+  device_id STRING TAG,
+  s2 BOOLEAN FIELD
+);
+
+--3. 插入测试数据
+insert into t1(time, device_id, s2) values
+(1000, 'd1', true);
+insert into t1(time, device_id, s2) values
+(1060, 'd1', null);
+insert into t1(time, device_id, s2) values
+(1120, 'd1', false);
+insert into t1(time, device_id, s2) values
+(1180, 'd1', null);
+insert into t1(time, device_id, s2) values
+(1000, 'base', true),
+(1060, 'base', false),
+(1120, 'base', null),
+(1180, 'base', null);
+insert into t1(time, device_id, s2) values
+(1000, 'chain', NULL),
+(1060, 'chain', NULL),
+(1120, 'chain', NULL);
+insert into t1(time, device_id, s2) values
+(1000, 'multi', null),
+(1060, 'multi', false),
+(1120, 'multi', true);
+insert into t1(time, device_id, s2) values
+(1000, 'full', true),
+(1060, 'full', false);
+insert into t1(time, device_id, s2) values
+(1000, 'bound_ok', NULL),
+(1020, 'bound_ok', NULL);
+
+--4. 验证：NEXT尾部空值保持不变
+select time, s2 AS status from t1 WHERE device_id='base' FILL METHOD NEXT order by time;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

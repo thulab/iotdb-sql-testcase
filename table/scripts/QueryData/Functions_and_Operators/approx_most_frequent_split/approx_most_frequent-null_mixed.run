@@ -1,0 +1,31 @@
+// APPROX_MOST_FREQUENT：忽略 SQL NULL 并保留字符串 'null'
+// 新增功能覆盖。所有 *_ok 列预期为 true，需录制并审核 .result 后运行回归。
+
+connect root/TimechoDB@2021;
+drop database amf_null_mixed;
+<<NULL;
+create database amf_null_mixed;
+use amf_null_mixed;
+create table t1(device STRING TAG, value STRING FIELD, marker INT32 FIELD);
+
+insert into t1(time, device, value, marker) values
+(1, 'g1', 'a', 1),
+(2, 'g1', NULL, 1),
+(3, 'g1', 'a', 1),
+(4, 'g1', 'b', 1),
+(5, 'g1', NULL, 1),
+(6, 'g1', 'a', 1),
+(7, 'g1', 'null', 1);
+
+-- 7行：a=3、b=1、字符串 null=1、SQL NULL=2。marker 保证 NULL 行实际存在。
+select count(*)=7 and count(value)=5 as input_ok from t1;
+-- NULL 不计入候选与频次，字符串 'null' 应作为普通值保留。
+select length(f)-length(replace(f, ':', ''))=3 and regexp_like(f, '"a"[ ]*:[ ]*3[ ]*[,}]') and regexp_like(f, '"b"[ ]*:[ ]*1[ ]*[,}]') and regexp_like(f, '"null"[ ]*:[ ]*1[ ]*[,}]') as null_ignored_ok
+from (select approx_most_frequent(value,10,10) as f from t1);
+-- 显式过滤 NULL 后，同样的候选集合与频次。
+select length(f)-length(replace(f, ':', ''))=3 and regexp_like(f, '"a"[ ]*:[ ]*3[ ]*[,}]') and regexp_like(f, '"b"[ ]*:[ ]*1[ ]*[,}]') and regexp_like(f, '"null"[ ]*:[ ]*1[ ]*[,}]') as filtered_null_ok
+from (select approx_most_frequent(value,10,10) as f from t1 where value is not null);
+
+connect root/TimechoDB@2021;
+drop database amf_null_mixed;
+<<NULL;

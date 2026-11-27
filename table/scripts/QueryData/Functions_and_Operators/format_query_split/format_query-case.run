@@ -1,0 +1,41 @@
+-- 1. 连接测试数据库。
+connect root/TimechoDB@2021;
+-- 2. 清理可能残留的测试数据库。
+drop database test_db1;
+<<NULL;
+
+-- 3. 创建测试库、表并按以下顺序准备数据。
+create database test_db1;
+use test_db1;
+create table test_t1 (tag1 tag, attr1 attribute, s1 text, s2 float, s3 int32, s4 date, s5 double ,s6 timestamp, s7 boolean, s8 int64, s9 string, s10 blob);
+-- 4. 写入基础行，供 pattern 和多类型转换场景使用。
+insert into test_t1(time,tag1,attr1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(1,'%f %d %tY %s %s%%','%f %d %tY %s %s%%','%f %d %tY %s %s%%',1.1,1,'2000-01-01',1.1,'2000-01-01T00:00:00.000+08:00',true,1,'%f %d %tY %s %s%%',X'3139393930313031');
+insert into test_t1(time,tag1,attr1,s1,s9,s2,s5) values(2,'%f','%f','%f','%f',1.0123456,1.012345678901234);
+insert into test_t1(time,tag1,attr1,s1,s9,s2,s5) values(3,'%f','%f','%f','%f',-1.0123456,-1.012345678901234);
+insert into test_t1(time,tag1,attr1,s1,s9,s2,s5) values(4,'%f','%f','%f','%f',3.4E38,1.7E308);
+insert into test_t1(time,tag1,attr1,s1,s9,s2,s5) values(5,'%f','%f','%f','%f',-3.4E38,-1.7E308);
+insert into test_t1(time,tag1,attr1,s1,s9,s2,s5) values(6,'%f','%f','%f','%f',0.0,0.0);
+-- 5. 写入正数、负数、边界值和零。
+insert into test_t1(time,tag1,attr1,s1,s9,s3,s8) values(7,'%d','%d','%d','%d',1234567890,1234567890);
+insert into test_t1(time,tag1,attr1,s1,s9,s3,s8) values(8,'%d','%d','%d','%d',-1234567890,-1234567890);
+insert into test_t1(time,tag1,attr1,s1,s9,s3,s8) values(9,'%d','%d','%d','%d',2147483647,9223372036854775807);
+insert into test_t1(time,tag1,attr1,s1,s9,s3,s8) values(10,'%d','%d','%d','%d',-2147483648,-9223372036854775808);
+insert into test_t1(time,tag1,attr1,s1,s9,s3,s8) values(11,'%d','%d','%d','%d',0,0);
+-- 6. 写入日期、时间戳及边界时间值。
+insert into test_t1(time,tag1,attr1,s1,s9,s4,s6) values(12,'%tY','%tY','%tY','%tY','2000-01-01','2000-01-01T00:00:00.000+08:00');
+insert into test_t1(time,tag1,attr1,s1,s9,s4,s6) values(13,'%tY','%tY','%tY','%tY','1000-01-01','1677-09-21T08:18:26+08.145224192:05:43');
+insert into test_t1(time,tag1,attr1,s1,s9,s4,s6) values(14,'%tY','%tY','%tY','%tY','9999-12-31','2262-04-12T07:47:16.854775807+08:00');
+insert into test_t1(time,tag1,attr1,s1,s9,s4,s6) values(15,'%tY','%tY','%tY','%tY','1970-01-01','1970-01-01T00:00:00.000+08:00');
+-- 7. 写入普通字符串、长字符串和空字符串。
+insert into test_t1(time,tag1,attr1,s1,s9) values(16,'%s','%s','1234567890','1234567890');
+insert into test_t1(time,tag1,attr1,s1,s9) values(17,'%s','%s','qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM','qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM');
+insert into test_t1(time,tag1,attr1,s1,s9) values(18,'%s','%s','1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$^&*()_+{}|:<>?','1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM~!@#$%^&*()_+{}|:<>?');
+insert into test_t1(time,tag1,attr1,s1,s9) values(19,'%s','%s','','');
+-- 8. 写入 NULL 值。
+insert into test_t1(time,tag1,attr1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10) values(20,null,null,null,null,null,null,null,null,null,null,null,null);
+
+-- 9. 验证函数名大小写。
+select FORMAT('%1d',s3),format('%1d',s8) from test_t1 order by time;
+
+-- 10. 删除本次测试数据库。
+drop database test_db1;

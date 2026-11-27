@@ -1,0 +1,61 @@
+// XCORR：分区隔离与单点输出
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+create table xcorr_single
+(
+    factory_id STRING TAG,
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:05:00', 'AAPL', 100.0, 101.0);
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:07:00', 'AAPL', 103.0, 101.0);
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:09:00', 'AAPL', 102.0, 101.0);
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:06:00', 'TESL', 200.0, 102.0);
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:07:00', 'TESL', 202.0, 202.0);
+insert into xcorr_bid(time, stock_id, price, s1) values('2021-01-01T09:15:00', 'TESL', 195.0, 332.0);
+insert into xcorr_single(time, factory_id, device_id, s1, s2) values(3, 'F2', 'device_1', 30.0, 30.0);
+
+-- 4. 核对表结构与原始数据
+desc xcorr_bid;
+select * from xcorr_bid order by stock_id, time;
+desc xcorr_single;
+select * from xcorr_single order by factory_id, device_id, time;
+
+-- 5. Xcorr查询
+-- 5.1 Xcorr_多分区计算结果及分区隔离验证
+-- AAPL 依次对应 lag=-2..2：10100.0、10251.5、10268.333333333334、10352.5、10302.0。
+-- TESL：66400.0、53732.0、41981.333333333336、29997.0、19890.0。
+select * from xcorr(
+    DATA => xcorr_bid partition by stock_id order by time,
+    TIMECOL => 'time'
+) order by 1,2;
+
+-- 5.2 Xcorr_单点分区互相关结果及输出结构校验
+-- 期望仅 1 行：F2, device_1, 900.0；输出不包含 time 和 lag 列。
+select * from xcorr(
+    DATA => xcorr_single partition by (factory_id, device_id) order by time,
+    TIMECOL => 'time'
+);
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

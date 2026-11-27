@@ -1,0 +1,47 @@
+// 左外连接CASE：根据右表温度或时长分类，并覆盖空值分支。
+connect root/TimechoDB@2021;
+-- 1 清理可能残留的测试数据库
+drop database test_db;
+<<NULL;
+-- 2 创建测试数据库
+create database test_db;
+use test_db;
+-- 3 创建连接测试表
+create table t1(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t2(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+create table t3(id TAG,temperature FLOAT, status BOOLEAN, duration timestamp);
+-- 4 写入左表数据
+insert into t1(time, id, temperature, status, duration) values(1000, 'd1', 22.2, false, 3600000);
+insert into t1(time, id, temperature, status, duration) values(2000, 'd2', 20.1, true, 86400000);
+insert into t1(time, id, temperature, status, duration) values(3000, 'd1', 19.2, false, 43200000);
+insert into t1(time, id, temperature, status, duration) values(4000, 'd2', 23.11, true, 604800000);
+insert into t1(time, id, temperature, status, duration) values(5000, 'd1', 25.13, false, 432000000);
+insert into t1(time, id, temperature, status, duration) values(6000, 'd2', 24.4, true, 2592000000);
+-- 5 写入右表数据
+insert into t2(time, id, temperature, status, duration) values(1000, 'd1', 32.1, false, 3600000);
+insert into t2(time, id, temperature, status, duration) values(3000, 'd2', 20.1, true, 86400000);
+insert into t2(time, id, temperature, status, duration) values(4000, 'd1', 19.9, true, 43200000);
+insert into t2(time, id, temperature, status, duration) values(6000, 'd2', 22.3, true, 604800000);
+insert into t2(time, id, temperature, status, duration) values(8000, 'd1', 26.3, false, 432000000);
+insert into t2(time, id, temperature, status, duration) values(9000, 'd2', 24.5, true, 2592000000);
+-- 6 写入第三张表数据
+insert into t3(time, id, temperature, status, duration) values(1000, 'd1', 26.2, false, 3600000);
+insert into t3(time, id, temperature, status, duration) values(5000, 'd2', 20.1, true, 86400000);
+insert into t3(time, id, temperature, status, duration) values(8000, 'd1', 19.9, false, 43200000);
+insert into t3(time, id, temperature, status, duration) values(9000, 'd2', 24.4, true, 604800000);
+insert into t3(time, id, temperature, status, duration) values(10000, 'd1', 25.5, false, 259200000);
+insert into t3(time, id, temperature, status, duration) values(20000, 'd2', 26.4, false, 432000000);
+-- 7 左连接并用CASE分类右表温度
+select t1.time AS time1, t1.id AS d1, t1.temperature AS temper1, t1.status AS status1, t1.duration AS duration1,
+       t2.time AS time2, t2.id AS d2, t2.temperature AS temper2, t2.status AS status2, t2.duration AS duration2,
+       CASE WHEN t2.temperature IS NULL THEN 'No Data' WHEN t2.temperature > 20 THEN 'High' ELSE 'Low' END AS temper2_status
+from t1 LEFT JOIN t2 ON t1.time = t2.time order by t1.time;
+-- 8 左连接并用CASE分类右表时长
+select t2.time AS time1, t2.id AS d1, t2.temperature AS temper1, t2.status AS status1, t2.duration AS duration1,
+       t3.time AS time2, t3.id AS d2, t3.temperature AS temper2, t3.status AS status2, t3.duration AS duration2,
+       CASE WHEN t3.duration >= 604800000 THEN 'LONG TIME' WHEN t3.duration > 86400000 THEN 'MEDIUM TIME'
+            WHEN t3.duration IS NULL THEN 'NO DATA' ELSE 'SHORT TIME' END AS t3_duration
+from t2 LEFT JOIN t3 ON t2.time = t3.time order by t2.time;
+-- 9 清理测试数据库
+drop database test_db;
+<<NULL;

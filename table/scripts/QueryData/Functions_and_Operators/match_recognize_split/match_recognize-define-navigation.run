@@ -1,0 +1,653 @@
+// 行模式识别：DEFINE 与导航函数
+
+connect root/TimechoDB@2021;
+-- 0. 清理环境
+drop database test_db;
+<<NULL;
+
+-- 1.创建数据库
+create database test_db;
+
+-- 2. 指定数据库
+use test_db;
+
+-- 3. 创建表
+create table orders(
+customer_id TAG,
+region ATTRIBUTE,
+order_date DATE,
+product TEXT,
+status BOOLEAN,
+number INT64,
+totalprice DOUBLE);
+
+-- 4. 查看表
+show tables;
+
+-- 5.展示表结构信息
+desc orders;
+
+-- 6. 插入数据
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736000000, '100', 'beijing', '2025-06-01', 'table', true, 100, 55000.5
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736600000, '100', 'beijing', '2025-06-01', 'table', true, 255, 13200.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737200000, '100', 'beijing', '2025-06-01', 'table', true, 888, 12400
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737800000, '100', 'beijing', '2025-06-01', 'table', true, 55, 9998.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748739600000, '100', 'beijing', '2025-06-01', 'table', true, 666, 9998.3
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748822400000, '101', 'shanghai', '2025-06-02', 'door', false, 608, 12350.5
+					);			
+
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748826000000, '101', 'shanghai', '2025-06-02', 'door', true, 1000, 667849.9
+					);					
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748831400000, '101', 'shanghai', '2025-06-02', 'door', true, 360, 33920.5
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748835000000, '101', 'shanghai', '2025-06-02', 'door', true, 150, 33920.5
+					);	
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923200000, '100', 'beijing', '2025-06-03', 'table', true, 150, 11230.4
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923300000, '101', 'beijing', '2025-06-04', 'table', true, 50, 55000.00
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748924300000, '102', 'beijing', '2025-06-05', 'table', true, 50, 65000.00
+					);
+
+
+-- 7. 原始数据查询
+select * from orders order by time;		
+
+
+
+-- 8. DEFINE：定义行模式变量，并使用 A+ 验证一个或多个连续匹配行
+select * from orders
+	MATCH_RECOGNIZE(
+		partition by customer_id
+		order by number
+		measures
+			MATCH_NUMBER() AS match,
+			CLASSIFIER() AS label
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE
+			A AS true
+	) AS m
+order by customer_id,number;
+
+-- 9. NEXT：读取后续行，依次测试默认偏移及显式偏移 1、2
+-- 9.1 NEXT：使用默认偏移读取下一行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 9.2 NEXT：显式偏移 1，读取下一行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(totalprice, 1) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 9.3 NEXT：显式偏移 2，读取后续第二行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+	order by time
+		measures
+			NEXT(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 10. PREV：读取前序行，依次测试默认偏移及显式偏移 1、2
+-- 10.1 PREV：使用默认偏移读取前一行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 10.2 PREV：显式偏移 1，读取前一行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice, 1) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 10.3 PREV：显式偏移 2，读取前序第二行
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 11. RPR_FIRST：匹配行首值，依次测试默认/显式偏移及 RUNNING、FINAL
+-- 11.1 RPR_FIRST：使用默认偏移读取匹配行首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 11.2 RPR_FIRST：显式偏移 0，读取当前匹配行首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice, 0) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+-- 11.3 RPR_FIRST：显式偏移 2，读取匹配行中向前偏移的首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_FIRST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+-- 12. RUNNING RPR_FIRST：输出匹配过程中的行首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RUNNING RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 13. FINAL RPR_FIRST：输出匹配完成后的行首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_FIRST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+-- 14. FINAL RPR_FIRST：指定偏移 2 后输出匹配行首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_FIRST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 15RPR_LAST：匹配行末值，依次测试默认/显式偏移及 RUNNING、FINAL
+-- 15.1 RPR_LAST：使用默认偏移读取匹配行末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 15.2 RPR_LAST：显式偏移 0，读取当前匹配行末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice, 0) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 15.3 RPR_LAST：显式偏移 2，读取匹配行中向前偏移的末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RPR_LAST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 16. RUNNING RPR_LAST：输出匹配过程中的行末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			RUNNING RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 17. FINAL RPR_LAST：输出匹配完成后的行末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_LAST(totalprice) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 18. FINAL RPR_LAST：指定偏移 2 后输出匹配行末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			FINAL RPR_LAST(totalprice, 2) as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19嵌套导航：按 NEXT/PREV 外层函数，再按 RPR_FIRST/RPR_LAST 排列
+-- 19.1 NEXT(RPR_FIRST)：读取后续行的匹配首值，默认偏移
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.2 NEXT(RPR_FIRST)：RPR_FIRST 显式偏移 1
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+	order by time
+		measures
+			NEXT(RPR_FIRST(totalprice, 1)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.3 NEXT(RPR_FIRST)：外层 NEXT 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.4 NEXT(RPR_FIRST)：内层偏移 1、外层偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_FIRST(totalprice, 1), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+
+-- 19.5 NEXT(RPR_LAST)：默认偏移读取下一行的匹配末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.6 NEXT(RPR_LAST)：RPR_LAST 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice, 2)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.7 NEXT(RPR_LAST)：外层 NEXT 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.8 NEXT(RPR_LAST)：内层和外层偏移均为 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			NEXT(RPR_LAST(totalprice, 2), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+
+-- 19.9 PREV(RPR_FIRST)：默认偏移读取前一行的匹配首值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.10 PREV(RPR_FIRST)：RPR_FIRST 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice, 2)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.11 PREV(RPR_FIRST)：外层 PREV 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.12 PREV(RPR_FIRST)：内层和外层偏移均为 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_FIRST(totalprice, 2), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;	
+
+
+-- 19.13 PREV(RPR_LAST)：默认偏移读取前一行的匹配末值
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.14 PREV(RPR_LAST)：RPR_LAST 显式偏移 1
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice, 1)) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+-- 19.15 PREV(RPR_LAST)：外层 PREV 显式偏移 2
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			PREV(RPR_LAST(totalprice), 2) AS price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN (A+)
+		DEFINE
+			A AS true	
+	) AS m;
+
+
+
+-- 20. 量词 *：验证模式变量 B 可重复零次或多次
+select m.match, m.num, m.label from orders
+	MATCH_RECOGNIZE(
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RUNNING RPR_LAST(number) AS num,
+			CLASSIFIER() AS label
+		ONE ROW PER MATCH
+		PATTERN (B*)
+		DEFINE
+			B AS B.number < PREV(B.number)
+	) AS m
+order by match, num, label;
+
+-- 21混合查询：组合分区、筛选条件与 MATCH_RECOGNIZE 度量
+-- 21.1 混合导航：用分区及 number 排序验证基础 A+ 模式
+select * from orders
+	MATCH_RECOGNIZE(
+		partition by customer_id
+		order by number
+		measures
+			MATCH_NUMBER() AS match,
+			CLASSIFIER() AS label
+		ALL ROWS PER MATCH
+		PATTERN (A+)
+		DEFINE
+			A AS true
+	) AS m
+order by customer_id,number;
+
+-- 21.2 基础度量：查询匹配行的时间和 totalprice
+select m.time, m.price from orders
+	MATCH_RECOGNIZE(
+		measures
+			totalprice as price
+		ALL ROWS PER MATCH
+		AFTER MATCH SKIP PAST LAST ROW
+		PATTERN(A+)
+		DEFINE
+			A AS true	
+	) AS m
+order by time, price;
+
+-- 21.3. 分区聚合：按 customer_id 分区并筛选 totalprice 大于 10000 的匹配
+select * from orders
+	MATCH_RECOGNIZE(
+		partition by customer_id
+		order by time
+		measures 
+			MATCH_NUMBER() AS match,
+			RPR_FIRST(A.time) AS event_start,
+			RPR_LAST(A.time) AS event_end,
+			RPR_LAST(A.totalprice) AS last_totalprice
+	ONE ROW PER MATCH
+	PATTERN (A+)
+	DEFINE A AS A.totalprice > 10000
+	)
+	as m
+ORDER BY customer_id, match, last_totalprice;
+
+-- 22. 子查询输入：先筛选 region 与时间范围，再按 region 进行行模式匹配
+select * from
+	(
+	-- 先按 region 和时间窗口筛选输入行
+	select time, customer_id, region, totalprice from orders
+		where region = 'beijing' and time >= 1748736600000 and time < 1748923200000
+	)
+	MATCH_RECOGNIZE(
+		partition by region
+		order by time
+		measures
+			MATCH_NUMBER() AS match,
+			RPR_FIRST(A.time) AS event_start,
+			RPR_LAST(A.time) AS event_end,
+			RPR_LAST(A.totalprice) AS last_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE
+			A AS A.totalprice > 100000
+	) AS m;
+
+-- 23. 清理环境
+drop database test_db;
+<<NULL;

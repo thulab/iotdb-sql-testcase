@@ -1,0 +1,85 @@
+
+-- [1]13:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+
+-- [1]18:create table t1(   device_id STRING TAG,   s2 BOOLEAN FIELD,   s3 INT32 FIELD,   s7 FLOAT FIELD )
+STRICT{
+PASS
+}
+
+-- [1]26:insert into t1(time, device_id, s2, s3, s7) values (1000, 'd1', true, 1, 1.10)
+STRICT{
+0
+}
+Elapsed Time: 0.0.293
+
+-- [1]28:insert into t1(time, device_id, s2, s3, s7) values (1060, 'd1', null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]30:insert into t1(time, device_id, s2, s3, s7) values (1120, 'd1', false, 10, 1.25)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]32:insert into t1(time, device_id, s2, s3, s7) values (1180, 'd1', null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]37:insert into t1(time, device_id, s2, s7) values (1000, 'base', true, 21.93), (1060, 'base', false, null), (1120, 'base', null, 22.23), (1180, 'base', null, 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.19
+
+-- [1]41:insert into t1(time, device_id, s7) values (1000, 'chain', null), (1060, 'chain', null), (1120, 'chain', 23.43)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]45:insert into t1(time, device_id, s2, s3, s7) values (1000, 'multi', null, 1, null), (1060, 'multi', false, null, 22.23), (1120, 'multi', true, 3, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]48:insert into t1(time, device_id, s2, s7) values (1000, 'full', true, 21.93), (1060, 'full', false, 22.23)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]51:insert into t1(time, device_id, s7) values (1000, 'bound_ok', null), (1020, 'bound_ok', 22.88)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]54:select time, s7 AS temperature, s2 AS status, s3 AS quality from t1 WHERE device_id='multi' FILL METHOD NEXT order by time
+STRICT{
+time(TIMESTAMP)      |temperature(FLOAT)      |status(BOOLEAN)      |quality(INT32)      |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|22.23                   |false                |1                   |
+00+08:00             |                        |                     |                    |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.0|22.23                   |false                |3                   |
+60+08:00             |                        |                     |                    |
+--------------------------------------------------------------------------------------
+1970-01-01T08:00:01.1|null                    |true                 |3                   |
+20+08:00             |                        |                     |                    |
+总数目：3
+}
+Elapsed Time: 0.0.4

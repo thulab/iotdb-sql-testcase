@@ -1,0 +1,27 @@
+// APPROX_MOST_FREQUENT：全 NULL 输入的全局与分组聚合返回空 JSON 对象
+// 新增功能覆盖。所有 *_ok 列预期为 true，需录制并审核 .result 后运行回归。
+
+connect root/TimechoDB@2021;
+drop database amf_null_only;
+<<NULL;
+create database amf_null_only;
+use amf_null_only;
+create table t1(device STRING TAG, value STRING FIELD, marker INT32 FIELD);
+
+insert into t1(time, device, value, marker) values
+(1, 'g1', NULL, 1),
+(2, 'g1', NULL, 1),
+(3, 'g2', NULL, 1),
+(4, 'g2', NULL, 1);
+
+-- 两个分组各有2行，value 全为空，但 marker 非空，不能被当作空表。
+select count(*)=4 and count(value)=0 as input_ok from t1;
+-- 全局聚合仍返回一行，忽略全部 NULL 后预期为空 JSON 对象 {}。
+select f='{}' as all_null_ok from (select approx_most_frequent(value,2,10) as f from t1);
+-- 分组聚合仍保留两个已有分组，各组聚合值为空 JSON 对象 {}。
+select device, f='{}' as grouped_all_null_ok
+from (select device, approx_most_frequent(value,2,10) as f from t1 group by device) order by device;
+
+connect root/TimechoDB@2021;
+drop database amf_null_only;
+<<NULL;

@@ -1,0 +1,169 @@
+// pattern_match_query：pattern 长度与格式校验
+// 来源：pattern_match_query.run
+
+// 时间序列趋势匹配表值函数
+// 新增patter_match内置表值函数完成相似度匹配的筛选
+// data参数为必填项
+// time_col 参数为可选项
+// data_col 参数为必填项
+// pattern参数为必填项
+// smooth为必填项
+// threshold为必填项
+// width 选填项
+// height选填项
+// smooth_on_pattern为选填项
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理数据
+drop database test_db;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_db;
+show databases;
+
+-- 3. 使用数据库
+use test_db;
+
+-- 4. 创建表
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+show tables;
+desc t1;
+
+-- 5. 插入数据
+insert into t1
+			(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1)
+values  (1, 'd1', 1, 0, 1.1, 0.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(2, 'd1', 2, 0, 1.1, 0.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(3, 'd1', 1, 0, 1.1, 0.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(4, 'd1', 1, 0, 2.1, 1.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(5, 'd1', 1, 0, 2.1, 1.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(6, 'd1', 2, 1, 2.1, 1.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(7, 'd1', 2, 1, 2.1, 1.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(8, 'd1', 2, 1, 2.1, 1.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(9, 'd1', 2, 1, 2.1, 1.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(10, 'd1', 3, 0, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(11, 'd1', 4, 0, 3.1, 2.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(12, 'd1', 3, 0, 3.1, 2.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(13, 'd1', 2, 0, 3.1, 2.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(14, 'd1', 3, 0, 3.1, 2.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(15, 'd1', 4, 0, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(16, 'd1', 2, 0, 3.1, 2.1, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(17, 'd1', 1, 2, 3.1, 2.1, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(18, 'd1', 1, 2, 3.1, 2.1, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(19, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(20, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(21, 'd1', 1, 2, 3.1, 2.1, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(41, 'd1', 1, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(42, 'd1', 2, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(43, 'd1', 3, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(44, 'd1', 4, 3, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(45, 'd1', 3, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(46, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(47, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(48, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(49, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(50, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(51, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23'),
+		(52, 'd1', 2, 4, 4.4, 5.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23');
+				
+-- 6. 空 pattern 列表的边界行为
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '',
+	smooth => 0.5,
+	threshold => 10.0,
+	width => 1000.0, 
+	height => 500.0,
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+-- 7. 单点 pattern 的边界行为
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+<<SQLSTATE;
+
+-- 8. 两个元素的 pattern
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+-- 9. 三个元素的 pattern
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1, 2, 1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+-- 10. 多个元素的 pattern
+select * from pattern_match(
+	data => t1, 
+	time_col => 'time', 
+	data_col => 'int32_1',
+	pattern => '1,2,3,4,3,2,3,4,2,1,1,1,1,1',
+	smooth => 0.5, 
+	threshold => 10.0, 
+	width => 1000.0, 
+	height => 500.0, 
+	smooth_On_Pattern=> false
+)order by 1,2,3;
+
+-- 11. 无效 pattern 格式返回错误
+select * from pattern_match(
+     data => t1,
+     time_col => 'time',
+     data_col => 'int32_1',
+     pattern => 'abc,def,ghi',
+     smooth => 0.5,
+     threshold => 10.0,
+     width => 1000.0,
+     height => 500.0,
+     smooth_on_pattern => false
+ );
+<<SQLSTATE;
+
+
+-- 12. 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

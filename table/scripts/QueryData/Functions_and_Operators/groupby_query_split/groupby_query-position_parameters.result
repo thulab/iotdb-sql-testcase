@@ -1,0 +1,258 @@
+
+-- [1]9:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]12:use test_db
+STRICT{
+PASS
+}
+
+-- [1]17:create table table_1 (     region_id STRING TAG,     device_id STRING TAG,     model_id STRING ATTRIBUTE,     boolean BOOLEAN FIELD,     text TEXT FIELD,     string STRING FIELD,     date DATE FIELD,     timestamp TIMESTAMP FIELD,     blob BLOB FIELD,     int32 INT32 FIELD,     int64 INT64 FIELD,     float FLOAT FIELD,     double DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]33:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 1, 1000, 1.1, 111.11)
+STRICT{
+0
+}
+Elapsed Time: 0.0.176
+
+-- [1]34:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 16839200, X'3b', 10, 453, 11.1, 102.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.9
+
+-- [1]35:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(3, '003', 'd3', 'V3', true, 'text2', 'string2', '2021-12-20', 116839200000, X'6728', 1, 123, 5.2, 333.3)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]36:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(4, '004', 'd4', 'V4', false, 'text3', 'string3', '2022-06-11', 86700000, X'4b98', 2, 239, null, 666.66)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]37:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(5, '005', 'd5', 'V3', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 653, -1.1, 1111.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]38:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(6, null, 'd6', 'V2', true, 'text3', 'string3', null, 1378230000000, X'34', 1, 653, 0.1, 1111.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]39:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(7, '005', 'd5', 'V3', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'34', 2, null, 555.5, 1111.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]40:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(8, '002', 'd3', 'V1', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 653, 13.13, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]41:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(9, '003', 'd3', 'V1', true, 'text4', null, '2023-12-15', null, X'34', 10, null, 2.1, 155.5)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]42:insert into table_1(time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double) values(10, '004', 'd4', 'V2', false, 'text5', 'string3', '2023-12-15', 18392378000, null, 1, null, -1.1, 11.2)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]45:select device_id, min(int32) from table_1 group by -1
+STRICT{
+SQLSTATE : 701: GROUP BY position -1 is not in select list
+}
+
+-- [1]46:select device_id, count(boolean) from table_1 group by 0.5
+STRICT{
+SQLSTATE : 701: 'device_id' must be an aggregate expression or appear in GROUP BY clause
+}
+
+-- [1]47:select device_id, count(string), avg(int64) from table_1 group by 0
+STRICT{
+SQLSTATE : 701: GROUP BY position 0 is not in select list
+}
+
+-- [1]48:select region_id, device_id, model_id, count(double), avg(int64) from table_1 group by 5
+STRICT{
+SQLSTATE : 701: GROUP BY clause cannot contain aggregations, window functions or grouping operations: [avg(int64)]
+}
+
+-- [1]49:select region_id, device_id, model_id, count(double), avg(int64) from table_1 group by 6
+STRICT{
+SQLSTATE : 701: GROUP BY position 6 is not in select list
+}
+
+-- [1]50:select region_id, timestamp, avg(int64+double) as avg_value from table_1 group by 1,timestamp order by region_id,timestamp
+STRICT{
+region_id(STRING)      |timestamp(TIMESTAMP)      |avg_value(DOUBLE)      |
+------------------------------------------------------------------------
+001                    |1970-01-01T08:01:40.000+08|1111.11                |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+002                    |1970-01-01T12:40:39.200+08|555.2                  |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+002                    |2013-09-04T01:40:00.000+08|null                   |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+003                    |1973-09-14T15:20:00.000+08|456.3                  |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+003                    |null                      |null                   |
+------------------------------------------------------------------------
+004                    |1970-01-02T08:05:00.000+08|905.66                 |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+004                    |1970-08-02T04:59:38.000+08|null                   |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+005                    |2013-09-04T01:40:00.000+08|1764.2                 |
+                       |:00                       |                       |
+------------------------------------------------------------------------
+null                   |2013-09-04T01:40:00.000+08|1764.2                 |
+                       |:00                       |                       |
+总数目：9
+}
+Elapsed Time: 0.0.5
+
+-- [1]51:select device_id, last(string) as last_value, last_by(time,int32) as last_by_value from table_1 group by device_id
+STRICT{
+device_id(STRING)      |last_value(STRING)      |last_by_value(TIMESTAMP)      |
+-----------------------------------------------------------------------------
+d1                     |string1                 |1970-01-01T08:00:00.001+08:00 |
+-----------------------------------------------------------------------------
+d2                     |string2                 |1970-01-01T08:00:00.002+08:00 |
+-----------------------------------------------------------------------------
+d3                     |string5                 |1970-01-01T08:00:00.009+08:00 |
+-----------------------------------------------------------------------------
+d4                     |string3                 |1970-01-01T08:00:00.010+08:00 |
+-----------------------------------------------------------------------------
+d5                     |string4                 |1970-01-01T08:00:00.007+08:00 |
+-----------------------------------------------------------------------------
+d6                     |string3                 |1970-01-01T08:00:00.006+08:00 |
+总数目：6
+}
+Elapsed Time: 0.0.5
+
+-- [1]52:select region_id, device_id, model_id, count(*) as count_value, avg(int64) as avg_value from table_1 group by region_id,device_id,3 order by region_id,device_id,model_id
+STRICT{
+region_id(STRING)      |device_id(STRING)      |model_id(STRING)      |count_value(INT64)      |avg_value(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------------------
+001                    |d1                     |V1                    |1                       |1000.0                 |
+-------------------------------------------------------------------------------------------------------------------
+002                    |d2                     |V2                    |1                       |453.0                  |
+-------------------------------------------------------------------------------------------------------------------
+002                    |d3                     |V1                    |1                       |653.0                  |
+-------------------------------------------------------------------------------------------------------------------
+003                    |d3                     |V1                    |2                       |123.0                  |
+-------------------------------------------------------------------------------------------------------------------
+004                    |d4                     |V2                    |2                       |239.0                  |
+-------------------------------------------------------------------------------------------------------------------
+005                    |d5                     |V3                    |2                       |653.0                  |
+-------------------------------------------------------------------------------------------------------------------
+null                   |d6                     |V2                    |1                       |653.0                  |
+总数目：7
+}
+Elapsed Time: 0.0.4
+
+-- [1]53:select region_id,device_id,count(*) as count_result from table_1 group by 1,2 order by region_id,device_id
+STRICT{
+region_id(STRING)      |device_id(STRING)      |count_result(INT64)      |
+-----------------------------------------------------------------------
+001                    |d1                     |1                        |
+-----------------------------------------------------------------------
+002                    |d2                     |1                        |
+-----------------------------------------------------------------------
+002                    |d3                     |1                        |
+-----------------------------------------------------------------------
+003                    |d3                     |2                        |
+-----------------------------------------------------------------------
+004                    |d4                     |2                        |
+-----------------------------------------------------------------------
+005                    |d5                     |2                        |
+-----------------------------------------------------------------------
+null                   |d6                     |1                        |
+总数目：7
+}
+Elapsed Time: 0.0.3
+
+-- [1]54:select date_bin(2ms,time) as date_bin_result, device_id, model_id, avg(double-int64) as avg_result from table_1 where time > 1 and time < 10 group by 1,2,3 offset 2 limit 5
+STRICT{
+date_bin_result(TIMESTAMP)      |device_id(STRING)      |model_id(STRING)      |avg_result(DOUBLE)      |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.002+08:00   |d3                     |V1                    |210.3                   |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.004+08:00   |d4                     |V2                    |427.65999999999997      |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.004+08:00   |d5                     |V3                    |458.20000000000005      |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.006+08:00   |d5                     |V3                    |null                    |
+-----------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.006+08:00   |d6                     |V2                    |458.20000000000005      |
+总数目：5
+}
+Elapsed Time: 0.0.5
+
+-- [1]55:select date_bin(5ms,time) as date_bin_result, device_id, model_id, avg(double-int64) as avg_result,boolean from table_1 where time > 1 and time < 10 group by 1,2,3,5
+STRICT{
+date_bin_result(TIMESTAMP)      |device_id(STRING)      |model_id(STRING)      |avg_result(DOUBLE)      |boolean(BOOLEAN)      |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.000+08:00   |d2                     |V2                    |-350.8                  |true                  |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.005+08:00   |d3                     |V1                    |null                    |true                  |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.000+08:00   |d3                     |V1                    |210.3                   |true                  |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.000+08:00   |d4                     |V2                    |427.65999999999997      |false                 |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.005+08:00   |d5                     |V3                    |458.20000000000005      |false                 |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.005+08:00   |d5                     |V3                    |null                    |true                  |
+---------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.005+08:00   |d6                     |V2                    |458.20000000000005      |true                  |
+总数目：7
+}
+Elapsed Time: 0.0.5
+
+-- [1]56:select region_id, int32, int64 from (select date_bin(5ms, time) as time, region_id, int32, int64, avg(float) as avg_value from table_1 where time >= 2 and time < 10 GROUP BY 1,2,3,4) where int32 > 2 GROUP BY region_id,2,3 HAVING count(*) > 0
+STRICT{
+region_id(STRING)      |int32(INT32)      |int64(INT64)      |
+-----------------------------------------------------------
+002                    |10                |453               |
+-----------------------------------------------------------
+003                    |10                |null              |
+-----------------------------------------------------------
+005                    |10                |653               |
+总数目：3
+}
+Elapsed Time: 0.0.7
+
+-- [1]57:select region_id, AVG(float) AS avg_result from table_1 where time >= 0 AND time < 10 GROUP BY region_id HAVING count(*) > 1
+STRICT{
+region_id(STRING)      |avg_result(DOUBLE)      |
+-----------------------------------------------
+002                    |12.115000247955322      |
+-----------------------------------------------
+003                    |3.6499998569488525      |
+-----------------------------------------------
+005                    |277.19999998807907      |
+总数目：3
+}
+Elapsed Time: 0.0.5

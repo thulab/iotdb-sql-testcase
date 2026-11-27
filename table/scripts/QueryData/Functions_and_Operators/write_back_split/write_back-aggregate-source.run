@@ -1,0 +1,29 @@
+-- 查询写回 INSERT INTO QUERY：聚合表达式写回限制
+-- 来源章节：13
+-- 编号按 SQL 执行顺序排列；每条 SQL 前一行说明操作目的。
+
+-- 1. 连接数据库会话
+connect root/TimechoDB@2021;
+
+-- 执行顺序编号；每条 SQL 前一行说明该语句的操作。
+
+
+-- 2. 清理旧数据库并检查预期状态
+drop database if exists db1;
+-- 3. 创建本场景数据库
+create database db1;
+-- 4. 创建源表或目标表
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+-- 5. 写入测试数据
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+-- 6. 创建源表或目标表
+create table db1.t2(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+-- 7. 查询数据并核对写入结果
+select * from db1.t1 order by time;
+-- 8. 尝试写入聚合结果并检查预期 SQLSTATE
+insert into db1.t2(int) select count(int) from db1.t1; 
+<<SQLSTATE;
+
+-- 9. 清理测试数据库
+drop database db1;
+<<NULL;

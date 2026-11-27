@@ -1,0 +1,90 @@
+// XCORR：NULL 位置与有效配对计数
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_data
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+create table xcorr_valid_pairs
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+create table xcorr_all_null
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD,
+    row_marker INT32 FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_data(time, device_id, site, s1, s2) values(1, 'd1', 's1', 1.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(2, 'd1', 's1', 2.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(3, 'd1', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(4, 'd1', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(5, 'd1', 's1', 5.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(11, 'd1', 's2', 1.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(12, 'd1', 's2', 2.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(13, 'd1', 's2', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(14, 'd1', 's2', 4.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(15, 'd1', 's2', 5.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(21, 'd2', 's1', 1.0, null);
+insert into xcorr_data(time, device_id, site, s1, s2) values(22, 'd2', 's1', null, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(23, 'd2', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(24, 'd2', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(25, 'd2', 's1', 5.0, 5.0);
+insert into xcorr_valid_pairs(time, device_id, s1, s2) values(1, 'd1', 1.0, 1.0);
+insert into xcorr_valid_pairs(time, device_id, s1, s2) values(2, 'd1', null, 2.0);
+insert into xcorr_valid_pairs(time, device_id, s1, s2) values(3, 'd1', 3.0, null);
+insert into xcorr_all_null(time, device_id, s1, s2, row_marker) values(1, 'd1', null, null, 1);
+insert into xcorr_all_null(time, device_id, s1, s2, row_marker) values(2, 'd1', null, null, 1);
+insert into xcorr_all_null(time, device_id, s1, s2, row_marker) values(3, 'd1', null, null, 1);
+
+-- 4. 核对表结构与原始数据
+desc xcorr_data;
+select * from xcorr_data order by device_id, site, time;
+desc xcorr_valid_pairs;
+select * from xcorr_valid_pairs order by device_id, time;
+desc xcorr_all_null;
+select * from xcorr_all_null order by device_id, time;
+
+-- 5. Xcorr查询
+-- 5.1 Xcorr_NULL保留序列位置且无效配对不参与计算
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xcorr_data where device_id = 'd2')
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by device_id;
+
+-- 5.2 Xcorr_各lag按有效配对数计算乘积均值
+-- lag=-2..2 的期望值：NULL、2.0、1.0、6.0、3.0。
+select * from xcorr(
+    DATA => xcorr_valid_pairs partition by device_id order by time,
+    TIMECOL => 'time'
+);
+
+-- 5.3 Xcorr_所有lag均无有效配对时输出NULL，DATA只投影s1/s2，避免第三列混入计算
+-- 期望输出 5 行，xcorr(s1, s2) 全部为 NULL
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xcorr_all_null) partition by device_id order by time,
+    TIMECOL => 'time'
+);
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

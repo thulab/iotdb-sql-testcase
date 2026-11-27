@@ -1,0 +1,83 @@
+// XCORR：必填参数、排序与时间列异常
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database xcorr_test_db;
+<<NULL;
+
+-- 1. 创建并指定数据库
+create database xcorr_test_db;
+use xcorr_test_db;
+
+-- 2. 创建所需数据表
+create table xcorr_data
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+
+-- 3. 写入测试数据
+insert into xcorr_data(time, device_id, site, s1, s2) values(1, 'd1', 's1', 1.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(2, 'd1', 's1', 2.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(3, 'd1', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(4, 'd1', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(5, 'd1', 's1', 5.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(11, 'd1', 's2', 1.0, 5.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(12, 'd1', 's2', 2.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(13, 'd1', 's2', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(14, 'd1', 's2', 4.0, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(15, 'd1', 's2', 5.0, 1.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(21, 'd2', 's1', 1.0, null);
+insert into xcorr_data(time, device_id, site, s1, s2) values(22, 'd2', 's1', null, 2.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(23, 'd2', 's1', 3.0, 3.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(24, 'd2', 's1', 4.0, 4.0);
+insert into xcorr_data(time, device_id, site, s1, s2) values(25, 'd2', 's1', 5.0, 5.0);
+
+-- 4. 核对表结构与原始数据
+desc xcorr_data;
+select * from xcorr_data order by device_id, site, time;
+
+-- 5.1 缺少 DATA
+-- 5.1.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 5.2 缺少 TIMECOL
+-- 5.2.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site) order by time);
+<<SQLSTATE;
+
+
+-- 5.3 Xcorr_DATA缺少ORDER BY时报错
+-- 5.3.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site), TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 5.4 Xcorr_DATA排序列与TIMECOL不一致时报错
+-- 5.4.1 参数或输入非法；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site) order by s1, TIMECOL => 'time');
+<<SQLSTATE;
+
+-- 5.4.2 指定多个排序列；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site) order by time, s1, TIMECOL => 'time');
+<<SQLSTATE;
+
+
+-- 5.5 TIMECOL 不存在或不是 TIMESTAMP
+-- 5.5.1 TIMECOL 指定不存在的列；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site) order by time, TIMECOL => 'not_exists');
+<<SQLSTATE;
+
+-- 5.5.2 TIMECOL 指定非 TIMESTAMP 列；预期返回 SQLSTATE。
+select * from xcorr(DATA => xcorr_data partition by (device_id, site) order by time, TIMECOL => 's1');
+<<SQLSTATE;
+
+
+-- 6. 清理环境
+drop database xcorr_test_db;
+<<NULL;

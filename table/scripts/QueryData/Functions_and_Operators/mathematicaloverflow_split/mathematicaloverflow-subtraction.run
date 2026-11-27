@@ -1,0 +1,171 @@
+// 减法运算溢出
+// 部分数据类型进行数学运行，溢出校验
+
+connect root/TimechoDB@2021;
+--1. 清理同名数据库
+drop database test_db;
+<<NULL;
+
+
+--2. 创建测试数据库
+create database test_db;
+
+--3. 切换到测试数据库
+use test_db;
+
+--4. 创建运算测试表
+create table table_add
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_sub
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+    "timestamp" TIMESTAMP,
+    "date" DATE
+);
+
+create table table_mul
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_div
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+	"int32_1" INT32,
+    "int64" INT64,
+	"int64_1" INT64,
+    "double" DOUBLE,
+    "float" FLOAT
+);
+
+create table table_negation
+(
+    "device" STRING TAG,
+    "type" STRING ATTRIBUTE,
+    "int32" INT32,
+    "int64" INT64,
+    "double" DOUBLE,
+    "float" FLOAT,
+	"timestamp" TIMESTAMP
+);
+
+--5. 写入边界测试数据
+INSERT INTO table_add
+(
+time,device,type,int32,int64,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'),
+(2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26');
+
+INSERT INTO table_sub
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date
+) 
+values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31');
+
+INSERT INTO table_mul
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000),
+(2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000);
+
+INSERT INTO table_div
+(
+time,device,type,int32,int32_1,int64,int64_1,double,float) values
+(1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0),
+(2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0),
+(3,'d3','t13',0,-0,-0,0,-0.0,0.0);
+
+INSERT INTO table_negation
+(
+time,device,type,int32,int64,double,float,timestamp) values
+(1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807),
+(2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808),
+(3,'d3','t13',0,-0,-0.0,0.0,0);
+
+
+
+--6. 检查边界值初始化数据
+select * from table_sub order by time;
+
+--7. 验证 INT32 极值相减时的溢出
+select int32 - int32_1 from table_sub where time =1; <<SQLSTATE;
+--8. 验证 INT32 极值相减时的溢出
+select int32 - int32_1 from table_sub where time =2; <<SQLSTATE;
+--9. 验证 INT32 极值相减时的溢出
+select int32_1 - int32 from table_sub where time =1; <<SQLSTATE;
+--10. 验证 INT32 极值相减时的溢出
+select int32_1 - int32 from table_sub where time =2; <<SQLSTATE;
+--11. 验证 INT64 边界值减去 INT32 时的溢出
+select int64 - int32_1 from table_sub where time =1; <<SQLSTATE;
+--12. 验证 INT64 边界值减去 INT32 时的溢出
+select int64 - int32_1 from table_sub where time =2; <<SQLSTATE;
+--13. 验证 INT32 边界值减去 INT64 时的溢出
+select int32_1 - int64 from table_sub where time =1; <<SQLSTATE;
+--14. 验证 INT32 边界值减去 INT64 时的溢出
+select int32_1 - int64 from table_sub where time =2; <<SQLSTATE;
+--15. 验证 DATE 减去 INT32 边界值的结果
+select date - int32_1 from table_sub order by time;
+--16. 验证 TIMESTAMP 减去 INT32 边界值的结果
+select timestamp - int32_1 from table_sub order by time;
+--17. 验证 FLOAT 减去 INT32 边界值的结果
+select float - int32_1 from table_sub order by time;
+--18. 验证 DOUBLE 减去 INT32 边界值的结果
+select double - int32_1 from table_sub order by time;
+
+--19. 验证 INT64 极值相减时的溢出
+select int64_1 - int64 from table_sub where time =1; <<SQLSTATE;
+--20. 验证 INT64 极值相减时的溢出
+select int64_1 - int64 from table_sub where time =2; <<SQLSTATE;
+--21. 验证 INT64 极值相减时的溢出
+select int64 - int64_1 from table_sub where time =1; <<SQLSTATE;
+--22. 验证 INT64 极值相减时的溢出
+select int64 - int64_1 from table_sub where time =2;<<SQLSTATE;
+--23. 验证 DATE 转 TIMESTAMP 后减去 INT64 的边界溢出
+select cast(date as TIMESTAMP) - int64 from table_sub where time =1; <<SQLSTATE;
+--24. 验证 DATE 转 TIMESTAMP 后减去 INT64 的边界溢出
+select cast(date as TIMESTAMP) - int64 from table_sub where time =2; <<SQLSTATE;
+--25. 验证 INT64 减去 DATE 转 TIMESTAMP 后的边界溢出
+select int64 - cast(date as TIMESTAMP) from table_sub where time =1; <<SQLSTATE;
+--26. 验证 INT64 减去 DATE 转 TIMESTAMP 后的边界溢出
+select int64 - cast(date as TIMESTAMP) from table_sub where time =2; <<SQLSTATE;
+--27. 验证 TIMESTAMP 减去 INT64 边界值时溢出
+select timestamp - int64 from table_sub where time =1; <<SQLSTATE; 
+--28. 验证 TIMESTAMP 减去 INT64 边界值时溢出
+select timestamp - int64 from table_sub where time =2; <<SQLSTATE;
+
+
+
+--29. 删除测试数据库
+drop database test_db;
+<<NULL;

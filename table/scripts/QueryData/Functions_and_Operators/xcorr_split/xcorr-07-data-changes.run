@@ -1,0 +1,91 @@
+// XCORR：覆盖写入与删除后重新计算
+// 来源：xcorr.run；按执行顺序编号，每份脚本独立准备并清理数据。
+-- 1. 连接数据库服务
+connect root/TimechoDB@2021;
+
+-- 2. 清理环境：删除已有测试数据库
+drop database xcorr_test_db;
+<<NULL;
+
+-- 3. 创建测试数据库
+create database xcorr_test_db;
+-- 4. 指定测试数据库
+use xcorr_test_db;
+
+-- 5. 创建覆盖写入与删除验证表
+create table xc_cm_change
+(
+    device_id STRING TAG,
+    s1 DOUBLE FIELD,
+    s2 DOUBLE FIELD
+);
+
+-- 6. 写入 d1、d2 两个分区的基线数据
+insert into xc_cm_change(time, device_id, s1, s2) values
+(1, 'd1', 1.0, 4.0), (2, 'd1', 2.0, 5.0), (3, 'd1', 3.0, 6.0),
+(1, 'd2', 2.0, 1.0), (2, 'd2', 4.0, 2.0), (3, 'd2', 6.0, 3.0);
+
+-- 7. 检查测试表结构
+desc xc_cm_change;
+-- 8. 查询全部原始数据，核对数据准备结果
+select * from xc_cm_change order by device_id, time;
+
+-- 9. 查询基线数据：预期共 6 行
+-- 结果统一按第 1 列 device_id、第 2 列互相关值升序排列；以下期望值均为排序后的输出顺序，不代表 lag 顺序。
+-- 原始数据 6 行；
+select device_id, time, s1, s2 from xc_cm_change order by device_id, time;
+
+-- 10. 查询基线 XCORR，建立两个分区的计算基线
+-- XCORR 共 10 行；按相关值升序，d1 为 6.0、8.5、32/3、11.5、12.0；d2 为 6.0、6.0、8.0、8.0、28/3。
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xc_cm_change)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by 1, 2;
+
+-- 11. 覆盖写入 d1,time=2：将 s1 从 2.0 改为 8.0
+insert into xc_cm_change(time, device_id, s1, s2) values(2, 'd1', 8.0, 5.0);
+-- 12. 检查覆盖写入后的原始数据
+-- 原始数据仍为 6 行，d1,time=2 只有一行且为 (8.0,5.0)；d2,time=2 仍为 (4.0,2.0)。
+select device_id, time, s1, s2 from xc_cm_change order by device_id, time;
+
+-- 13. 查询覆盖写入后的 XCORR，验证重新计算与分区隔离
+-- XCORR 仍为 10 行；按相关值升序，d1 为 6.0、12.0、62/3、23.5、26.5；d2 仍为 6.0、6.0、8.0、8.0、28/3。
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xc_cm_change)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by 1, 2;
+
+-- 14. 删除 d1 的中间时间点 time=2
+delete from xc_cm_change where device_id='d1' and time=2;
+-- 15. 检查删除时间点后的原始数据
+-- 原始数据 5 行；d1 仅 time=1/3，输入序列为 s1=[1,3]、s2=[4,6]，按剩余行重新编号。
+select device_id, time, s1, s2 from xc_cm_change order by device_id, time;
+
+-- 16. 查询删除时间点后的 XCORR，验证按剩余行重新计算
+-- XCORR 共 8 行；按相关值升序，d1 为 6.0、11.0、12.0；d2 仍为 6.0、6.0、8.0、8.0、28/3。
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xc_cm_change)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by 1, 2;
+
+-- 17. 删除 d2 整个分区的数据
+delete from xc_cm_change where device_id='d2';
+
+-- 18. 检查删除分区后的原始数据
+-- 原始数据仅 d1 的 2 行；
+select device_id, time, s1, s2 from xc_cm_change order by device_id, time;
+
+-- 19. 查询删除分区后的 XCORR，验证 d1 结果保持不变
+-- XCORR 仅返回 d1 的 3 行；按相关值升序为 6.0、11.0、12.0；d2 不返回结果行。
+select * from xcorr(
+    DATA => (select time, device_id, s1, s2 from xc_cm_change)
+            partition by device_id order by time,
+    TIMECOL => 'time'
+) order by 1, 2;
+
+-- 20. 清理环境：删除测试数据库
+drop database xcorr_test_db;
+<<NULL;

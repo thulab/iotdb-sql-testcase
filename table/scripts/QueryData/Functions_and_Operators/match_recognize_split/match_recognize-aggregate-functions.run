@@ -1,0 +1,202 @@
+// 行模式识别：聚合函数
+connect root/TimechoDB@2021;
+--0. 清理环境
+drop database test_db;
+<<NULL;
+
+--1.创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table orders(
+customer_id TAG,
+region ATTRIBUTE,
+order_date DATE,
+product TEXT,
+status BOOLEAN,
+number INT64,
+totalprice DOUBLE);
+
+--4. 查看表
+show tables;
+
+--5.展示表结构信息
+desc orders;
+
+--6. 插入数据
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736000000, '100', 'beijing', '2025-06-01', 'table', true, 100, 55000.5
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748736600000, '100', 'beijing', '2025-06-01', 'table', true, 255, 13200.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737200000, '100', 'beijing', '2025-06-01', 'table', true, 888, 12400
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748737800000, '100', 'beijing', '2025-06-01', 'table', true, 55, 9998.3
+					);					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748739600000, '100', 'beijing', '2025-06-01', 'table', true, 666, 9998.3
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748822400000, '101', 'shanghai', '2025-06-02', 'door', false, 608, 12350.5
+					);			
+
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748826000000, '101', 'shanghai', '2025-06-02', 'door', true, 1000, 667849.9
+					);					
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748831400000, '101', 'shanghai', '2025-06-02', 'door', true, 360, 33920.5
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748835000000, '101', 'shanghai', '2025-06-02', 'door', true, 150, 33920.5
+					);	
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923200000, '100', 'beijing', '2025-06-03', 'table', true, 150, 11230.4
+					);
+					
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748923300000, '101', 'beijing', '2025-06-04', 'table', true, 50, 55000.00
+					);
+insert into orders(
+					time, customer_id, region, order_date, product, status, number, totalprice
+					) values
+					(
+					1748924300000, '102', 'beijing', '2025-06-05', 'table', true, 50, 65000.00
+					);
+
+
+--7. 原始数据查询
+select * from orders order by time;		
+
+
+--8. MATCH_RECOGNIZE 聚合函数：逐项验证单匹配的聚合结果
+--8.1 AVG：计算匹配值平均数
+SELECT m.match, m.avg_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			AVG(totalprice) AS avg_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.2 COUNT：统计匹配行数
+SELECT m.match, m.count_total from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			COUNT(totalprice) AS count_total
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.3 MAX：取得匹配值最大值
+SELECT m.match, m.max_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MAX(totalprice) AS max_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.4 MAX_BY：取得排序值最大行对应的 number
+SELECT m.match, m.max_by from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MAX_BY(number, totalprice) AS max_by
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.5 MIN：取得匹配值最小值
+SELECT m.match, m.min_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MIN(totalprice) AS min_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.6 MIN_BY：取得排序值最小行对应的 number
+SELECT m.match, m.min_by from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			MIN_BY(number, totalprice) AS min_by
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+-- 8.7 SUM：计算匹配值总和
+SELECT m.match, m.sum_totalprice from orders
+	MATCH_RECOGNIZE (
+		ORDER BY time
+		MEASURES
+			MATCH_NUMBER() AS match,
+			SUM(totalprice) AS sum_totalprice
+		ONE ROW PER MATCH
+		PATTERN (A+)
+		DEFINE A AS true
+	) AS m;
+
+
+
+--9. 清理环境
+drop database test_db;
+<<NULL;

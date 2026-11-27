@@ -1,0 +1,70 @@
+// APPROX_PERCENTILE：approx_percentile_query-unweighted_median
+// 来源：approx_percentile_query.run
+
+// approx_percentile：该函数用于计算数据集中指定百分位数的值
+// 1. 参数说明：
+//（1）x：待计算列，支持所有数字类型，例如INT32、INT64、FLOAT、DOUBLE、TIMESTAMP
+//（2）percentage: 目标分位数，Double类型
+//2. 返回值：与待计算列类型相同
+//3. approx_percentile(x, percentage) → [Same as x]
+//4. approx_percentile(x, w, percentage) → [Same as x]
+// w: 权重，与待计算列长度对齐，整型，表示在第 i 位的值重复 w 次
+
+connect root/TimechoDB@2021;
+
+-- 清理数据
+drop database test_db;
+<<NULL;
+
+--1. 创建元数据
+create database test_db;
+use test_db;
+create table t1(
+device_id tag,
+int32_1 INT32,
+int64_1 INT64,
+double_1 DOUBLE,
+float_1 FLOAT,
+boolean_1 BOOLEAN,
+text_1 TEXT,
+string_1 STRING,
+blob_1 BLOB,
+object_1 OBJECT,
+timestamp_1 TIMESTAMP,
+date_1 DATE
+);
+show tables;
+desc t1;
+
+--2. 插入数据
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1)
+	values(1001,'d1', 1, 10, 1.1, 10.1, false, 'v1', 's1', X'00', to_object(false,0,X'00'), 100, '2026-03-20'),
+		(1002, 'd1', 2, 20, 2.2, 20.2, true, 'v2', 's2', X'01', to_object(false,0,X'01'), 200, '2026-03-21'),
+		(1003, 'd1', 3, 30, 3.3, 30.3, true, 'v3', 's3', X'02', to_object(false,0,X'02'), 300, '2026-03-22'),
+		(1004, 'd1', 4, 40, 4.4, 40.4, false, 'v4', 's4', X'03', to_object(false,0,X'03'), 1000, '2026-03-23'),
+		(1005, 'd1', 5, 50, 5.5, 50.5, false, 'v5', 's5', X'04', to_object(false,0,X'04'), 2000, '2026-03-23');
+		
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1)
+	values(1006, 'd2', 1, 10, 0.0, 0.0, 0),
+		 (1007, 'd2', 1, 20, 0.0, 0.0, 0),
+		 (1008, 'd2', 0, 999, 0.0, 0.0, 0);
+		 
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1009, 'd1', 0, 100, 1.0, 1.0, NULL);
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1010, 'd1', NULL, 200, 2.0, 2.0, NULL);
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,timestamp_1) values(1011, 'd1', 1, NULL, NULL, NULL, NULL);
+
+select * from t1 order by time;
+
+--3. pprox_percentile执行查询
+--3.2 支持的数据类型：【目前是INT32, INT64, FLOAT, DOUBLE, TIMESTAMP】中位数+权重列
+select approx_percentile(time,0.5) as p50 from t1;
+select approx_percentile(int32_1,0.5) as p50 from t1;
+select approx_percentile(int64_1,0.5) as p50 from t1;
+select approx_percentile(float_1,0.5) as p50 from t1;
+select approx_percentile(double_1,0.5) as p50 from t1;
+select approx_percentile(timestamp_1,0.5) as p50 from t1;
+
+-- 清理数据
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

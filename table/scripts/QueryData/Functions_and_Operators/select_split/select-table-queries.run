@@ -1,0 +1,27 @@
+// 普通表查询：列选择与聚合
+
+connect root/TimechoDB@2021;
+
+-- 初始化：清理可能残留的 test 数据库
+drop database test;
+<<NULL;
+
+-- 初始化：创建 test 数据库及包含 TAG、FIELD 列的测试表
+create database test;
+create table test.t1(device_id string tag, s1 int32 field);
+
+-- 初始化：写入两台设备的三条记录，供后续查询使用
+insert into test.t1(time, device_id, s1) values(1000, 'd1', 1),(2000, 'd1', 2),(3000, 'd2', 3);
+
+-- 列查询：按时间升序取首条 s1 记录
+select s1 from test.t1 ORDER BY time LIMIT 1;
+
+-- 通配符查询：按时间升序取首条完整记录
+select * from test.t1 ORDER BY time LIMIT 1;
+
+-- 聚合查询：统计表 test.t1 的记录总数
+select COUNT(*) AS total_count from test.t1;
+
+-- 清理：删除本用例使用的 test 数据库
+drop database test;
+<<NULL;

@@ -1,0 +1,141 @@
+-- FROM_LITTLE_ENDIAN_64：小端 BLOB 解码为 INT64、异常输入及权限校验
+-- 覆盖：正常/边界/空值 1 项；异常输入 2 项；权限 4 项；共 7 项。
+-- 原场景编号：141、142、143、287、288、289、290
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- FROM_LITTLE_ENDIAN_64：8 字节小端 BLOB 解码为 INT64 (P1)
+-- 来源：binary_functions.run，用例 141
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0100000000000000');
+SELECT from_little_endian_64(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- FROM_LITTLE_ENDIAN_64：输入 BLOB 仅 4 字节时报错 (P1)
+-- 来源：binary_functions.run，用例 142
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+SELECT from_little_endian_64(col_blob) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_LITTLE_ENDIAN_64：传入 0 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 143
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT from_little_endian_64() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- FROM_LITTLE_ENDIAN_64：授予 ANY 范围 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 287
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0100000000000000');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_little_endian_64(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_LITTLE_ENDIAN_64：授予数据库级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 288
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0100000000000000');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_little_endian_64(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_LITTLE_ENDIAN_64：授予表级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 289
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0100000000000000');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_little_endian_64(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_LITTLE_ENDIAN_64：未授予 SELECT 权限时访问数据库及查询 BLOB 列均报错 (P1)
+-- 来源：binary_functions.run，用例 290
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'0100000000000000');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT from_little_endian_64(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

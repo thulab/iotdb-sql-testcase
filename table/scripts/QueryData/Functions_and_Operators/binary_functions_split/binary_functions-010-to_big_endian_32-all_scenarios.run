@@ -1,0 +1,227 @@
+-- TO_BIG_ENDIAN_32：INT32 大端编码、异常输入及权限校验
+-- 覆盖：正常/边界/空值 5 项；异常输入 4 项；权限 4 项；共 13 项。
+-- 原场景编号：109、110、111、112、113、114、115、116、117、259、260、261、262
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- TO_BIG_ENDIAN_32：INT32 正整数编码为大端 BLOB (P0)
+-- 来源：binary_functions.run，用例 109
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+SELECT to_big_endian_32(col_int32) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：INT32 负整数编码为大端 BLOB (P1)
+-- 来源：binary_functions.run，用例 110
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), -1);
+SELECT to_big_endian_32(col_int32) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：INT32 最大值编码为大端 BLOB (P1)
+-- 来源：binary_functions.run，用例 111
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 2147483647);
+SELECT to_big_endian_32(col_int32) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：INT32 最小值编码为大端 BLOB (P1)
+-- 来源：binary_functions.run，用例 112
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), -2147483648);
+SELECT to_big_endian_32(col_int32) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 113
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT to_big_endian_32(col_int32) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- TO_BIG_ENDIAN_32：传入不支持的 FLOAT 列时报错
+-- 来源：binary_functions.run，用例 114
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.5);
+SELECT to_big_endian_32(col_float) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：传入不支持的 INT64 列时报错
+-- 来源：binary_functions.run，用例 115
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int64 INT64);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 123);
+SELECT to_big_endian_32(col_int64) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 116
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_big_endian_32() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 117
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+SELECT to_big_endian_32(col_int32, col_int32) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- TO_BIG_ENDIAN_32：授予 ANY 范围 SELECT 权限后查询 INT32 列 (P0)
+-- 来源：binary_functions.run，用例 259
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_big_endian_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：授予数据库级 SELECT 权限后查询 INT32 列 (P0)
+-- 来源：binary_functions.run，用例 260
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_big_endian_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：授予表级 SELECT 权限后查询 INT32 列 (P0)
+-- 来源：binary_functions.run，用例 261
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_big_endian_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_BIG_ENDIAN_32：未授予 SELECT 权限时访问数据库及查询 INT32 列均报错 (P0)
+-- 来源：binary_functions.run，用例 262
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT to_big_endian_32(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

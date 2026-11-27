@@ -1,0 +1,126 @@
+// 支持聚合查询
+// select 中支持写聚合函数
+// count | sum | avg | last | first | last_by | first_by | extreme
+// mode | var | var_pop | var_samp | stddev | stddev_pop | stddev_samp
+// min | min_by | max | max_by
+
+connect root/TimechoDB@2021;
+--0.清理数据：
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库
+create database test_db;
+
+--2. 指定数据库
+use test_db;
+
+--3. 创建表
+create table table_1
+(
+    region_id STRING TAG,
+   	device_id STRING TAG,
+    model_id STRING ATTRIBUTE,
+	boolean BOOLEAN FIELD,
+	text TEXT FIELD,
+	string STRING FIELD,
+	date DATE FIELD,
+	timestamp TIMESTAMP FIELD,
+	blob BLOB FIELD,
+	int32 INT32 FIELD,
+	int64 INT64 FIELD,
+	float FLOAT FIELD,
+	double DOUBLE FIELD
+);
+
+--4. 查看表
+show tables;
+
+--5. 展示表结构信息
+desc table_1;
+
+--6. 数据写入
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+1, '001', 'd1', 'V1', false, 'text1', 'string1', '2020-01-10', 100000, X'11F8d7', 0, 1000, 1.1, 111.11
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+2, '002', 'd2', 'V2', true, 'text2', 'string2', '2020-02-20', 16839200, X'3b', 111, 453, 11.1, 102.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+3, '003', 'd3', 'V3', true, 'text2', 'string2', '2021-12-20', 116839200000, X'6728', 1, 123, 5.2, 333.3
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+4, '004', 'd4', 'V4', false, 'text3', 'string3', '2022-06-11', 86700000, X'4b98', 2, 239, null, 666.66
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+5, '005', 'd5', 'V3', false, 'text4', 'string2', '2023-12-15', 1378230000000, X'34', 10, 653, -1.1, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+6, null, 'd6', 'V2', true, 'text3', 'string3', null, 1378230000000, X'00010000', 1, 653, 0.1, 1221.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+7, '005', 'd5', 'V3', true, 'text4', 'string4', '2023-12-15', 1378230000000, X'FFD8FFE0', 2, null, 555.5, 1111.2
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+8, '002', 'd3', 'V5', true, 'text2', 'string5', null, 1378230000000, X'34', 2, 653, 13.13, null
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+9, '003', 'd3', 'V6', true, 'text4', null, '2023-12-15', null, X'49460001', 10, null, 2.1, 155.5
+);
+insert into table_1(
+time, region_id, device_id, model_id, boolean, text, string, date, timestamp, blob, int32, int64, float, double
+) values(
+10, '004', 'd4', 'V2', false, 'text5', 'string3', '2024-01-15', 18392378000, null, 1, null, -11.1, 11.2
+);
+
+--7. 原始数据查询
+select * from table_1 order by time;
+
+
+--26. stddev_samp
+--26.1 非数值的数据类型校验
+select stddev_samp() from table_1; <<SQLSTATE;
+select stddev_samp(*) from table_1; <<SQLSTATE;
+select stddev_samp(time) from table_1; <<SQLSTATE;
+select stddev_samp(region_id) from table_1; <<SQLSTATE;
+select stddev_samp(device_id) from table_1; <<SQLSTATE;
+select stddev_samp(model_id) from table_1; <<SQLSTATE;
+select stddev_samp(boolean) from table_1; <<SQLSTATE;
+select stddev_samp(text) from table_1; <<SQLSTATE;
+select stddev_samp(string) from table_1; <<SQLSTATE;
+select stddev_samp(date) from table_1; <<SQLSTATE;  
+select stddev_samp(timestamp) from table_1; <<SQLSTATE;
+select stddev_samp(blob) from table_1; <<SQLSTATE;
+--26.2 支持数值的数据类型
+select stddev_samp(int32) as stddev_samp_result from table_1;
+select stddev_samp(int64) as stddev_samp_result from table_1;
+select round(stddev_samp(float),12) as stddev_samp_result from table_1;    
+select stddev_samp(double) as stddev_samp_result from table_1;
+select (stddev_samp(double)-stddev_samp(int64)+ stddev(int64)-var_pop(float)-variance(double)-var_samp(int32)) 
+	as total_result,
+	mode(date) as mode_result, count(boolean) as count_result,
+	last(string) as first_result 
+	from table_1 group by model_id;
+
+
+-- 清理数据： 删除数据库 
+drop database test_db;
+<<NULL;

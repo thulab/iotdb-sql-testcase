@@ -1,0 +1,118 @@
+//数据查询：逻辑运算符应用于非 BOOLEAN 类型
+
+connect root/TimechoDB@2021;
+--1. 清理可能残留的测试数据库
+drop database test_db;
+<<NULL;
+
+--2. 创建测试数据库
+create database test_db;
+
+--3. 切换到测试数据库
+use test_db;
+
+--4. 创建包含多种字段类型的测试表
+create table Table_A
+(
+	device_id STRING TAG,
+	color STRING ATTRIBUTE,
+	s0 BOOLEAN FIELD,
+	s1 TEXT FIELD,
+	s2 INT32 FIELD,
+	s3 INT64 FIELD,
+	s4 FLOAT FIELD,
+	s5 DOUBLE FIELD,
+	s6 BOOLEAN FIELD,
+	s7 DATE FIELD,
+	s8 TIMESTAMP FIELD,
+	s9 STRING FIELD,
+	s10 BLOB FIELD
+);
+
+--5. 检查测试表已创建
+show tables;
+
+--6. 检查测试表字段类型
+desc Table_A;
+
+--7. 写入第 1 至第 6 条数据：device_id 为 d1
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(1, 'd1', 'red', false, 'v1', 10, 100, 11.1, 8.8, true, '2021-10-01', 1633046400000, 'abcd', X'abcd');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(2, 'd1', 'red', true, 'v2', 5, 121, 222.1, 12.2, false, '2022-10-01', 1724049989000, 'ertbsad', X'24ad');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(3, 'd1', 'yellow', true, 'v3', 13, 250, 1.1, 333.3, true, '2023-11-01', 1704046789000, 'zsefr345Der', X'a2cd');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(4, 'd1', 'green', false, 'v2', 4, 6, 21.1, 44.2, false, '2023-09-01', 1703047789000, 'sdf', X'24');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(5, 'd1', 'white', false, 'v1', 122, 110, 2.2, 9.9, false, '2022-11-01', 1701047739000, 'cfghesdgfaase', X'cd');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(6, 'd1', 'orange', false, 'v3', 8, 999, 123.1, 0.101, true, '2002-01-01', 1724049989000, 'ert', X'4d');
+--8. 写入第 7 至第 12 条数据：device_id 为 d2，包含 NULL 值
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(7, 'd2', 'blue', true, 'v1', 0, 110, 22.2, 1.8, true, '2023-06-01', 1643046400000, 'test111', X'ac');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(8, 'd2', 'purple', true, 'v3', 555, 1001, 202.1, 1.2, false, '2002-10-01', 1653046400000, 'ioep11', X'abcdef');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(9, 'd2', 'blue', false, 'v1', 1110, 888, 10.1, 11.1, true, '2023-11-11', 1699685189000, 'ueu', X'ce');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(10, 'd2', 'red', false, 'v2', 111, 222, 22.5, 13.3, true, '2020-10-11', 1702277189000, 'sad', X'ae');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(11, 'd2', 'red', null, 'v2', 111, 20, 2, 11.3, true, null, 1702277189000, 'sad', X'ae');
+INSERT INTO Table_A(time, device_id, color, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10) values(12, 'd2', 'null', true, 'v2', null, 22, 2.5, 13.3, true, null, 1702277189000, 'sad', X'ae');
+
+--9. 查询并检查全部测试数据
+select * from Table_A order by time;
+
+--10. 测试 TIME 类型与 BOOLEAN 字段执行 AND、OR、NOT
+select time, s6, time and s6 from Table_A; <<SQLSTATE;
+select time, s6, time or s6 from Table_A; <<SQLSTATE;
+select time, not time from Table_A; <<SQLSTATE;
+
+--11. 测试 TAG 字段 device_id 与 BOOLEAN 字段执行 AND、OR、NOT
+select device_id, s6, device_id and s6 from Table_A; <<SQLSTATE;
+select device_id, s6, device_id or s6 from Table_A; <<SQLSTATE;
+select device_id, not device_id from Table_A; <<SQLSTATE;
+
+--12. 测试 ATTRIBUTE 字段 color 与 BOOLEAN 字段执行 AND、OR、NOT
+select color, s6, color and s6 from Table_A; <<SQLSTATE;
+select color, s6, color or s6 from Table_A; <<SQLSTATE;
+select color, not color from Table_A; <<SQLSTATE;
+
+--13. 测试 TEXT 字段 s1 与 BOOLEAN 字段执行 AND、OR、NOT
+select s1, s6, s1 and s6 from Table_A; <<SQLSTATE;
+select s1, s6, s1 or s6 from Table_A; <<SQLSTATE;
+select s1, not s1 from Table_A; <<SQLSTATE;
+
+--14. 测试 INT32 字段 s2 与 BOOLEAN 字段执行 AND、OR、NOT
+select s2, s6, s2 and s6 from Table_A; <<SQLSTATE;
+select s2, s6, s2 or s6 from Table_A; <<SQLSTATE;
+select s2, not s2 from Table_A; <<SQLSTATE;
+
+--15. 测试 INT64 字段 s3 与 BOOLEAN 字段执行 AND、OR、NOT
+select s3, s6, s3 and s6 from Table_A; <<SQLSTATE;
+select s3, s6, s3 or s6 from Table_A; <<SQLSTATE;
+select s3, not s3 from Table_A; <<SQLSTATE;
+
+--16. 测试 FLOAT 字段 s4 与 BOOLEAN 字段执行 AND、OR、NOT
+select s4, s6, s4 and s6 from Table_A; <<SQLSTATE;
+select s4, s6, s4 or s6 from Table_A; <<SQLSTATE;
+select s4, not s4 from Table_A; <<SQLSTATE;
+
+--17. 测试 DOUBLE 字段 s5 与 BOOLEAN 字段执行 AND、OR、NOT
+select s5, s6, s5 and s6 from Table_A; <<SQLSTATE;
+select s5, s6, s5 or s6 from Table_A; <<SQLSTATE;
+select s5, not s5 from Table_A; <<SQLSTATE;
+
+--18. 测试 DATE 字段 s7 与 BOOLEAN 字段执行 AND、OR、NOT
+select s7, s6, s7 and s6 from Table_A; <<SQLSTATE;
+select s7, s6, s7 or s6 from Table_A; <<SQLSTATE;
+select s7, not s7 from Table_A; <<SQLSTATE;
+
+--19. 测试 TIMESTAMP 字段 s8 与 BOOLEAN 字段执行 AND、OR、NOT
+select s8, s6, s8 and s6 from Table_A; <<SQLSTATE;
+select s8, s6, s8 or s6 from Table_A; <<SQLSTATE;
+select s8, not s8 from Table_A; <<SQLSTATE;
+
+--20. 测试 STRING 字段 s9 与 BOOLEAN 字段执行 AND、OR、NOT
+select s9, s6, s9 and s6 from Table_A; <<SQLSTATE;
+select s9, s6, s9 or s6 from Table_A; <<SQLSTATE;
+select s9, not s9 from Table_A; <<SQLSTATE;
+
+--21. 测试 BLOB 字段 s10 与 BOOLEAN 字段执行 AND、OR、NOT
+select s10, s6, s10 and s6 from Table_A; <<SQLSTATE;
+select s10, s6, s10 or s6 from Table_A; <<SQLSTATE;
+select s10, not s10 from Table_A; <<SQLSTATE;
+
+--22. 清理测试数据库
+drop database test_db;
+<<NULL;

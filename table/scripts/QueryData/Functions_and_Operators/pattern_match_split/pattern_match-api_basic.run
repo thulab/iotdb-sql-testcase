@@ -1,0 +1,227 @@
+// TDB-98 pattern_match 表值函数功能与边界用例
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理环境
+drop database test_pattern_match;
+<<NULL;
+
+-- 2. 创建数据库
+create database test_pattern_match;
+
+-- 3. 指定数据库
+use test_pattern_match;
+
+-- 4. 创建表
+create table pm_base
+(
+    device_id STRING TAG,
+    site STRING TAG,
+    value DOUBLE FIELD,
+    aux INT32 FIELD,
+    note STRING FIELD
+);
+
+create table pm_numeric
+(
+    device_id STRING TAG,
+    i32 INT32 FIELD,
+    i64 INT64 FIELD,
+    f32 FLOAT FIELD,
+    f64 DOUBLE FIELD
+);
+
+create table pm_custom_time
+(
+    device_id STRING TAG,
+    event_time TIMESTAMP TIME,
+    fake_time INT64 FIELD,
+    value DOUBLE FIELD,
+    text_value STRING FIELD,
+    bool_value BOOLEAN FIELD
+);
+
+create table pm_unsupported
+(
+    device_id STRING TAG,
+    text_value STRING FIELD,
+    blob_value BLOB FIELD,
+    object_value OBJECT FIELD,
+    timestamp_value TIMESTAMP FIELD,
+    date_value DATE FIELD
+);
+
+create table pm_limits
+(
+    value DOUBLE FIELD
+);
+
+-- 5. 插入数据
+insert into pm_base(time,device_id,site,value,aux,note) values
+    (1,'d1','s1',1.0,11,'d1-a'),
+    (2,'d1','s1',2.0,12,'d1-b'),
+    (3,'d1','s1',3.0,13,'d1-c'),
+    (4,'d1','s1',2.0,14,'d1-d'),
+    (5,'d1','s1',1.0,15,'d1-e'),
+    (1,'d2','s2',10.0,21,'d2-a'),
+    (2,'d2','s2',20.0,22,'d2-b'),
+    (3,'d2','s2',30.0,23,'d2-c'),
+    (4,'d2','s2',20.0,24,'d2-d'),
+    (5,'d2','s2',10.0,25,'d2-e');
+
+insert into pm_numeric(time,device_id,i32,i64,f32,f64) values
+    (1,'n1',1,10,1.0,10.0),
+    (2,'n1',2,20,2.0,20.0),
+    (3,'n1',3,30,3.0,30.0),
+    (4,'n1',2,20,2.0,20.0),
+    (5,'n1',1,10,1.0,10.0);
+
+insert into pm_custom_time(event_time,device_id,fake_time,value,text_value,bool_value) values
+    (1,'c1',1,1.0,'1',true),
+    (2,'c1',2,2.0,'2',false),
+    (3,'c1',3,3.0,'3',true),
+    (4,'c1',4,2.0,'2',false),
+    (5,'c1',5,1.0,'1',true);
+
+insert into pm_unsupported(time,device_id,text_value,blob_value,object_value,timestamp_value,date_value) values
+    (1,'u1','text',X'00',to_object(false,0,X'00'),100,'2026-03-20');
+
+insert into pm_limits(time,value) values
+    (1,1.0),(2,2.0),(3,3.0),(4,2.0),(5,1.0);
+
+-- 6. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0,
+    width => 1000.0,
+    height => 1000.0,
+    smooth_on_pattern => false
+) order by match_index,device_id,time;
+
+-- 7. pattern_match 查询场景
+select * from pattern_match(
+    data => (select time,device_id,site,value,aux,note from pm_base)
+            partition by device_id order by time,
+    time_col => 'time',
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0
+) order by match_index,device_id,time;
+
+with src as (
+    select time,device_id,site,value,aux,note from pm_base
+)
+-- 8. pattern_match 查询场景
+select * from pattern_match(
+    data => src partition by device_id order by time,
+    time_col => 'time',
+    data_col => 'value',
+    pattern => '1,2,3,2,1',
+    smooth => 0.0,
+    threshold => 100.0
+) order by match_index,device_id,time;
+
+-- 9. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_base partition by device_id order by time,
+    data_col => 'value', pattern => '1,2,3,2,1',
+    smooth => 0.0, threshold => 100.0
+) order by device_id,match_index,time;
+
+-- 10. pattern_match 查询场景
+select * from pattern_match(data => pm_numeric order by time, data_col => 'i32', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+-- 11. pattern_match 查询场景
+select * from pattern_match(data => pm_numeric order by time, data_col => 'i64', pattern => '10,20,30,20,10', smooth => 0.0, threshold => 100.0);
+-- 12. pattern_match 查询场景
+select * from pattern_match(data => pm_numeric order by time, data_col => 'f32', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+-- 13. pattern_match 查询场景
+select * from pattern_match(data => pm_numeric order by time, data_col => 'f64', pattern => '10,20,30,20,10', smooth => 0.0, threshold => 100.0);
+
+-- 14. pattern_match 查询场景
+select * from pattern_match(data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 15. pattern_match 查询场景
+select * from pattern_match(data => t2, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 16. pattern_match 查询场景
+select * from pattern_match(data => pm_base, pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 17. pattern_match 查询场景
+select * from pattern_match(data => pm_base, data_col => 'value', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 18. pattern_match 查询场景
+select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', threshold => 100.0);
+<<SQLSTATE;
+-- 19. pattern_match 查询场景
+select * from pattern_match(data => pm_base, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0);
+<<SQLSTATE;
+
+-- 20. pattern_match 查询场景
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'fake_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 21. pattern_match 查询场景
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 22. pattern_match 查询场景
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'event_time', data_col => 'bool_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 23. pattern_match 查询场景
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'text_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 24. pattern_match 查询场景
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'blob_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 25. pattern_match 查询场景
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'object_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 26. pattern_match 查询场景
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'timestamp_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 27. pattern_match 查询场景
+select * from pattern_match(data => pm_unsupported order by time, data_col => 'date_value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+-- 28. pattern_match 查询场景
+select * from pattern_match(data => pm_custom_time order by event_time, time_col => 'missing_time', data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0);
+<<SQLSTATE;
+
+-- 29. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_custom_time order by event_time,
+    time_col => 'event_time', data_col => 'value',
+    pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0,
+    width => 10.0
+) order by match_index,event_time;
+
+-- 30. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0) order by match_index,time;
+-- 31. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1.0,2.0,3.0,2.0,1.0', smooth => 0.0, threshold => 100.0) order by match_index,time;
+-- 32. pattern_match 查询场景
+select * from pattern_match(data => pm_limits order by time, data_col => 'value', pattern => '1,2.0,3,2.0,1', smooth => 0.0, threshold => 100.0) order by match_index,time;
+
+-- 33. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_limits order by time desc,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+
+-- 34. pattern_match 查询场景
+select * from pattern_match(
+    data => pm_limits order by time asc,
+    data_col => 'value', pattern => '1,2,3,2,1', smooth => 0.0, threshold => 100.0
+);
+
+-- 35. pattern_match 查询场景
+select * from PATTERN_MATCH(
+    DATA => pm_limits ORDER BY time,
+    DATA_COL => 'value', PATTERN => '1,2,3,2,1', SMOOTH => 0.0, THRESHOLD => 100.0
+) order by match_index,time;
+
+-- 清理测试环境
+connect root/TimechoDB@2021;
+drop database test_pattern_match;
+<<NULL;

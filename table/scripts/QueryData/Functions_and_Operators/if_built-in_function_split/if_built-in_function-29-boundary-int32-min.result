@@ -1,0 +1,46 @@
+
+-- [1]12:create database test
+STRICT{
+PASS
+}
+
+-- [1]14:use test
+STRICT{
+PASS
+}
+
+-- [1]18:CREATE TABLE test.if_test(ts TIMESTAMP, col_int32 INT32)
+STRICT{
+PASS
+}
+
+-- [1]20:INSERT INTO test.if_test(ts, col_int32) VALUES (now(), -2147483648)
+STRICT{
+0
+}
+Elapsed Time: 0.0.225
+
+-- [1]22:INSERT INTO test.if_test(ts, col_int32) VALUES (now()+1s, 0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]24:INSERT INTO test.if_test(ts, col_int32) VALUES (now()+2s, 100)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]27:SELECT if(col_int32 = -2147483648, 'min', 'not-min') FROM test.if_test
+STRICT{
+_col0(STRING)      |
+-------------------
+min                |
+-------------------
+not-min            |
+-------------------
+not-min            |
+总数目：3
+}
+Elapsed Time: 0.0.3

@@ -1,0 +1,27 @@
+// CORR：成对 NULL 过滤与基准结果
+// 来源：corr.run
+connect root/TimechoDB@2021;
+
+-- 0. 清理环境
+drop database corr_test;
+<<NULL;
+
+-- 1. 创建数据库并准备基准数据
+create database corr_test;
+use corr_test;
+create table table1 (device_id STRING TAG, s1 INT32 FIELD, s2 DOUBLE FIELD, s3 DOUBLE FIELD, txt TEXT FIELD);
+-- 有效数据对为 (10,50)、(20,40)、(30,30)、(40,20)；额外行用于验证成对 NULL 过滤。
+insert into table1(time,device_id,s1,s2,s3,txt) values(1,'d1',10,50.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(2,'d1',20,40.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(3,'d1',30,30.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(4,'d1',null,20.0,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(5,'d1',50,null,100,'test');
+insert into table1(time,device_id,s1,s2,s3,txt) values(6,'d1',40,20.0,100,'test');
+
+-- 2. 检查输入数据与 CORR 基准结果
+select time, s1, s2 from table1 where device_id='d1' order by time;
+select corr(s1,s2) as corr_result from table1 where device_id='d1';
+
+-- 3. 清理环境
+drop database corr_test;
+<<NULL;

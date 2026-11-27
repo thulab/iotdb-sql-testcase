@@ -1,0 +1,282 @@
+
+-- [1]11:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+
+-- [1]28:create table table_add (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]42:create table table_sub (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]54:create table table_mul (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]66:create table table_div (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]77:create table table_negation (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT, 	"timestamp" TIMESTAMP )
+STRICT{
+PASS
+}
+
+-- [1]85:INSERT INTO table_add ( time,device,type,int32,int64,double,float,timestamp,date )  values (1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'), (2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26')
+STRICT{
+0
+}
+Elapsed Time: 0.0.293
+
+-- [1]93:INSERT INTO table_sub ( time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date )  values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31')
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]100:INSERT INTO table_mul ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]107:INSERT INTO table_div ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0), (2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0), (3,'d3','t13',0,-0,-0,0,-0.0,0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]114:INSERT INTO table_negation ( time,device,type,int32,int64,double,float,timestamp) values (1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807), (2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808), (3,'d3','t13',0,-0,-0.0,0.0,0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.4
+
+-- [1]119:select * from table_div order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |type(STRING)      |int32(INT32)      |int32_1(INT32)      |int64(INT64)      |int64_1(INT64)      |double(DOUBLE)      |float(FLOAT)      |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                  |t11               |1                 |2147483647          |922337203685477580|1                   |0.0                 |-0.0              |
+01+08:00             |                    |                  |                  |                    |7                 |                    |                    |                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2                  |t12               |-1                |-2147483648         |-92233720368547758|-1                  |-0.0                |0.0               |
+02+08:00             |                    |                  |                  |                    |08                |                    |                    |                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d3                  |t13               |0                 |0                   |0                 |0                   |-0.0                |0.0               |
+03+08:00             |                    |                  |                  |                    |                  |                    |                    |                  |
+总数目：3
+}
+Elapsed Time: 0.0.4
+
+-- [1]122:select int32_1 / int32 from table_div where time = 2
+STRICT{
+SQLSTATE : 750: int overflow: -2147483648 / -1
+}
+
+-- [1]125:select int32 / int32_1 from table_div where time = 2
+STRICT{
+_col0(INT32)      |
+------------------
+0                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]127:select int64 / int32 from table_div where time=2 order by time
+STRICT{
+SQLSTATE : 750: long overflow: -9223372036854775808 / -1
+}
+
+-- [1]130:select int32 / int64 from table_div where time=2 order by time
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]133:select int64 / int64_1 from table_div where time =2
+STRICT{
+SQLSTATE : 750: long overflow: -9223372036854775808 / -1
+}
+
+-- [1]136:select int64_1 / int64 from table_div where time =2
+STRICT{
+_col0(INT64)      |
+------------------
+0                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]139:select float / int32 from table_div where time=1 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+-0.0              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]141:select float / int32 from table_div where time=3 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+NaN               |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]143:select double / int32 from table_div where time=1 order by time
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+0.0                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]145:select double / int32 from table_div where time=3 order by time
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+NaN                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]147:select float / int64 from table_div where time=1 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+-0.0              |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]149:select float / int64 from table_div where time=3 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+NaN               |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]151:select double / int64 from table_div where time=1 order by time
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+0.0                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]153:select double / int64 from table_div where time=3 order by time
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+NaN                |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]155:select int32 / float from table_div where time=1 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+-Infinity         |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]157:select int32 / float from table_div where time=3 order by time
+STRICT{
+_col0(FLOAT)      |
+------------------
+NaN               |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]159:select int32 / double from table_div where time =1
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+Infinity           |
+总数目：1
+}
+Elapsed Time: 0.0.2
+
+-- [1]161:select int32 / double from table_div where time =3
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+NaN                |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]163:select int64 / float from table_div where time =1
+STRICT{
+_col0(FLOAT)      |
+------------------
+-Infinity         |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]165:select int64 / float from table_div where time =3
+STRICT{
+_col0(FLOAT)      |
+------------------
+NaN               |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]167:select int64 / double from table_div where time =1
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+Infinity           |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]169:select int64 / double from table_div where time =3
+STRICT{
+_col0(DOUBLE)      |
+-------------------
+NaN                |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]172:select int32_1 / int32 from table_div where time=3 order by time
+STRICT{
+SQLSTATE : 751: Division by zero
+}
+
+-- [1]175:select int64 / int32 from table_div where time=3 order by time
+STRICT{
+SQLSTATE : 751: Division by zero
+}
+
+-- [1]178:select int64 / int64_1 from table_div where time =3
+STRICT{
+SQLSTATE : 751: Division by zero
+}

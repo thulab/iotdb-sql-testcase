@@ -1,0 +1,221 @@
+
+-- [1]12:create database capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]13:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]17:create table bid (     stock_id STRING TAG,     price DOUBLE FIELD,     s1 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]23:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+bid                  |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]24:desc bid
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+stock_id              |STRING              |TAG                 |
+--------------------------------------------------------------
+price                 |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]27:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.283
+
+-- [1]28:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]31:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]32:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]37:create user capacity_slide_reader 'Pass@123456789'
+STRICT{
+PASS
+}
+
+-- [1]38:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |MfaType(TEXT)      |MfaLastUpdateTime(TIMESTAMP)      |
+---------------------------------------------------------------------------------------------------------------------------------
+root            |-1                            |1                             |null               |null                              |
+---------------------------------------------------------------------------------------------------------------------------------
+capacity_slide_r|-1                            |-1                            |null               |null                              |
+eader           |                              |                              |                   |                                  |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]39:grant insert, select on capacity_slide_test_db.bid to user capacity_slide_reader
+STRICT{
+PASS
+}
+
+-- [1]40:list privileges of user capacity_slide_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|SELECT                |false                     |
+                |st_db.bid        |                      |                          |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|INSERT                |false                     |
+                |st_db.bid        |                      |                          |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]44:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+capacity_slide_reader    |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]45:list privileges of user capacity_slide_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|SELECT                |false                     |
+                |st_db.bid        |                      |                          |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|INSERT                |false                     |
+                |st_db.bid        |                      |                          |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]46:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]51:select count(*) as capacity_row_count from CAPACITY(     DATA => bid ORDER BY time,     SIZE => 2,     SLIDE => 1 )
+STRICT{
+capacity_row_count(INT64)      |
+-------------------------------
+11                             |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]56:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]57:revoke select on capacity_slide_test_db.bid from user capacity_slide_reader
+STRICT{
+PASS
+}
+
+-- [1]58:list privileges of user capacity_slide_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|INSERT                |false                     |
+                |st_db.bid        |                      |                          |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]62:show current_user
+STRICT{
+CurrentUser(STRING)      |
+-------------------------
+capacity_slide_reader    |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]63:list privileges of user capacity_slide_reader
+STRICT{
+Role(TEXT)      |Scope(TEXT)      |Privileges(TEXT)      |GrantOption(BOOLEAN)      |
+---------------------------------------------------------------------------------
+                |capacity_slide_te|INSERT                |false                     |
+                |st_db.bid        |                      |                          |
+总数目：1
+}
+Elapsed Time: 0.0.1
+
+-- [1]64:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]69:select count(*) as capacity_row_count from CAPACITY(     DATA => bid ORDER BY time,     SIZE => 2,     SLIDE => 1 )
+STRICT{
+SQLSTATE : 803: Access Denied: No permissions for this operation, please add privilege SELECT ON capacity_slide_test_db.bid
+}
+
+-- [1]75:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |MfaType(TEXT)      |MfaLastUpdateTime(TIMESTAMP)      |
+---------------------------------------------------------------------------------------------------------------------------------
+root            |-1                            |1                             |null               |null                              |
+---------------------------------------------------------------------------------------------------------------------------------
+capacity_slide_r|-1                            |-1                            |null               |null                              |
+eader           |                              |                              |                   |                                  |
+总数目：2
+}
+Elapsed Time: 0.0.1
+
+-- [1]76:drop user capacity_slide_reader
+STRICT{
+PASS
+}
+
+-- [1]77:list user
+STRICT{
+User(TEXT)      |MaxSessionPerUser(INT32)      |MinSessionPerUser(INT32)      |MfaType(TEXT)      |MfaLastUpdateTime(TIMESTAMP)      |
+---------------------------------------------------------------------------------------------------------------------------------
+root            |-1                            |1                             |null               |null                              |
+总数目：1
+}
+Elapsed Time: 0.0.0

@@ -1,0 +1,48 @@
+// COVAR_SAMP 数值稳定性：大偏移量和极端数量级数据。
+
+// 1. 连接到测试数据库。
+connect root/TimechoDB@2021;
+
+// 2. 清理测试数据库。
+drop database covar_samp_stability_test;
+<<NULL;
+
+// 3. 创建测试数据库。
+create database covar_samp_stability_test;
+
+// 4. 切换到测试数据库。
+use covar_samp_stability_test;
+
+// 5. 创建测试所需的数据表。
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+// 6. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'large_offset',1000000000001,3000000000010,'bad',1);
+
+// 7. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'large_offset',1000000000002,3000000000013,'bad',1);
+
+// 8. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'large_offset',1000000000003,3000000000016,'bad',1);
+
+// 9. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'large_offset',1000000000004,3000000000019,'bad',1);
+
+// 10. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'large_offset',1000000000005,3000000000022,'bad',1);
+
+// 11. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'extreme',-1e+150,1e+150,'bad',1);
+
+// 12. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'extreme',0,0,'bad',1);
+
+// 13. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'extreme',1e+150,-1e+150,'bad',1);
+
+// 14. 分组计算并检查样本协方差结果。
+select case_id, covar_samp(x,y) from pair_cases where case_id in ('large_offset','extreme') group by case_id order by case_id;
+
+// 15. 清理测试数据库。
+drop database covar_samp_stability_test;
+<<NULL;

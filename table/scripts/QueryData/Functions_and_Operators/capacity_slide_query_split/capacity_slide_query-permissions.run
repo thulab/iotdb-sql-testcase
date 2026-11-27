@@ -1,0 +1,83 @@
+// CAPACITY源表SELECT权限控制查询访问
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop user capacity_slide_reader;
+<<NULL;
+drop database capacity_slide_test_db;
+<<NULL;
+
+-- 1. 创建测试数据库，并准备表和数据
+create database capacity_slide_test_db;
+use capacity_slide_test_db;
+
+create table bid
+(
+    stock_id STRING TAG,
+    price DOUBLE FIELD,
+    s1 DOUBLE FIELD
+);
+
+-- 2. 查看表及其结构
+show tables;
+desc bid;
+
+-- 3. 写入相同的六行基线数据；各分区按晚、早、中时间写入，验证分区内乱序
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0);
+insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0);
+
+
+-- 9. CAPACITY_源表SELECT权限控制查询访问
+-- 9.1 管理员创建用户，授予用户权限
+create user capacity_slide_reader 'Pass@123456789';
+list user;
+grant insert, select on capacity_slide_test_db.bid to user capacity_slide_reader;
+list privileges of user capacity_slide_reader;
+
+-- 9.2 已授权用户可以通过 CAPACITY 读取 bid 表
+connect capacity_slide_reader/Pass@123456789;
+show current_user;
+list privileges of user capacity_slide_reader;
+use capacity_slide_test_db;
+select count(*) as capacity_row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+
+-- 9.3 管理员取消用户SELECT权限
+connect root/TimechoDB@2021;
+use capacity_slide_test_db;
+revoke select on capacity_slide_test_db.bid from user capacity_slide_reader;
+list privileges of user capacity_slide_reader;
+
+--9.4 用户被撤销源表SELECT权限后，相同的 CAPACITY 查询被拒绝
+connect capacity_slide_reader/Pass@123456789;
+show current_user;
+list privileges of user capacity_slide_reader;
+use capacity_slide_test_db;
+select count(*) as capacity_row_count
+from CAPACITY(
+    DATA => bid ORDER BY time,
+    SIZE => 2,
+    SLIDE => 1
+);
+<<SQLSTATE;
+
+-- 切回管理员，并删除临时测试用户
+connect root/TimechoDB@2021;
+list user;
+drop user capacity_slide_reader;
+list user;
+
+
+-- 清理测试数据
+drop database capacity_slide_test_db;
+<<NULL;
+

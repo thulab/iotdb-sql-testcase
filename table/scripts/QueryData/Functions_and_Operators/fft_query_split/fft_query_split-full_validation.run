@@ -1,0 +1,48 @@
+// FFT 全量校验：N 截断后仍检查未参与变换的数据行时间戳
+// 来源：fft_query.run
+
+// 表模型内置表值函数 FFT：对每个分区的实值数值序列执行一维快速傅里叶变换。
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理可能残留的测试对象
+drop database test_fft;
+<<NULL;
+
+-- 2. 准备测试数据库
+create database test_fft;
+use test_fft;
+
+-- 3. 准备 FFT 测试表结构
+
+-- 3.1 创建 FFT-038 测试表：前 N 行合法，后续时间戳重复
+create table invalid_after_n
+(
+    source_id STRING TAG,
+    value DOUBLE FIELD
+);
+
+-- 4. 检查测试表结构
+show tables;
+desc invalid_after_n;
+
+-- 5. 准备测试数据
+
+-- 5.1 准备 FFT-038 数据：前两行合法，第 3、4 行时间戳重复
+insert into invalid_after_n(time, source_id, value) values(0,    's1', 1.0);
+insert into invalid_after_n(time, source_id, value) values(1000, 's1', 2.0);
+insert into invalid_after_n(time, source_id, value) values(2000, 's1', 3.0);
+insert into invalid_after_n(time, source_id, value) values(2000, 's2', 4.0);
+
+-- 6. FFT-038：N=2 不能绕过 N 之后的全量时间升序/唯一性校验
+select *
+from FFT(
+    DATA => invalid_after_n ORDER BY time,
+    SAMPLE_INTERVAL => 1s,
+    N => 2
+);
+<<SQLSTATE;
+
+-- 7. 清理测试数据库
+drop database test_fft;
+<<NULL;

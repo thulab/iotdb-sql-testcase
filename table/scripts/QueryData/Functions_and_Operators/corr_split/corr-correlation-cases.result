@@ -1,0 +1,171 @@
+
+-- [1]10:create database corr_test
+STRICT{
+PASS
+}
+
+-- [1]11:use corr_test
+STRICT{
+PASS
+}
+
+-- [1]12:create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]14:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'positive',1,2,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.342
+
+-- [1]15:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'positive',2,4,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]16:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'positive',3,6,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'positive',4,8,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]18:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'negative',1,8,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.30
+
+-- [1]19:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'negative',2,6,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]20:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'negative',3,4,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]21:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'negative',4,2,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]22:insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'zero',1,1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]23:insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'zero',2,-1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]24:insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'zero',3,-1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]25:insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'zero',4,1,'bad',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]28:select time, x, y from pair_cases where case_id='positive' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |y(DOUBLE)      |
+---------------------------------------------------
+1970-01-01T08:00:00.0|1.0            |2.0            |
+01+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|2.0            |4.0            |
+02+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|3.0            |6.0            |
+03+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|4.0            |8.0            |
+04+08:00             |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]29:select corr(x,y) as corr_result from pair_cases where case_id='positive'
+STRICT{
+corr_result(DOUBLE)      |
+-------------------------
+1.0                      |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]30:select time, x, y from pair_cases where case_id='zero' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |y(DOUBLE)      |
+---------------------------------------------------
+1970-01-01T08:00:00.0|1.0            |1.0            |
+01+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|2.0            |-1.0           |
+02+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|3.0            |-1.0           |
+03+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|4.0            |1.0            |
+04+08:00             |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]31:select corr(x,y) as corr_result from pair_cases where case_id='zero'
+STRICT{
+corr_result(DOUBLE)      |
+-------------------------
+0.0                      |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]32:select time, x, y from pair_cases where case_id='negative' order by time
+STRICT{
+time(TIMESTAMP)      |x(DOUBLE)      |y(DOUBLE)      |
+---------------------------------------------------
+1970-01-01T08:00:00.0|1.0            |8.0            |
+01+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|2.0            |6.0            |
+02+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|3.0            |4.0            |
+03+08:00             |               |               |
+---------------------------------------------------
+1970-01-01T08:00:00.0|4.0            |2.0            |
+04+08:00             |               |               |
+总数目：4
+}
+Elapsed Time: 0.0.3
+
+-- [1]33:select corr(x,y) as corr_result_1 ,corr(y,x) as corr_result_2 from pair_cases where case_id='negative'
+STRICT{
+corr_result_1(DOUBLE)      |corr_result_2(DOUBLE)      |
+------------------------------------------------------
+-1.0                       |-1.0                       |
+总数目：1
+}
+Elapsed Time: 0.0.3

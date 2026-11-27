@@ -1,0 +1,265 @@
+-- REVERSE：字符串及 BLOB 逆序、异常输入及权限校验
+-- 覆盖：正常/边界/空值 3 项；异常输入 3 项；权限 8 项；共 14 项。
+-- 原场景编号：89、90、92、91、93、94、243、244、245、246、247、248、249、250
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- REVERSE：STRING 列逆序处理 (P1)
+-- 来源：binary_functions.run，用例 89
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello', X'01020304');
+SELECT reverse(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- REVERSE：BLOB 列逆序处理 (P1)
+-- 来源：binary_functions.run，用例 90
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+SELECT reverse(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- REVERSE：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 92
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT reverse(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- REVERSE：传入不支持的 INT32 列时报错 (P1)
+-- 来源：binary_functions.run，用例 91
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 123);
+SELECT reverse(col_int32) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- REVERSE：传入 0 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 93
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT reverse() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- REVERSE：传入 2 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 94
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT reverse(col_string, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- REVERSE：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 243
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：授予数据库级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 244
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：授予表级 SELECT 权限后查询 STRING 列 (P1)
+-- 来源：binary_functions.run，用例 245
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P1)
+-- 来源：binary_functions.run，用例 246
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT reverse(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：授予 ANY 范围 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 247
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：授予数据库级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 248
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：授予表级 SELECT 权限后查询 BLOB 列 (P1)
+-- 来源：binary_functions.run，用例 249
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT reverse(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- REVERSE：未授予 SELECT 权限时访问数据库及查询 BLOB 列均报错 (P1)
+-- 来源：binary_functions.run，用例 250
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'01020304');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT reverse(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

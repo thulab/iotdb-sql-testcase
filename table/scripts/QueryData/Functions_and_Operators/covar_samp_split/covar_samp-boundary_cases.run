@@ -1,0 +1,66 @@
+// COVAR_SAMP 边界场景：有效数据对数量不足及变量为常量。
+
+// 1. 连接到测试数据库。
+connect root/TimechoDB@2021;
+
+// 2. 清理测试数据库。
+drop database covar_samp_boundary_test;
+<<NULL;
+
+// 3. 创建测试数据库。
+create database covar_samp_boundary_test;
+
+// 4. 切换到测试数据库。
+use covar_samp_boundary_test;
+
+// 5. 创建测试所需的数据表。
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+// 6. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'empty',null,null,'bad',1);
+
+// 7. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'empty',null,null,'bad',1);
+
+// 8. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'one',2,9,'bad',1);
+
+// 9. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'x_const',10,1,'bad',1);
+
+// 10. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'x_const',10,2,'bad',1);
+
+// 11. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'x_const',10,3,'bad',1);
+
+// 12. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'x_const',10,4,'bad',1);
+
+// 13. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'y_const',1,10,'bad',1);
+
+// 14. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'y_const',2,10,'bad',1);
+
+// 15. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'y_const',3,10,'bad',1);
+
+// 16. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'y_const',4,10,'bad',1);
+
+// 17. 执行查询并检查样本协方差结果。
+select time, case_id, x, y from pair_cases where case_id in ('empty','one') order by time, case_id;
+
+// 18. 分组计算并检查样本协方差结果。
+select case_id, covar_samp(x,y) from pair_cases where case_id in ('empty','one') group by case_id order by case_id;
+
+// 19. 执行查询并检查样本协方差结果。
+select time, case_id, x, y from pair_cases where case_id in ('x_const','y_const') order by time, case_id;
+
+// 20. 分组计算并检查样本协方差结果。
+select case_id, covar_samp(x,y) from pair_cases where case_id in ('x_const','y_const') group by case_id order by case_id;
+
+// 21. 清理测试数据库。
+drop database covar_samp_boundary_test;
+<<NULL;

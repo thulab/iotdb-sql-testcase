@@ -1,0 +1,120 @@
+-- 查询写回 INSERT INTO QUERY：权限组合校验
+-- 来源章节：15.1 至 15.4
+connect root/TimechoDB@2021;
+
+-- 场景：15.1：具备源库读取和目标库写入权限
+-- 1. 初始化数据库、表和源数据
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+-- 2. 创建用户并授予源库读取、目标库写入权限
+create user user01 'Pass@123456789';
+
+grant select on database db1  to user user01;
+grant INSERT on database db2 to user user01;
+
+-- 3. 使用授权用户执行写回
+connect user01/Pass@123456789;
+insert into db2.t1 table db1.t1;
+
+-- 4. 切回管理员并检查目标数据
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 场景：15.2：缺少目标库写入权限
+-- 1. 初始化数据库、表和源数据
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+-- 2. 重建测试用户并配置本场景权限
+drop user user01;
+create user user01 'Pass@123456789';
+
+grant select on database db1  to user user01;
+
+-- 3. 使用受限用户执行写回并检查预期结果
+connect user01/Pass@123456789;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+-- 4. 切回管理员并检查目标数据
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 场景：15.3：缺少源库读取权限
+-- 1. 初始化数据库、表和源数据
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+-- 2. 重建测试用户并配置本场景权限
+drop user user01;
+create user user01 'Pass@123456789';
+
+grant INSERT on database db2 to user user01;
+
+-- 3. 使用受限用户执行写回并检查预期结果
+connect user01/Pass@123456789;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+-- 4. 切回管理员并检查目标数据
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 场景：15.4：同时缺少源库读取和目标库写入权限
+-- 1. 初始化数据库、表和源数据
+drop database if exists db1;
+drop database if exists db2;
+create database db1;
+create database db2;
+
+create table db1.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+create table db2.t1(tag1 STRING TAG, attr1 STRING ATTRIBUTE, text TEXT FIELD, string STRING FIELD, int INT32 FIELD);
+
+insert into db1.t1(time, tag1,attr1, text,string,int) values(1, 'tag1', 'attr1', 'text', 'string',123);
+select * from db1.t1 order by time;
+
+-- 2. 重建测试用户并配置本场景权限
+drop user user01;
+create user user01 'Pass@123456789';
+
+-- 3. 使用受限用户执行写回并检查预期结果
+connect user01/Pass@123456789;
+insert into db2.t1 table db1.t1;
+<<SQLSTATE;
+
+-- 4. 切回管理员并检查目标数据
+connect root/TimechoDB@2021;
+select * from db2.t1 order by time;
+
+-- 清理测试数据库和权限测试用户
+drop database db1;
+<<NULL;
+drop database db2;
+<<NULL;
+drop user user01;
+<<NULL;

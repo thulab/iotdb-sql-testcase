@@ -1,0 +1,174 @@
+
+-- [1]8:create database window_function_test
+STRICT{
+PASS
+}
+
+-- [1]10:use window_function_test
+STRICT{
+PASS
+}
+
+-- [1]12:create table t1 (Device string tag, "没问题1" string tag, " 123!@// " string tag, " abc没问题123!@// " string attribute, Flow int64 field, "没问题2" int32 field, " 098!@// " double field, " abc没问题098!@// " float field, date date field, timestamp timestamp field, string string field)
+STRICT{
+PASS
+}
+
+-- [1]14:insert into t1 values (1970-01-01T08:00:00.000+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3')
+STRICT{
+0
+}
+Elapsed Time: 0.0.338
+
+-- [1]15:insert into t1 values (1970-01-01T08:00:00.001+08:00, 'd0', 'd0', 'd0', 'd0', 5, 5, 5.0, 5.0, '1970-01-01', 5, '5')
+STRICT{
+0
+}
+Elapsed Time: 0.0.3
+
+-- [1]16:insert into t1 values (1970-01-01T08:00:00.002+08:00, 'd0', 'd0', 'd0', 'd0', 3, 3, 3.0, 3.0, '1970-01-01', 3, '3')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]17:insert into t1 values (1970-01-01T08:00:00.003+08:00, 'd0', 'd0', 'd0', 'd0', 1, 1, 1.0, 1.0, '1970-01-01', 1, '1')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]18:insert into t1 values (1970-01-01T08:00:00.004+08:00, 'd0', 'd0', 'd0', 'd0', null, null, null, null, null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]19:insert into t1 values (1970-01-01T08:00:00.005+08:00, 'd1', 'd1', 'd1', 'd1', 2, 2, 2.0, 2.0, '1970-01-01', 2, '2')
+STRICT{
+0
+}
+Elapsed Time: 0.0.14
+
+-- [1]20:insert into t1 values (1970-01-01T08:00:00.006+08:00, 'd1', 'd1', 'd1', 'd1', null, null, null, null, null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]21:insert into t1 values (1970-01-01T08:00:00.007+08:00, 'd1', 'd1', 'd1', 'd1', 4, 4, 4.0, 4.0, '1970-01-01', 4, '4')
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]22:insert into t1 values (1970-01-01T08:00:00.008+08:00,  null, null, null, null, null, null, null, null, null, null, null)
+STRICT{
+0
+}
+Elapsed Time: 0.0.5
+
+-- [1]27:SELECT time, device, flow, sum(flow) OVER(PARTITION BY "no1"  ORDER BY "no2") as sum FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 616: Column 'no1' cannot be resolved
+}
+
+-- [1]29:SELECT time, device, flow, sum(flow) OVER(PARTITION BY ""  ORDER BY "") as sum FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 700: line 1:56: Zero-length delimited identifier not allowed
+}
+
+-- [1]31:SELECT *, count(flow) OVER(PARTITION BY device ROWS 1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame starting from FOLLOWING cannot end with CURRENT ROW
+}
+
+-- [1]33:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ROWS UNBOUNDED FOLLOWING) as count FROM t1
+STRICT{
+SQLSTATE : 701: Window frame start cannot be UNBOUNDED FOLLOWING
+}
+
+-- [1]35:SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND UNBOUNDED PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame end cannot be UNBOUNDED PRECEDING
+}
+
+-- [1]37:SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN CURRENT ROW AND 1 PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame starting from CURRENT ROW cannot end with PRECEDING
+}
+
+-- [1]39:SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1.1 PRECEDING AND 1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame ROWS start value type must be exact numeric type with scale 0 (actual DOUBLE)
+}
+
+-- [1]41:SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND 1.1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame ROWS end value type must be exact numeric type with scale 0 (actual DOUBLE)
+}
+
+-- [1]43:SELECT *, count(flow) OVER(PARTITION BY device ROWS BETWEEN 1 PRECEDING AND 1.1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame ROWS end value type must be exact numeric type with scale 0 (actual DOUBLE)
+}
+
+-- [1]45:SELECT time, device, flow, count(flow) OVER(PARTITION BY device GROUPS 1 PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame of type GROUPS PRECEDING or FOLLOWING requires ORDER BY
+}
+
+-- [1]47:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS 1.1 PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame GROUPS start value type must be exact numeric type with scale 0 (actual DOUBLE)
+}
+
+-- [1]49:SELECT time, device, flow, count(flow) OVER(PARTITION BY device GROUPS 1 PRECEDING AND 1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 700: line 1:84: mismatched input 'AND'. Expecting: ')'
+}
+
+-- [1]51:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow GROUPS 1 PRECEDING AND 1.1 FOLLOWING)FROM t1
+STRICT{
+SQLSTATE : 700: line 1:98: mismatched input 'AND'. Expecting: ')'
+}
+
+-- [1]53:SELECT time, device, flow, count(flow) OVER(PARTITION BY device RANGE BETWEEN 2 PRECEDING AND CURRENT ROW)FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 701: Window frame of type RANGE PRECEDING or FOLLOWING requires ORDER BY
+}
+
+-- [1]55:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY timestamp RANGE string PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame RANGE value type (STRING) not compatible with sort item type (TIMESTAMP)
+}
+
+-- [1]57:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY date RANGE date PRECEDING)FROM t1
+STRICT{
+SQLSTATE : 701: Window frame of type RANGE PRECEDING or FOLLOWING requires that sort item type be numeric, datetime or interval (actual: DATE)
+}
+
+-- [1]59:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ORDER BY flow, device RANGE 2 PRECEDING)FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 701: Window frame of type RANGE PRECEDING or FOLLOWING requires single sort item in ORDER BY (actual: 2)
+}
+
+-- [1]61:SELECT time, device, flow, count(device) OVER(PARTITION BY device ORDER BY device RANGE BETWEEN CURRENT ROW AND 1 FOLLOWING)FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 701: Window frame of type RANGE PRECEDING or FOLLOWING requires that sort item type be numeric, datetime or interval (actual: STRING)
+}
+
+-- [1]63:SELECT time, device, flow, count(device) OVER(ORDER BY device ROWS device PRECEDING)FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 701: Window frame ROWS start value type must be exact numeric type with scale 0 (actual STRING)
+}
+
+-- [1]65:SELECT time, device, flow, count(flow) OVER(PARTITION BY device ROWS BETWEEN -1 PRECEDING AND -1 FOLLOWING)FROM t1 ORDER BY time
+STRICT{
+SQLSTATE : 701: Window frame offset value must not be negative or null
+}
+
+-- [1]69:drop database window_function_test
+STRICT{
+PASS
+}

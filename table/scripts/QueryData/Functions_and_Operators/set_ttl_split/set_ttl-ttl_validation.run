@@ -1,0 +1,25 @@
+// 表 TTL：验证非法 TTL 数值被拒绝
+connect root/TimechoDB@2021;
+
+-- 0. 清理测试环境
+drop database set_ttl_validation_db;
+<<NULL;
+
+-- 1. 创建测试数据库、切换数据库并创建测试表
+create database set_ttl_validation_db;
+use set_ttl_validation_db;
+create table table_1(device_id STRING TAG, value INT32 FIELD);
+
+-- 2. 验证小数、负数和超出 INT64 范围的 TTL 值均被拒绝
+alter table table_1 set properties ttl=0.001;
+<<SQLSTATE;
+alter table table_1 set properties ttl=0.000001;
+<<SQLSTATE;
+alter table table_1 set properties ttl=-1000;
+<<SQLSTATE;
+alter table table_1 set properties ttl=9223372036854775808;
+<<SQLSTATE;
+
+-- 3. 清理测试数据库
+drop database set_ttl_validation_db;
+<<NULL;

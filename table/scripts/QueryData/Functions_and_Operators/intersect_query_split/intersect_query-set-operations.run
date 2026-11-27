@@ -1,0 +1,42 @@
+// INTERSECT：UNION、EXCEPT 组合运算与优先级
+connect root/TimechoDB@2021;
+--1. 清理同名测试数据库
+drop database test_db;
+<<NULL;
+--2. 创建测试数据库、表结构并准备测试数据
+create database test_db;
+use test_db;
+create table t1(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE);
+create table t2(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE);
+create table t3(device_id tag,int32_1 INT32,int64_1 INT64,double_1 DOUBLE,float_1 FLOAT,boolean_1 BOOLEAN,text_1 TEXT,string_1 STRING,blob_1 BLOB,object_1 OBJECT,timestamp_1 TIMESTAMP,date_1 DATE);
+insert into t1(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,100.0,200.0,false,'test1','test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-08'),(2,'d1',100,200,200.0,200.0,false,'test1','test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-08'),(3,'d2',200,200,300.0,300.0,false,NULL,'test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-09'),(4,'d2',200,200,300.0,300.0,true,'test2','test1',X'426C6F62',to_object(false,0,X'7464'),1704067200000,'2026-04-10'),(5,'d3',300,300,400.0,300.0,true,NULL,NULL,X'426C6F62',to_object(false,0,X'62'),1704067200000,'2026-04-10'),(6,'d4',NULL,400,400.0,300.0,true,'test3','stest3',X'576F726C64',to_object(false,0,X'62'),1718409600000,'2026-04-11');
+insert into t2(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,100.0,100.0,true,'test1','test1',X'426C6F62',to_object(false,0,X'696F'),200,'2026-04-09'),(2,'d2',200,100,100.0,200.0,false,'test1','test1',X'426C6F62',to_object(false,0,X'696F'),200,'2026-04-09'),(3,'d2',200,200,300.0,300.0,false,NULL,'test1',X'48454C4C4F',to_object(false,0,X'7464'),1704067200000,'2026-04-09'),(4,'d2',200,200,200.0,300.0,false,'test2','test2',X'426C6F62',to_object(false,0,X'7464'),1718409600000,'2026-04-10'),(5,'d5',500,300,300.0,400.0,true,NULL,NULL,X'426C6F62',to_object(false,0,X'62'),1718409600000,'2026-04-11'),(6,'d4',NULL,300,400.0,500.0,true,'test3','test4',X'576F726C64',to_object(false,0,X'62'),1718409600000,'2026-04-11');
+insert into t3(time,device_id,int32_1,int64_1,double_1,float_1,boolean_1,text_1,string_1,blob_1,object_1,timestamp_1,date_1) values (1,'d1',100,100,200.0,300.0,true,'test1','test1',X'48454C4C4F',to_object(false,0,X'62'),1704067200000,'2026-04-08'),(2,'d2',200,200,200.0,300.0,false,'test1','test1',X'426C6F62',to_object(false,0,X'7464'),1708409620000,'2026-04-09'),(3,'d3',600,200,300.0,400.0,true,'test2','test2',X'576F726C64',to_object(false,0,X'7464'),1708409620000,'2026-04-10');
+--3. UNION与INTERSECT混合运算
+select device_id,int32_1,text_1 from t1 union select device_id,int32_1,text_1 from t2 intersect select device_id,int32_1,text_1 from t3 order by 1,2,3;
+--4. 多个UNION与INTERSECT连续组合
+select device_id from t1 union select device_id from t2 intersect select device_id from t3 union select device_id from t1 where int32_1=200 order by device_id;
+--5. EXCEPT与INTERSECT组合：验证默认优先级
+select device_id from t1 except select device_id from t2 intersect select device_id from t3 order by device_id;
+--6. INTERSECT与EXCEPT组合：验证运算顺序
+select device_id from t1 intersect select device_id from t2 except select device_id from t3 order by device_id;
+--7. UNION、INTERSECT与EXCEPT混合运算
+select device_id from t1 union select device_id from t2 intersect select device_id from t3 except select device_id from t1 where device_id='d1' order by device_id;
+--8. 使用括号改变EXCEPT与INTERSECT的运算顺序
+(select device_id from t1 except select device_id from t2) intersect select device_id from t3 order by device_id;
+--9. 使用括号分组UNION后再执行INTERSECT
+(select device_id,int32_1,text_1 from t1 union select device_id,int32_1,text_1 from t2) intersect select device_id,int32_1,text_1 from t3 order by 1,2,3;
+--10. 多层括号组合集合运算
+((select device_id from t1 intersect select device_id from t2) union (select device_id from t3 intersect select device_id from t1)) intersect select device_id from t2 order by device_id;
+--11. 验证INTERSECT默认优先级高于UNION
+select device_id from t1 union select device_id from t2 intersect select device_id from t3 order by device_id;
+--12. 使用括号明确INTERSECT先于UNION
+select device_id from t1 union (select device_id from t2 intersect select device_id from t3) order by device_id;
+--13. 验证INTERSECT默认优先级高于EXCEPT
+select device_id from t1 except select device_id from t2 intersect select device_id from t3 order by device_id;
+--14. 使用括号明确INTERSECT先于EXCEPT
+select device_id from t1 except (select device_id from t2 intersect select device_id from t3) order by device_id;
+--15. 清理测试数据库
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

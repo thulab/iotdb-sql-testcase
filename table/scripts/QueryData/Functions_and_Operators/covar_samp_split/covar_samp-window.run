@@ -1,0 +1,51 @@
+// COVAR_SAMP 时间窗口：3ms 窗口分别覆盖空数据、单值和多值状态。
+
+// 1. 连接到测试数据库。
+connect root/TimechoDB@2021;
+
+// 2. 清理测试数据库。
+drop database covar_samp_window_test;
+<<NULL;
+
+// 3. 创建测试数据库。
+create database covar_samp_window_test;
+
+// 4. 切换到测试数据库。
+use covar_samp_window_test;
+
+// 5. 创建测试所需的数据表。
+create table pair_cases (case_id STRING TAG, x DOUBLE FIELD, y DOUBLE FIELD, txt TEXT FIELD, marker INT32 FIELD);
+
+// 6. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(0,'window',null,null,'bad',1);
+
+// 7. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(1,'window',null,null,'bad',1);
+
+// 8. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(2,'window',null,null,'bad',1);
+
+// 9. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(3,'window',1,7,'bad',1);
+
+// 10. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(4,'window',null,null,'bad',1);
+
+// 11. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(5,'window',null,null,'bad',1);
+
+// 12. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(6,'window',1,7,'bad',1);
+
+// 13. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(7,'window',2,9,'bad',1);
+
+// 14. 插入测试数据。
+insert into pair_cases(time,case_id,x,y,txt,marker) values(8,'window',3,11,'bad',1);
+
+// 15. 按 3ms 时间窗口计算样本协方差。
+select date_bin(3ms,time) as win, covar_samp(x,y) from pair_cases where case_id='window' group by 1 order by 1;
+
+// 16. 清理测试数据库。
+drop database covar_samp_window_test;
+<<NULL;

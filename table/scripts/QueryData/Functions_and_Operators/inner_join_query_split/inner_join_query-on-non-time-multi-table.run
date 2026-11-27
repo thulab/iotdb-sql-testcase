@@ -1,0 +1,50 @@
+connect root/TimechoDB@2021;
+-- 1 清理可能残留的测试数据库
+drop database test_db;
+<<NULL;
+-- 2 创建测试数据库
+create database test_db;
+-- 3 选择测试数据库
+use test_db;
+-- 4 创建学生、教师、课程和成绩表
+create table students (region STRING TAG, student_id INT32 FIELD, name STRING FIELD, genders text FIELD, date_of_birth DATE FIELD);
+create table teachers (region STRING TAG, teacher_id INT32 FIELD, course_id INT32 FIELD, age INT32 FIELD);
+create table courses (course_region STRING TAG, course_id INT32 FIELD, course_name STRING FIELD, teacher_id INT32 FIELD);
+create table grades (grade_id STRING TAG, course_id INT32 FIELD, student_id INT32 FIELD, score INT32 FIELD);
+-- 5 写入学生数据
+insert into students(time,region,student_id,name,genders,date_of_birth) values
+(1,'haidian',1,'Lucy','女','2015-10-10'),(2,'haidian',2,'Jack','男','2015-09-24'),(3,'chaoyang',3,'Sam','男','2014-07-20'),(4,'chaoyang',4,'Lily','女','2015-03-28'),(5,'xicheng',5,'Helen','女','2016-01-22'),(6,'changping',6,'Nancy','女','2017-12-20'),(7,'changping',7,'Mike','男','2016-11-22'),(8,'shunyi',8,'Bob','男','2016-05-12');
+-- 6 写入教师数据
+insert into teachers(time,region,teacher_id,course_id,age) values
+(1,'haidian',1001,10000001,25),(2,'haidian',1002,10000002,26),(3,'chaoyang',1003,10000003,28),(4,'chaoyang',1004,10000004,27),(5,'xicheng',1005,10000005,26);
+-- 7 写入课程数据
+insert into courses(time,course_region,course_id,course_name,teacher_id) values
+(1,'Math',10000001,'数学',1001),(2,'CHIN',10000002,'语文',1002),(3,'ENG',10000003,'英语',1003),(4,'PE',10000004,'体育',1004),(5,'HIST',10000005,'历史',1005);
+-- 8 写入成绩数据
+insert into grades(time,grade_id,course_id,student_id,score) values
+(1,1111,10000001,1,99),(2,1112,10000002,2,90),(3,1113,10000003,3,85),(4,1114,10000004,4,89),(5,1115,10000005,5,98),(6,1113,10000003,6,55),(7,1114,10000004,7,60),(8,1115,10000005,8,100),(9,1114,10000001,2,99),(10,1115,10000002,1,95);
+-- 9 检查各表数据，按 time 升序展示
+select * from students order by time;
+select * from teachers order by time;
+select * from courses order by time;
+select * from grades order by time;
+
+-- 10 ON 非 time 列多表等值连接
+
+-- 查询场景：学生、成绩和课程按 student_id、course_id 连接并按学生编号排序
+select  
+    s.name as student_name,
+    c.course_name,
+    g.score
+from 
+    students s
+INNER JOIN 
+    grades g on s.student_id = g.student_id
+INNER JOIN 
+    courses c on g.course_id = c.course_id
+ORDER BY 
+    s.student_id;
+
+-- 11 清理测试数据库
+drop database test_db;
+<<NULL;

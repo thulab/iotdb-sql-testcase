@@ -1,0 +1,53 @@
+// COUNT_IF 聚合函数：DATE 空值与日期比较
+// 条件输入类型：BOOLEAN；返回类型：INT64
+
+connect root/TimechoDB@2021;
+
+--0.清理环境
+drop database test_db;
+<<NULL;
+
+--1. 创建数据库、表
+create database test_db;
+show databases;
+use test_db;
+
+create table t1(
+id TAG,
+region attribute,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+boolean BOOLEAN,
+text TEXT,
+string STRING,
+date DATE,
+timestamp TIMESTAMP,
+blob BLOB
+);
+show tables;
+desc t1;
+
+--2. 插入表数据
+insert into t1 values(1,'d1','Beijing',1,1,1.1,1.1,false,'text1','string1','2020-01-10',1577836800000,'89504E470');
+insert into t1 values(2,null,'Beijing',1,null,2.2,2.2,false,'text1','string2','2020-01-10',null,'89504E470');
+insert into t1 values(3,'d2',null,null,3,null,3.3,true,null,'string2','2020-02-10',1581292800000,null);
+insert into t1 values(4,'d1','Beijing',4,3,4.4,null,true,'text4',null,'2020-11-10',null,'89504E470');
+insert into t1 values(5,null,'shanghai',5,5,5.5,5.5,null,'text1','string3',null,1581292800000,null);
+insert into t1 values(6,'d2','shanghai',6,6,5.5,6.6,true,'text6','string2','2022-01-10',1633046400000,'89504E470');
+insert into t1 values(7,'d1','Beijing',777,0,155.5,555.5,false,'text6','string3','2022-11-11',1635552000000,'89504E470');
+insert into t1 values(8,'d2','shanghai',8888,100,55.5,0.1,true,'text5','string1','2023-11-10',1635724800000,'89504E470');
+
+--3. 查询数据
+select * from t1 order by time;
+
+--4. COUNT_IF 场景查询
+select count_if(date is not null) as count_if_result from t1;
+select date, count_if(date is not null) as count_if_result from t1 group by date order by date;
+select date, count_if(date is null) as count_if_result from t1 group by date order by date;
+select count_if(date != cast('2023-11-10' as DATE)) as count_if_result from t1;
+
+-- 清理环境
+drop database test_db;
+<<NULL;

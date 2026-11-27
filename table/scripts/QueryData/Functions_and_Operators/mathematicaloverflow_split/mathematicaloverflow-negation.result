@@ -1,0 +1,208 @@
+
+-- [1]11:create database test_db
+STRICT{
+PASS
+}
+
+-- [1]14:use test_db
+STRICT{
+PASS
+}
+
+-- [1]28:create table table_add (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]42:create table table_sub (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT,     "timestamp" TIMESTAMP,     "date" DATE )
+STRICT{
+PASS
+}
+
+-- [1]54:create table table_mul (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]66:create table table_div (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32, 	"int32_1" INT32,     "int64" INT64, 	"int64_1" INT64,     "double" DOUBLE,     "float" FLOAT )
+STRICT{
+PASS
+}
+
+-- [1]77:create table table_negation (     "device" STRING TAG,     "type" STRING ATTRIBUTE,     "int32" INT32,     "int64" INT64,     "double" DOUBLE,     "float" FLOAT, 	"timestamp" TIMESTAMP )
+STRICT{
+PASS
+}
+
+-- [1]85:INSERT INTO table_add ( time,device,type,int32,int64,double,float,timestamp,date )  values (1,'d1','t11',2147483647,9223372036854775807,1797693134862315700,3402823470000000000,9223372036854775807,'9999-12-31'), (2,'d2','t12',-2147483648,-9223372036854775808,-1797693134862315700,1175494350000000000,-9223372036854775808,'1000-01-26')
+STRICT{
+0
+}
+Elapsed Time: 0.0.328
+
+-- [1]93:INSERT INTO table_sub ( time,device,type,int32,int32_1,int64,int64_1,double,float,timestamp,date )  values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000,-9223372036854775808,'1000-01-01'), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000,9223372036854775807,'9999-12-31')
+STRICT{
+0
+}
+Elapsed Time: 0.0.10
+
+-- [1]100:INSERT INTO table_mul ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',2147483647,-2147483648,9223372036854775807,-9223372036854775808,1797693134862315700,3402823470000000000), (2,'d2','t12',-2147483648,2147483647,-9223372036854775808,9223372036854775807,-1797693134862315700,1175494350000000000)
+STRICT{
+0
+}
+Elapsed Time: 0.0.28
+
+-- [1]107:INSERT INTO table_div ( time,device,type,int32,int32_1,int64,int64_1,double,float) values (1,'d1','t11',1,2147483647,9223372036854775807,1,0.0,-0.0), (2,'d2','t12',-1,-2147483648,-9223372036854775808,-1,-0.0,0.0), (3,'d3','t13',0,-0,-0,0,-0.0,0.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]114:INSERT INTO table_negation ( time,device,type,int32,int64,double,float,timestamp) values (1,'d1','t11',2147483647,9223372036854775807,1.7976931348623157E+308,3.4028235E+38,9223372036854775807), (2,'d2','t12',-2147483648,-9223372036854775808,-4.9406564584124654E-324,-1.401298464324817E-45,-9223372036854775808), (3,'d3','t13',0,-0,-0.0,0.0,0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.22
+
+-- [1]119:select * from table_negation order by time
+STRICT{
+time(TIMESTAMP)      |device(STRING)      |type(STRING)      |int32(INT32)      |int64(INT64)      |double(DOUBLE)      |float(FLOAT)      |timestamp(TIMESTAMP)      |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d1                  |t11               |2147483647        |922337203685477580|1.7976931348623157E3|3.4028235E38      |+292278994-08-17T15:12:55.|
+01+08:00             |                    |                  |                  |7                 |08                  |                  |807+08:00                 |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d2                  |t12               |-2147483648       |-92233720368547758|-4.9E-324           |-1.4E-45          |-292275055-05-17T00:52:47+|
+02+08:00             |                    |                  |                  |08                |                    |                  |08.192:05:43              |
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1970-01-01T08:00:00.0|d3                  |t13               |0                 |0                 |-0.0                |0.0               |1970-01-01T08:00:00.000+08|
+03+08:00             |                    |                  |                  |                  |                    |                  |:00                       |
+总数目：3
+}
+Elapsed Time: 0.0.9
+
+-- [1]122:select int32, -int32 as nega_result from table_negation where time =1
+STRICT{
+int32(INT32)      |nega_result(INT32)      |
+------------------------------------------
+2147483647        |-2147483647             |
+总数目：1
+}
+Elapsed Time: 0.0.4
+
+-- [1]124:select -int32 from table_negation where time =2
+STRICT{
+SQLSTATE : 750: The -2147483648 is out of range of int.
+}
+
+-- [1]127:select int32, -int32 as nega_result from table_negation where time =3
+STRICT{
+int32(INT32)      |nega_result(INT32)      |
+------------------------------------------
+0                 |0                       |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]130:select int64, -int64 as nega_result from table_negation where time =1
+STRICT{
+int64(INT64)      |nega_result(INT64)      |
+------------------------------------------
+922337203685477580|-9223372036854775807    |
+7                 |                        |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]132:select -int64 from table_negation where time =2
+STRICT{
+SQLSTATE : 750: The -9223372036854775808 is out of range of long.
+}
+
+-- [1]135:select int64, -int64 as nega_result from table_negation where time =3
+STRICT{
+int64(INT64)      |nega_result(INT64)      |
+------------------------------------------
+0                 |0                       |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]138:select double, -double as nega_result from table_negation where time =1
+STRICT{
+double(DOUBLE)      |nega_result(DOUBLE)      |
+---------------------------------------------
+1.7976931348623157E3|-1.7976931348623157E308  |
+08                  |                         |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]140:select double, -double as nega_result from table_negation where time =2
+STRICT{
+double(DOUBLE)      |nega_result(DOUBLE)      |
+---------------------------------------------
+-4.9E-324           |4.9E-324                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]142:select double, -double as nega_result from table_negation where time =3
+STRICT{
+double(DOUBLE)      |nega_result(DOUBLE)      |
+---------------------------------------------
+-0.0                |0.0                      |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]145:select float, -float as nega_result from table_negation where time =1
+STRICT{
+float(FLOAT)      |nega_result(FLOAT)      |
+------------------------------------------
+3.4028235E38      |-3.4028235E38           |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]147:select float, -float as nega_result from table_negation where time =2
+STRICT{
+float(FLOAT)      |nega_result(FLOAT)      |
+------------------------------------------
+-1.4E-45          |1.4E-45                 |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]149:select float, -float as nega_result from table_negation where time =3
+STRICT{
+float(FLOAT)      |nega_result(FLOAT)      |
+------------------------------------------
+0.0               |-0.0                    |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]152:select timestamp, -timestamp as nega_result from table_negation where time =1
+STRICT{
+timestamp(TIMESTAMP)      |nega_result(TIMESTAMP)      |
+------------------------------------------------------
++292278994-08-17T15:12:55.|-292275055-05-17T00:52:47+08|
+807+08:00                 |.193:05:43                  |
+总数目：1
+}
+Elapsed Time: 0.0.3
+
+-- [1]154:select -timestamp from table_negation where time =2
+STRICT{
+SQLSTATE : 750: The -9223372036854775808 is out of range of long.
+}
+
+-- [1]157:select timestamp, -timestamp as nega_result from table_negation where time =3
+STRICT{
+timestamp(TIMESTAMP)      |nega_result(TIMESTAMP)      |
+------------------------------------------------------
+1970-01-01T08:00:00.000+08|1970-01-01T08:00:00.000+08:0|
+:00                       |0                           |
+总数目：1
+}
+Elapsed Time: 0.0.3

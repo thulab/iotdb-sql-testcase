@@ -1,0 +1,162 @@
+
+-- [1]12:create database capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]13:use capacity_slide_test_db
+STRICT{
+PASS
+}
+
+-- [1]17:create table bid (     stock_id STRING TAG,     price DOUBLE FIELD,     s1 DOUBLE FIELD )
+STRICT{
+PASS
+}
+
+-- [1]23:show tables
+STRICT{
+TableName(TEXT)      |TTL(ms)(TEXT)      |
+----------------------------------------
+bid                  |INF                |
+总数目：1
+}
+Elapsed Time: 0.0.0
+
+-- [1]24:desc bid
+STRICT{
+ColumnName(TEXT)      |DataType(TEXT)      |Category(TEXT)      |
+--------------------------------------------------------------
+time                  |TIMESTAMP           |TIME                |
+--------------------------------------------------------------
+stock_id              |STRING              |TAG                 |
+--------------------------------------------------------------
+price                 |DOUBLE              |FIELD               |
+--------------------------------------------------------------
+s1                    |DOUBLE              |FIELD               |
+总数目：4
+}
+Elapsed Time: 0.0.0
+
+-- [1]27:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:09:00, 'AAPL', 102.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.255
+
+-- [1]28:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:05:00, 'AAPL', 100.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.2
+
+-- [1]29:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'AAPL', 103.0, 101.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.0
+
+-- [1]30:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:15:00, 'TESL', 195.0, 332.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.12
+
+-- [1]31:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:06:00, 'TESL', 200.0, 102.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]32:insert into bid(time, stock_id, price, s1) values(2021-01-01T09:07:00, 'TESL', 202.0, 202.0)
+STRICT{
+0
+}
+Elapsed Time: 0.0.1
+
+-- [1]38:select * from CAPACITY(DATA => bid ORDER BY time, SLIDE => 1)
+STRICT{
+SQLSTATE : 701: Missing required argument: SIZE
+}
+
+-- [1]43:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 0)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument SIZE, should be a positive value
+}
+
+-- [1]47:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => -1)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument SIZE, should be a positive value
+}
+
+-- [1]52:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => 0)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument SLIDE, should be a positive value
+}
+
+-- [1]56:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => -1)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument SLIDE, should be a positive value
+}
+
+-- [1]60:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2.5, SLIDE => 1)
+STRICT{
+SQLSTATE : 701: Invalid scalar argument 'SIZE'. Expected type INT64, got Double
+}
+
+-- [1]62:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, SLIDE => '1')
+STRICT{
+SQLSTATE : 701: Invalid scalar argument 'SLIDE'. Expected type INT64, got Binary
+}
+
+-- [1]70:select * from CAPACITY(     DATA => bid ORDER BY time,     SIZE => 2,     SLIDE => NULL )
+STRICT{
+SQLSTATE : 701: The parameter SLIDE cannot be actively filled with null.
+}
+
+-- [1]78:select * from CAPACITY(     DATA => bid PARTITION BY stock_id,     SIZE => 2,     SLIDE => 1 ) order by stock_id, window_index, time
+STRICT{
+window_index(INT64)      |time(TIMESTAMP)      |stock_id(STRING)      |price(DOUBLE)      |s1(DOUBLE)      |
+-------------------------------------------------------------------------------------------------------
+0                        |2021-01-01T09:05:00.0|AAPL                  |100.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+0                        |2021-01-01T09:07:00.0|AAPL                  |103.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+1                        |2021-01-01T09:07:00.0|AAPL                  |103.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+1                        |2021-01-01T09:09:00.0|AAPL                  |102.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+2                        |2021-01-01T09:09:00.0|AAPL                  |102.0              |101.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+0                        |2021-01-01T09:06:00.0|TESL                  |200.0              |102.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+0                        |2021-01-01T09:07:00.0|TESL                  |202.0              |202.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+1                        |2021-01-01T09:07:00.0|TESL                  |202.0              |202.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+1                        |2021-01-01T09:15:00.0|TESL                  |195.0              |332.0           |
+                         |00+08:00             |                      |                   |                |
+-------------------------------------------------------------------------------------------------------
+2                        |2021-01-01T09:15:00.0|TESL                  |195.0              |332.0           |
+                         |00+08:00             |                      |                   |                |
+总数目：10
+}
+Elapsed Time: 0.0.5
+
+-- [1]82:select * from CAPACITY(DATA => bid ORDER BY time, SIZE => 2, STEPS => 1)
+STRICT{
+SQLSTATE : 701: Unexpected argument name: STEPS
+}
+
+-- [1]86:select * from CAPACITY(DATA => not_exists ORDER BY time, SIZE => 2, SLIDE => 1)
+STRICT{
+SQLSTATE : 550: Table 'capacity_slide_test_db.not_exists' does not exist.
+}

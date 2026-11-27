@@ -1,0 +1,78 @@
+// DISTINCT 与 GROUP BY：验证两种去重查询的结果等价。
+
+
+connect root/TimechoDB@2021;
+
+-- 0. 清理数据
+drop database test_db;
+<<NULl;
+
+-- 1. 创建数据库
+create database test_db;
+
+-- 2. 指定使用数据库
+use test_db;
+
+-- 3. 创建表
+create table t1(
+ID TAG,
+int32 INT32,
+int64 INT64,
+float FLOAT,
+double DOUBLE,
+text TEXT,
+boolean BOOLEAN,
+string STRING,
+blob BLOB,
+timestamp TIMESTAMP,
+date DATE);
+
+-- 4. 查看表
+show tables;
+
+-- 5. 列出表信息
+desc t1;
+
+-- 6. 插入数据
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(1,'D001',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(2,'D002',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(3,'D003',2,10,1.1,22.2,'RC2',false,'cat',X'49460001',1583053776000,'2020-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(4,'D004',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(5,'D005',2,20,2.2,22.2,'RC2',true,'cat',X'00010000',1614589776000,'2021-03-01');
+
+insert into t1(
+time,ID,int32,int64,float,double,text,boolean,string,blob,timestamp,date) values
+(6,'D006',1,10,1.1,11.1,'RC1',false,'dog',X'49460001',1583053776000,'2020-03-01');
+
+-- 7. 测试查询与预期
+-- 每个数据类型分别执行 GROUP BY，验证其结果具有 DISTINCT 的去重语义；本文件单独执行 GROUP BY 查询。
+select time from t1 group by time order by time;
+select id from t1 group by id order by id;
+select int32 from t1 group by int32 order by int32;
+select int64 from t1 group by int64 order by int64;
+select float from t1 group by float order by float;
+select double from t1 group by double order by double;
+select text from t1 group by text order by text;
+select boolean from t1 group by boolean order by boolean;
+select string from t1 group by string order by string;
+select blob from t1 group by blob order by blob;
+select timestamp from t1 group by timestamp order by timestamp;
+select date from t1 group by date order by date;
+
+-- 8. 清理测试数据库
+drop database test_db;
+<<NULL;

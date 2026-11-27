@@ -1,0 +1,28 @@
+-- if_built-in_function：FLOAT 零值边界
+-- 目的：验证 IF 对 FLOAT 零值的判断与返回。
+
+-- 1. 连接管理员账号
+connect root/TimechoDB@2021;
+
+-- 2. 清理上次运行遗留的 test 数据库
+drop database test;
+<<NULL;
+
+-- 3. 创建 test 测试数据库
+create database test;
+-- 4. 切换到 test 数据库
+use test;
+
+-- 5. 创建本用例所需的测试表
+CREATE TABLE test.if_test(ts TIMESTAMP, col_float FLOAT);
+-- 6. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_float) VALUES (now(), 0.0);
+-- 7. 插入一条测试数据
+INSERT INTO test.if_test(ts, col_float) VALUES (now()+1s, 1.5);
+
+-- 8. 执行本用例的 IF 验证查询
+SELECT if(col_float = 0.0, 'zero', 'non-zero') FROM test.if_test;
+
+-- 9. 删除本用例创建的 test 数据库
+drop database test;
+<<NULL;

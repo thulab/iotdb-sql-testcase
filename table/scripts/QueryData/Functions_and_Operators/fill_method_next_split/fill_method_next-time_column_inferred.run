@@ -1,0 +1,42 @@
+// TIME_COLUMN默认推断
+// 功能：FILL METHOD NEXT 后值填充验证
+// 来源：fill_method_next.run
+// 环境：仅在专用测试实例执行；每个文件独立清理并准备所需数据。
+
+connect root/TimechoDB@2021;
+
+--0. 清理同名测试数据库
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库
+create database test_db;
+use test_db;
+
+--2. 创建本用例所需表和字段
+create table t_ts(
+  device_id STRING TAG,
+  event_time TIMESTAMP FIELD,
+  ingest_time TIMESTAMP FIELD,
+  temperature FLOAT FIELD
+);
+
+--3. 插入测试数据
+insert into t_ts(time, device_id, event_time, ingest_time, temperature) values
+(1, 'd1', 1000, 1050, null);
+insert into t_ts(time, device_id, event_time, ingest_time, temperature) values
+(2, 'd1', 1060, 1070, 25.5);
+insert into t_ts(time, device_id, event_time, ingest_time, temperature) values
+(3, 'd1', 1120, 1125, 26.1);
+
+--4. 验证：TIME_COLUMN默认推断
+select event_time, ingest_time, temperature 
+from t_ts 
+where device_id='d1' 
+FILL METHOD NEXT TIME_BOUND 100ms
+ORDER BY time;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

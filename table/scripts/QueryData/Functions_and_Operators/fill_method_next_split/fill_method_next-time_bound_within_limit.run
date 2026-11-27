@@ -1,0 +1,61 @@
+// TIME_BOUND阈值内允许填充
+// 功能：FILL METHOD NEXT 后值填充验证
+// 来源：fill_method_next.run
+// 环境：仅在专用测试实例执行；每个文件独立清理并准备所需数据。
+
+connect root/TimechoDB@2021;
+
+--0. 清理同名测试数据库
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库
+create database test_db;
+use test_db;
+
+--2. 创建本用例所需表和字段
+create table t1(
+  device_id STRING TAG,
+  s7 FLOAT FIELD
+);
+
+--3. 插入测试数据
+insert into t1(time, device_id, s7) values
+(1000, 'd1', 1.10);
+insert into t1(time, device_id, s7) values
+(1060, 'd1', null);
+insert into t1(time, device_id, s7) values
+(1120, 'd1', 1.25);
+insert into t1(time, device_id, s7) values
+(1180, 'd1', null);
+insert into t1(time, device_id, s7) values
+(1000, 'base', 21.93),
+(1060, 'base', null),
+(1120, 'base', 22.23),
+(1180, 'base', 23.43);
+insert into t1(time, device_id, s7) values
+(1000, 'chain', null),
+(1060, 'chain', null),
+(1120, 'chain', 23.43);
+insert into t1(time, device_id, s7) values
+(1000, 'multi', null),
+(1060, 'multi', 22.23),
+(1120, 'multi', null);
+insert into t1(time, device_id, s7) values
+(1000, 'full', 21.93),
+(1060, 'full', 22.23);
+insert into t1(time, device_id, s7) values
+(1000, 'bound_ok', null),
+(1020, 'bound_ok', 22.88);
+
+--4. 验证：TIME_BOUND阈值内允许填充
+select time, s7 AS temperature 
+from t1 
+where device_id='bound_ok' 
+FILL METHOD NEXT TIME_BOUND 30ms 
+order by time;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;

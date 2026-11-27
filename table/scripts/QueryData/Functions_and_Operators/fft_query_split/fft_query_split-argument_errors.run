@@ -1,0 +1,100 @@
+// FFT 参数错误：非法排序、采样间隔、N 和 NORM 均应返回 SQL 错误
+// 来源：fft_query.run
+
+// 表模型内置表值函数 FFT：对每个分区的实值数值序列执行一维快速傅里叶变换。
+
+connect root/TimechoDB@2021;
+
+-- 1. 清理可能残留的测试对象
+drop database test_fft;
+<<NULL;
+
+-- 2. 准备测试数据库
+create database test_fft;
+use test_fft;
+
+-- 3. 准备 FFT 测试表结构
+create table signal
+(
+    device_id STRING TAG,
+    temperature DOUBLE FIELD,
+    speed INT32 FIELD,
+    note STRING FIELD
+);
+
+create table impulse
+(
+    value DOUBLE FIELD
+);
+
+-- 4. 检查测试表结构
+show tables;
+desc signal;
+desc impulse;
+
+-- 5. 准备测试数据
+insert into signal(time, device_id, temperature, speed, note) values(0,    'd1', 1.0, 1, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(1000, 'd1', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(2000, 'd1', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(3000, 'd1', 0.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(4000, 'd2', 2.0, 4, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(5000, 'd2', 0.0, 3, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(6000, 'd2', 0.0, 2, 'ok');
+insert into signal(time, device_id, temperature, speed, note) values(7000, 'd2', 0.0, 1, 'ok');
+
+insert into impulse(time, value) values(0, 1.0);
+insert into impulse(time, value) values(1000, 0.0);
+insert into impulse(time, value) values(2000, 0.0);
+insert into impulse(time, value) values(3000, 0.0);
+
+-- 6. DATA 缺少 ORDER BY
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 7. ORDER BY 列与 TIMECOL 不一致
+select *
+from FFT(
+    DATA => signal PARTITION BY device_id ORDER BY speed,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+
+-- 8. TIME 列降序
+select *
+from FFT(
+    DATA => signal ORDER BY time DESC,
+    SAMPLE_INTERVAL => 1s
+);
+<<SQLSTATE;
+-- 9. SAMPLE_INTERVAL 不是 duration literal
+select *
+from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 1);
+<<SQLSTATE;
+
+-- 10. SAMPLE_INTERVAL 为 0
+select *
+from FFT(DATA => impulse ORDER BY time, SAMPLE_INTERVAL => 0ms);
+<<SQLSTATE;
+
+-- 11. N 为 0
+select *
+from FFT(DATA => impulse ORDER BY time, N => 0);
+<<SQLSTATE;
+
+-- 12. N 超过上限 65536
+select *
+from FFT(DATA => impulse ORDER BY time, N => 65537);
+<<SQLSTATE;
+
+-- 13. NORM 取值非法
+select *
+from FFT(DATA => impulse ORDER BY time, NORM => 'bad');
+<<SQLSTATE;
+
+-- 14. 清理测试数据库
+drop database test_fft;
+<<NULL;

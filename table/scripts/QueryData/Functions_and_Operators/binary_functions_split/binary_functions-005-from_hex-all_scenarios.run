@@ -1,0 +1,199 @@
+-- FROM_HEX：十六进制字符串解码、异常输入及权限校验
+-- 覆盖：正常/边界/空值 3 项；异常输入 4 项；权限 4 项；共 11 项。
+-- 原场景编号：69、70、73、71、72、74、75、231、232、233、234
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- FROM_HEX：小写十六进制字符串解码为 BLOB (P0)
+-- 来源：binary_functions.run，用例 69
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+SELECT from_hex(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：含大写字母的十六进制字符串解码为 BLOB (P1)
+-- 来源：binary_functions.run，用例 70
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656C6C6F');
+SELECT from_hex(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 73
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT from_hex(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- FROM_HEX：奇数长度时报错 (P1)
+-- 来源：binary_functions.run，用例 71
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '123');
+SELECT from_hex(col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：无效字符时报错 (P1)
+-- 来源：binary_functions.run，用例 72
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'xyz');
+SELECT from_hex(col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：传入 0 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 74
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT from_hex() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：传入 2 个参数时报错 (P1)
+-- 来源：binary_functions.run，用例 75
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+SELECT from_hex(col_string, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- FROM_HEX：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 231
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_hex(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：授予数据库级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 232
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_hex(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：授予表级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 233
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT from_hex(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- FROM_HEX：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P0)
+-- 来源：binary_functions.run，用例 234
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '68656c6c6f');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT from_hex(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

@@ -1,0 +1,288 @@
+-- SHA256：SHA256 摘要计算、异常输入及权限校验
+-- 覆盖：正常/边界/空值 4 项；异常输入 9 项；权限 4 项；共 17 项。
+-- 原场景编号：164、165、166、174、167、168、169、170、171、172、173、175、176、307、308、309、310
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- SHA256：STRING 列计算哈希值 (P0)
+-- 来源：binary_functions.run，用例 164
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING, col_text TEXT, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello', '数据', X'68656C6C6F');
+SELECT sha256(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- SHA256：TEXT 列计算哈希值 (P1)
+-- 来源：binary_functions.run，用例 165
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_text TEXT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '数据');
+SELECT sha256(col_text) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- SHA256：BLOB 列计算哈希值 (P1)
+-- 来源：binary_functions.run，用例 166
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_blob BLOB);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), X'68656C6C6F');
+SELECT sha256(col_blob) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- SHA256：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 174
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT sha256(col_string) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- SHA256：传入不支持的 INT32 列时报错
+-- 来源：binary_functions.run，用例 167
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 123);
+SELECT sha256(col_int32) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 INT64 列时报错
+-- 来源：binary_functions.run，用例 168
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int64 INT64);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 456);
+SELECT sha256(col_int64) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 FLOAT 列时报错
+-- 来源：binary_functions.run，用例 169
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.5);
+SELECT sha256(col_float) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 DOUBLE 列时报错
+-- 来源：binary_functions.run，用例 170
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_double DOUBLE);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 2.5);
+SELECT sha256(col_double) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 BOOLEAN 列时报错
+-- 来源：binary_functions.run，用例 171
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_boolean BOOLEAN);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), true);
+SELECT sha256(col_boolean) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 TIMESTAMP 列时报错
+-- 来源：binary_functions.run，用例 172
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_timestamp TIMESTAMP);
+INSERT INTO test.binary_test VALUES (NOW(),NOW(), NOW());
+SELECT sha256(col_timestamp) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入不支持的 DATE 列时报错
+-- 来源：binary_functions.run，用例 173
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_date DATE);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), '2024-01-01');
+SELECT sha256(col_date) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 175
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT sha256() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- SHA256：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 176
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT sha256(col_string, col_string) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- SHA256：授予 ANY 范围 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 307
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT sha256(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- SHA256：授予数据库级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 308
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT sha256(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- SHA256：授予表级 SELECT 权限后查询 STRING 列 (P0)
+-- 来源：binary_functions.run，用例 309
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT sha256(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- SHA256：未授予 SELECT 权限时访问数据库及查询 STRING 列均报错 (P0)
+-- 来源：binary_functions.run，用例 310
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT sha256(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

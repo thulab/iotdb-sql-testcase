@@ -1,0 +1,62 @@
+
+-- [1]7:create database amf_empty_input
+STRICT{
+PASS
+}
+
+-- [1]8:use amf_empty_input
+STRICT{
+PASS
+}
+
+-- [1]9:create table t1(device STRING TAG, value STRING FIELD, marker INT32 FIELD)
+STRICT{
+PASS
+}
+
+-- [1]13:select n=0 as empty_table_ok, f as empty_table_result from (select count(*) as n, approx_most_frequent(value,2,10) as f from t1)
+STRICT{
+empty_table_ok(BOOLEAN)      |empty_table_result(STRING)      |
+-------------------------------------------------------------
+true                         |null                            |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]16:select device, approx_most_frequent(value,2,10) as frequent from t1 group by device order by device
+STRICT{
+device(STRING)      |frequent(STRING)      |
+总数目：0
+}
+Elapsed Time: 0.0.3
+
+-- [1]18:insert into t1(time, device, value, marker) values (1,'g1','a',1), (2,'g2','b',1)
+STRICT{
+0
+}
+Elapsed Time: 0.0.273
+
+-- [1]19:select count(*)=2 as populated_input_ok from t1
+STRICT{
+populated_input_ok(BOOLEAN)      |
+---------------------------------
+true                             |
+总数目：1
+}
+Elapsed Time: 0.0.6
+
+-- [1]21:select n=0 as filtered_empty_ok, f as filtered_empty_result from (select count(*) as n, approx_most_frequent(value,2,10) as f from t1 where time<0)
+STRICT{
+filtered_empty_ok(BOOLEAN)      |filtered_empty_result(STRING)      |
+-------------------------------------------------------------------
+true                            |null                               |
+总数目：1
+}
+Elapsed Time: 0.0.5
+
+-- [1]24:select device, approx_most_frequent(value,2,10) as frequent from t1 where time<0 group by device order by device
+STRICT{
+device(STRING)      |frequent(STRING)      |
+总数目：0
+}
+Elapsed Time: 0.0.4

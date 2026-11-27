@@ -1,0 +1,213 @@
+-- TO_IEEE754_32：FLOAT 的 IEEE754 编码、异常输入及权限校验
+-- 覆盖：正常/边界/空值 4 项；异常输入 4 项；权限 4 项；共 12 项。
+-- 原场景编号：144、145、146、147、148、149、150、151、291、292、293、294
+-- 各子场景独立初始化和清理；按顺序串行执行。
+
+-- ============================================================
+-- 正常功能、边界值及空值场景
+-- ============================================================
+
+-- TO_IEEE754_32：FLOAT 正数编码为 IEEE754 BLOB (P0)
+-- 来源：binary_functions.run，用例 144
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+SELECT to_ieee754_32(col_float) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：FLOAT 负数编码为 IEEE754 BLOB (P1)
+-- 来源：binary_functions.run，用例 145
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), -1.0);
+SELECT to_ieee754_32(col_float) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：FLOAT 零值编码为 IEEE754 BLOB (P1)
+-- 来源：binary_functions.run，用例 146
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 0.0);
+SELECT to_ieee754_32(col_float) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：输入为 NULL 时的处理 (P1)
+-- 来源：binary_functions.run，用例 147
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), NULL);
+SELECT to_ieee754_32(col_float) FROM test.binary_test;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 类型、参数数量及非法输入场景
+-- ============================================================
+
+-- TO_IEEE754_32：传入不支持的 DOUBLE 列时报错
+-- 来源：binary_functions.run，用例 148
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_double DOUBLE);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+SELECT to_ieee754_32(col_double) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：传入不支持的 INT32 列时报错
+-- 来源：binary_functions.run，用例 149
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_int32 INT32);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1);
+SELECT to_ieee754_32(col_int32) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：传入 0 个参数时报错
+-- 来源：binary_functions.run，用例 150
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_string STRING);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 'hello');
+SELECT to_ieee754_32() FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：传入 2 个参数时报错
+-- 来源：binary_functions.run，用例 151
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col_float FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+SELECT to_ieee754_32(col_float, col_float) FROM test.binary_test;
+<<SQLSTATE;
+drop database test;
+<<NULL;
+
+-- ============================================================
+-- 权限范围及无权限场景
+-- ============================================================
+
+-- TO_IEEE754_32：授予 ANY 范围 SELECT 权限后查询 FLOAT 列 (P0)
+-- 来源：binary_functions.run，用例 291
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+create user user1 '@Pass1234567';
+GRANT SELECT ON ANY TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_ieee754_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：授予数据库级 SELECT 权限后查询 FLOAT 列 (P0)
+-- 来源：binary_functions.run，用例 292
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+create user user1 '@Pass1234567';
+GRANT SELECT ON DATABASE test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_ieee754_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：授予表级 SELECT 权限后查询 FLOAT 列 (P0)
+-- 来源：binary_functions.run，用例 293
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+create user user1 '@Pass1234567';
+GRANT SELECT ON TABLE test.binary_test TO USER user1;
+connect user1/@Pass1234567;
+use test;
+SELECT to_ieee754_32(col) FROM test.binary_test;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;
+
+-- TO_IEEE754_32：未授予 SELECT 权限时访问数据库及查询 FLOAT 列均报错 (P0)
+-- 来源：binary_functions.run，用例 294
+
+connect root/TimechoDB@2021;
+drop database test;
+<<NULL;
+create database test;
+use test;
+CREATE TABLE test.binary_test(ts TIMESTAMP, col FLOAT);
+INSERT INTO test.binary_test VALUES (NOW(), NOW(), 1.0);
+create user user1 '@Pass1234567';
+connect user1/@Pass1234567;
+use test;
+<<SQLSTATE;
+SELECT to_ieee754_32(col) FROM test.binary_test;
+<<SQLSTATE;
+connect root/TimechoDB@2021;
+drop user user1;
+drop database test;
+<<NULL;

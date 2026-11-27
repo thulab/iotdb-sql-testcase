@@ -1,0 +1,46 @@
+// FILL_GROUP位置为零时拒绝
+// 功能：FILL METHOD NEXT 后值填充验证
+// 来源：fill_method_next.run
+// 环境：仅在专用测试实例执行；每个文件独立清理并准备所需数据。
+
+connect root/TimechoDB@2021;
+
+--0. 清理同名测试数据库
+drop database test_db;
+<<NULL;
+
+--1. 创建测试数据库
+create database test_db;
+use test_db;
+
+--2. 创建本用例所需表和字段
+create table t_group(
+  plant_id STRING TAG,
+  temperature FLOAT FIELD
+);
+
+--3. 插入测试数据
+insert into t_group(time, plant_id, temperature) values
+(1000, 'plant_a', null);
+insert into t_group(time, plant_id, temperature) values
+(1010, 'plant_b', 31.0);
+insert into t_group(time, plant_id, temperature) values
+(1020, 'plant_a', 16.0);
+insert into t_group(time, plant_id, temperature) values
+(1030, 'plant_a', 21.0);
+insert into t_group(time, plant_id, temperature) values
+(1090, 'plant_a', null);
+insert into t_group(time, plant_id, temperature) values
+(1150, 'plant_a', 40.0);
+
+--4. 验证：FILL_GROUP位置为零时拒绝
+select time, plant_id, temperature
+from t_group
+FILL METHOD NEXT FILL_GROUP 0
+order by time;
+<<SQLSTATE;
+
+--5. 清理环境
+connect root/TimechoDB@2021;
+drop database test_db;
+<<NULL;
